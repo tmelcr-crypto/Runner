@@ -1,0 +1,233 @@
+'use strict';
+/* ---------- 6. GAMEPLAY: state, wanted level, combat, vehicles in/out ---------- */
+let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play | dying | over
+try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
+const DIR_ANG = [0, Math.PI / 2, Math.PI, -Math.PI / 2];   // 0 east, 1 south, 2 west, 3 north
+const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+  heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
+const cam = { x: W / 2, y: W / 2, zoom: 1, shake: 0 };
+let boomFlash = null;
+const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
+cv.addEventListener('mousemove', () => { if (!touchMode) P.mouseOn = true; });
+
+function addHeat(n) { P.heat = Math.min(260, P.heat + n); P.sinceCrime = 0; updateStars(); }
+function updateStars() {
+  let s = 0; for (let k = 0; k < 5; k++) if (P.heat >= STAR_AT[k]) s = k + 1;
+  if (s > P.stars) toast('WANTED LEVEL ' + s, true); else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');
+  P.stars = s; P.maxStars = Math.max(P.maxStars, s);
+}
+function addScore(n, x, y, label) { P.score += n; if (x !== undefined) popup(x, y - 14, '+' + n + (label ? ' ' + label : '')); }
+/* Cops only react to what they perceive: they SEE you inside an 80 degree cone, within COP_SIGHT and with nothing in the way,
+   or they HEAR gunfire inside the weapon's hearing radius (pistol 140, MG 200) / blasts (300). Seen or heard crimes raise your heat. */
+const IMPACT_HEAR = 50;   // cops also hear bullets landing this close to them
+const COP_SIGHT = 450, COP_FOV = 80 * Math.PI / 180, BLAST_HEAR = 300;
+function copSees(ex, ey, face, px, py) {
+  const d = dist(ex, ey, px, py); if (d > COP_SIGHT) return false;
+  if (d > 1 && Math.abs(angDiff(face, Math.atan2(py - ey, px - ex))) > COP_FOV / 2) return false;
+  return losClear(ex, ey, px, py);
+}
+function reportCrime(n, hear, ix, iy) {
+  const px = P.x, py = P.y; let w = false;
+  const test = (x, y, face) => { if (w) return; if (hear && dist(x, y, px, py) < hear) w = true; else if (ix !== undefined && dist(x, y, ix, iy) < IMPACT_HEAR) w = true; else if (copSees(x, y, face, px, py)) w = true; };
+  for (const c of cars) if (c.type === 'police' && c.driver && c.driver !== 'player' && !c.dead) test(c.x + Math.cos(c.ang) * c.t.len * 0.3, c.y + Math.sin(c.ang) * c.t.len * 0.3, c.ang);
+  for (const q of peds) if (q.cop && !q.dead) test(q.x, q.y, q.hd || 0);
+  for (const o of officers) if (!o.dead) test(o.x, o.y, o.ang);
+  if (w) addHeat(n);
+  return w;
+}
+function alertPeds(x, y, r) {
+  for (const p of peds) if (!p.dead && !p.cop && dist(p.x, p.y, x, y) < r) { p.state = 'flee'; p.fl = rand(3, 6); p.fx = p.x - x; p.fy = p.y - y; }
+}
+function killPed(p, how, byPlayer, ang) {
+  if (p.dead) return; p.dead = true; p.deadT = 0; bloodFx(p.x, p.y, 14, ang);
+  if (decals.length < 120) decals.push({ x: p.x, y: p.y, r: rand(8, 13), life: 50, blood: true });
+  if (byPlayer) { P.kills++; addScore(how === 'car' ? 100 : 50, p.x, p.y, how === 'car' ? 'ROADKILL' : ''); if (p.cop) addHeat(40); else reportCrime(how === 'car' ? 20 : 22, 0); }
+  alertPeds(p.x, p.y, 300);
+}
+function killOfficer(o, byPlayer) {
+  if (o.dead) return; o.dead = true; o.deadT = 0; bloodFx(o.x, o.y, 16);
+  if (byPlayer) { P.kills++; addScore(200, o.x, o.y, 'COP DOWN'); addHeat(18); }
+}
+function damagePlayer(d) {
+  if (P.dead || state === 'over') return;
+  P.hp -= d; P.hurtT = 0.25; Snd.hurt(); cam.shake = Math.max(cam.shake, 4);
+  if (P.hp <= 0) killPlayer();
+}
+function killPlayer() {
+  P.hp = 0; P.dead = true; deadTimer = 0; state = 'dying'; bloodFx(P.x, P.y, 30);
+  if (P.car) { P.car.driver = null; P.car.thr = 0; P.car.str = 0; P.car = null; }
+  $('wasted').style.display = 'flex';
+}
+function damageCar(c, d, byPlayer) {
+  if (c.dead || d <= 0) return;
+  c.hp -= d; if (byPlayer) c.byPlayer = true;
+  if (byPlayer && c.type === 'police') reportCrime(Math.min(8, d * 0.25), 0);
+  if (c.hp <= 0 && c.burn <= 0) {
+    c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
+    if (c.driver === 'ai' || c.driver === 'cop') c.driver = null;
+  }
+}
+function explosion(x, y, R, src) {
+  boomFlash = { x, y, t: 0.5 };
+  Snd.boom(); cam.shake = Math.max(cam.shake, 16 * (1 - Math.min(1, dist(x, y, cam.x, cam.y) / 900)));
+  ringFx(x, y, R);
+  for (let k = 0; k < 22; k++) fireFx(x + rand(-14, 14), y + rand(-14, 14));
+  for (let k = 0; k < 14; k++) smokeFx(x, y, true);
+  spark(x, y, 18, '#ffb347');
+  if (decals.length < 120) decals.push({ x, y, r: R * 0.45, life: 70, scorch: true });
+  const byP = src && src.byPlayer;
+  for (const p of peds) if (!p.dead && dist(p.x, p.y, x, y) < R) killPed(p, 'blast', byP);
+  for (const o of officers) if (!o.dead && dist(o.x, o.y, x, y) < R) killOfficer(o, byP);
+  for (const c of cars) {
+    if (c === src || c.dead) continue; const d = dist(c.x, c.y, x, y);
+    if (d < R + 20) { damageCar(c, 110 * (1 - d / (R + 20)), byP); const m = Math.max(1, d); c.vx += (c.x - x) / m * 220; c.vy += (c.y - y) / m * 220; }
+  }
+  if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
+}
+function explodeCar(c) {
+  c.burn = 0; c.dead = true; c.deadT = 0; c.hp = 0;
+  const wasPlayer = P.car === c;
+  if (wasPlayer) exitCar(true);
+  explosion(c.x, c.y, 130, c);
+  if (wasPlayer) damagePlayer(45);
+  if (c.byPlayer && c.type === 'police') { addScore(300, c.x, c.y, 'COP CAR'); reportCrime(25, BLAST_HEAR); }
+  else if (c.byPlayer) addScore(60, c.x, c.y, 'BOOM');
+  c.vx *= 0.2; c.vy *= 0.2; c.driver = null;
+}
+
+function raycast(ox, oy, ang, range) {
+  const dx = Math.cos(ang), dy = Math.sin(ang); let bt = range, type = null, obj = null;
+  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = rayRect(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
+  for (const p of peds) { if (p.dead || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }
+  for (const o of officers) { if (o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
+  for (const c of cars) {
+    if (P.car === c || Math.abs(c.x - ox) > range + 60 || Math.abs(c.y - oy) > range + 60) continue;
+    for (const q of carCircles(c)) { const t = rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]); if (t < bt) { bt = t; type = 'car'; obj = c; } }
+  }
+  return { x: ox + dx * bt, y: oy + dy * bt, type, obj, t: bt, dx, dy };
+}
+function startReload(wi) {
+  const w = WEAPONS[wi]; if (P.relW >= 0 || P.mag[wi] >= w.mag || P.ammo[wi] <= 0) return false;
+  P.relW = wi; P.rel = 0; Snd.tone(200, 120, 0.08, 0.1, 'square'); return true;
+}
+function updateReload(dt) {
+  if (P.relW >= 0) {
+    if (P.relW !== P.weapon || P.dead) { P.relW = -1; return; }          // switching weapons throws the reload away
+    P.rel += dt;
+    if (P.rel >= RELOAD_T) {
+      const wi = P.relW, take = Math.min(WEAPONS[wi].mag - P.mag[wi], P.ammo[wi]);
+      P.mag[wi] += take; P.ammo[wi] -= take; P.relW = -1; Snd.tone(420, 300, 0.07, 0.12, 'square');
+    }
+  } else if (!P.dead && P.mag[P.weapon] <= 0) startReload(P.weapon);
+}
+function fireWeapon() {
+  const w = WEAPONS[P.weapon]; if (P.cool > 0 || P.relW >= 0) return;
+  if (P.mag[P.weapon] <= 0) { if (!P.dry) { Snd.tone(120, 90, 0.06, 0.12, 'square'); P.dry = true; } P.cool = 0.3; return; }
+  P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
+  const a = P.ang + rand(-w.spread, w.spread);
+  const h = raycast(P.x, P.y, a, w.range);
+  const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
+  tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: 0.06 });
+  if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) addHeat(30); else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
+  else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); }
+  else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * 0.55, true); }
+  else if (h.type === 'wall') spark(h.x, h.y, 4);
+  Snd.shot(P.weapon === 1); alertPeds(P.x, P.y, 380); reportCrime(w.heat, w.hear, h.x, h.y);
+  cam.shake = Math.max(cam.shake, P.weapon === 1 ? 2.2 : 3);
+}
+
+function pedBlocked(x, y) {
+  nearBuildings(x, y, _nb); for (const rc of _nb) if (circleRect(x, y, 9, rc)) return true; return false;
+}
+function exitCar(forced) {
+  const c = P.car; if (!c) return;
+  const fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, s = c.t.wid / 2 + 14, l = c.t.len / 2 + 14;
+  const spots = [[rx * s, ry * s], [-rx * s, -ry * s], [-fx * l, -fy * l], [fx * l, fy * l]];
+  let sp = spots[0];
+  for (const o of spots) { if (!pedBlocked(c.x + o[0], c.y + o[1])) { sp = o; break; } }
+  P.x = clamp(c.x + sp[0], BX0 + 10, BX1 - 10); P.y = clamp(c.y + sp[1], BY0 + 10, BY1 - 10); P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
+  c.driver = null; c.thr = 0; c.str = 0; c.hb = false; P.car = null;
+}
+function enterCar(c) {
+  if (c.driver === 'ai' || c.driver === 'cop') {
+    const cop = c.driver === 'cop' || c.type === 'police';
+    const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30, 0, 0, 0, 1);
+    ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
+    reportCrime(cop ? 35 : 20, 0); addScore(50, c.x, c.y, 'CARJACK');
+  } else if (c.type === 'police') reportCrime(25, 0);
+  else reportCrime(5, 0);
+  c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
+}
+function tryEnterExit() {
+  if (P.act) { const a = P.act; P.act = null; if (a.k === 'start' && P.car) exitCar(); return; }      // tap again to give up
+  if (P.car) { exitCar(); return; }
+  const c = nearestCar(); if (!c) return;
+  const occ = c.driver === 'ai' || c.driver === 'cop';
+  P.act = { k: 'steal', c, t: 0, dur: occ ? 5 : 3, occ }; P.vx = P.vy = 0;       // the driver stays put until the time is up
+}
+function updateAct(dt) {
+  const a = P.act, c = a.c;
+  if (P.dead || (a.k === 'steal' && (c.dead || c.sunk || P.car)) || (a.k === 'start' && P.car !== c)) { P.act = null; return; }
+  a.t += dt;
+  if (a.k === 'steal') {
+    if (a.occ) { P.x = c.x; P.y = c.y; P.vx = c.vx; P.vy = c.vy; }
+    else if (c.driver === 'ai' || c.driver === 'cop') { P.act = null; return; }
+    if (a.t >= a.dur) { enterCar(c); P.act = a.occ ? null : { k: 'start', c, t: 0, dur: 3, occ: false }; }
+  } else if (a.t >= a.dur) P.act = null;
+}
+function nearestCar() {
+  let best = null, bd = 1e9;
+  for (const c of cars) {
+    if (c.dead) continue; const d = dist(P.x, P.y, c.x, c.y);
+    if (d < 48 + c.t.len * 0.25 && d < bd) { best = c; bd = d; }
+  }
+  return best;
+}
+
+function updatePlayer(dt, inp) {
+  P.cool -= dt; P.flash -= dt; P.hurtT -= dt; P.sinceCrime += dt;
+  if (P.act) updateAct(dt);
+  if (P.act && P.act.k === 'start' && P.car) { const c = P.car; c.thr = 0; c.str = 0; c.hb = true; c.assist = false; c.fs = 0; P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; return; }
+  if (P.act && P.act.k === 'steal') { if (!P.act.occ) { P.vx = P.vy = 0; } P.cool = Math.max(P.cool, 0.1); return; }
+  if (P.car) {
+    const c = P.car, sm = Math.hypot(TS.mx, TS.my);
+    if (touchMode && sm > 0.12) {          // joystick = where you want to go; gear D drives that way, gear R backs toward it
+      const mag = Math.min(1, sm), want = Math.atan2(TS.my, TS.mx), rev = P.gear === 'R';
+      const diff = angDiff(c.ang, rev ? want + Math.PI : want), turn = clamp(diff * 3.2, -1, 1);
+      c.str = rev ? -turn : turn; c.assist = true; c.fs = rev ? -1 : 1;
+      const gas = clamp(Math.max(0.4, mag) * (1 - 0.4 * Math.min(1, Math.abs(diff) / Math.PI)), 0, 1);
+      c.thr = rev ? -gas : gas;
+    } else if (touchMode) { c.thr = 0; c.str = 0; c.assist = false; c.fs = 0; }
+    else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
+    c.hb = inp.sprint;
+    P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
+    return;
+  }
+  const mg = inp.mag === undefined ? Math.min(1, Math.hypot(inp.ix, inp.iy)) : inp.mag;
+  if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
+  const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
+  // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
+  const gait = (mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(45, 95, (mg - 0.4) / 0.4) : lerp(125, 165, (mg - 0.8) / 0.2)) * SPEED_K;
+  const sp = (inp.sprint && mg > 0.4 ? 235 * SPEED_K : gait) * wk, m = Math.hypot(inp.ix, inp.iy) || 1;
+  const k = 1 - Math.exp(-14 * dt);
+  P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
+  P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;
+  resolveCircle(P, 7);
+  { const d2 = Math.max(0, -shoreDist(P.x, P.y));
+    if (d2 > 0 && Math.hypot(P.vx, P.vy) > 30 && Math.random() < dt * 14) splashFx(P.x, P.y, 2);
+    if (d2 > 0 && !P.wet) splashFx(P.x, P.y, 8); P.wet = d2 > 0;
+    if (d2 > WADE - 12 && Math.hypot(inp.ix, inp.iy) > 0.2 && (P.deepT = (P.deepT || 0) - dt) <= 0) { P.deepT = 2.5; toast('TOO DEEP TO SWIM'); } }
+  for (const c of cars) {
+    if (Math.abs(c.x - P.x) > 90 || Math.abs(c.y - P.y) > 90) continue;
+    for (const q of carCircles(c)) {
+      const dx = P.x - q[0], dy = P.y - q[1], d = Math.hypot(dx, dy), rr = q[2] + 7;
+      if (d < rr && d > 0.001) {
+        P.x += dx / d * (rr - d); P.y += dy / d * (rr - d);
+        const s2 = carSpeed(c); if (s2 > 130 && !c.dead) { damagePlayer((s2 - 90) * 0.12); P.vx += c.vx * 0.4; P.vy += c.vy * 0.4; }
+      }
+    }
+  }
+  updateReload(dt);
+  if (inp.fire && !P.dead && (WEAPONS[P.weapon].auto || !P.trig)) fireWeapon(); if (!inp.fire) P.dry = false; P.trig = inp.fire;
+}
+

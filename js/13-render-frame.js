@@ -1,0 +1,18 @@
+'use strict';
+/* ---------- 7d. FRAME RENDER ---------- */
+let lastRenderT = 0;
+function render(time) {
+  frameId++; const dt = clamp(time - lastRenderT, 0.001, 0.05) || 0.016; lastRenderT = time;
+  placeCamera(true);
+  for (const c of cars) syncCar(c, time, dt);
+  for (const p of peds) syncPerson(p, p.cop ? 'officer' : 'ped', time, dt);
+  for (const o of officers) syncPerson(o, 'officer', time, dt);
+  for (const p of pickups) syncPickup(p, time);
+  if (waterTex) { waterTex.offset.x = time * 0.012; waterTex.offset.y = Math.sin(time * 0.4) * 0.03; } if (foamMat) foamMat.opacity = 0.45 + 0.25 * Math.sin(time * 1.6);
+  sweepDynamic(); syncPlayer(time, dt); fadeBuildings();
+  gfxParticles(); gfxTracers(); gfxDecals(); gfxSkids(); gfxPops();
+  if (boomFlash) { boomFlash.t -= dt; boomLight.position.set(boomFlash.x, 50, boomFlash.y); boomLight.intensity = Math.max(0, boomFlash.t / 0.5) * 3.2; if (boomFlash.t <= 0) boomFlash = null; } else boomLight.intensity = 0;
+  $('hurt').style.opacity = P.hurtT > 0 ? Math.min(0.5, P.hurtT * 1.6) : 0;
+  renderer.render(scene, camera);
+}
+rendererReady = true; applySize();

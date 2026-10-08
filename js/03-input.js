@@ -1,0 +1,84 @@
+'use strict';
+/* ---------- 3. INPUT (keyboard, mouse, touch) ---------- */
+const keys = {}, pressed = {};
+const mouse = { x: 0, y: 0, down: false };
+const TS = { mx: 0, my: 0, ax: 0, ay: 0, aim: false, fire: false, tap: 0, sprint: false };  // touch state
+let touchMode = false;
+
+addEventListener('keydown', e => {
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (!keys[e.code]) pressed[e.code] = true;
+  keys[e.code] = true;
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouse.down = false; });
+cv.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+cv.addEventListener('mousedown', e => { if (e.button === 0 && !touchMode) { mouse.down = true; mouse.x = e.clientX; mouse.y = e.clientY; } });
+addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; });
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('wheel', e => { pressed.wheel = e.deltaY > 0 ? 1 : -1; e.preventDefault(); }, { passive: false });
+
+function enableTouch() { if (touchMode) return; touchMode = true; document.documentElement.classList.add('touch-on'); }
+if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enableTouch();
+addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouch(); }, true);
+
+function bindStick(zone, ring, knob, onMove, onEnd) {
+  let id = null, ox = 0, oy = 0; const R = 55;
+  zone.addEventListener('pointerdown', e => {
+    if (id !== null) return; id = e.pointerId;
+    try { zone.setPointerCapture(id); } catch (err) { }
+    ox = e.clientX; oy = e.clientY;
+    ring.style.display = 'block'; ring.style.left = (ox - 60) + 'px'; ring.style.top = (oy - 60) + 'px';
+    knob.style.transform = 'translate(0,0)'; onMove(0, 0); e.preventDefault();
+  });
+  zone.addEventListener('pointermove', e => {
+    if (e.pointerId !== id) return;
+    let dx = e.clientX - ox, dy = e.clientY - oy; const m = Math.hypot(dx, dy);
+    if (m > R) { dx = dx / m * R; dy = dy / m * R; }
+    knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; onMove(dx / R, dy / R); e.preventDefault();
+  });
+  const end = e => { if (e.pointerId !== id) return; id = null; ring.style.display = 'none'; onEnd(); };
+  zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
+}
+bindStick($('zl'), $('rl'), $('kl'), (x, y) => { TS.mx = x; TS.my = y; }, () => { TS.mx = 0; TS.my = 0; });
+function bindBtn(el, down, up) {
+  el.addEventListener('pointerdown', e => { el.classList.add('down'); down(); e.preventDefault(); });
+  const end = () => { el.classList.remove('down'); if (up) up(); };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('pointerleave', end);
+}
+bindBtn($('bFire'), () => { TS.fire = true; TS.tap = 3; }, () => { TS.fire = false; });
+bindBtn($('bAct'), () => { pressed.KeyE = true; });
+bindBtn($('bDash'), () => { TS.sprint = true; }, () => { TS.sprint = false; });
+$('w0').addEventListener('pointerdown', e => { pressed.Digit1 = true; e.preventDefault(); });
+$('w1').addEventListener('pointerdown', e => { pressed.Digit2 = true; e.preventDefault(); });
+$('mute').addEventListener('click', () => { pressed.KeyM = true; });
+function updateGearUi() {
+  $('gD').classList.toggle('on', P.gear === 'D'); $('gR').classList.toggle('on', P.gear === 'R');
+  $('lever').style.top = P.gear === 'R' ? '0px' : 'calc(100% - 60px)';
+}
+function setGear(g) {                       // like the real dial: only shifts when you are nearly stopped
+  if (P.gear === g || !P.car) return; const c = P.car;
+  if (Math.abs(c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang)) > 90 * SPEED_K) { toast('SLOW DOWN TO SHIFT', true); return; }
+  P.gear = g; updateGearUi(); Snd.tone(320, 180, 0.06, 0.12, 'square');
+}
+bindBtn($('gR'), () => setGear('R')); bindBtn($('gD'), () => setGear('D'));
+(function () {                              // drag or tap the stick up for R, down for D
+  const slot = $('slot'), lever = $('lever'); let drag = false;
+  const aim = e => { const r = slot.getBoundingClientRect(); setGear((e.clientY - r.top) / r.height < 0.5 ? 'R' : 'D'); };
+  slot.addEventListener('pointerdown', e => { drag = true; try { slot.setPointerCapture(e.pointerId); } catch (err) { } lever.classList.add('down'); aim(e); e.preventDefault(); });
+  slot.addEventListener('pointermove', e => { if (drag) aim(e); });
+  const end = () => { drag = false; lever.classList.remove('down'); };
+  slot.addEventListener('pointerup', end); slot.addEventListener('pointercancel', end);
+})();
+
+function readInput() {
+  let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
+  let iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
+  if (Math.hypot(TS.mx, TS.my) > 0.12) { ix += TS.mx; iy += TS.my; }
+  ix = clamp(ix, -1, 1); iy = clamp(iy, -1, 1);
+  const tm = Math.hypot(TS.mx, TS.my), kk = Math.hypot((keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0));
+  const mag = Math.max(Math.min(1, tm), kk > 0 ? (keys.ShiftLeft || keys.ShiftRight ? 0.6 : 1) : 0);   // stick offset 0..1; keys run, Shift walks
+  const tapFire = TS.tap > 0; if (tapFire) TS.tap--;
+  return { ix, iy, mag, sprint: !!keys.Space || TS.sprint, fire: mouse.down || !!keys.KeyJ || TS.fire || tapFire };
+}
+
