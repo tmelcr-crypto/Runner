@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Block Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="vig"></div>
+<div id="hurt"></div>
+
+<div id="hud" hidden>
+  <div id="popLayer"></div>
+  <div class="hud-tl">
+    <div class="box"><span class="lbl">SCORE</span><span id="score">00000000</span></div>
+    <div class="box"><span class="lbl">HEALTH</span><div id="hpSegs"></div></div>
+    <div class="box"><div class="ammoRow"><span class="lbl" id="wname">PISTOL</span><span id="ammo">07 / 060</span></div><div id="reload"><i></i><span></span></div></div>
+  </div>
+  <div class="hud-tr">
+    <canvas id="mini" width="280" height="280"></canvas>
+    <div id="stars" class="box"></div>
+  </div>
+  <div id="weaponbar">
+    <button id="w0" type="button"><b>1</b>PISTOL</button>
+    <button id="w1" type="button"><b>2</b>MG</button>
+    <button id="mute" type="button">SND</button>
+  </div>
+  <div id="hint"></div>
+  <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
+  <div id="toast"></div>
+  <div id="wasted">WASTED</div>
+</div>
+
+<div id="touch">
+  <div class="ghost" id="gl">MOVE<br>DRIVE</div>
+  <div class="zone" id="zl"><div class="ring" id="rl"><div class="knob" id="kl"></div></div></div>
+  <button class="tbtn" id="bFire" type="button">FIRE</button>
+  <button class="tbtn" id="bAct" type="button">ENTER<br>EXIT</button>
+  <button class="tbtn" id="bDash" type="button">DASH<br>BRAKE</button>
+  <div id="shifter" hidden>
+    <span class="lbl slbl">GEAR</span>
+    <div class="gate">
+      <button id="gR" type="button" class="gbtn">R</button>
+      <button id="gD" type="button" class="gbtn on">D</button>
+      <div id="slot"><div id="lever"><b></b></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="pv" hidden>
+  <button id="pvBack" class="big" type="button">BACK</button>
+  <button id="pvView" class="big alt" type="button">VIEW</button>
+  <button id="pvL" class="big alt" type="button">&#10226;</button>
+  <button id="pvR" class="big alt" type="button">&#10227;</button>
+  <span id="pvInfo"></span>
+</div>
+
+<div id="overlay">
+  <div class="card" id="startCard">
+    <h1>BLOCK<br>RUNNER</h1>
+    <p class="tag">TOP-DOWN CRIME SPREE '97</p>
+    <div class="ctl">
+      <div><h3>ON FOOT</h3><ul>
+        <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> pistol tap, MG hold</li><li><b>R</b> reload (5 s)</li>
+        <li><b>SPACE</b> sprint</li><li><b>1 / 2 / WHEEL</b> weapon</li><li><b>E or F</b> enter / exit car</li></ul></div>
+      <div><h3>IN A CAR</h3><ul>
+        <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
+        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>M</b> mute sound</li></ul></div>
+      <div><h3>TOUCH</h3><ul>
+        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap pistol, hold MG</li>
+        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>TOP BAR</b> pick weapon</li></ul></div>
+    </div>
+    <button id="startBtn" class="big" type="button">PRESS TO START</button>
+    <p class="small" style="margin-top:18px"><button id="loadMap" class="big alt" type="button">LOAD CITY FILE (PREVIEW)</button><input id="mapFile" type="file" accept=".json,application/json" hidden></p>
+    <p class="small" id="loadMsg"></p>
+    <p class="small">Steal a car, make trouble, outrun the police. Enter also starts.</p>
+  </div>
+  <div class="card" id="overCard" hidden>
+    <h1>WASTED</h1>
+    <div class="stats">
+      <span>SCORE</span><span id="oScore">0</span>
+      <span>BEST</span><span id="oBest">0</span>
+      <span>KILLS</span><span id="oKills">0</span>
+      <span>TOP WANTED</span><span id="oStars">0</span>
+      <span>SURVIVED</span><span id="oTime">0:00</span>
+    </div>
+    <button id="againBtn" class="big" type="button">PLAY AGAIN</button>
+    <p class="small">Press R or Enter to restart.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/01-config.js"></script>
+<script src="js/02-audio.js"></script>
+<script src="js/03-input.js"></script>
+<script src="js/04-world.js"></script>
+<script src="js/05-entities.js"></script>
+<script src="js/06-gameplay.js"></script>
+<script src="js/07-vehicles-traffic-police.js"></script>
+<script src="js/08-pedestrians-pickups-spawning.js"></script>
+<script src="js/09-render-core-buildings.js"></script>
+<script src="js/10-render-city-edges.js"></script>
+<script src="js/11-render-dynamic-meshes.js"></script>
+<script src="js/12-render-effects.js"></script>
+<script src="js/13-render-frame.js"></script>
+<script src="js/14-hud-minimap.js"></script>
+<script src="js/15-game-flow-loop.js"></script>
+<script src="js/16-octagrid-map-preview.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
