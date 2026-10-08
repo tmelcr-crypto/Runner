@@ -52,6 +52,12 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #vbar i{display:block;height:100%;width:100%;background:var(--good)}
 #vinfo{margin-top:5px;color:var(--dim);font-size:18px}
 #hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom,0px));font-family:var(--f-display);font-size:9px;color:var(--yellow);text-shadow:2px 2px 0 #000;white-space:nowrap}
+#zone{font-family:var(--f-display);font-size:9px;color:var(--cyan);text-shadow:2px 2px 0 #000;opacity:0;white-space:nowrap}
+#zone.show{animation:zone 3.2s ease-out forwards}
+@keyframes zone{0%{opacity:0;transform:translateY(-6px)}12%,75%{opacity:1;transform:none}100%{opacity:0}}
+#bigmap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(7,3,15,.86);pointer-events:auto;cursor:pointer}
+#bigmap[hidden]{display:none}
+#bigCv{border:3px solid var(--line);box-shadow:6px 6px 0 #000}
 #toast{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-family:var(--f-display);font-size:14px;text-align:center;color:var(--yellow);text-shadow:3px 3px 0 #000;opacity:0;white-space:nowrap}
 #toast.show{animation:toast 1.8s ease-out forwards}
 #toast.bad{color:var(--hot)}

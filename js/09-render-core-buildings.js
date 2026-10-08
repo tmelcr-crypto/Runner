@@ -10,7 +10,7 @@ catch (e) {
 }
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(OUTSIDE_HEX);
-scene.fog = new THREE.Fog(OUTSIDE_HEX, 1500, 3400);
+scene.fog = new THREE.Fog(OUTSIDE_HEX, 1700, 3800);
 const camera = new THREE.PerspectiveCamera(CAM_FOV, 1, 30, 7000);
 scene.add(new THREE.HemisphereLight(0x8a7cff, 0x2a1245, 0.95));
 const sun = new THREE.DirectionalLight(0x9fc4ff, 0.6); sun.position.set(-600, 1000, -400); scene.add(sun);   // sun in the north-west, shadows fall south-east
@@ -37,14 +37,12 @@ function screenToWorld(sx, sy) {      // mouse position -> point on the ground (
   placeCamera(false); _v2.set(sx / VW * 2 - 1, -(sy / VH) * 2 + 1); _ray.setFromCamera(_v2, camera);
   return _ray.ray.intersectPlane(_pl, _hit) ? { x: _hit.x, y: _hit.z } : { x: cam.x, y: cam.y };
 }
-function groundH(x, y) {              // sidewalks and parks sit SIDE_H above the road
-  if (x < 0 || y < 0 || x >= W || y >= W) {            // outside the grid: beach sand rising out of the water, or building podium
-    const d = shoreDist(x, y);
-    if (d >= 1e8) return SIDE_H;
-    return d <= 0 ? 0 : d < 30 ? 0.15 + (SIDE_H - 0.15) * d / 30 : SIDE_H;
-  }
-  if (x >= N * CELL || y >= N * CELL) return 0;
-  return (x % CELL >= ROAD && y % CELL >= ROAD) ? SIDE_H : 0;
+const PAD = 10;                        // raised pavement around every building
+const _gh = [];
+function groundH(x, y) {              // the ground is flat; only the pavement around buildings sits SIDE_H higher
+  bHash.query(x - PAD, y - PAD, x + PAD, y + PAD, _gh);
+  for (const r of _gh) if (r.pad && inSolid(x, y, r, PAD)) return SIDE_H;
+  return 0;
 }
 
 /* shared geometry and materials */
@@ -191,7 +189,7 @@ let cityGroup = null;
 function instanced(geo, mat, items) {
   const m = new THREE.InstancedMesh(geo, mat, Math.max(1, items.length)), d = new THREE.Object3D(), col = new THREE.Color();
   items.forEach((it, k) => {
-    d.position.set(it.x, it.y, it.z); d.scale.set(it.sx, it.sy, it.sz); d.rotation.set(0, 0, 0); d.updateMatrix();
+    d.position.set(it.x, it.y, it.z); d.scale.set(it.sx, it.sy, it.sz); d.rotation.set(0, it.ry || 0, 0); d.updateMatrix();
     m.setMatrixAt(k, d.matrix); col.set(it.c); m.setColorAt(k, col);
   });
   m.count = items.length; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
@@ -248,22 +246,25 @@ const SIGNTEX = (() => {                              // 2 x 8 cells of glowing 
 const signUV = k => { const cx = k % 2, ry = Math.floor(k / 2), u0 = cx * 0.5, u1 = u0 + 0.5, v1 = 1 - ry / 8, v0 = v1 - 1 / 8; return [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]; };
 function makeBuilding(r) {
   const x0 = r.x, x1 = r.x + r.w, z0 = r.y, z1 = r.y + r.h, y0 = SIDE_H, e = 1.5;
-  const kind = r.kind || (r.H >= 108 ? pick(['glass', 'deco']) : pick(['office', 'apartment', 'apartment', 'brick', 'brick', 'warehouse']));
+  let kind = r.kind || (r.H >= 108 ? pick(['glass', 'deco']) : pick(['office', 'apartment', 'apartment', 'brick', 'brick', 'warehouse']));
+  const condo = kind === 'condo'; if (condo) kind = 'apartment';                    // coastal condo: a tall apartment block, white, lots of balconies
+  const inr = r.inner || 0, inS = inr & 2, inE = inr & 8, inW = inr & 4, mn = Math.min(r.w, r.h);   // inner sides touch another piece of the same block
   const style = { glass: 0, office: 0, apartment: 1, deco: 1, brick: 2, warehouse: 3 }[kind];
-  let nF = Math.max(2, Math.round((r.H - GFH) / FLOOR));
-  if (kind === 'warehouse') nF = randi(2, 3); else if (kind === 'brick') nF = Math.min(nF, randi(3, 6)); else if (kind === 'apartment') nF = Math.min(nF, 8);
+  let nF = Math.max(r.H < 40 ? 1 : 2, Math.round((r.H - GFH) / FLOOR));
+  if (kind === 'warehouse') nF = randi(2, 3); else if (kind === 'brick') nF = Math.min(nF, randi(3, 6)); else if (kind === 'apartment' && !condo) nF = Math.min(nF, 8);
   const tiers = [];
-  if (kind === 'glass' || kind === 'deco') {
+  if ((kind === 'glass' || kind === 'deco') && mn > 110 && nF >= 6) {
     tiers.push({ ins: 0, f: Math.max(2, Math.round(nF * 0.5)) }, { ins: 18, f: Math.max(1, Math.round(nF * 0.28)) }, { ins: 40, f: Math.max(1, Math.round(nF * 0.22)) });
-  } else if (kind === 'office' && nF >= 4 && Math.random() < 0.4) { const f0 = Math.ceil(nF * 0.65); tiers.push({ ins: 0, f: f0 }, { ins: 22, f: nF - f0 }); }
+  } else if ((kind === 'glass' || kind === 'deco') && mn > 64 && nF >= 4) { const f0 = Math.ceil(nF * 0.7); tiers.push({ ins: 0, f: f0 }, { ins: 14, f: nF - f0 }); }
+  else if (kind === 'office' && nF >= 4 && mn > 80 && Math.random() < 0.4) { const f0 = Math.ceil(nF * 0.65); tiers.push({ ins: 0, f: f0 }, { ins: 22, f: nF - f0 }); }
   else tiers.push({ ins: 0, f: nF });
   r.H = GFH + tiers.reduce((s, t) => s + t.f, 0) * FLOOR;
 
   const C = h => new THREE.Color(h), base = C(r.c);
-  const tint = kind === 'glass' ? base.clone().lerp(C(0x9fb8d8), 0.65) : kind === 'brick' ? base.clone().multiplyScalar(0.85).lerp(C(0xb5654a), 0.5)
+  const tint = r.pastel ? base.clone().lerp(C(0xffffff), 0.15) : condo ? base.clone().lerp(C(0xffffff), 0.6) : kind === 'glass' ? base.clone().lerp(C(0x9fb8d8), 0.65) : kind === 'brick' ? base.clone().multiplyScalar(0.85).lerp(C(0xb5654a), 0.5)
     : kind === 'warehouse' ? base.clone().lerp(C(0xb9bcc4), 0.7) : base.clone().lerp(C(0xffffff), 0.35);
-  const trimC = (kind === 'deco' ? C(0xd9c27a) : tint.clone().lerp(C(0xf0ece0), 0.7)).multiplyScalar(0.55), gfC = tint.clone().lerp(C(0xdad5c9), 0.55).multiplyScalar(0.7);
-  const roofC = (kind === 'warehouse' ? C(0xc2c6d0) : (kind === 'glass' || kind === 'deco') ? C(0xcfcbc0) : C(0x8a8d97).lerp(base, 0.12)).multiplyScalar(0.42), roofTex = { glass: 2, deco: 2, office: 0, apartment: 0, brick: 0, warehouse: 1 }[kind];
+  const trimC = r.pastel || condo ? C(0xf4efe6).multiplyScalar(0.8) : (kind === 'deco' ? C(0xd9c27a) : tint.clone().lerp(C(0xf0ece0), 0.7)).multiplyScalar(0.55), gfC = tint.clone().lerp(C(0xdad5c9), 0.55).multiplyScalar(0.7);
+  const roofC = r.pastel ? tint.clone().lerp(C(0xffffff), 0.45).multiplyScalar(0.8) : condo ? C(0xe6e6ea).multiplyScalar(0.7) : (kind === 'warehouse' ? C(0xc2c6d0) : (kind === 'glass' || kind === 'deco') ? C(0xcfcbc0) : C(0x8a8d97).lerp(base, 0.12)).multiplyScalar(0.42), roofTex = { glass: 2, deco: 2, office: 0, apartment: 0, brick: 0, warehouse: 1 }[kind];
   const NEO = C(pick(GLOW)), NEO2 = C(pick(GLOW));
   const iron = C(0x2b2e38), roofD = C(0x353841), acC = C(0x9aa0ab), fanC = C(0x555a66), skyC = C(0x4d6aa8);
   const U = new GeoBuilder(), G = new GeoBuilder(), T = new GeoBuilder(), L = new GeoBuilder(), R = new GeoBuilder(), S = new GeoBuilder(), W1 = C('#ffffff');
@@ -323,7 +324,7 @@ function makeBuilding(r) {
   for (const [px, pz] of [[x0, z0], [x1 - 4, z0], [x0, z1 - 4], [x1 - 4, z1 - 4]]) T.lbox(px, y0 + 2.5, pz, px + 4, y0 + GFH - 1.2, pz + 4, trimC, false);
 
   /* shop awnings, blade sign (not on warehouses) */
-  if (kind !== 'warehouse' && kind !== 'glass' && kind !== 'deco' || Math.random() < 0.3) {
+  if (!inS && (kind !== 'warehouse' && kind !== 'glass' && kind !== 'deco' || Math.random() < (r.pastel ? 0.75 : 0.3))) {
     const nb = Math.max(1, Math.round((x1 - x0 - 2 * e) / BAY)), bw = (x1 - x0 - 2 * e) / nb, ac1 = C(pick(AWN)), ac2 = C(0xf4efe6), yH = y0 + GFH - 3, yL = y0 + GFH - 8.5, zW = z1 - e, zF = z1 + 4.2;
     for (let k = 0; k < nb; k++) {
       if (nb > 3 && Math.random() < 0.2) continue;
@@ -355,8 +356,9 @@ function makeBuilding(r) {
 
   /* neon blade signs poking out of the facade, and cantilevered upper floors that overhang the pavement */
   { const nF0 = tiers[0].f, ybase = y0 + GFH, nBlade = (kind === 'glass' || kind === 'deco' || kind === 'office') ? randi(2, 3) : randi(1, 2);
-    for (let k = 0; k < nBlade && nF0 >= 2; k++) {
-      const ya = ybase + randi(1, Math.max(1, nF0 - 1)) * FLOOR - 6, yb = ya + 10, side = pick(['s', 's', 'e', 'w']), kk = randi(0, 15), uv = signUV(kk), gc = C(pick(GLOW));
+    const SIDES = ['s', 's', 'e', 'w'].filter(q => !(q === 's' && inS) && !(q === 'e' && inE) && !(q === 'w' && inW));
+    for (let k = 0; k < nBlade && nF0 >= 2 && SIDES.length && mn > 34; k++) {
+      const ya = ybase + randi(1, Math.max(1, nF0 - 1)) * FLOOR - 6, yb = ya + 10, side = pick(SIDES), kk = randi(0, 15), uv = signUV(kk), gc = C(pick(GLOW));
       if (side === 's') {
         const bx = rand(x0 + 14, x1 - 14);
         T.lbox(bx - 1.1, ya, z1, bx + 1.1, yb, z1 + 20, iron);
@@ -371,7 +373,7 @@ function makeBuilding(r) {
         L.lbox(xe + dx - 1.2, ya - 0.6, zc - 1.5, xe + dx + 1.2, yb + 0.6, zc + 1.5, gc);
       }
     }
-    if ((kind === 'glass' || kind === 'deco' || kind === 'office') && nF0 >= 7 && Math.random() < 0.7) {     // overhanging block, three floors tall
+    if ((kind === 'glass' || kind === 'deco' || kind === 'office') && nF0 >= 7 && !inS && x1 - x0 > 40 && Math.random() < 0.7) {     // overhanging block, three floors tall
       const fo = randi(2, nF0 - 5), ya = ybase + fo * FLOOR, yb = ya + 3 * FLOOR, ax0 = x0 + 8, ax1 = x1 - 8, zF = z1 + 16, cx = (ax0 + ax1) / 2, uv = signUV(randi(0, 15));
       wallFaces(U, ax0, z1 - 4, ax1, zF, ya, yb, tint.clone().multiplyScalar(0.95), false);
       R.quad([ax0, yb, zF], [ax1, yb, zF], [ax1, yb, z1], [ax0, yb, z1], [0, 1, 0], roofC, [[0, 0], [(ax1 - ax0) / 48, 0], [(ax1 - ax0) / 48, 16 / 48], [0, 16 / 48]]);
@@ -386,12 +388,12 @@ function makeBuilding(r) {
   /* balconies and fire escape on apartment blocks */
   if (kind === 'apartment') {
     const t0 = tiers[0], nbS = Math.max(1, Math.round((x1 - x0 - 2 * e) / BAY)), bwS = (x1 - x0 - 2 * e) / nbS, ironL = C(0x4a4e5c);
-    for (let f = 1; f < t0.f; f++) for (let k = 1; k < nbS - 1; k++) if (Math.random() < 0.2) {
+    for (let f = 1; f < t0.f; f++) for (let k = 1; k < nbS - 1; k++) if (!inS && Math.random() < (condo ? 0.55 : 0.2)) {
       const bx = x0 + e + (k + 0.5) * bwS, yf = y0 + GFH + f * FLOOR + 0.5;
       T.lbox(bx - 5.5, yf, z1 - e, bx + 5.5, yf + 0.9, z1 + 4, trimC); T.lbox(bx - 5.5, yf + 0.9, z1 + 3.4, bx + 5.5, yf + 3.8, z1 + 4, ironL);
     }
     const zc = z0 + r.h * rand(0.35, 0.65);
-    for (let f = 1; f <= t0.f; f++) {
+    for (let f = 1; f <= (inE || condo ? 0 : t0.f); f++) {
       const yf = y0 + GFH + f * FLOOR - 1, yp = yf - FLOOR, dir = f % 2 ? 1 : -1, xs = x1 + 4.1;
       T.lbox(x1 - e, yf, zc - 6, x1 + 4.5, yf + 0.8, zc + 6, iron); T.lbox(x1 + 3.9, yf + 0.8, zc - 6, x1 + 4.5, yf + 4.2, zc + 6, ironL, false);
       if (f > 1) { const za = zc + 6 * dir, zb = zc - 6 * dir; T.quad([xs, yp + 0.8, za], [xs, yf + 0.8, zb], [xs, yf + 2, zb], [xs, yp + 2, za], [1, 0, 0], iron, Z4); }
@@ -422,8 +424,9 @@ function makeBuilding(r) {
       for (let i = 0; i < 2; i++) { const sk = spot(ax0, az0, ax1, az1, 4, 4); if (sk) stack(sk[0] + 2, sk[1] + 2, yt); }
     } else if (kind === 'deco') {
       const cx = (ax0 + ax1) / 2, cz = (az0 + az1) / 2; taken.push([cx - 6, cz - 6, cx + 6, cz + 6]);
-      T.lbox(cx - 9, yt, cz - 9, cx + 9, yt + 8, cz + 9, trimC); T.lbox(cx - 5, yt + 8, cz - 5, cx + 5, yt + 14, cz + 5, trimC);
-      T.prism(cx, cz, 3.2, yt + 14, yt + 34, trimC.clone().multiplyScalar(0.9), 4, 0.5, true); antenna(cx, cz, yt + 34, 8);
+      if (Math.min(ax1 - ax0, az1 - az0) >= 34) { const sp = r.pastel ? 12 : 20;
+        T.lbox(cx - 9, yt, cz - 9, cx + 9, yt + 8, cz + 9, trimC); T.lbox(cx - 5, yt + 8, cz - 5, cx + 5, yt + 14, cz + 5, trimC);
+        T.prism(cx, cz, 3.2, yt + 14, yt + 14 + sp, trimC.clone().multiplyScalar(0.9), 4, 0.5, true); antenna(cx, cz, yt + 14 + sp, 8); }
       for (let i = 0; i < 4; i++) { const s = spot(ax0, az0, ax1, az1, 5, 5); if (s) stack(s[0] + 2.5, s[1] + 2.5, yt); }
     } else if (kind === 'apartment') {
       const w = spot(ax0, az0, ax1, az1, 12, 12); if (w) waterTower(w[0] + 6, w[1] + 6, yt);

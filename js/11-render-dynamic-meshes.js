@@ -14,7 +14,7 @@ function part(parent, geo, mat, sx, sy, sz, x, y, z) { const o = new THREE.Mesh(
 function buildCar(c) {
   const t = c.t, L = t.len, Wd = t.wid, g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   const body = new THREE.MeshLambertMaterial({ color: c.color }), m = { body, tail: [], bar: [], cabin: null };
-  part(g, GCirc, E.shadow, L * 0.62, 1, Wd * 0.64, 0, 0.25, 0);
+  part(g, GCirc, E.shadow, L * 0.62, 1, Wd * 0.64, 0, 1.3, 0);
   const wheel = (x, z, r) => part(tilt, GCylZ, E.tire, r, r, 3.6, x, r, z);
   if (c.type === 'truck') {
     part(tilt, GB, body, L * 0.32, 13, Wd, L * 0.34, 9.5, 0);
@@ -52,8 +52,8 @@ function buildCar(c) {
     if (c.type === 'police') part(dg, GB, mc(0x1a2a6a), 4.6, 1.6, 5.6, 0.4, 3.2, 0);
     m.drv = dg;
   }
-  { const ug = new THREE.Mesh(GP, glowMat(c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 0.7; g.add(ug); m.ug = ug;       // neon underglow
-    const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 0.8, 0); g.add(hb); m.hb = hb;       // headlight pool
+  { const ug = new THREE.Mesh(GP, glowMat(c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
+    const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool
     body.emissive = new THREE.Color(c.color).multiplyScalar(0.22); }
   c.mesh = g; c.tilt = tilt; c.m = m; c.roll = 0; c.baseCol = new THREE.Color(c.color); c.tailOn = false; c.dead3 = false; c.hpShown = -1; scene.add(g);
 }
@@ -77,7 +77,7 @@ function syncCar(c, time, dt) {
 function buildPerson(kind, shirt, skin) {
   const g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   const sm = mc(shirt), km = mc(skin), pm = mc(kind === 'officer' ? 0x1a2447 : 0x2a2d3a), o = { g, tilt, legs: [], arms: [], torso: null };
-  part(g, GCirc, E.shadow, 8, 1, 8, 0, 0.25, 0);
+  part(g, GCirc, E.shadow, 8, 1, 8, 0, 1.3, 0);
   o.torso = part(tilt, GB, sm, 5, 11, 9.4, 0, 14.5, 0);
   for (const s of [-1, 1]) {
     const lp = new THREE.Group(); lp.position.set(0, 9, s * 2.5); part(lp, GB, pm, 3.2, 9, 3.4, 0, -4.5, 0); tilt.add(lp); o.legs.push(lp);
@@ -113,7 +113,7 @@ function syncPlayer(time, dt) {
     const o = buildPerson('player', '#ffd23f', '#f2c6a0'); P3.mesh = o.g; P3.pm = o; scene.add(o.g);
     P3.arrow = new THREE.Mesh(new THREE.ConeGeometry(2.6, 8, 3).rotateZ(-Math.PI / 2), mBas(0xffffff)); P3.arrow.position.set(30, 5, 0); o.g.add(P3.arrow);
     P3.flash = new THREE.Mesh(GSph, mBas(0xfff0a0)); P3.flash.scale.set(4.5, 4.5, 4.5); o.g.add(P3.flash);
-    P3.gy = 0; { const pg = new THREE.Mesh(GP, glowMat('#2bf3ff', 0.85)); pg.scale.set(52, 1, 52); pg.position.y = 0.6; o.g.add(pg); }
+    P3.gy = 0; { const pg = new THREE.Mesh(GP, glowMat('#2bf3ff', 0.85)); pg.scale.set(52, 1, 52); pg.position.y = 1.4; o.g.add(pg); }
   }
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over'; P3.mesh.visible = vis; if (!vis) return;
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);

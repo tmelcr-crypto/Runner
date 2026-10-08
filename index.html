@@ -22,16 +22,19 @@
   <div class="hud-tr">
     <canvas id="mini" width="280" height="280"></canvas>
     <div id="stars" class="box"></div>
+    <div id="zone"></div>
   </div>
   <div id="weaponbar">
     <button id="w0" type="button"><b>1</b>PISTOL</button>
     <button id="w1" type="button"><b>2</b>MG</button>
+    <button id="mapBtn" type="button">MAP</button>
     <button id="mute" type="button">SND</button>
   </div>
   <div id="hint"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
   <div id="wasted">WASTED</div>
+  <div id="bigmap" hidden><canvas id="bigCv"></canvas><span class="lbl">TAB OR TAP TO CLOSE</span></div>
 </div>
 
 <div id="touch">
@@ -65,7 +68,7 @@
     <div class="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> pistol tap, MG hold</li><li><b>R</b> reload (5 s)</li>
-        <li><b>SPACE</b> sprint</li><li><b>1 / 2 / WHEEL</b> weapon</li><li><b>E or F</b> enter / exit car</li></ul></div>
+        <li><b>SPACE</b> sprint</li><li><b>1 / 2 / WHEEL</b> weapon</li><li><b>E or F</b> enter / exit car</li><li><b>TAB</b> city map</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>M</b> mute sound</li></ul></div>
@@ -93,6 +96,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/00-map-data.js"></script>
 <script src="js/01-config.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/03-input.js"></script>
@@ -102,7 +106,8 @@
 <script src="js/07-vehicles-traffic-police.js"></script>
 <script src="js/08-pedestrians-pickups-spawning.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
-<script src="js/10-render-city-edges.js"></script>
+<script src="js/10-render-city-map.js"></script>
+<script src="js/10b-render-landmarks.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/12-render-effects.js"></script>
 <script src="js/13-render-frame.js"></script>

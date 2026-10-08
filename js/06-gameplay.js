@@ -2,10 +2,9 @@
 /* ---------- 6. GAMEPLAY: state, wanted level, combat, vehicles in/out ---------- */
 let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play | dying | over
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
-const DIR_ANG = [0, Math.PI / 2, Math.PI, -Math.PI / 2];   // 0 east, 1 south, 2 west, 3 north
 const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
   heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
-const cam = { x: W / 2, y: W / 2, zoom: 1, shake: 0 };
+const cam = { x: MW / 2, y: MH / 2, zoom: 1, shake: 0 };
 let boomFlash = null;
 const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
 cv.addEventListener('mousemove', () => { if (!touchMode) P.mouseOn = true; });
@@ -97,7 +96,7 @@ function explodeCar(c) {
 
 function raycast(ox, oy, ang, range) {
   const dx = Math.cos(ang), dy = Math.sin(ang); let bt = range, type = null, obj = null;
-  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = rayRect(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
+  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
   for (const p of peds) { if (p.dead || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }
   for (const o of officers) { if (o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
   for (const c of cars) {
@@ -137,21 +136,21 @@ function fireWeapon() {
 }
 
 function pedBlocked(x, y) {
-  nearBuildings(x, y, _nb); for (const rc of _nb) if (circleRect(x, y, 9, rc)) return true; return false;
+  nearBuildings(x, y, _nb); for (const rc of _nb) if (circleSolid(x, y, 9, rc)) return true; return false;
 }
 function exitCar(forced) {
   const c = P.car; if (!c) return;
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, s = c.t.wid / 2 + 14, l = c.t.len / 2 + 14;
   const spots = [[rx * s, ry * s], [-rx * s, -ry * s], [-fx * l, -fy * l], [fx * l, fy * l]];
   let sp = spots[0];
-  for (const o of spots) { if (!pedBlocked(c.x + o[0], c.y + o[1])) { sp = o; break; } }
+  for (const o of spots) { if (!pedBlocked(c.x + o[0], c.y + o[1]) && shoreDist(c.x + o[0], c.y + o[1]) > 4) { sp = o; break; } }
   P.x = clamp(c.x + sp[0], BX0 + 10, BX1 - 10); P.y = clamp(c.y + sp[1], BY0 + 10, BY1 - 10); P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
   c.driver = null; c.thr = 0; c.str = 0; c.hb = false; P.car = null;
 }
 function enterCar(c) {
   if (c.driver === 'ai' || c.driver === 'cop') {
     const cop = c.driver === 'cop' || c.type === 'police';
-    const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30, 0, 0, 0, 1);
+    const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30);
     ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
     reportCrime(cop ? 35 : 20, 0); addScore(50, c.x, c.y, 'CARJACK');
   } else if (c.type === 'police') reportCrime(25, 0);

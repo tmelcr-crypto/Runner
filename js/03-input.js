@@ -6,7 +6,7 @@ const TS = { mx: 0, my: 0, ax: 0, ay: 0, aim: false, fire: false, tap: 0, sprint
 let touchMode = false;
 
 addEventListener('keydown', e => {
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
   if (!keys[e.code]) pressed[e.code] = true;
   keys[e.code] = true;
 });
@@ -52,6 +52,8 @@ bindBtn($('bDash'), () => { TS.sprint = true; }, () => { TS.sprint = false; });
 $('w0').addEventListener('pointerdown', e => { pressed.Digit1 = true; e.preventDefault(); });
 $('w1').addEventListener('pointerdown', e => { pressed.Digit2 = true; e.preventDefault(); });
 $('mute').addEventListener('click', () => { pressed.KeyM = true; });
+$('mapBtn').addEventListener('click', () => { pressed.Tab = true; });
+$('bigmap').addEventListener('click', () => { pressed.Tab = true; });
 function updateGearUi() {
   $('gD').classList.toggle('on', P.gear === 'D'); $('gR').classList.toggle('on', P.gear === 'R');
   $('lever').style.top = P.gear === 'R' ? '0px' : 'calc(100% - 60px)';

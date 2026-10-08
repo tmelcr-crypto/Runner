@@ -1,31 +1,25 @@
 'use strict';
 /* ---------- 8. HUD & MINIMAP ---------- */
+const MM = 600, MMS = 0.16;                 // sea margin drawn around the map, map canvas scale (px per world unit)
 let mapCv = null;
-function buildMiniMap() {
-  const sc = 560 / W, cs = Math.round((W + 2 * MM) * sc), o = MM * sc;
-  mapCv = document.createElement('canvas'); mapCv.width = mapCv.height = cs;
-  const m = mapCv.getContext('2d'), X = v => o + v * sc;
-  m.fillStyle = '#07030f'; m.fillRect(0, 0, cs, cs);
-  const lk = k => EDGE[k] === 'lake';
-  m.fillStyle = '#3a1a7a'; if (!lk('n')) m.fillRect(0, X(-EDGE_D), cs, EDGE_D * sc); if (!lk('s')) m.fillRect(0, X(W), cs, EDGE_D * sc);
-  if (!lk('w')) m.fillRect(X(-EDGE_D), 0, EDGE_D * sc, cs); if (!lk('e')) m.fillRect(X(W), 0, EDGE_D * sc, cs);
-  m.fillStyle = '#0e2f8a'; if (lk('n')) m.fillRect(0, 0, cs, X(-BEACH)); if (lk('s')) m.fillRect(0, X(W + BEACH), cs, cs); if (lk('w')) m.fillRect(0, 0, X(-BEACH), cs); if (lk('e')) m.fillRect(X(W + BEACH), 0, cs, cs);
-  m.fillStyle = '#4a3a7e';
-  const rx0 = lk('w') ? -BEACH : 0, rx1 = lk('e') ? W + BEACH : W, ry0 = lk('n') ? -BEACH : 0, ry1 = lk('s') ? W + BEACH : W;
-  m.fillRect(X(rx0), X(ry0), (rx1 - rx0) * sc, (ry1 - ry0) * sc);
-  m.fillStyle = '#2a1f55';
-  for (let i = 0; i <= N; i++) { m.fillRect(X(i * CELL), X(0), ROAD * sc + 0.6, W * sc); m.fillRect(X(0), X(i * CELL), W * sc, ROAD * sc + 0.6); }
-  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
-    const lx = X(i * CELL + ROAD), ly = X(j * CELL + ROAD);
-    if (LOTS[i][j].park) { m.fillStyle = '#0c5a58'; m.fillRect(lx, ly, LOT * sc, LOT * sc); }
-    else { m.fillStyle = '#6a2cc9'; m.fillRect(lx + SW * sc, ly + SW * sc, (LOT - 2 * SW) * sc, (LOT - 2 * SW) * sc); }
-  }
+function buildMiniMap() {                   // the whole city drawn once; the minimap and the big map cut from it
+  if (mapCv) return;
+  mapCv = document.createElement('canvas'); mapCv.width = Math.round((MW + 2 * MM) * MMS); mapCv.height = Math.round((MH + 2 * MM) * MMS);
+  const m = mapCv.getContext('2d'); m.fillStyle = '#0e2f8a'; m.fillRect(0, 0, mapCv.width, mapCv.height);
+  m.setTransform(MMS, 0, 0, MMS, MM * MMS, MM * MMS);
+  const fill = (polys, col) => { m.fillStyle = col; for (const p of polys) { m.beginPath(); traceRing(m, p.o); for (const h of p.h) traceRing(m, h); m.fill('evenodd'); } };
+  fill(MAP.land, '#4a3a7e'); fill(MAP.grass, '#0c5a58'); fill(MAP.sand, '#7a5c9a');
+  m.strokeStyle = '#1e1640'; m.lineWidth = ROAD_W; m.lineJoin = m.lineCap = 'round';
+  for (const E of RE) { m.beginPath(); m.moveTo(E.p[0][0], E.p[0][1]); for (let k = 1; k < E.p.length; k++) m.lineTo(E.p[k][0], E.p[k][1]); m.stroke(); }
+  const box = r => { m.beginPath(); solidCorners(r).forEach(([x, y], k) => k ? m.lineTo(x, y) : m.moveTo(x, y)); m.closePath(); m.fill(); };
+  m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld) box(r);       // landmarks and props
+  m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
 }
 function drawMini(time) {
   const size = miniCv.width, view = 1300, sc = size / view;
-  mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.fillStyle = '#07030f'; mctx.fillRect(0, 0, size, size);
-  mctx.imageSmoothingEnabled = false;
-  mctx.setTransform(sc, 0, 0, sc, size / 2 - P.x * sc, size / 2 - P.y * sc); mctx.drawImage(mapCv, -MM, -MM, W + 2 * MM, W + 2 * MM);
+  mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.fillStyle = '#0e2f8a'; mctx.fillRect(0, 0, size, size);
+  mctx.imageSmoothingEnabled = true;
+  mctx.setTransform(sc, 0, 0, sc, size / 2 - P.x * sc, size / 2 - P.y * sc); mctx.drawImage(mapCv, -MM, -MM, MW + 2 * MM, MH + 2 * MM);
   mctx.setTransform(1, 0, 0, 1, 0, 0);
   const mxp = x => size / 2 + (x - P.x) * sc, myp = y => size / 2 + (y - P.y) * sc, ph = Math.floor(time * 4) % 2 === 0;
   for (const c of cars) {
@@ -37,8 +31,32 @@ function drawMini(time) {
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
 }
+/* full map: Tab or the MAP button; the game waits while it is open */
+let bigOpen = false;
+function toggleBigMap(on) {
+  bigOpen = on === undefined ? !bigOpen : on; $('bigmap').hidden = !bigOpen;
+  if (bigOpen) { Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); }
+}
+function drawBigMap(time) {
+  const c = $('bigCv'), pr = Math.min(2, DPR), size = Math.floor(Math.min(VW, VH - 40) * 0.94);
+  if (c.width !== Math.round(size * pr)) { c.width = c.height = Math.round(size * pr); c.style.width = c.style.height = size + 'px'; }
+  const g = c.getContext('2d'), span = Math.max(MW, MH) + 2 * MM, k = c.width / span, ox = (span - MW) / 2 * k, oy = (span - MH) / 2 * k;
+  const X = x => ox + x * k, Y = y => oy + y * k;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#0e2f8a'; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(mapCv, X(-MM), Y(-MM), (MW + 2 * MM) * k, (MH + 2 * MM) * k);
+  g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (const [name, r] of MAP.districts) {
+    const x = X((r[0] + r[2]) / 2), y = Y((r[1] + r[3]) / 2);
+    g.fillStyle = '#000'; g.fillText(name, x + 2 * pr, y + 2 * pr); g.fillStyle = '#f1ead2'; g.fillText(name, x, y);
+  }
+  const ph = Math.floor(time * 4) % 2 === 0;
+  for (const p of pickups) { g.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; g.fillRect(X(p.x) - 2 * pr, Y(p.y) - 2 * pr, 4 * pr, 4 * pr); }
+  for (const o of cars) if (o.type === 'police' && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
+  g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);
+  g.fillStyle = '#ffd23f'; g.strokeStyle = '#000'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(11, 0); g.lineTo(-8, -7); g.lineTo(-4, 0); g.lineTo(-8, 7); g.closePath(); g.stroke(); g.fill(); g.restore();
+}
 
-const H = { score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
+const H = { zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
 (function buildHud() {
   $('hpSegs').innerHTML = '<i></i>'.repeat(10); $('stars').innerHTML = '<div class="star"></div>'.repeat(5);
   for (const b of document.querySelectorAll('#weaponbar button')) b.addEventListener('click', () => b.blur());
@@ -69,6 +87,9 @@ function updateHud(time) {
   if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
   const bf = $('bFire'); if (bf.hidden !== !!c) bf.hidden = !!c;
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
+  const zone = P.dead ? H.zone : districtAt(P.x, P.y);
+  if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }
   drawMini(time);
+  if (bigOpen) drawBigMap(time);
 }
 
