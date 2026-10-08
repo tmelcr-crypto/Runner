@@ -217,6 +217,7 @@ LM_PX = [
     {'t': 'tower', 'c': (124, 582)},
     {'t': 'hangars', 'box': (88, 488, 155, 506)},
     {'t': 'studio', 'box': (468, 141, 500, 182)},
+    {'t': 'colony', 'c': (558, 672), 'r': 0},     # 736 Ocean Drive: the hotel row on the west side of the beach road; placed against the road at runtime
 ]
 road_px = cv2.dilate(corr, np.ones((3, 3), np.uint8)) > 0           # road surface plus a pixel of kerb
 for L in LM_PX:                                                       # pull landmark outlines back until no road runs under them

@@ -153,6 +153,79 @@ function makeStudio(L) {                                         // three sound 
 }
 function studioStages(L) { const w = L.w, h = L.h; return [[-w / 2 + 14, -h / 2 + 14, -14, -16], [14, -h / 2 + 90, w / 2 - 14, 30], [-w / 2 + 14, 14, w * 0.15, h / 2 - 50]]; }
 
+/* ---------- the Colony Hotel, 736 Ocean Drive (1935, Henry Hohauser) ----------
+   White three-storey Streamline Moderne front: turquoise bands, eyebrow ledges over the windows wrapping round the rounded street corners,
+   a stepped parapet, and the inverted-T neon sign: COLONY down a pylon in the middle, HOTEL across the bar over the door, all in blue.
+   The building stands on the west side of the beach road and faces it (local +x points at the road). */
+let COLONY = null;
+const COLONY_SIGN = 14;                                          // how far the sign stands out from the front
+function colonySpot() {
+  COLONY = null; const L = MAP.lm.find(l => l.t === 'colony'); if (!L) return null;
+  const r = nearestRoad(L.x, L.y, 500); if (!r) return null;
+  const q = edgeAt(r.e, r.s, {}); let nx = -q.ty, ny = q.tx; if (nx > 0) { nx = -nx; ny = -ny; }   // the side away from the beach
+  let back = 260;                                                 // the lot runs back until the sidewalk of the next street
+  for (let t = ROAD_HALF + 40; t < 420; t += 6) { const o = nearestRoad(q.x + nx * t, q.y + ny * t, ROAD_HALF + 2); if (o && o.e !== r.e) { back = t - 18; break; } }
+  const fr = ROAD_HALF + 16 + COLONY_SIGN, D = clamp(back - fr, 70, 124), Wf = 156, off = fr + D / 2, a = Math.atan2(-ny, -nx);
+  return (COLONY = { cx: q.x + nx * off, cy: q.y + ny * off, a, ca: Math.cos(a), sa: Math.sin(a), lw: D, lh: Wf });
+}
+function hitsColony(cx, cy, w, h, angDeg) {                      // does a map building overlap the Colony's lot?
+  if (!COLONY) return false;
+  const a = angDeg * Math.PI / 180, b = { cx, cy, lw: w, lh: h, ca: Math.cos(a), sa: Math.sin(a) };
+  const pts = o => [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 0]].map(([u, v]) => [o.cx + o.ca * u * o.lw / 2 - o.sa * v * o.lh / 2, o.cy + o.sa * u * o.lw / 2 + o.ca * v * o.lh / 2]);
+  return pts(b).some(([x, y]) => inSolid(x, y, COLONY, 16)) || pts(COLONY).some(([x, y]) => inSolid(x, y, b, 16));
+}
+const _ntx = {};
+function neonTex(text, vertical) {                               // blue neon letters on the white sign panel
+  const k = text + vertical; if (_ntx[k]) return _ntx[k];
+  const n = text.length, c = document.createElement('canvas'); c.width = vertical ? 128 : 96 * n; c.height = vertical ? 96 * n : 128; const g = c.getContext('2d');
+  g.fillStyle = '#e9edf3'; g.fillRect(0, 0, c.width, c.height);
+  g.font = 'bold 84px "Arial Black",Impact,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  [...text].forEach((ch, i) => {
+    const x = vertical ? 64 : 48 + i * 96, y = vertical ? 48 + i * 96 + 4 : 68;
+    g.shadowColor = '#2f9bff'; g.shadowBlur = 22; g.fillStyle = '#1e7bff'; g.fillText(ch, x, y);
+    g.shadowBlur = 6; g.fillStyle = '#9fd4ff'; g.fillText(ch, x, y);
+  });
+  return (_ntx[k] = finishTex(c));
+}
+function neonSign(text, vertical, w, h) { return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: neonTex(text, vertical) })); }
+function makeColony() {
+  const T = new GeoBuilder(), G = new GeoBuilder(), D = COLONY.lw, W = COLONY.lh, x0 = -D / 2, x1 = D / 2, z0 = -W / 2, z1 = W / 2, H = 50;
+  const white = _C('#f2efe6'), turq = _C('#35c9c0'), glass = _C('#1d2f4a'), blue = _C('#2f9bff'), warm = _C('#ffd98a');
+  const front = (gb, y0, y1, za, zb, col, dx) => face(gb, [[x1 + (dx || 0.3), y0, za], [x1 + (dx || 0.3), y0, zb], [x1 + (dx || 0.3), y1, zb], [x1 + (dx || 0.3), y1, za]], [1, 0, 0], col);
+  box5(T, x0 - 6, 0, z0 - 6, x1 + 4, 2.5, z1 + 6, _C('#2c2350'));                                     // pavement
+  box5(T, x0, 2.5, z0, x1 - 8, H, z1, white); box5(T, x1 - 8, 2.5, z0 + 8, x1, H, z1 - 8, white);     // the block, front corners rounded off
+  for (const sz of [-1, 1]) T.prism(x1 - 8, sz * (W / 2 - 8), 8, 2.5, H, white, 10);
+  front(T, 2.5, 5, z0 + 8, z1 - 8, turq);                                                              // turquoise base band
+  front(G, 6, 16, -34, 34, warm);                                                                      // lit lobby behind the glass
+  for (const zc of [-60, -46, 46, 60]) front(T, 6, 15, zc - 5, zc + 5, glass);
+  for (const y of [20, 35]) {
+    for (const zc of [-60, -44, -28, 28, 44, 60]) front(T, y, y + 9, zc - 6, zc + 6, glass);
+    for (const sz of [-1, 1]) face(T, [[x1 - 36, y, sz * (z1 + 0.3)], [x1 - 12, y, sz * (z1 + 0.3)], [x1 - 12, y + 9, sz * (z1 + 0.3)], [x1 - 36, y + 9, sz * (z1 + 0.3)]], [0, 0, sz], glass);   // steel corner windows
+  }
+  for (const y of [18, 31, 46]) {                                                                      // eyebrows over each window row, wrapping the corners
+    box5(T, x1, y, z0 + 8, x1 + 6, y + 1.6, z1 - 8, white);
+    for (const sz of [-1, 1]) { box5(T, x1 - 40, y, sz > 0 ? z1 : z0 - 6, x1 - 8, y + 1.6, sz > 0 ? z1 + 6 : z0, white); T.prism(x1 - 8, sz * (W / 2 - 8), 14, y, y + 1.6, white, 12, 14, true); }
+    front(T, y - 2.4, y, z0 + 8, z1 - 8, turq);
+    box5(G, x1 + 5.4, y - 0.7, z0 + 10, x1 + 6.2, y - 0.1, z1 - 10, blue);                            // blue neon under the ledge
+  }
+  front(T, H - 4.5, H - 2, z0 + 8, z1 - 8, turq);                                                      // the painted band under the roofline
+  box5(T, x1 - 34, H, -40, x1, H + 6, 40, white); box5(T, x1 - 24, H + 6, -26, x1, H + 11, 26, white); // stepped parapet
+  front(T, H + 4, H + 6, -40, 40, turq, 0.4); front(T, H + 9, H + 11, -26, 26, turq, 0.4);
+  const F = x1 + COLONY_SIGN;
+  box5(T, x1 + 2, 14, -48, F, 22, 48, white);                                                          // the bar of the T, over the door
+  for (const [a, b] of [[14, 14.8], [21.2, 22]]) box5(G, F - 0.4, a, -48, F + 0.4, b, 48, blue);
+  box5(T, x1 - 2, 22, -11, F, 92, 11, white);                                                          // the stem: a pylon standing out from the front
+  for (const sz of [-1, 1]) box5(G, F - 0.4, 22, sz * 11 - 0.4, F + 0.4, 92, sz * 11 + 0.4, blue);
+  box5(G, x1 - 2, 92, -11.4, F + 0.4, 93, 11.4, blue);
+  for (const [ax, az] of [[x0 + 24, z0 + 26], [x0 + 24, z1 - 40], [x0 + 52, 0]]) box5(T, ax, H, az, ax + 14, H + 6, az + 14, _C('#9aa0ab'));
+  const m = lmMesh(T, G), sign = (mesh, x, y, z, ry) => { mesh.position.set(x, y, z); mesh.rotation.y = ry; m.add(mesh); m.userData.own.push(mesh.material); };
+  sign(neonSign('COLONY', true, 18, 64), F + 0.5, 58, 0, Math.PI / 2);                                  // COLONY down the face of the pylon, to the street
+  sign(neonSign('COLONY', true, 14, 64), (x1 - 2 + F) / 2, 58, 11.5, 0);                                 // and on its sides, for anyone driving along Ocean Drive
+  sign(neonSign('COLONY', true, 14, 64), (x1 - 2 + F) / 2, 58, -11.5, Math.PI);
+  sign(neonSign('HOTEL', false, 70, 6.4), F + 0.5, 18, 0, Math.PI / 2);                                 // HOTEL across the bar
+  return m;
+}
+
 /* ---------- props ---------- */
 function makeCrane() {                                           // gantry crane; the boom (+x) reaches out over the water
   const T = new GeoBuilder(), G = new GeoBuilder(), yel = _C('#ffb02e'), red = _C('#ff4d4d'), dark = _C('#2b2e38');
@@ -211,6 +284,11 @@ function genLandmarks() {
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeTerminal(L), L.w / 2, L.h / 2);
     } else if (L.t === 'tower') { makeSolid(L.x, L.y, 50, 50, 0, {}); add(L.x, L.y, 0, 60, makeTower); }
     else if (L.t === 'hangars') { makeSolid(L.x, L.y, L.w - 40, L.h - 20, 0, {}); add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeHangars(L), L.w / 2, L.h / 2); }
+    else if (L.t === 'colony' && COLONY) {
+      const c = COLONY; makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {});
+      solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_SIGN / 2, 0, COLONY_SIGN + 2, 22);                        // the sign pylon
+      add(c.cx, c.cy, c.a, 120, makeColony, 90, 90);
+    }
     else if (L.t === 'studio') {
       for (const [a, b, c, d] of studioStages(L)) makeSolid(L.x + (a + c) / 2, L.y + (b + d) / 2, c - a, d - b, 0, {});
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeStudio(L), L.w / 2, L.h / 2);

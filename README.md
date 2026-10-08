@@ -13,6 +13,7 @@ A bay city with two main islands, a few bay islands joined by causeways, a long 
 - The sea is everywhere outside the coast: you can wade a little, cars that leave the road sink. Bridges have rails.
 - **TAB** (or the **MAP** button) opens the whole city map; the game waits while it is open. The district name shows when you enter a new one.
 - Buildings follow the white building blocks of the reference map one to one (rotated where the map has them rotated). Long blocks are cut into touching pieces of different heights. Each district has its own look: glass towers in Palm Heights, low colourful houses in Mercado, warehouses in Dockside, pastel art deco hotels in Coral Shore, hotels in Sunstrip, big condo blocks along the coast in Seaview, villas on the keys.
+- The Colony Hotel stands where the real one is, 736 Ocean Drive: on the west side of the beach road facing Lummus Park and the sand, a white three-storey Streamline front with turquoise bands, wrap-around eyebrows, rounded corners, a stepped parapet and the inverted-T sign in blue neon (COLONY down the pylon, HOTEL across the bar over the door).
 - Landmarks: the Neon Bowl stadium, the walled Pearl Key estate, Bayside Mall, the lighthouse, Skyport terminal with control tower and hangars, Heron Studios, dock cranes, container yards and parked planes.
 - Only what is near the camera exists as meshes: buildings, landmarks and props are built when they come within about 2100 units (a few seconds' drive) and dropped again past 2700, so the far city costs nothing.
 
@@ -35,7 +36,7 @@ A bay city with two main islands, a few bay islands joined by causeways, a long 
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, officers, pickups, spawning |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads and markings, bridges, parks, beaches, street lights, building streaming, see-through fade |
-| `js/10b-render-landmarks.js` | landmarks and props (stadium, estate, mall, lighthouse, airport, studio, cranes, containers, planes) and their collision boxes |
+| `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, stadium, estate, mall, lighthouse, airport, studio, cranes, containers, planes) and their collision boxes |
 | `js/11-render-dynamic-meshes.js` | cars, people, pickups |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/13-render-frame.js` | per-frame render |

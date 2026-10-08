@@ -237,8 +237,8 @@ let worldReady = false;
 function genWorld() {
   if (worldReady) return;
   buildShoreField();
-  const blocks = {};
-  BLD = MAP.bld.map(([cx, cy, w, h, ang, grp, inner]) => {
+  const blocks = {}; colonySpot();                               // the Colony takes its real lot on Ocean Drive; map buildings there make way
+  BLD = MAP.bld.filter(b => !hitsColony(b[0], b[1], b[2], b[3], b[4])).map(([cx, cy, w, h, ang, grp, inner]) => {
     const g = blocks[grp] || (blocks[grp] = blockStyle(cx, cy, Math.max(w, h) >= 90)), tiny = Math.min(w, h) < 45;
     let H = g.H * rand(0.8, 1.15); if (tiny) H = Math.min(H, 36); else if (Math.min(w, h) < 90) H = Math.min(H, 130);
     return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
