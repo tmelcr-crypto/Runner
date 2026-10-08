@@ -10,7 +10,7 @@ catch (e) {
 }
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(OUTSIDE_HEX);
-scene.fog = new THREE.Fog(OUTSIDE_HEX, 1500, 3400);
+scene.fog = new THREE.Fog(OUTSIDE_HEX, 1700, 3800);
 const camera = new THREE.PerspectiveCamera(CAM_FOV, 1, 30, 7000);
 scene.add(new THREE.HemisphereLight(0x8a7cff, 0x2a1245, 0.95));
 const sun = new THREE.DirectionalLight(0x9fc4ff, 0.6); sun.position.set(-600, 1000, -400); scene.add(sun);   // sun in the north-west, shadows fall south-east
@@ -37,14 +37,12 @@ function screenToWorld(sx, sy) {      // mouse position -> point on the ground (
   placeCamera(false); _v2.set(sx / VW * 2 - 1, -(sy / VH) * 2 + 1); _ray.setFromCamera(_v2, camera);
   return _ray.ray.intersectPlane(_pl, _hit) ? { x: _hit.x, y: _hit.z } : { x: cam.x, y: cam.y };
 }
-function groundH(x, y) {              // sidewalks and parks sit SIDE_H above the road
-  if (x < 0 || y < 0 || x >= W || y >= W) {            // outside the grid: beach sand rising out of the water, or building podium
-    const d = shoreDist(x, y);
-    if (d >= 1e8) return SIDE_H;
-    return d <= 0 ? 0 : d < 30 ? 0.15 + (SIDE_H - 0.15) * d / 30 : SIDE_H;
-  }
-  if (x >= N * CELL || y >= N * CELL) return 0;
-  return (x % CELL >= ROAD && y % CELL >= ROAD) ? SIDE_H : 0;
+const PAD = 10;                        // raised pavement around every building
+const _gh = [];
+function groundH(x, y) {              // the ground is flat; only the pavement around buildings sits SIDE_H higher
+  bHash.query(x - PAD, y - PAD, x + PAD, y + PAD, _gh);
+  for (const r of _gh) if (x > r.x - PAD && x < r.x + r.w + PAD && y > r.y - PAD && y < r.y + r.h + PAD) return SIDE_H;
+  return 0;
 }
 
 /* shared geometry and materials */

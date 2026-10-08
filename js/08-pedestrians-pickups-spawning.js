@@ -1,36 +1,41 @@
 'use strict';
 /* ---------- 6c. PEDESTRIANS, OFFICERS, PICKUPS, SPAWNING ---------- */
-function pedNext(p) {
-  const k = p.tk, i = p.i, j = p.j;
-  if (!p.justCrossed && Math.random() < 0.22) {
-    const opts = k === 0 ? [[i - 1, j, 1], [i, j - 1, 3]] : k === 1 ? [[i + 1, j, 0], [i, j - 1, 2]] : k === 2 ? [[i + 1, j, 3], [i, j + 1, 1]] : [[i - 1, j, 2], [i, j + 1, 0]];
-    const v = opts.filter(o => o[0] >= 0 && o[1] >= 0 && o[0] < N && o[1] < N);
-    if (v.length) { const o = pick(v); p.i = o[0]; p.j = o[1]; p.tk = o[2]; p.justCrossed = true; return; }
-  }
-  p.justCrossed = false; p.tk = (k + p.dir + 4) % 4;
-  if (Math.random() < 0.08) p.wait = rand(0.5, 2);
+/* people walk the sidewalks: along a road edge, SIDEWALK units to one side of the centre line, picking a new edge at each junction */
+const _pw = {};
+function walkOffset(x, y) { return shoreDist(x, y) < 10 ? ROAD_HALF - 12 : SIDEWALK; }   // on bridges and at the water's edge, keep to the deck
+function sidewalkPoint(p, ahead, out) {
+  const E = RE[p.e], s = clamp(p.s + ahead, 0, E.len);
+  lanePoint(p.e, p.fw, s, 0, out); const cx = out.x, cy = out.y, off = walkOffset(cx - out.ty * p.side * SIDEWALK, cy + out.tx * p.side * SIDEWALK) * p.side;
+  out.x = cx - out.ty * off; out.y = cy + out.tx * off; return out;
 }
-function snapPed(p) {
-  const ci = Math.floor(p.x / CELL), cj = Math.floor(p.y / CELL); let bd = 1e9;
-  for (let i = ci - 1; i <= ci; i++) for (let j = cj - 1; j <= cj; j++) {
-    if (i < 0 || j < 0 || i >= N || j >= N) continue;
-    for (let k = 0; k < 4; k++) { const c = cornerPos(i, j, k), d = dist(p.x, p.y, c[0], c[1]); if (d < bd) { bd = d; p.i = i; p.j = j; p.tk = k; } }
-  }
-  p.justCrossed = true;
+function pedNext(p) {                         // reached the end of the edge: choose the next one, sometimes cross the road
+  const E = RE[p.e], node = p.fw > 0 ? E.b : E.a, opts = RN[node].e.filter(ei => ei !== p.e);
+  const ne = opts.length ? pick(opts) : p.e, F = RE[ne];
+  if (ne === p.e) { p.fw = -p.fw; p.side = -p.side; }
+  else { p.e = ne; p.fw = F.a === node ? 1 : -1; if (Math.random() < 0.15) p.side = -p.side; }
+  p.s = 0; if (Math.random() < 0.08) p.wait = rand(0.5, 2);
+}
+function snapPed(p) {                         // after fleeing or fighting: rejoin the nearest sidewalk, keeping to the side the person is on
+  const r = nearestRoad(p.x, p.y, 700); if (!r) { p.e = -1; return; }
+  const t = edgeAt(r.e, r.s, _pw), side = (p.x - r.x) * -t.ty + (p.y - r.y) * t.tx >= 0 ? 1 : -1, fw = Math.random() < 0.5 ? 1 : -1;
+  p.e = r.e; p.fw = fw; p.s = fw > 0 ? r.s : RE[r.e].len - r.s; p.side = side * fw;
 }
 function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
     if (p.cop && P.stars > 0 && !P.dead && dist(p.x, p.y, P.x, P.y) < 700) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }
     if (p.combat) { p.combat = false; p.cv = null; snapPed(p); }
+    if (p.e < 0) snapPed(p);
     let mx = 0, my = 0, sp = 0;
     if (p.state === 'flee') {
       const m = Math.hypot(p.fx, p.fy) || 1; mx = p.fx / m; my = p.fy / m; sp = 150 * SPEED_K; p.fl -= dt;
       if (p.fl <= 0) { p.state = 'walk'; snapPed(p); }
     } else if (p.wait > 0) p.wait -= dt;
-    else {
-      const c = cornerPos(p.i, p.j, p.tk), dx = c[0] - p.x, dy = c[1] - p.y, d = Math.hypot(dx, dy);
-      if (d < 5) pedNext(p); else { mx = dx / d; my = dy / d; sp = p.speed; }
+    else if (p.e >= 0) {
+      const c = sidewalkPoint(p, 14, _pw), dx = c.x - p.x, dy = c.y - p.y, d = Math.hypot(dx, dy);
+      if (d < 26) p.s += p.speed * dt;        // keep the carrot just ahead; it only moves on once we are close to it
+      if (p.s >= RE[p.e].len) pedNext(p);
+      if (d > 2) { mx = dx / d; my = dy / d; sp = p.speed; }
     }
     p.vx = lerp(p.vx, mx * sp, 1 - Math.exp(-10 * dt)); p.vy = lerp(p.vy, my * sp, 1 - Math.exp(-10 * dt));
     p.x += p.vx * dt; p.y += p.vy * dt; p.bob += Math.hypot(p.vx, p.vy) * dt * 0.12;
@@ -80,9 +85,16 @@ function updateOfficers(dt) {
     copCombat(o, dt);
   }
 }
-function spawnPickup() {
-  const i = randi(0, N - 1), j = randi(0, N - 1), k = randi(0, 3), a = cornerPos(i, j, k), b = cornerPos(i, j, (k + 1) % 4), t = rand(0.15, 0.85);
-  pickups.push({ x: lerp(a[0], b[0], t), y: lerp(a[1], b[1], t), type: pick(['health', 'pistol', 'mg', 'mg', 'cash', 'cash']), bob: rand(0, 6) });
+let pickupQ = [];                            // game times at which a picked-up item comes back somewhere else
+const PICKUP_N = 60, PICKUP_BACK = 25;
+function spawnPickup() {                      // anywhere on the map: a random sidewalk spot, chosen by road length
+  const total = RE.reduce((a, e) => a + e.len, 0);
+  for (let tr = 0; tr < 30; tr++) {
+    let r = Math.random() * total, e = 0; while (e < RE.length - 1 && r > RE[e].len) { r -= RE[e].len; e++; }
+    const w = { e, fw: 1, s: r, side: Math.random() < 0.5 ? 1 : -1 }, q = sidewalkPoint(w, 0, {});
+    if (shoreDist(q.x, q.y) < 12 || pedBlocked(q.x, q.y) || pickups.some(k => dist(k.x, k.y, q.x, q.y) < 200)) continue;
+    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'cash', 'cash']), bob: rand(0, 6) }); return;
+  }
 }
 function updatePickups(dt) {
   for (let k = pickups.length - 1; k >= 0; k--) {
@@ -92,55 +104,51 @@ function updatePickups(dt) {
     else if (p.type === 'pistol') { P.ammo[0] = Math.min(250, P.ammo[0] + 24); popup(p.x, p.y - 12, '+24 PISTOL', '#3fe0ff'); }
     else if (p.type === 'mg') { P.ammo[1] = Math.min(400, P.ammo[1] + 60); popup(p.x, p.y - 12, '+60 MG', '#3fe0ff'); }
     else addScore(500, p.x, p.y, 'CASH');
-    Snd.pickup(); pickups.splice(k, 1); setTimeout(() => { if (state === 'play') spawnPickup(); }, 25000);
+    Snd.pickup(); pickups.splice(k, 1); pickupQ.push(gameT + PICKUP_BACK);
   }
+  while (pickupQ.length && pickupQ[0] <= gameT) { pickupQ.shift(); spawnPickup(); }
 }
-function pedSpot(minD, maxD, tries) {
+function sidewalkSpot(minD, maxD, tries) {   // a sidewalk point between minD and maxD from the player
   for (let tr = 0; tr < tries; tr++) {
-    const ci = clamp(Math.floor(P.x / CELL) + randi(-3, 3), 0, N - 1), cj = clamp(Math.floor(P.y / CELL) + randi(-3, 3), 0, N - 1);
-    const k = randi(0, 3), dir = Math.random() < 0.5 ? 1 : -1, a = cornerPos(ci, cj, k), tk = (k + dir + 4) % 4, b = cornerPos(ci, cj, tk), t = rand(0.15, 0.85);
-    const x = lerp(a[0], b[0], t), y = lerp(a[1], b[1], t), d = dist(x, y, P.x, P.y);
-    if (d < minD || d > maxD) continue;
-    return { x, y, i: ci, j: cj, tk, dir };
+    const a = rand(0, TAU), d0 = rand(minD, maxD), r = nearestRoad(P.x + Math.cos(a) * d0, P.y + Math.sin(a) * d0, 260); if (!r) continue;
+    const fw = Math.random() < 0.5 ? 1 : -1, w = { e: r.e, fw, s: fw > 0 ? r.s : RE[r.e].len - r.s, side: Math.random() < 0.5 ? 1 : -1 }, q = sidewalkPoint(w, 0, {});
+    const d = dist(q.x, q.y, P.x, P.y); if (d < minD || d > maxD || shoreDist(q.x, q.y) < 6 || pedBlocked(q.x, q.y)) continue;
+    w.x = q.x; w.y = q.y; return w;
   }
   return null;
 }
 function spawnFootCop(initial) {
-  const s = initial ? pedSpot(90, 1100, 30) : pedSpot(visRadius() + 30, 1250, 25); if (!s) return;
-  peds.push(makeFootCop(s.x, s.y, s.i, s.j, s.tk, s.dir));
+  const s = initial ? sidewalkSpot(90, 1100, 30) : sidewalkSpot(visRadius() + 30, 1250, 25); if (!s) return;
+  peds.push(makeFootCop(s.x, s.y, s));
 }
 function spawnPedNear(initial) {
-  const s = initial ? pedSpot(90, 1100, 30) : pedSpot(visRadius() + 30, 1250, 25); if (!s) return;
-  peds.push(makePed(s.x, s.y, s.i, s.j, s.tk, s.dir));
+  const s = initial ? sidewalkSpot(90, 1100, 30) : sidewalkSpot(visRadius() + 30, 1250, 25); if (!s) return;
+  peds.push(makePed(s.x, s.y, s));
 }
-function laneSpot(minD, maxD) {
+function laneSpot(minD, maxD, kerb) {         // a point on a lane (or at the kerb) between minD and maxD from the player
   for (let tr = 0; tr < 40; tr++) {
-    const x0 = clamp(P.x + rand(-maxD, maxD), 0, W), y0 = clamp(P.y + rand(-maxD, maxD), 0, W);
-    let x, y, dir;
-    if (Math.random() < 0.5) { if (Math.abs(x0 - roadC(nearestIx(x0))) < 80) continue; dir = Math.random() < 0.5 ? 0 : 2; x = x0; y = roadC(nearestIx(y0)) + (dir === 0 ? 18 : -18); }
-    else { if (Math.abs(y0 - roadC(nearestIx(y0))) < 80) continue; dir = Math.random() < 0.5 ? 1 : 3; y = y0; x = roadC(nearestIx(x0)) + (dir === 1 ? -18 : 18); }
-    x = clamp(x, 30, W - 30); y = clamp(y, 30, W - 30);
-    const d = dist(x, y, P.x, P.y); if (d < minD || d > maxD) continue;
-    if (cars.some(c => dist(c.x, c.y, x, y) < 90)) continue;
-    return { x, y, dir };
+    const a = rand(0, TAU), d0 = rand(minD, maxD), r = nearestRoad(P.x + Math.cos(a) * d0, P.y + Math.sin(a) * d0, 300); if (!r) continue;
+    const E = RE[r.e]; if (r.s < 60 || r.s > E.len - 60) continue;          // not in the middle of a junction
+    const fw = Math.random() < 0.5 ? 1 : -1, s = fw > 0 ? r.s : E.len - r.s, q = lanePoint(r.e, fw, s, kerb ? ROAD_HALF - 15 : LANE, {});
+    const d = dist(q.x, q.y, P.x, P.y); if (d < minD || d > maxD) continue;
+    if (shoreDist(q.x, q.y) < (kerb ? 60 : 20) || cars.some(c => dist(c.x, c.y, q.x, q.y) < 90)) continue;
+    return { x: q.x, y: q.y, ang: Math.atan2(q.ty, q.tx), e: r.e, fw, s };
   }
   return null;
 }
 function spawnTraffic(initial) {
   const s = laneSpot(initial ? 140 : offDist(), initial ? 1100 : 1500); if (!s) return;
   const r = Math.random(), type = r < 0.5 ? 'sedan' : r < 0.7 ? 'sports' : r < 0.9 ? 'truck' : 'police';
-  const c = makeCar(type, s.x, s.y, DIR_ANG[s.dir], 'ai'); c.dir = s.dir; c.needDir = false;
+  const c = makeCar(type, s.x, s.y, s.ang, 'ai'); c.e = s.e; c.fw = s.fw; c.s = s.s;
   c.vx = Math.cos(c.ang) * 140 * SPEED_K; c.vy = Math.sin(c.ang) * 140 * SPEED_K; cars.push(c);
 }
 function spawnParked(initial) {
-  const s = laneSpot(initial ? 130 : offDist(), initial ? 1300 : 1500); if (!s) return;
-  if (s.dir % 2 === 0) s.y += s.dir === 0 ? 36 : -36; else s.x += s.dir === 1 ? -36 : 36;   // two wheels up on the kerb
-  const c = makeCar(pick(['sedan', 'sedan', 'sports', 'truck']), s.x, s.y, DIR_ANG[s.dir] + rand(-0.05, 0.05), null);
-  cars.push(c);
+  const s = laneSpot(initial ? 130 : offDist(), initial ? 1300 : 1500, true); if (!s) return;   // two wheels up on the kerb
+  cars.push(makeCar(pick(['sedan', 'sedan', 'sports', 'truck']), s.x, s.y, s.ang + rand(-0.05, 0.05), null));
 }
 function spawnCop() {
   const s = laneSpot(offDist(), offDist() + 700); if (!s) return;
-  const c = makeCar('police', s.x, s.y, DIR_ANG[s.dir], 'cop'); c.vx = Math.cos(c.ang) * 200 * SPEED_K; c.vy = Math.sin(c.ang) * 200 * SPEED_K; cars.push(c);
+  const c = makeCar('police', s.x, s.y, s.ang, 'cop'); c.vx = Math.cos(c.ang) * 200 * SPEED_K; c.vy = Math.sin(c.ang) * 200 * SPEED_K; cars.push(c);
 }
 let spawnT = 0, copT = 0, offT = 0;
 function manageSpawns(dt) {
@@ -159,7 +167,7 @@ function manageSpawns(dt) {
   if (P.stars === 1) { let fo = 0; for (const o of officers) if (!o.dead) fo++; copsN += Math.ceil(fo / 2); }
   if (copT <= 0 && copsN < [0, 1, 2, 3, 5, 7][P.stars]) { copT = 1.6; spawnCop(); }
   if (offT <= 0 && P.stars >= 2 && !P.car && officers.filter(o => !o.dead).length < P.stars * 2 - 2) {
-    offT = 3.5; const s = pedSpot(offDist(), offDist() + 500, 25); if (s) officers.push(makeOfficer(s.x, s.y));
+    offT = 3.5; const s = sidewalkSpot(offDist(), offDist() + 500, 25); if (s) officers.push(makeOfficer(s.x, s.y));
   }
 }
 function updateParticles(dt) {

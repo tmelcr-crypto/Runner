@@ -1,55 +1,35 @@
 'use strict';
-/* ---------- 4. WORLD (grid city, collision helpers, raycast) ---------- */
-const B = [];      // B[i][j]: building rect or null (park)
-const LOTS = [];   // LOTS[i][j]: { park, trees, pond }
+/* ---------- 4. WORLD (bay map, collision helpers, water, road graph) ---------- */
 const PALETTE = ['#ff3fb4', '#35d8ff', '#8a5cff', '#ffb02e', '#3dffa6', '#ff4d6d', '#4d7aff', '#b79cff', '#ff7a3d'];
 function shade(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
   const r = clamp((n >> 16) + amt, 0, 255), g = clamp(((n >> 8) & 255) + amt, 0, 255), b = clamp((n & 255) + amt, 0, 255);
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
-/* ---------- city edges: each side is either a solid row of buildings or a lake with a beach ---------- */
-const BEACH = 170, WADE = 26, EDGE_D = 240, MM = 260;     // beach width, how deep you may wade, edge building depth, minimap margin
-const EDGE = { n: 'wall', s: 'wall', w: 'wall', e: 'wall' }, EDGE_KEYS = ['n', 's', 'w', 'e'];
-let BX0 = 0, BX1 = W, BY0 = 0, BY1 = W, CX0 = 0, CX1 = W, CY0 = 0, CY1 = W;   // foot limits and car limits
-function genEdges() {
-  for (const k of EDGE_KEYS) EDGE[k] = Math.random() < 0.5 ? 'lake' : 'wall';
-  if (!EDGE_KEYS.some(k => EDGE[k] === 'lake')) EDGE[pick(EDGE_KEYS)] = 'lake';
-  const L = BEACH + WADE + 7, C = BEACH + 70;
-  BX0 = EDGE.w === 'lake' ? -L : 0; BX1 = EDGE.e === 'lake' ? W + L : W; BY0 = EDGE.n === 'lake' ? -L : 0; BY1 = EDGE.s === 'lake' ? W + L : W;
-  CX0 = EDGE.w === 'lake' ? -C : 0; CX1 = EDGE.e === 'lake' ? W + C : W; CY0 = EDGE.n === 'lake' ? -C : 0; CY1 = EDGE.s === 'lake' ? W + C : W;
-}
-function shoreDist(x, y) {                     // > 0 on land, < 0 in the water (only lake sides count)
-  let d = 1e9;
-  if (EDGE.w === 'lake') d = Math.min(d, x + BEACH); if (EDGE.e === 'lake') d = Math.min(d, W + BEACH - x);
-  if (EDGE.n === 'lake') d = Math.min(d, y + BEACH); if (EDGE.s === 'lake') d = Math.min(d, W + BEACH - y);
-  return d;
-}
-const inWater = (x, y) => shoreDist(x, y) < 0;
-function genWorld() {
-  genEdges();
-  for (let i = 0; i < N; i++) {
-    B[i] = []; LOTS[i] = [];
-    for (let j = 0; j < N; j++) {
-      const lx = i * CELL + ROAD, ly = j * CELL + ROAD;
-      if (Math.random() < 0.13) {
-        const trees = [];
-        for (let k = 0; k < 9; k++) trees.push({ x: lx + rand(48, LOT - 48), y: ly + rand(48, LOT - 48), r: rand(9, 15) });
-        B[i][j] = null; LOTS[i][j] = { park: true, trees, pond: Math.random() < 0.4 };
-      } else {
-        const c = pick(PALETTE);
-        const r = { x: lx + SW, y: ly + SW, w: LOT - 2 * SW, h: LOT - 2 * SW, c, roof: shade(c, 28), wall: shade(c, -60), dets: [] };
-        const n = randi(1, 4);
-        for (let k = 0; k < n; k++) r.dets.push({ x: rand(8, r.w - 44), y: rand(8, r.h - 40), w: rand(18, 36), h: rand(14, 30), k: randi(0, 1) });
-        B[i][j] = r; LOTS[i][j] = { park: false };
-      }
-    }
+const WADE = 26, SEA = 1400;                                  // how deep you may wade; open sea kept around the map
+const BX0 = -SEA, BX1 = MW + SEA, BY0 = -SEA, BY1 = MH + SEA; // hard limits for people
+const CX0 = BX0, CX1 = BX1, CY0 = BY0, CY1 = BY1;             // and for cars (they sink long before)
+
+/* ---------- spatial hash: buildings, bridge rails, road segments ---------- */
+const HS = 320;
+let _qs = 0;
+function Hash() { this.m = new Map(); }
+Hash.prototype.add = function (o, x0, y0, x1, y1) {
+  const a0 = Math.floor((x0 + SEA) / HS), a1 = Math.floor((x1 + SEA) / HS), b0 = Math.floor((y0 + SEA) / HS), b1 = Math.floor((y1 + SEA) / HS);
+  for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) { const k = a * 1024 + b; let l = this.m.get(k); if (!l) this.m.set(k, l = []); l.push(o); }
+};
+Hash.prototype.query = function (x0, y0, x1, y1, out) {
+  out.length = 0; const q = ++_qs;
+  const a0 = Math.floor((x0 + SEA) / HS), a1 = Math.floor((x1 + SEA) / HS), b0 = Math.floor((y0 + SEA) / HS), b1 = Math.floor((y1 + SEA) / HS);
+  for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
+    const l = this.m.get(a * 1024 + b); if (!l) continue;
+    for (const o of l) if (o._q !== q) { o._q = q; out.push(o); }
   }
-}
-function cornerPos(i, j, k) {
-  const lx = i * CELL + ROAD, ly = j * CELL + ROAD;
-  return k === 0 ? [lx + RING, ly + RING] : k === 1 ? [lx + LOT - RING, ly + RING] : k === 2 ? [lx + LOT - RING, ly + LOT - RING] : [lx + RING, ly + LOT - RING];
-}
+  return out;
+};
+let BLD = [];                                                  // building rects {x, y, w, h, c, H, kind}
+const bHash = new Hash(), rHash = new Hash(), sHash = new Hash();
+const RAILS = [], BRIDGES = [];                                // rail segments {x1, y1, x2, y2}; bridge spans {e, s0, s1}
 
 function circleRect(cx, cy, r, rc) {
   const px = clamp(cx, rc.x, rc.x + rc.w), py = clamp(cy, rc.y, rc.y + rc.h);
@@ -62,21 +42,25 @@ function circleRect(cx, cy, r, rc) {
   if (m === t) return { nx: 0, ny: -1, pen: r + t };
   return { nx: 0, ny: 1, pen: r + b };
 }
-const _nb = [];
-function nearBuildings(x, y, out) {
-  out.length = 0;
-  const ci = Math.floor(x / CELL), cj = Math.floor(y / CELL);
-  for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++)
-    if (i >= 0 && j >= 0 && i < N && j < N && B[i][j]) out.push(B[i][j]);
-  return out;
+const RAIL_T = 3;
+function circleSeg(cx, cy, r, s) {
+  const dx = s.x2 - s.x1, dy = s.y2 - s.y1, l2 = dx * dx + dy * dy || 1, t = clamp(((cx - s.x1) * dx + (cy - s.y1) * dy) / l2, 0, 1);
+  const px = s.x1 + dx * t, py = s.y1 + dy * t, ex = cx - px, ey = cy - py, d = Math.hypot(ex, ey), rr = r + RAIL_T;
+  if (d >= rr) return null;
+  if (d > 0.001) return { nx: ex / d, ny: ey / d, pen: rr - d };
+  return { nx: -dy / Math.sqrt(l2), ny: dx / Math.sqrt(l2), pen: rr };
 }
-// Push a circle {x,y} out of buildings and world bounds. Returns summed hit normal or null.
+const _nb = [], _nr = [];
+function nearBuildings(x, y, out) { return bHash.query(x - 40, y - 40, x + 40, y + 40, out); }
+function nearRails(x, y, out) { return rHash.query(x - 40, y - 40, x + 40, y + 40, out); }
+// Push a circle {x,y} out of buildings, bridge rails, deep water and the world bounds. Returns summed hit normal or null.
 function resolveCircle(o, r) {
-  let hit = null; nearBuildings(o.x, o.y, _nb);
-  for (const rc of _nb) {
-    const h = circleRect(o.x, o.y, r, rc);
-    if (h) { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; }
-  }
+  let hit = null;
+  const push = h => { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; };
+  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { const h = circleRect(o.x, o.y, r, rc); if (h) push(h); }
+  nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); }
+  const sd = shoreDist(o.x, o.y);
+  if (sd < -WADE) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
   if (o.x < BX0 + r) { o.x = BX0 + r; hit = hit || { nx: 0, ny: 0 }; hit.nx += 1; } else if (o.x > BX1 - r) { o.x = BX1 - r; hit = hit || { nx: 0, ny: 0 }; hit.nx -= 1; }
   if (o.y < BY0 + r) { o.y = BY0 + r; hit = hit || { nx: 0, ny: 0 }; hit.ny += 1; } else if (o.y > BY1 - r) { o.y = BY1 - r; hit = hit || { nx: 0, ny: 0 }; hit.ny -= 1; }
   return hit;
@@ -95,10 +79,10 @@ function rayCircle(ox, oy, dx, dy, cx, cy, r) {
   const d2 = (cx - ox) * (cx - ox) + (cy - oy) * (cy - oy) - tca * tca; if (d2 > r * r) return Infinity;
   return tca - Math.sqrt(r * r - d2);
 }
+const _ba = [];
 function buildingsAlong(x1, y1, x2, y2, fn) {
-  const i0 = Math.floor(Math.min(x1, x2) / CELL), i1 = Math.floor(Math.max(x1, x2) / CELL);
-  const j0 = Math.floor(Math.min(y1, y2) / CELL), j1 = Math.floor(Math.max(y1, y2) / CELL);
-  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) if (i >= 0 && j >= 0 && i < N && j < N && B[i][j]) fn(B[i][j]);
+  bHash.query(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), _ba);
+  for (const rc of _ba) fn(rc);
 }
 function losClear(x1, y1, x2, y2) {
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
@@ -107,3 +91,152 @@ function losClear(x1, y1, x2, y2) {
   return clear;
 }
 
+/* ---------- water: signed distance to the shore, sampled from a field built from the land polygons ---------- */
+const FR = 14;                                                 // field cell size in world units
+let FW = 0, FH = 0, FIELD = null;
+function traceRing(g, ring) { g.moveTo(ring[0][0], ring[0][1]); for (let k = 1; k < ring.length; k++) g.lineTo(ring[k][0], ring[k][1]); g.closePath(); }
+function buildShoreField() {
+  FW = Math.ceil((MW + 2 * SEA) / FR); FH = Math.ceil((MH + 2 * SEA) / FR);
+  const c = document.createElement('canvas'); c.width = FW; c.height = FH; const g = c.getContext('2d', { willReadFrequently: true });
+  g.fillStyle = '#000'; g.fillRect(0, 0, FW, FH); g.setTransform(1 / FR, 0, 0, 1 / FR, SEA / FR, SEA / FR); g.fillStyle = '#fff';
+  for (const p of MAP.land) { g.beginPath(); traceRing(g, p.o); for (const h of p.h) traceRing(g, h); g.fill('evenodd'); }
+  const px = g.getImageData(0, 0, FW, FH).data, n = FW * FH, land = new Uint8Array(n);
+  for (let i = 0; i < n; i++) land[i] = px[i * 4] > 127 ? 1 : 0;
+  const toOther = cls => {                                     // chamfer distance (cells) from each cell to the nearest cell not of class cls
+    const d = new Float32Array(n), D = Math.SQRT2;
+    for (let i = 0; i < n; i++) d[i] = land[i] === cls ? 1e6 : 0;
+    for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) {
+      const i = y * FW + x; let v = d[i]; if (v === 0) continue;
+      if (x > 0) v = Math.min(v, d[i - 1] + 1);
+      if (y > 0) { v = Math.min(v, d[i - FW] + 1); if (x > 0) v = Math.min(v, d[i - FW - 1] + D); if (x < FW - 1) v = Math.min(v, d[i - FW + 1] + D); }
+      d[i] = v;
+    }
+    for (let y = FH - 1; y >= 0; y--) for (let x = FW - 1; x >= 0; x--) {
+      const i = y * FW + x; let v = d[i]; if (v === 0) continue;
+      if (x < FW - 1) v = Math.min(v, d[i + 1] + 1);
+      if (y < FH - 1) { v = Math.min(v, d[i + FW] + 1); if (x < FW - 1) v = Math.min(v, d[i + FW + 1] + D); if (x > 0) v = Math.min(v, d[i + FW - 1] + D); }
+      d[i] = v;
+    }
+    return d;
+  };
+  const dw = toOther(1), dl = toOther(0); FIELD = new Float32Array(n);
+  for (let i = 0; i < n; i++) FIELD[i] = (land[i] ? dw[i] - 0.5 : -(dl[i] - 0.5)) * FR;
+}
+function shoreDist(x, y) {                                     // > 0 on land, < 0 in the water
+  const fx = (x + SEA) / FR - 0.5, fy = (y + SEA) / FR - 0.5;
+  if (!(fx >= 0 && fy >= 0 && fx < FW - 1 && fy < FH - 1)) return -1e4;
+  const ix = fx | 0, iy = fy | 0, tx = fx - ix, ty = fy - iy, k = iy * FW + ix, F = FIELD;
+  return (F[k] * (1 - tx) + F[k + 1] * tx) * (1 - ty) + (F[k + FW] * (1 - tx) + F[k + FW + 1] * tx) * ty;
+}
+function shoreGrad(x, y) {                                     // unit vector toward land
+  const gx = shoreDist(x + FR, y) - shoreDist(x - FR, y), gy = shoreDist(x, y + FR) - shoreDist(x, y - FR), m = Math.hypot(gx, gy) || 1;
+  return [gx / m, gy / m];
+}
+const inWater = (x, y) => shoreDist(x, y) < 0;
+function waterBetween(x1, y1, x2, y2) {
+  const n = Math.ceil(dist(x1, y1, x2, y2) / 40);
+  for (let k = 1; k < n; k++) if (shoreDist(lerp(x1, x2, k / n), lerp(y1, y2, k / n)) < 0) return true;
+  return false;
+}
+
+/* ---------- road graph: nodes, edges with centre-line polylines ---------- */
+const RN = MAP.nodes.map(([x, y]) => ({ x, y, e: [] }));
+const RE = MAP.edges.map((d, i) => {
+  const p = d.p, cum = [0];
+  for (let k = 1; k < p.length; k++) cum.push(cum[k - 1] + Math.hypot(p[k][0] - p[k - 1][0], p[k][1] - p[k - 1][1]));
+  return { i, a: d.a, b: d.b, p, cum, len: cum[cum.length - 1] };
+});
+for (const e of RE) { RN[e.a].e.push(e.i); if (e.b !== e.a) RN[e.b].e.push(e.i); }
+for (const e of RE) for (let k = 0; k < e.p.length - 1; k++) {
+  const [x1, y1] = e.p[k], [x2, y2] = e.p[k + 1], m = ROAD_HALF + 30;
+  sHash.add({ e: e.i, k }, Math.min(x1, x2) - m, Math.min(y1, y2) - m, Math.max(x1, x2) + m, Math.max(y1, y2) + m);
+}
+// point and unit tangent (a -> b) at arc length s along edge e
+function edgeAt(e, s, out) {
+  const E = RE[e], p = E.p, c = E.cum; s = clamp(s, 0, E.len);
+  let k = 0; while (k < p.length - 2 && c[k + 1] < s) k++;
+  const l = c[k + 1] - c[k] || 1, t = (s - c[k]) / l, dx = (p[k + 1][0] - p[k][0]) / l, dy = (p[k + 1][1] - p[k][1]) / l;
+  out = out || {}; out.x = p[k][0] + (p[k + 1][0] - p[k][0]) * t; out.y = p[k][1] + (p[k + 1][1] - p[k][1]) * t; out.tx = dx; out.ty = dy; return out;
+}
+// travelling along e in direction fw (1 = a->b, -1 = b->a), s units from the start: point offset `off` to the right of travel
+function lanePoint(e, fw, s, off, out) {
+  out = edgeAt(e, fw > 0 ? s : RE[e].len - s, out); out.tx *= fw; out.ty *= fw;
+  out.x += -out.ty * off; out.y += out.tx * off; return out;
+}
+const _sq = [];
+// nearest point on any road centre line within maxD: { e, s, x, y, d }
+function nearestRoad(x, y, maxD) {
+  sHash.query(x - maxD, y - maxD, x + maxD, y + maxD, _sq); let best = null, bd = maxD;
+  for (const q of _sq) {
+    const E = RE[q.e], [x1, y1] = E.p[q.k], [x2, y2] = E.p[q.k + 1], dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy || 1;
+    const t = clamp(((x - x1) * dx + (y - y1) * dy) / l2, 0, 1), px = x1 + dx * t, py = y1 + dy * t, d = Math.hypot(x - px, y - py);
+    if (d < bd) { bd = d; best = { e: q.e, s: E.cum[q.k] + t * Math.sqrt(l2), x: px, y: py, d }; }
+  }
+  return best;
+}
+// nearest point on every road edge within maxD (one per edge)
+function nearRoads(x, y, maxD) {
+  sHash.query(x - maxD, y - maxD, x + maxD, y + maxD, _sq); const best = new Map();
+  for (const q of _sq) {
+    const E = RE[q.e], [x1, y1] = E.p[q.k], [x2, y2] = E.p[q.k + 1], dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy || 1;
+    const t = clamp(((x - x1) * dx + (y - y1) * dy) / l2, 0, 1), d = Math.hypot(x - x1 - dx * t, y - y1 - dy * t);
+    if (d < maxD) { const o = best.get(q.e); if (!o || d < o.d) best.set(q.e, { e: q.e, s: E.cum[q.k] + t * Math.sqrt(l2), d }); }
+  }
+  return [...best.values()];
+}
+// shortest road distance from every node to the point (x, y); RD[n] = Infinity when unreachable
+const RD = new Float64Array(RN.length);
+function roadFieldTo(x, y) {
+  RD.fill(Infinity); const t = nearestRoad(x, y, 900); if (!t) return null;
+  const E = RE[t.e], done = new Uint8Array(RN.length); RD[E.a] = Math.min(RD[E.a], t.s); RD[E.b] = Math.min(RD[E.b], E.len - t.s);
+  for (;;) {
+    let u = -1, best = Infinity;
+    for (let k = 0; k < RN.length; k++) if (!done[k] && RD[k] < best) { best = RD[k]; u = k; }
+    if (u < 0) break; done[u] = 1;
+    for (const ei of RN[u].e) { const F = RE[ei], v = F.a === u ? F.b : F.a, nd = best + F.len; if (nd < RD[v]) RD[v] = nd; }
+  }
+  return t;
+}
+function districtAt(x, y) {
+  for (const [name, r] of MAP.districts) if (x >= r[0] && x < r[2] && y >= r[1] && y < r[3]) return name;
+  return 'OPEN WATER';
+}
+
+/* ---------- world build (once) ---------- */
+// building height mix per district: [chance of a tower, tower min, tower max, normal min, normal max, warehouse chance]
+const DPROF = { 'PALM HEIGHTS': [0.38, 150, 300, 45, 120, 0], 'SUNSTRIP': [0.3, 120, 240, 50, 110, 0], 'SEAVIEW': [0.22, 110, 220, 40, 100, 0],
+  'CORAL SHORE': [0.16, 110, 200, 38, 100, 0], 'MERCADO': [0.05, 100, 150, 30, 80, 0.1], 'DOCKSIDE': [0.05, 90, 140, 35, 75, 0.5],
+  'SKYPORT': [0, 0, 0, 30, 55, 0.6], 'GRAVEL FLATS': [0, 0, 0, 30, 60, 0.5] };
+let worldReady = false;
+function genWorld() {
+  if (worldReady) return;
+  buildShoreField();
+  BLD = MAP.bld.map(([x, y, w, h]) => {
+    const c = pick(PALETTE), pr = DPROF[districtAt(x + w / 2, y + h / 2)] || [0.06, 90, 150, 30, 70, 0], small = Math.min(w, h) < 100;
+    const r = { x, y, w, h, c, roof: shade(c, 28), wall: shade(c, -60) };
+    if (Math.random() < pr[5]) { r.kind = 'warehouse'; r.H = rand(40, 60); }
+    else r.H = Math.random() < pr[0] && !small ? rand(pr[1], pr[2]) : rand(pr[3], small ? Math.min(pr[4], 90) : pr[4]);
+    bHash.add(r, x, y, x + w, y + h); return r;
+  });
+  // bridges: wherever both sides of the road are water, put a rail along each edge of the deck
+  const q = {};
+  for (const E of RE) {
+    const n = Math.max(2, Math.ceil(E.len / 26)), wet = [];
+    for (let k = 0; k <= n; k++) {
+      edgeAt(E.i, E.len * k / n, q); const ox = -q.ty * (ROAD_HALF + 22), oy = q.tx * (ROAD_HALF + 22);
+      wet.push(shoreDist(q.x + ox, q.y + oy) < 0 && shoreDist(q.x - ox, q.y - oy) < 0);
+    }
+    for (let k = 0; k <= n; k++) {
+      if (!wet[k] || (k > 0 && wet[k - 1])) continue;
+      let j = k; while (j < n && wet[j + 1]) j++;
+      const k0 = Math.max(0, k - 1), k1 = Math.min(n, j + 1); if (k1 - k0 < 2) continue;
+      BRIDGES.push({ e: E.i, s0: E.len * k0 / n, s1: E.len * k1 / n });
+      for (const sd of [-1, 1]) for (let m = k0; m < k1; m++) {
+        const a = edgeAt(E.i, E.len * m / n, {}), b = edgeAt(E.i, E.len * (m + 1) / n, {}), off = sd * (ROAD_HALF - 2);
+        const s = { x1: a.x - a.ty * off, y1: a.y + a.tx * off, x2: b.x - b.ty * off, y2: b.y + b.tx * off };
+        RAILS.push(s); rHash.add(s, Math.min(s.x1, s.x2) - 4, Math.min(s.y1, s.y2) - 4, Math.max(s.x1, s.x2) + 4, Math.max(s.y1, s.y2) + 4);
+      }
+    }
+  }
+  worldReady = true;
+}

@@ -5,7 +5,7 @@ let cars = [], peds = [], officers = [], pickups = [], parts = [], decals = [], 
 function makeCar(type, x, y, ang, driver, color) {
   const t = CAR_TYPES[type];
   return { type, t, x, y, ang, vx: 0, vy: 0, av: 0, hp: t.hp, maxhp: t.hp, color: color || pick(t.colors), driver: driver || null,
-    thr: 0, str: 0, hb: false, dir: 0, pa: undefined, needDir: true, burn: 0, dead: false, deadT: 0, stuck: 0, rev: 0,
+    thr: 0, str: 0, hb: false, e: -1, fw: 1, s: 0, nx: null, burn: 0, dead: false, deadT: 0, stuck: 0, rev: 0,
     slip: 0, smokeT: 0, hitCd: 0, way: null, wayT: 0, sirenT: rand(0, 2) };
 }
 function carCircles(c) {
@@ -13,12 +13,13 @@ function carCircles(c) {
   return [[c.x + fx * o, c.y + fy * o, r], [c.x, c.y, r], [c.x - fx * o, c.y - fy * o, r]];
 }
 const carSpeed = c => Math.hypot(c.vx, c.vy);
-function makePed(x, y, i, j, tk, dir) {
-  return { x, y, i, j, tk, dir, speed: rand(52, 78) * SPEED_K, hp: 30, state: 'walk', fl: 0, fx: 0, fy: 0, dead: false, deadT: 0, wait: 0,
-    justCrossed: false, shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']),
+// w: a sidewalk spot { e, fw, s, side } from sidewalkSpot(); without one the person finds the nearest sidewalk on the next update
+function makePed(x, y, w) {
+  return { x, y, e: w ? w.e : -1, fw: w ? w.fw : 1, s: w ? w.s : 0, side: w ? w.side : 1, speed: rand(52, 78) * SPEED_K, hp: 30, state: 'walk', fl: 0, fx: 0, fy: 0, dead: false, deadT: 0, wait: 0,
+    shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']),
     skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']), bob: rand(0, 6), vx: 0, vy: 0 };
 }
-function makeFootCop(x, y, i, j, tk, dir) { const p = makePed(x, y, i, j, tk, dir); p.cop = true; p.hp = 45; p.speed = rand(46, 60) * SPEED_K; p.hd = 0; p.ang = 0; return p; }
+function makeFootCop(x, y, w) { const p = makePed(x, y, w); p.cop = true; p.hp = 45; p.speed = rand(46, 60) * SPEED_K; p.hd = 0; p.ang = 0; return p; }
 function makeOfficer(x, y) { return { x, y, ang: 0, hp: 45, cool: rand(0.3, 1), speed: 118 * SPEED_K, dead: false, deadT: 0, bob: 0, vx: 0, vy: 0 }; }
 
 function addP(p) { if (parts.length < 650) parts.push(p); }

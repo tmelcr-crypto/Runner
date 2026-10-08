@@ -1,31 +1,35 @@
 'use strict';
 /* ---------- 9. GAME FLOW & MAIN LOOP ---------- */
+function startSpot() {                       // the longest road near the map's start point
+  const rs = nearRoads(MAP.start[0], MAP.start[1], 900).sort((u, v) => RE[v.e].len - RE[u.e].len);
+  return rs.length ? rs[0].e : nearestRoad(MAP.start[0], MAP.start[1], 3000).e;
+}
 function resetGame() {
   genWorld(); buildMiniMap(); buildCity(); clearDynamic();
-  cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = [];
-  const ci = Math.floor(N / 2), cj = Math.floor(N / 2), ox = ci * CELL, oy = cj * CELL, sp = cornerPos(ci, cj, 0);
-  Object.assign(P, { x: sp[0], y: sp[1], ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+  cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
+  const e = startSpot(), E = RE[e], s0 = E.len / 2, at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
+  let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
-  cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0;
-  const starter = makeCar('sedan', ox + 90, oy + 150, -Math.PI / 2, null, '#d94f4f'); cars.push(starter);
-  cars.push(makeCar('sports', ox + 90, oy + 330, -Math.PI / 2, null, '#3fe0ff'));
-  cars.push(makeCar('truck', ox + 160, oy + 60, 0, null, '#3d6fb0'));
+  cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = '';
+  const kerb = ROAD_HALF - 15, side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1;     // starter cars at the kerb on the player's side
+  for (const [ds, type, col] of [[-60, 'sedan', '#d94f4f'], [50, 'sports', '#3fe0ff'], [160, 'truck', '#3d6fb0']]) { const q = at(s0 + ds, kerb * side); cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); }
   for (let k = 0; k < 32; k++) spawnTraffic(true);
   for (let k = 0; k < 14; k++) spawnParked(true);
   for (let k = 0; k < 50; k++) spawnPedNear(true);
   for (let k = 0; k < 6; k++) spawnFootCop(true);
-  for (let k = 0; k < 40; k++) spawnPickup();
+  for (let k = 0; k < PICKUP_N; k++) spawnPickup();
   spawnT = copT = offT = 0;
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
 function startGame() {
-  Snd.init(); resetGame(); state = 'play';
+  Snd.init(); toggleBigMap(false); resetGame(); state = 'play';
   $('overlay').hidden = true; $('hud').hidden = false;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   toast('FIND A CAR. CAUSE SOME TROUBLE.');
 }
 function showOver() {
-  state = 'over';
+  state = 'over'; toggleBigMap(false);
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const s = Math.floor(gameT), mm = Math.floor(s / 60), ss = String(s % 60).padStart(2, '0');
   $('oScore').textContent = P.score; $('oBest').textContent = best; $('oKills').textContent = P.kills;
@@ -46,7 +50,8 @@ function handleKeys() {
     if (pressed.Digit1) P.weapon = 0;
     if (pressed.Digit2) P.weapon = 1;
     if (pressed.wheel) P.weapon = 1 - P.weapon;
-    if (pressed.KeyE || pressed.KeyF) tryEnterExit();
+    if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false);
+    if ((pressed.KeyE || pressed.KeyF) && !bigOpen) tryEnterExit();
   }
   if (pressed.KeyM) Snd.toggle();
   for (const k in pressed) delete pressed[k];
@@ -96,7 +101,7 @@ function frame(ts) {
   const rdt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016); lastTs = ts;
   handleKeys();
   if (state === 'preview') { pvFrame(); return; }
-  if (state === 'play') update(rdt, false);
+  if (state === 'play') { if (!bigOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) showOver(); }
   else update(rdt, true);
   render(ts / 1000);

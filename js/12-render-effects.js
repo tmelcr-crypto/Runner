@@ -49,7 +49,7 @@ const skidMesh = new THREE.Mesh(sGeo, new THREE.MeshBasicMaterial({ vertexColors
 function gfxSkids() {
   const n = Math.min(MAXS, skids.length);
   for (let k = 0; k < n; k++) {
-    const s = skids[k], dx = s.x2 - s.x1, dy = s.y2 - s.y1, m = Math.hypot(dx, dy) || 1, px = -dy / m * 1.6, py = dx / m * 1.6, y = 0.5, f = 1 - 0.78 * clamp(s.a / 0.55, 0, 1);
+    const s = skids[k], dx = s.x2 - s.x1, dy = s.y2 - s.y1, m = Math.hypot(dx, dy) || 1, px = -dy / m * 1.6, py = dx / m * 1.6, y = 1.0, f = 1 - 0.78 * clamp(s.a / 0.55, 0, 1);
     sPos.set([s.x1 + px, y, s.y1 + py, s.x1 - px, y, s.y1 - py, s.x2 - px, y, s.y2 - py, s.x1 + px, y, s.y1 + py, s.x2 - px, y, s.y2 - py, s.x2 + px, y, s.y2 + py], k * 18);
     for (let v = 0; v < 6; v++) { sCol[k * 18 + v * 3] = 0.26 * f; sCol[k * 18 + v * 3 + 1] = 0.27 * f; sCol[k * 18 + v * 3 + 2] = 0.31 * f; }
   }

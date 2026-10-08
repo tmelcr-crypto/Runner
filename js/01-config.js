@@ -1,7 +1,8 @@
 'use strict';
 /* ---------- 1. CONFIG & HELPERS ---------- */
-const CELL = 360, ROAD = 120, LOT = 240, SW = 34, RING = 20, N = 12;   // city grid: N x N lots
-const W = N * CELL + ROAD;                                              // world size in px
+const MW = MAP.W, MH = MAP.H;                                          // world size (map from js/00-map-data.js)
+const ROAD_W = MAP.roadW, ROAD_HALF = ROAD_W / 2, LANE = 22;            // road width, lane centre offset from the centre line
+const SIDEWALK = ROAD_HALF + 8;                                         // where people walk, measured from the road centre line
 const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const randi = (a, b) => Math.floor(rand(a, b + 1));
@@ -10,8 +11,6 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
 const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
-const roadC = i => i * CELL + ROAD / 2;                                 // centre line of road i
-const nearestIx = v => clamp(Math.round((v - ROAD / 2) / CELL), 0, N);
 
 const SPEED_K = 0.75;      // one knob: every speed in the game (people, cops, cars) is scaled by this
 const CAR_TYPES = {
