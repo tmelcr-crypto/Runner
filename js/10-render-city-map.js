@@ -139,20 +139,20 @@ function buildCity() {
     const sd = Math.round(s / 300) % 2 ? 1 : -1, c = edgeAt(E.i, s, q);
     let off = (ROAD_HALF + 6) * sd, px = c.x - c.ty * off, py = c.y + c.tx * off;
     if (shoreDist(px, py) < 6) { off = (ROAD_HALF - 7) * sd; px = c.x - c.ty * off; py = c.y + c.tx * off; }
-    if (groundH(px, py) > 0) continue;
+    if (groundH(px, py) > 0 || inLandmark(px, py)) continue;
     const lc = (E.i + Math.round(s / 300)) % 2 ? '#ff2bd6' : '#2bf3ff', ix = c.x - c.ty * off * 0.6, iy = c.y + c.tx * off * 0.6;
     poles.push({ x: px, y: 31, z: py, sx: 1.4, sy: 62, sz: 1.4, c: '#14102a' });
     heads.push({ x: ix * 0.1 + px * 0.9, y: 62, z: iy * 0.1 + py * 0.9, sx: 7, sy: 2.6, sz: 7, c: lc });
     pools.push({ x: ix, y: 1.5, z: iy, sx: 170, sy: 1, sz: 170, c: lc });
   }
   // parks: trees off the roads; beaches: palms, umbrellas and towels
-  const trunks = [], crowns = [], slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, ROAD_HALF + 14) && groundH(x, y) === 0;
+  const trunks = [], crowns = [], slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, ROAD_HALF + 14) && groundH(x, y) === 0 && !inLandmark(x, y);
   for (const p of MAP.grass) {
     const n = Math.min(70, Math.floor(Math.abs(polyArea(p.o)) / 9000));
     for (let k = 0; k < n && trunks.length < 1600; k++) {
       const pt = randomIn(p, (x, y) => clear(x, y, 14)); if (!pt) continue; const r = rand(9, 15);
       trunks.push({ x: pt[0], y: 6, z: pt[1], sx: 2.2, sy: 12, sz: 2.2, c: '#24143c' });
-      crowns.push({ x: pt[0], y: 12 + r * 0.7, z: pt[1], sx: r * 1.1, sy: r * 1.2, sz: r * 1.1, c: pick(['#0f8f86', '#1b6fd1', '#7a35d6', '#d11fa8']) });
+      crowns.push({ x: pt[0], y: 12 + r * 0.7, z: pt[1], sx: r * 1.1, sy: r * 1.2, sz: r * 1.1, c: pick(['#1f9e7a', '#178a6a', '#23b38a', '#2a7fb8', '#7a35d6']) });
     }
   }
   for (const p of MAP.sand) {
@@ -163,22 +163,56 @@ function buildCity() {
       else { trunks.push({ x: px, y: 8, z: py, sx: 1.1, sy: 16, sz: 1.1, c: '#e8e8e8' }); crowns.push({ x: px, y: 17, z: py, sx: 11, sy: 4, sz: 11, c: pick(['#ff2bd6', '#ffe14a', '#2bf3ff', '#a259ff']) }); slabs.push({ x: px + 14, y: 0.6, z: py + 8, sx: 14, sy: 0.8, sz: 7, c: pick(['#ff2bd6', '#2bf3ff', '#ffe14a']) }); }
     }
   }
-  // buildings on raised pavement, with their shadows
+  // buildings stand on raised pavement; pads and shadows are static, the buildings themselves stream in near the player
   const pads = [], shadowTris = [];
   for (const r of BLD) {
-    pads.push({ x: r.x + r.w / 2, y: SIDE_H / 2, z: r.y + r.h / 2, sx: r.w + 2 * PAD, sy: SIDE_H, sz: r.h + 2 * PAD, c: COL.pad });
-    cityGroup.add(makeBuilding(r)); r.mesh.userData.b = r;
-    const ox = r.H * 0.38, oz = r.H * 0.5, x0 = r.x, x1 = r.x + r.w, z0 = r.y, z1 = r.y + r.h, yy = 1.2;
-    const S = [[x0, z0], [x1, z0], [x1 + ox, z0 + oz], [x1 + ox, z1 + oz], [x0 + ox, z1 + oz], [x0, z1]];
-    for (let k = 1; k < 5; k++) for (const v of [S[0], S[k], S[k + 1]]) shadowTris.push(v[0], yy, v[1]);
+    pads.push({ x: r.cx, y: SIDE_H / 2, z: r.cy, sx: r.lw + 2 * PAD, sy: SIDE_H, sz: r.lh + 2 * PAD, ry: -r.a, c: COL.pad });
+    const cs = solidCorners(r), ox = r.H * 0.38, oz = r.H * 0.5, hull = convexHull(cs.concat(cs.map(([x, y]) => [x + ox, y + oz])));
+    for (let k = 1; k < hull.length - 1; k++) for (const v of [hull[0], hull[k], hull[k + 1]]) shadowTris.push(v[0], 1.2, v[1]);
   }
   chunked(GB, M.instWhite, pads); chunked(GB, M.instWhite, slabs);
-  chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instBasic, crowns);
+  chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instWhite, crowns);
   chunked(GCyl, M.instWhite, poles); chunked(GB, M.instBasic, heads);
   chunked(GP, new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), pools);
   const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(shadowTris, 3));
   const sh = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));
   sh.frustumCulled = false; cityGroup.add(sh);
+}
+function solidCorners(r) { return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => { const lx = u * r.lw / 2, ly = v * r.lh / 2; return [r.cx + r.ca * lx - r.sa * ly, r.cy + r.sa * lx + r.ca * ly]; }); }
+function convexHull(pts) {
+  pts = pts.slice().sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], hi = [];
+  for (const p of pts) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+  for (let k = pts.length - 1; k >= 0; k--) { const p = pts[k]; while (hi.length >= 2 && cross(hi[hi.length - 2], hi[hi.length - 1], pts[k]) <= 0) hi.pop(); hi.push(p); }
+  return lo.slice(0, -1).concat(hi.slice(0, -1));
+}
+/* streaming: buildings, landmarks and props exist as meshes only near the camera (nothing farther than a few seconds' drive is drawn) */
+const STREAM_IN = 2100, STREAM_OUT = 2700, SHARED_GEO = new Set([GB, GP, GCyl, GCylZ, GSph, GCirc]);
+let streamTick = 0;
+function buildDrawable(o) {
+  if (o.bld) {
+    const geo = { x: -o.lw / 2, y: -o.lh / 2, w: o.lw, h: o.lh, H: o.H, kind: o.kind, c: o.c, inner: o.inner, pastel: o.pastel };
+    o.mesh = withSeed(o.seed, () => makeBuilding(geo)); o.H = geo.H; o.fade = 1;
+    if (o.sign) { const sg = signMesh(o.sign, '#ffd23f', Math.min(o.lw * 0.9, 170), 34); sg.position.set(0, o.H + 22, o.lh * 0.25); o.mesh.add(sg); o.mesh.userData.own.push(sg.material); }
+  } else o.mesh = o.make();
+  o.mesh.position.set(o.cx, 0, o.cy); o.mesh.rotation.y = -(o.a || 0); cityGroup.add(o.mesh);
+}
+function dropDrawable(o) {
+  cityGroup.remove(o.mesh);
+  o.mesh.traverse(m => { if (m.geometry && !SHARED_GEO.has(m.geometry)) m.geometry.dispose(); });
+  for (const m of o.mesh.userData.own || []) m.dispose();
+  o.mesh = null; faded.delete(o);
+}
+function streamCity(all) {
+  if (!all && ++streamTick % 4) return;
+  const x = cam.x, y = cam.y, todo = [];
+  for (const o of DRAW) {
+    const d = Math.hypot(o.cx - x, o.cy - y) - o.rad;
+    if (o.mesh) { if (d > STREAM_OUT) dropDrawable(o); } else if (d < STREAM_IN) todo.push([d, o]);
+  }
+  if (!todo.length) return;
+  todo.sort((p, q) => p[0] - q[0]); const t0 = performance.now();
+  for (const [, o] of todo) { buildDrawable(o); if (!all && performance.now() - t0 > 6) break; }
 }
 /* buildings between the camera and the player turn see-through so nobody gets hidden behind a roof */
 const _fb = [], faded = new Set();

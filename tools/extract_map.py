@@ -53,7 +53,8 @@ ROAD_W = 96                 # rendered road width (units)
 lab = classify(sys.argv[1]); H, W = lab.shape
 
 # ---------- roads: skeleton -> graph ----------
-lab[8:58, 358:418][lab[8:58, 358:418] == ROAD] = GRASS
+lab[8:58, 358:418][lab[8:58, 358:418] == ROAD] = GRASS          # park pattern in the north, not streets
+lab[94:149, 579:605][lab[94:149, 579:605] == ROAD] = LAND        # the mall's own outlines, not streets
 road = (lab == ROAD).astype(np.uint8)
 road = cv2.morphologyEx(road, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
 n, cc, st, _ = cv2.connectedComponentsWithStats(road, 8)
@@ -206,9 +207,45 @@ sand = ((lab == SAND) & (corr == 0)).astype(np.uint8)
 grass_p = polys(grass, 14, 0.9); sand_p = polys(sand, 14, 0.9)
 print('land polys', len(land_p), 'grass', len(grass_p), 'sand', len(sand_p), 'points', sum(len(p['o']) + sum(len(h) for h in p['h']) for p in land_p + grass_p + sand_p), file=sys.stderr)
 
-# ---------- buildings: white areas -> rectangles ----------
-white = ((lab == WHITE) & (buf == 0) & (land0)).astype(np.uint8)
-white = cv2.morphologyEx(white, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+# ---------- landmarks (hand placed on the reference image, image px) ----------
+LM_PX = [
+    {'t': 'stadium', 'c': (383, 38), 'r': 22},
+    {'t': 'estate', 'box': (386, 500, 452, 538), 'house': (398, 506, 430, 528)},
+    {'t': 'mall', 'box': (577, 92, 606, 150)},
+    {'t': 'lighthouse', 'c': (657, 731)},
+    {'t': 'terminal', 'box': (140, 562, 200, 597)},
+    {'t': 'tower', 'c': (124, 582)},
+    {'t': 'hangars', 'box': (88, 488, 155, 506)},
+    {'t': 'studio', 'box': (468, 141, 500, 182)},
+]
+road_px = cv2.dilate(corr, np.ones((3, 3), np.uint8)) > 0           # road surface plus a pixel of kerb
+for L in LM_PX:                                                       # pull landmark outlines back until no road runs under them
+    if 'box' in L:
+        x0, y0, x1, y1 = L['box']
+        for _ in range(120):                                          # move in the side with the most road under it, one pixel at a time
+            c = [road_px[y0, x0:x1].sum(), road_px[y1 - 1, x0:x1].sum(), road_px[y0:y1, x0].sum(), road_px[y0:y1, x1 - 1].sum()]
+            if max(c) == 0 or x1 - x0 < 4 or y1 - y0 < 4: break
+            k = int(np.argmax(c))
+            if k == 0: y0 += 1
+            elif k == 1: y1 -= 1
+            elif k == 2: x0 += 1
+            else: x1 -= 1
+        if road_px[y0:y1, x0:x1].any(): print('warning: a road crosses landmark', L['t'], file=sys.stderr)
+        if (x0, y0, x1, y1) != L['box']: print('landmark', L['t'], 'trimmed', L['box'], '->', (x0, y0, x1, y1), file=sys.stderr)
+        L['box'] = (x0, y0, x1, y1)
+        if 'house' in L: hx0, hy0, hx1, hy1 = L['house']; L['house'] = (max(hx0, x0 + 3), max(hy0, y0 + 6), min(hx1, x1 - 3), min(hy1, y1 - 6))
+    elif 'r' in L:
+        circ = lambda r: (lambda m: (cv2.circle(m, L['c'], r, 1, -1), m)[1])(np.zeros((H, W), np.uint8)) > 0
+        r0 = L['r']
+        while L['r'] > 6 and (road_px & circ(L['r'])).any(): L['r'] -= 1
+        if L['r'] != r0: print('landmark', L['t'], 'radius', r0, '->', L['r'], file=sys.stderr)
+lm_mask = np.zeros((H, W), np.uint8)
+for L in LM_PX:
+    if 'box' in L: x0, y0, x1, y1 = L['box']; lm_mask[y0:y1, x0:x1] = 1
+    else: cv2.circle(lm_mask, L['c'], L.get('r', 4), 1, -1)
+
+# ---------- buildings: each white area becomes one or more boxes that cover it without gaps ----------
+white = ((lab == WHITE) & (buf == 0) & land0 & (lm_mask == 0)).astype(np.uint8)
 def largest_rect(m):
     h, w = m.shape; hist = np.zeros(w, int); best = (0, 0, 0, 0, 0)
     for y in range(h):
@@ -221,39 +258,83 @@ def largest_rect(m):
                 start = sx
             st.append((start, cur))
     return best
-rects = []
+MAXS = 20                       # longest side of one building piece (px); longer blocks are cut into touching pieces
+N_, S_, W_, E_ = 1, 2, 4, 8     # inner-side flags: that side touches another piece of the same block
+bl = []
 n, cc, st, _ = cv2.connectedComponentsWithStats(white, 4)
 for i in range(1, n):
     x0, y0, w0, h0, a = st[i]
-    if a < 12: continue
-    m = (cc[y0:y0 + h0, x0:x0 + w0] == i).astype(np.uint8)
+    if a < 6 or x0 < 4 or y0 < 4 or x0 + w0 > W - 4 or y0 + h0 > H - 4: continue   # screenshot border, not city
+    pts = np.argwhere(cc == i)[:, ::-1].astype(np.float32)
+    bp = cv2.boxPoints(cv2.minAreaRect(pts))
+    e1, e2 = bp[1] - bp[0], bp[2] - bp[1]; rw, rh = np.hypot(*e1) + 1, np.hypot(*e2) + 1
+    ang = np.degrees(np.arctan2(e1[1], e1[0]))
+    while ang > 45: ang -= 90; rw, rh = rh, rw
+    while ang <= -45: ang += 90; rw, rh = rh, rw
+    if a / (rw * rh) > 0.78 and abs(ang) > 6:                       # a rotated box: keep it rotated, cut along its long side
+        c = bp.mean(0) + 0.5; ca, sa = np.cos(np.radians(ang)), np.sin(np.radians(ang))
+        along_x = rw >= rh; L = rw if along_x else rh; k = max(1, int(np.ceil(L / MAXS)))
+        for j in range(k):
+            off = (j + 0.5) / k * L - L / 2
+            cx, cy = (c[0] + ca * off, c[1] + sa * off) if along_x else (c[0] - sa * off, c[1] + ca * off)
+            pw, ph = (rw / k, rh) if along_x else (rw, rh / k)
+            fl = ((W_ if j > 0 else 0) | (E_ if j < k - 1 else 0)) if along_x else ((N_ if j > 0 else 0) | (S_ if j < k - 1 else 0))
+            bl.append([round(cx * S), round(cy * S), round(pw * S), round(ph * S), round(ang, 1), i, fl])
+        continue
+    m = (cc[y0:y0 + h0, x0:x0 + w0] == i).astype(np.uint8); rects = []
     while True:
         area, x, y, w, h = largest_rect(m)
-        if w < 4 or h < 4 or area < 20: break
-        rects.append((x0 + x, y0 + y, w, h))
-        m[max(0, y - 1):y + h + 1, max(0, x - 1):x + w + 1] = 0
-# split big blocks into several buildings with 2px alleys
-bl = []
-MAXS = 22
-for x, y, w, h in rects:
-    nx, ny = max(1, round(w / MAXS + 0.3)), max(1, round(h / MAXS + 0.3))
-    cw, ch = (w - 2 * (nx - 1)) / nx, (h - 2 * (ny - 1)) / ny
-    for i in range(nx):
-        for j in range(ny):
-            bx, by = x + i * (cw + 2), y + j * (ch + 2)
-            bl.append([round(bx * S) + 4, round(by * S) + 4, round(cw * S) - 8, round(ch * S) - 8])
-occ = np.zeros((H, W), np.uint8)
-for x, y, w, h in rects: occ[max(0, y - 2):y + h + 2, max(0, x - 2):x + w + 2] = 1
-ok = ((lab == LAND) & (buf == 0) & land0 & (occ == 0)).astype(np.uint8)
-for x0, y0, x1, y1 in [(50, 370, 212, 810), (120, 20, 262, 130), (395, 630, 470, 810)]: ok[y0:y1, x0:x1] = 0   # airfield, gravel flats, rocks stay open
-rng = np.random.default_rng(7); extra = 0
-for gy in range(0, H, 7):
-    for gx in range(0, W, 7):
-        for _ in range(3):
-            w, h = int(rng.integers(5, 12)), int(rng.integers(5, 12)); x, y = gx + int(rng.integers(0, 4)), gy + int(rng.integers(0, 4))
-            if y + h >= H or x + w >= W or not ok[y:y + h, x:x + w].all() or rng.random() < 0.1: continue
-            bl.append([x * S + 4, y * S + 4, w * S - 8, h * S - 8]); ok[max(0, y - 2):y + h + 2, max(0, x - 2):x + w + 2] = 0; extra += 1; break
-print('buildings', len(bl), 'of which infill', extra, file=sys.stderr)
+        if w < 2 or h < 2 or area < 6: break
+        nx, ny = max(1, int(np.ceil(w / MAXS))), max(1, int(np.ceil(h / MAXS)))
+        for u in range(nx):
+            for v in range(ny):
+                ax, bx = x + round(u * w / nx), x + round((u + 1) * w / nx); ay, by = y + round(v * h / ny), y + round((v + 1) * h / ny)
+                rects.append((x0 + ax, y0 + ay, bx - ax, by - ay))
+        m[y:y + h, x:x + w] = 0
+    ids = np.full((H, W), -1, int)
+    for k, (x, y, w, h) in enumerate(rects): ids[y:y + h, x:x + w] = k
+    for k, (x, y, w, h) in enumerate(rects):
+        def touch(strip): return strip.size and ((strip >= 0) & (strip != k)).mean() >= 0.5
+        fl = (N_ if y > 0 and touch(ids[y - 1, x:x + w]) else 0) | (S_ if y + h < H and touch(ids[y + h, x:x + w]) else 0) | \
+             (W_ if x > 0 and touch(ids[y:y + h, x - 1]) else 0) | (E_ if x + w < W and touch(ids[y:y + h, x + w]) else 0)
+        bl.append([round((x + w / 2) * S), round((y + h / 2) * S), w * S, h * S, 0, i, fl])
+print('buildings', len(bl), 'rotated', sum(1 for b in bl if b[4]), file=sys.stderr)
+
+# ---------- props: dock cranes on the quay, container stacks behind them, planes on the airfield ----------
+dist_w = cv2.distanceTransform(land.astype(np.uint8), cv2.DIST_L2, 5)
+gy_, gx_ = np.gradient(cv2.GaussianBlur(dist_w, (7, 7), 0))
+occ = ((buf > 0) | (lm_mask > 0)).astype(np.uint8)
+for b in bl:
+    occ[max(0, int(b[1] / S - b[3] / S / 2) - 2):int(b[1] / S + b[3] / S / 2) + 3, max(0, int(b[0] / S - b[2] / S / 2) - 2):int(b[0] / S + b[2] / S / 2) + 3] = 1
+def place(box, ok, spacing, limit):
+    x0, y0, x1, y1 = box; out = []
+    ys, xs = np.nonzero(ok[y0:y1, x0:x1])
+    for y, x in sorted(zip(ys + y0, xs + x0), key=lambda q: (q[0] * 3 + q[1])):
+        if all((x - u) ** 2 + (y - v) ** 2 >= spacing ** 2 for u, v in out): out.append((x, y))
+        if len(out) >= limit: break
+    return out
+gray = (lab == LAND) & land0 & (occ == 0)
+props = []
+quay = gray & (dist_w >= 1.5) & (dist_w <= 3)
+for x, y in place((212, 560, 380, 800), quay, 24, 6):
+    a = np.degrees(np.arctan2(-gy_[y, x], -gx_[y, x]))          # boom points out over the water
+    props.append({'t': 'crane', 'x': round(x * S), 'y': round(y * S), 'a': round(a, 1)})
+yard = gray & (dist_w >= 6) & (dist_w <= 16) & (cv2.erode(gray.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0)
+for x, y in place((212, 560, 380, 800), yard, 9, 18):
+    a = np.degrees(np.arctan2(-gy_[y, x], -gx_[y, x])) + 90
+    props.append({'t': 'containers', 'x': round(x * S), 'y': round(y * S), 'a': round(a, 1)})
+apron = gray & (cv2.erode(gray.astype(np.uint8), np.ones((15, 15), np.uint8)) > 0)
+for x, y in place((50, 370, 212, 810), apron, 26, 4):
+    props.append({'t': 'plane', 'x': round(x * S), 'y': round(y * S), 'a': float(np.random.default_rng(x * 7 + y).uniform(-180, 180))})
+print('props', len(props), {t: sum(1 for p in props if p['t'] == t) for t in ('crane', 'containers', 'plane')}, file=sys.stderr)
+LM = []
+for L in LM_PX:
+    o = {'t': L['t']}
+    if 'box' in L: x0, y0, x1, y1 = L['box']; o.update(x=round((x0 + x1) / 2 * S), y=round((y0 + y1) / 2 * S), w=(x1 - x0) * S, h=(y1 - y0) * S)
+    else: o.update(x=round(L['c'][0] * S), y=round(L['c'][1] * S))
+    if 'r' in L: o['r'] = L['r'] * S
+    if 'house' in L: x0, y0, x1, y1 = L['house']; o['house'] = [round((x0 + x1) / 2 * S), round((y0 + y1) / 2 * S), (x1 - x0) * S, (y1 - y0) * S]
+    LM.append(o)
 
 DIST = [  # original names; rects in image px [x0, y0, x1, y1], first match wins
     ['THE SANDBAR', [636, 70, 740, 800]], ['GRAVEL FLATS', [120, 20, 262, 130]], ['HERON KEY', [462, 88, 540, 200]],
@@ -262,10 +343,10 @@ DIST = [  # original names; rects in image px [x0, y0, x1, y1], first match wins
     ['GULL ROCKS', [395, 630, 462, 810]], ['SEAVIEW', [520, 60, 660, 300]], ['SUNSTRIP', [500, 300, 660, 480]],
     ['CORAL SHORE', [430, 480, 660, 810]]]
 data = {'S': S, 'W': W * S, 'H': H * S, 'roadW': ROAD_W, 'nodes': [[round(x * S), round(y * S)] for x, y in nodes], 'edges': out_edges,
-        'land': land_p, 'grass': grass_p, 'sand': sand_p, 'bld': bl,
+        'land': land_p, 'grass': grass_p, 'sand': sand_p, 'bld': bl, 'lm': LM, 'props': props,
         'districts': [[nm, [r[0] * S, r[1] * S, r[2] * S, r[3] * S]] for nm, r in DIST], 'start': [560 * S, 652 * S]}
 with open(sys.argv[2], 'w') as f:
     f.write("'use strict';\n/* Bay city map, generated by tools/extract_map.py from a reference map image.\n"
             "   Units are world units (S per source pixel). land/grass/sand: polygons {o: outer ring, h: holes}.\n"
-            "   nodes/edges: road graph, edge.p is the centre-line polyline. bld: building footprints [x, y, w, h]. */\nconst MAP = ")
-    json.dump(data, f, separators=(',', ':')); f.write(';\n')
+            "   nodes/edges: road graph, edge.p is the centre-line polyline. bld: building boxes [cx, cy, w, h, angle deg, block id, inner-side flags N1 S2 W4 E8].\n   lm: landmarks, props: cranes, containers, planes. */\nconst MAP = ")
+    json.dump(data, f, separators=(',', ':'), default=lambda o: o.item()); f.write(';\n')

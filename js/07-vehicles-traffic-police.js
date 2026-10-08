@@ -33,7 +33,7 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { const h = circleRect(q[0], q[1], q[2], rc); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      for (const rc of _nb) { const h = circleSolid(q[0], q[1], q[2], rc); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       nearRails(q[0], q[1], _nr);
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
@@ -227,6 +227,13 @@ function updateCars(dt) {
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = false; }
+    if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea: brake and turn back to land
+      const spd = carSpeed(c), ahead = 30 + spd * 0.5, hx = c.x + Math.cos(c.ang) * ahead, hy = c.y + Math.sin(c.ang) * ahead;
+      if (spd > 20 && shoreDist(hx, hy) < 6) {
+        const g = shoreGrad(hx, hy), vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang);
+        c.thr = vf > 30 ? -1 : 0; c.hb = false; c.str = clamp(angDiff(c.ang, Math.atan2(g[1], g[0])) * 2, -1, 1);
+      }
+    }
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);

@@ -96,7 +96,7 @@ function explodeCar(c) {
 
 function raycast(ox, oy, ang, range) {
   const dx = Math.cos(ang), dy = Math.sin(ang); let bt = range, type = null, obj = null;
-  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = rayRect(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
+  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
   for (const p of peds) { if (p.dead || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }
   for (const o of officers) { if (o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
   for (const c of cars) {
@@ -136,7 +136,7 @@ function fireWeapon() {
 }
 
 function pedBlocked(x, y) {
-  nearBuildings(x, y, _nb); for (const rc of _nb) if (circleRect(x, y, 9, rc)) return true; return false;
+  nearBuildings(x, y, _nb); for (const rc of _nb) if (circleSolid(x, y, 9, rc)) return true; return false;
 }
 function exitCar(forced) {
   const c = P.car; if (!c) return;

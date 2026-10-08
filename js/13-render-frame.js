@@ -9,6 +9,7 @@ function render(time) {
   for (const o of officers) syncPerson(o, 'officer', time, dt);
   for (const p of pickups) syncPickup(p, time);
   if (waterTex) { waterTex.offset.x = time * 0.012; waterTex.offset.y = Math.sin(time * 0.4) * 0.03; } if (foamMat) foamMat.opacity = 0.45 + 0.25 * Math.sin(time * 1.6);
+  streamCity(false); for (const o of LMS) if (o.mesh && o.mesh.userData.anim) o.mesh.userData.anim(time);
   sweepDynamic(); syncPlayer(time, dt); fadeBuildings();
   gfxParticles(); gfxTracers(); gfxDecals(); gfxSkids(); gfxPops();
   if (boomFlash) { boomFlash.t -= dt; boomLight.position.set(boomFlash.x, 50, boomFlash.y); boomLight.intensity = Math.max(0, boomFlash.t / 0.5) * 3.2; if (boomFlash.t <= 0) boomFlash = null; } else boomLight.intensity = 0;

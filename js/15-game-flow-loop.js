@@ -11,7 +11,7 @@ function resetGame() {
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
-  cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = '';
+  cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   const kerb = ROAD_HALF - 15, side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1;     // starter cars at the kerb on the player's side
   for (const [ds, type, col] of [[-60, 'sedan', '#d94f4f'], [50, 'sports', '#3fe0ff'], [160, 'truck', '#3d6fb0']]) { const q = at(s0 + ds, kerb * side); cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); }
   for (let k = 0; k < 32; k++) spawnTraffic(true);

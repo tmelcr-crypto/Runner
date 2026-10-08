@@ -11,7 +11,9 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
   fill(MAP.land, '#4a3a7e'); fill(MAP.grass, '#0c5a58'); fill(MAP.sand, '#7a5c9a');
   m.strokeStyle = '#1e1640'; m.lineWidth = ROAD_W; m.lineJoin = m.lineCap = 'round';
   for (const E of RE) { m.beginPath(); m.moveTo(E.p[0][0], E.p[0][1]); for (let k = 1; k < E.p.length; k++) m.lineTo(E.p[k][0], E.p[k][1]); m.stroke(); }
-  m.fillStyle = '#6a2cc9'; for (const r of BLD) m.fillRect(r.x, r.y, r.w, r.h);
+  const box = r => { m.beginPath(); solidCorners(r).forEach(([x, y], k) => k ? m.lineTo(x, y) : m.moveTo(x, y)); m.closePath(); m.fill(); };
+  m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld) box(r);       // landmarks and props
+  m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
 }
 function drawMini(time) {
   const size = miniCv.width, view = 1300, sc = size / view;

@@ -27,8 +27,14 @@ Hash.prototype.query = function (x0, y0, x1, y1, out) {
   }
   return out;
 };
-let BLD = [];                                                  // building rects {x, y, w, h, c, H, kind}
+// Solids are boxes that may be turned by angle a: centre (cx, cy), size lw x lh; x, y, w, h hold their axis-aligned bounds.
+let BLD = [], SOLIDS = [], DRAW = [];                          // buildings; everything solid; everything the streamer builds near the player
 const bHash = new Hash(), rHash = new Hash(), sHash = new Hash();
+function makeSolid(cx, cy, w, h, a, extra) {
+  const ca = Math.cos(a), sa = Math.sin(a), ex = Math.abs(ca) * w / 2 + Math.abs(sa) * h / 2, ey = Math.abs(sa) * w / 2 + Math.abs(ca) * h / 2;
+  const s = Object.assign({ cx, cy, lw: w, lh: h, a, ca, sa, loc: { x: -w / 2, y: -h / 2, w, h }, x: cx - ex, y: cy - ey, w: 2 * ex, h: 2 * ey }, extra);
+  SOLIDS.push(s); bHash.add(s, s.x, s.y, s.x + s.w, s.y + s.h); return s;
+}
 const RAILS = [], BRIDGES = [];                                // rail segments {x1, y1, x2, y2}; bridge spans {e, s0, s1}
 
 function circleRect(cx, cy, r, rc) {
@@ -50,6 +56,15 @@ function circleSeg(cx, cy, r, s) {
   if (d > 0.001) return { nx: ex / d, ny: ey / d, pen: rr - d };
   return { nx: -dy / Math.sqrt(l2), ny: dx / Math.sqrt(l2), pen: rr };
 }
+function circleSolid(px, py, r, s) {                            // circleRect in the box's own frame
+  const dx = px - s.cx, dy = py - s.cy, h = circleRect(dx * s.ca + dy * s.sa, -dx * s.sa + dy * s.ca, r, s.loc);
+  if (!h) return null; const nx = h.nx * s.ca - h.ny * s.sa, ny = h.nx * s.sa + h.ny * s.ca; h.nx = nx; h.ny = ny; return h;
+}
+function raySolid(ox, oy, dx, dy, s) {
+  const lx = ox - s.cx, ly = oy - s.cy;
+  return rayRect(lx * s.ca + ly * s.sa, -lx * s.sa + ly * s.ca, dx * s.ca + dy * s.sa, -dx * s.sa + dy * s.ca, s.loc);
+}
+function inSolid(px, py, s, m) { const dx = px - s.cx, dy = py - s.cy; return Math.abs(dx * s.ca + dy * s.sa) < s.lw / 2 + m && Math.abs(-dx * s.sa + dy * s.ca) < s.lh / 2 + m; }
 const _nb = [], _nr = [];
 function nearBuildings(x, y, out) { return bHash.query(x - 40, y - 40, x + 40, y + 40, out); }
 function nearRails(x, y, out) { return rHash.query(x - 40, y - 40, x + 40, y + 40, out); }
@@ -57,7 +72,7 @@ function nearRails(x, y, out) { return rHash.query(x - 40, y - 40, x + 40, y + 4
 function resolveCircle(o, r) {
   let hit = null;
   const push = h => { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; };
-  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { const h = circleRect(o.x, o.y, r, rc); if (h) push(h); }
+  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }
   nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); }
   const sd = shoreDist(o.x, o.y);
   if (sd < -WADE) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
@@ -87,7 +102,7 @@ function buildingsAlong(x1, y1, x2, y2, fn) {
 function losClear(x1, y1, x2, y2) {
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
   const dx = (x2 - x1) / d, dy = (y2 - y1) / d; let clear = true;
-  buildingsAlong(x1, y1, x2, y2, rc => { const t = rayRect(x1, y1, dx, dy, rc); if (t < d) clear = false; });
+  buildingsAlong(x1, y1, x2, y2, rc => { const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; });
   return clear;
 }
 
@@ -203,21 +218,39 @@ function districtAt(x, y) {
 }
 
 /* ---------- world build (once) ---------- */
-// building height mix per district: [chance of a tower, tower min, tower max, normal min, normal max, warehouse chance]
-const DPROF = { 'PALM HEIGHTS': [0.38, 150, 300, 45, 120, 0], 'SUNSTRIP': [0.3, 120, 240, 50, 110, 0], 'SEAVIEW': [0.22, 110, 220, 40, 100, 0],
-  'CORAL SHORE': [0.16, 110, 200, 38, 100, 0], 'MERCADO': [0.05, 100, 150, 30, 80, 0.1], 'DOCKSIDE': [0.05, 90, 140, 35, 75, 0.5],
-  'SKYPORT': [0, 0, 0, 30, 55, 0.6], 'GRAVEL FLATS': [0, 0, 0, 30, 60, 0.5] };
+const PASTEL = ['#9be8c8', '#ffb3c7', '#ffe08a', '#a8e6ff', '#c9b3ff', '#ffc49b', '#f4efe6'];
+const CARIB = ['#ffb02e', '#3dffa6', '#ff7a3d', '#35d8ff', '#ff3fb4', '#ffe14a', '#8a5cff'];
+// one style per block (all pieces of a white area on the map share it): kind, colour, base height
+function blockStyle(cx, cy, big) {
+  const d = districtAt(cx, cy), o = { kind: 'apartment', pal: PASTEL, H: rand(28, 48), pastel: false };
+  if (d === 'PALM HEIGHTS') { if (big && Math.random() < 0.55) Object.assign(o, { H: rand(150, 320), kind: pick(['glass', 'glass', 'deco']), pal: PALETTE }); else Object.assign(o, { H: rand(50, 120), kind: pick(['office', 'office', 'apartment', 'brick']), pal: PALETTE }); }
+  else if (d === 'MERCADO') Object.assign(o, { H: rand(24, 52), kind: pick(['apartment', 'brick', 'brick']), pal: CARIB });
+  else if (d === 'DOCKSIDE' || d === 'GRAVEL FLATS') Object.assign(o, Math.random() < 0.75 ? { H: rand(34, 54), kind: 'warehouse', pal: PALETTE } : { H: rand(30, 60), kind: 'brick', pal: PALETTE });
+  else if (d === 'SKYPORT') Object.assign(o, { H: rand(30, 50), kind: pick(['warehouse', 'office']), pal: PALETTE });
+  else if (d === 'SEAVIEW') Object.assign(o, big && Math.random() < 0.6 ? { H: rand(110, 220), kind: 'condo', pal: PASTEL } : { H: rand(40, 90), kind: pick(['apartment', 'office']), pal: PALETTE });
+  else if (d === 'SUNSTRIP') Object.assign(o, big && Math.random() < 0.25 ? { H: rand(110, 180), kind: 'glass', pal: PALETTE } : Math.random() < 0.5 ? { H: rand(48, 90), kind: 'deco', pal: PASTEL, pastel: true } : { H: rand(48, 110), kind: pick(['office', 'apartment']), pal: PALETTE });
+  else if (d === 'CORAL SHORE') Object.assign(o, { H: rand(34, 62), kind: 'deco', pal: PASTEL, pastel: true });
+  else if (d === 'PEARL KEY' || d === 'FAIRWAY ISLES' || d === 'HERON KEY') Object.assign(o, { H: rand(24, 36), kind: 'deco', pal: PASTEL, pastel: true });
+  o.c = pick(o.pal); return o;
+}
 let worldReady = false;
 function genWorld() {
   if (worldReady) return;
   buildShoreField();
-  BLD = MAP.bld.map(([x, y, w, h]) => {
-    const c = pick(PALETTE), pr = DPROF[districtAt(x + w / 2, y + h / 2)] || [0.06, 90, 150, 30, 70, 0], small = Math.min(w, h) < 100;
-    const r = { x, y, w, h, c, roof: shade(c, 28), wall: shade(c, -60) };
-    if (Math.random() < pr[5]) { r.kind = 'warehouse'; r.H = rand(40, 60); }
-    else r.H = Math.random() < pr[0] && !small ? rand(pr[1], pr[2]) : rand(pr[3], small ? Math.min(pr[4], 90) : pr[4]);
-    bHash.add(r, x, y, x + w, y + h); return r;
+  const blocks = {};
+  BLD = MAP.bld.map(([cx, cy, w, h, ang, grp, inner]) => {
+    const g = blocks[grp] || (blocks[grp] = blockStyle(cx, cy, Math.max(w, h) >= 90)), tiny = Math.min(w, h) < 45;
+    let H = g.H * rand(0.8, 1.15); if (tiny) H = Math.min(H, 36); else if (Math.min(w, h) < 90) H = Math.min(H, 130);
+    return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
   });
+  { // the hotel next to where the player starts gets its name in lights
+    const se = RE[startSpot()], sp = edgeAt(se.i, se.len / 2, {});
+    let best = null, bd = 1e9; for (const r of BLD) { const d = dist(r.cx, r.cy, sp.x, sp.y) + (r.kind === 'deco' ? 0 : 400); if (Math.min(r.lw, r.lh) >= 56 && d < bd) { bd = d; best = r; } }
+    if (best) { best.kind = 'deco'; best.pastel = true; }
+    if (best) { best.sign = 'SEA BREEZE'; best.H = Math.max(best.H, 60); best.c = '#9be8c8'; }
+  }
+  genLandmarks();
+  DRAW = BLD.concat(LMS);
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck
   const q = {};
   for (const E of RE) {
