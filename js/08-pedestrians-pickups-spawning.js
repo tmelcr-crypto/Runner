@@ -136,7 +136,7 @@ function updatePickups(dt) {
     const p = pickups[k]; p.bob += dt * 4;
     if (dist(P.x, P.y, p.x, p.y) > 26) continue;
     if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
-    else if (p.type === 'cash') addScore(500, p.x, p.y, 'CASH');
+    else if (p.type === 'cash') addScore(ECO.cash, p.x, p.y, 'CASH');
     else {                                                          // ammunition: as much as the weapon table says, up to what you can carry
       const wi = WEAPONS.findIndex(w => w.id === p.type), w = WEAPONS[wi]; if (!w) { pickups.splice(k, 1); continue; }
       P.ammo[wi] = Math.min(Math.max(w.maxAmmo, P.ammo[wi]), P.ammo[wi] + w.pickup); popup(p.x, p.y - 12, '+' + w.pickup + ' ' + w.short, w.blast ? '#ff9d2b' : '#3fe0ff');
