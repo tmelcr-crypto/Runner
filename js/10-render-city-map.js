@@ -189,6 +189,15 @@ function buildCity() {
       fg.push({ x: px - rx * 32 + tx * 2.1, y: k % 2 ? 49 : 41, z: py - ry * 32 + ty * 2.1, sx: 3, sy: 3, sz: 1, ry: yaw, c: k % 2 ? '#ff3b5c' : '#3dffa6' });
     });
   });
+  // boom gates across the driveways to landmarks: posts at the kerbs, a striped boom, a POLICE ONLY board
+  for (const g of GATES) {
+    const rx = -g.sa, ry = g.ca, yaw = -g.a, n = 10, seg = (ROAD_W - 8) / n;
+    for (const sd of [-1, 1]) fb.push({ x: g.cx + rx * sd * (ROAD_HALF - 3), y: 10, z: g.cy + ry * sd * (ROAD_HALF - 3), sx: 5, sy: 20, sz: 5, ry: yaw, c: '#2b2e38' });
+    for (let k = 0; k < n; k++) { const o = -ROAD_HALF + 4 + (k + 0.5) * seg; (k % 2 ? fb : fg).push({ x: g.cx + rx * o, y: 16, z: g.cy + ry * o, sx: 2.6, sy: 2.6, sz: seg, ry: yaw, c: k % 2 ? '#f1f1ee' : '#ff3b5c' }); }
+    const sg = signMesh('POLICE ONLY', '#ff3b5c', 64, 13), x = g.cx + rx * (ROAD_HALF + 16), y = g.cy + ry * (ROAD_HALF + 16);
+    sg.position.set(x, 30, y); cityGroup.add(sg);   // faces the camera
+    fb.push({ x, y: 12, z: y, sx: 2, sy: 24, sz: 2, c: '#2b2e38' });
+  }
   // parks: trees off the roads; beaches: palms, umbrellas and towels
   const slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, SWO + 8) && groundH(x, y) === 0 && !inLandmark(x, y) && !nearLot(x, y);
   for (const p of MAP.grass) {

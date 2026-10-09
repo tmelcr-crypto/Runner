@@ -59,7 +59,7 @@ function handleKeys() {
 }
 
 /* speed -> zoom: the faster you go the further the camera pulls back, so you can see what is coming */
-const ZOOM_BASE = 1.25, ZOOM_CAR_MIN = 0.6, ZOOM_FOOT_MIN = 0.93, ZOOM_CAR_TOP = 520 * SPEED_K, ZOOM_FOOT_TOP = 235 * SPEED_K, ZOOM_OUT_RATE = 1.3, ZOOM_IN_RATE = 2.2;
+const ZOOM_BASE = 1.25, ZOOM_CAR_MIN = 0.6, ZOOM_FOOT_MIN = 0.93, ZOOM_CAR_TOP = 140 * KMH, ZOOM_FOOT_TOP = SPRINT, ZOOM_OUT_RATE = 1.3, ZOOM_IN_RATE = 2.2;
 function speedZoom(spd, inCar) {
   const f = clamp(spd / (inCar ? ZOOM_CAR_TOP : ZOOM_FOOT_TOP), 0, 1), e = f * f * (3 - 2 * f);      // smoothstep: gentle at low speed, full at the top
   return ZOOM_BASE * lerp(1, inCar ? ZOOM_CAR_MIN : ZOOM_FOOT_MIN, e);        // the whole range sits 25% closer
@@ -76,8 +76,9 @@ function updateCam(dt, idle) {
 }
 function update(dt, idle) {
   gameT += dt;
-  if (!idle && !P.dead) updatePlayer(dt, readInput());
-  updateCars(dt); updatePeds(dt); updateOfficers(dt);
+  const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
+  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); }       // so a fast car cannot pass through a wall
+  updatePeds(dt); updateOfficers(dt);
   if (!idle) updatePickups(dt);
   manageSpawns(dt); updateParticles(dt);
   if (!idle && P.heat > 0 && P.sinceCrime > 5) {

@@ -6,18 +6,20 @@ Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8
 
 ## The city
 
-A bay city with two main islands, a few bay islands joined by causeways, a long ocean beach on the east side and an airfield in the south-west. Thirteen districts with their own building mix: Palm Heights (towers), Mercado, Skyport (airfield), Dockside (warehouses), Gravel Flats, Heron Key, Fairway Isles, Pearl Key, Gull Rocks, Seaview, Sunstrip (hotels), Coral Shore and The Sandbar.
+A made-up bay city on the outline of a reference map: two main islands, a few bay islands joined by straight bridges, a long ocean beach on the east side and an airfield in the south-west. Only the shape of the land, the beaches and the water come from the reference image; every street and building is generated.
 
-- Roads are a graph of curved centre lines. Traffic keeps to its lane and picks turns at junctions; police take the shortest route by road and only drive straight at you when nothing (building or water) is in between.
-- People walk the sidewalks beside the roads and stay inside the rails on bridges.
-- The sea is everywhere outside the coast: you can wade a little, cars that leave the road sink. Bridges have rails.
+- **Streets**: every island has a ring road along its coast, built only from straight runs at 0, 45 and 90 degrees, so every turn is 45, 90 or 135 degrees. Inside the ring the land is cut again and again by straight streets into an irregular grid (new streets line up with old ones so crossings meet properly), with one 45 degree avenue in a few districts. No junction joins more than four streets and there are no dead ends: the only road that ends is a short driveway to a landmark gate.
+- **Streets as streets**: two traffic lanes, a parking lane on each side and a sidewalk for people. Parked cars only stand where they fit inside the parking lane, so they never block traffic or the sidewalk.
+- **Blocks**: rows of buildings along every street side with corners and the odd alley, courtyards, inner buildings, parking lots, gas stations, plazas with fountains, basketball courts, pocket parks and parks. Towers downtown and along the beach; warehouses, container yards and cranes at the docks; hangars and planes at the airfield.
+- **Landmarks**: Bayfront Park downtown (a lake with a boathouse, a pier, paddle boats, a fountain and a band shell), the Bay TV tower over Mercado, the Twist (a glass tower that turns a quarter turn as it rises), the Crown (a stepped deco tower with a gold sunburst crown and a spire), the Sail hotel and the Bay Wheel on the beach, the golf links as one big park with lakes, the Neon Bowl stadium, the Pearl Key estate, Bayside Mall, the lighthouse, Skyport terminal with its runways, control tower and hangars, Heron Studios, and the Colony Hotel at 736 Ocean Drive (white Streamline front, turquoise bands, the inverted-T sign in blue neon).
+- **Closed driveways**: traffic never turns into a driveway to a landmark, and a boom gate stops every car except a police car (people walk past it).
+- **Real-world speeds** at 12 world units to the metre: people stroll at about 1.4 m/s, run at 5 and sprint at 7; town traffic drives at 40-55 km/h; cars reach 130-260 km/h depending on type, accelerate and brake like real cars (a little quicker off the line), and the faster you go the wider you have to turn.
+- Traffic keeps to its lane, brakes in time for what is ahead and waits at a busy junction; police take the shortest route by road and only drive straight at you when nothing is in between. People walk the sidewalks.
+- The sea is everywhere outside the coast: you can wade a little; cars that leave the road sink. Bridges have rails.
 - **TAB** (or the **MAP** button) opens the whole city map; the game waits while it is open. The district name shows when you enter a new one.
-- Buildings follow the white building blocks of the reference map one to one (rotated where the map has them rotated). Long blocks are cut into touching pieces of different heights. Each district has its own look: glass towers in Palm Heights, low colourful houses in Mercado, warehouses in Dockside, pastel art deco hotels in Coral Shore, hotels in Sunstrip, big condo blocks along the coast in Seaview, villas on the keys.
-- The Colony Hotel stands where the real one is, 736 Ocean Drive: on the west side of the beach road facing Lummus Park and the sand, a white three-storey Streamline front with turquoise bands, wrap-around eyebrows, rounded corners, a stepped parapet and the inverted-T sign in blue neon (COLONY down the pylon, HOTEL across the bar over the door).
-- Landmarks: the Neon Bowl stadium, the walled Pearl Key estate, Bayside Mall, the lighthouse, Skyport terminal with control tower and hangars, Heron Studios, dock cranes, container yards and parked planes.
-- Only what is near the camera exists as meshes: buildings, landmarks and props are built when they come within about 2100 units (a few seconds' drive) and dropped again past 2700, so the far city costs nothing.
+- Only what is near the camera exists as meshes; the low buildings are merged per area into one mesh each. Buildings and landmarks between the camera and the player turn see-through.
 
-`js/00-map-data.js` is generated by `tools/extract_map.py` from a reference map image (blue water, grey ground, white buildings, black roads, green grass, beige sand). It traces the coast, grass and sand into polygons, the roads into a graph and the white areas into building boxes. Landmark positions, district names and the start point are set in the script; it trims landmarks so no road runs under them and places cranes, containers and planes.
+`js/00-map-data.js` is generated by `tools/build_city.py` from a reference map image: `python tools/build_city.py <map image> js/00-map-data.js [preview.png]` (needs numpy, opencv-python-headless, scikit-image, shapely 2, pillow). Landmark places, bridges, runways, district names and the start point are set in the script; the random seed is fixed, so the same image always gives the same city.
 
 ## Layout
 
@@ -25,18 +27,19 @@ A bay city with two main islands, a few bay islands joined by causeways, a long 
 
 | File | Contents |
 |---|---|
-| `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, building footprints, districts (generated) |
+| `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, buildings, lots, landmarks, props, districts (generated) |
 | `js/01-config.js` | constants, helpers, `$()` |
 | `js/02-audio.js` | synthesized Web Audio |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
-| `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, road graph queries and shortest paths, district building styles |
+| `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |
 | `js/05-entities.js` | entity and effect data |
 | `js/06-gameplay.js` | state, wanted level, combat, enter/exit vehicles |
 | `js/07-vehicles-traffic-police.js` | car physics, lane following traffic, police routing |
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, officers, pickups, spawning |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
-| `js/10-render-city-map.js` | sea, coast, roads and markings, bridges, parks, beaches, street lights, building streaming, see-through fade |
-| `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, stadium, estate, mall, lighthouse, airport, studio, cranes, containers, planes) and their collision boxes |
+| `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
+| `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |
+| `js/10c-render-fill.js` | the low street-front buildings, merged per area, and the see-through hole over the player |
 | `js/11-render-dynamic-meshes.js` | cars, people, pickups |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/13-render-frame.js` | per-frame render |

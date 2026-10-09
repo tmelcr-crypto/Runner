@@ -72,7 +72,7 @@ function nearRails(x, y, out) { return rHash.query(x - 40, y - 40, x + 40, y + 4
 function resolveCircle(o, r) {
   let hit = null;
   const push = h => { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; };
-  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }
+  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { if (rc.gate) continue; const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }   // people duck under gates
   nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); }
   const sd = shoreDist(o.x, o.y);
   if (sd < -WADE) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
@@ -97,7 +97,7 @@ function rayCircle(ox, oy, dx, dy, cx, cy, r) {
 const _ba = [];
 function buildingsAlong(x1, y1, x2, y2, fn) {
   bHash.query(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), _ba);
-  for (const rc of _ba) fn(rc);
+  for (const rc of _ba) if (!rc.gate) fn(rc);                    // a gate's boom stops cars, not bullets or eyes
 }
 function losClear(x1, y1, x2, y2) {
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
@@ -159,7 +159,7 @@ const RN = MAP.nodes.map(([x, y]) => ({ x, y, e: [] }));
 const RE = MAP.edges.map((d, i) => {
   const p = d.p, cum = [0];
   for (let k = 1; k < p.length; k++) cum.push(cum[k - 1] + Math.hypot(p[k][0] - p[k - 1][0], p[k][1] - p[k - 1][1]));
-  return { i, a: d.a, b: d.b, p, cum, len: cum[cum.length - 1] };
+  return { i, a: d.a, b: d.b, p, cum, len: cum[cum.length - 1], nt: !!d.nt };
 });
 for (const e of RE) { RN[e.a].e.push(e.i); if (e.b !== e.a) RN[e.b].e.push(e.i); }
 for (const e of RE) for (let k = 0; k < e.p.length - 1; k++) {
@@ -240,7 +240,7 @@ function fillStyle(cx, cy, w, h) {                               // style of one
   o.H = Math.min(o.H, cap); if (o.kind === 'condo' || o.kind === 'glass') o.kind = 'office';
   return o;
 }
-let LOTS = [], PARK_SPOTS = [];                                   // parking lots; stalls { x, y, ang }
+let LOTS = [], PARK_SPOTS = [], GATES = [];                                   // parking lots; stalls { x, y, ang }
 let worldReady = false;
 function genWorld() {
   if (worldReady) return;
@@ -267,6 +267,11 @@ function genWorld() {
     let best = null, bd = 1e9; for (const r of BLD) { if (r.fill) continue; const d = dist(r.cx, r.cy, sp.x, sp.y) + (r.kind === 'deco' ? 0 : 400); if (Math.min(r.lw, r.lh) >= 56 && d < bd) { bd = d; best = r; } }
     if (best) { best.kind = 'deco'; best.pastel = true; }
     if (best) { best.sign = 'SEA BREEZE'; best.H = Math.max(best.H, 60); best.c = '#9be8c8'; }
+  }
+  GATES = [];
+  for (const E of RE) if (E.nt) {                                 // a boom across each driveway, just past the sidewalk of the street it leaves
+    const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
+    GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
   genLandmarks();
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks

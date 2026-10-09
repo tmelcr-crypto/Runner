@@ -7,15 +7,16 @@ function stepCar(c, dt) {
   c.slip = Math.abs(vl);
   if (c.thr !== 0) {
     const braking = c.thr * vf < 0;
-    const a = braking ? t.acc * 1.7 : t.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : t.max * 0.45)));
+    const a = braking ? t.brake : t.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : Math.min(t.max * 0.45, 35 * KMH))));
     vf += c.thr * a * dt;
   }
-  vf *= Math.exp(-(c.thr === 0 ? (c.driver ? 0.7 : 1.8) : 0.25) * dt);
+  vf *= Math.exp(-(c.thr === 0 ? (c.driver ? 0.12 : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little
   vl *= Math.exp(-(c.hb ? t.grip * 0.28 : t.grip) * dt);
   if (c.hb) vf *= Math.exp(-0.9 * dt);
   c.vx = fx * vf + rx * vl; c.vy = fy * vf + ry * vl;            // velocity keeps its direction while the nose turns: that is the drift
-  const sp = Math.max(c.assist ? 0.5 : 0, Math.min(1, Math.abs(vf) / (140 * SPEED_K))), hi = 1 - 0.35 * Math.min(1, Math.abs(vf) / t.max), sgn = c.fs || (vf >= 0 ? 1 : -1);
-  c.av = lerp(c.av, c.str * t.turn * sp * hi * sgn * (c.hb ? 1.25 : 1), Math.min(1, dt * 10));
+  const sp = Math.max(c.assist ? 0.5 : 0, Math.min(1, Math.abs(vf) / (18 * KMH))), sgn = c.fs || (vf >= 0 ? 1 : -1);
+  const yaw = Math.min(t.turn * sp, LAT_GRIP / Math.max(1, Math.abs(vf)));   // the faster you go, the wider you must turn
+  c.av = lerp(c.av, c.str * yaw * sgn * (c.hb ? 1.25 : 1), Math.min(1, dt * 10));
   c.ang += c.av * dt;
   c.x += c.vx * dt; c.y += c.vy * dt;
   // skid marks from the rear wheels
@@ -33,7 +34,7 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { const h = circleSolid(q[0], q[1], q[2], rc); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      for (const rc of _nb) { if (rc.gate && c.type === 'police') continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       nearRails(q[0], q[1], _nr);
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
@@ -117,7 +118,7 @@ function projEdge(e, x, y) {                 // arc length (a -> b) of the point
 function nextEdge(e, fw) {                   // at the end of edge e (travelling fw) pick where to go next; going straight on is likeliest
   const E = RE[e], node = fw > 0 ? E.b : E.a, arr = edgeAt(e, fw > 0 ? E.len : 0, _lq), ax = arr.tx * fw, ay = arr.ty * fw, opts = [];
   for (const ei of RN[node].e) {
-    if (ei === e) continue;
+    if (ei === e || RE[ei].nt) continue;                      // driveways to landmarks are closed to traffic
     const F = RE[ei], nfw = F.a === node ? 1 : -1, d = edgeAt(ei, nfw > 0 ? 0 : F.len, _lq), cos = ax * d.tx * nfw + ay * d.ty * nfw;
     opts.push([ei, nfw, 0.12 + Math.max(0, cos + 0.4) ** 2]);
   }
@@ -141,7 +142,7 @@ function steerToward(c, tx, ty, speedTarget) {
   const d = angDiff(c.ang, Math.atan2(ty - c.y, tx - c.x));
   c.str = clamp(d * 2.2, -1, 1);
   const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), tgt = speedTarget * (1 - 0.55 * Math.min(1, Math.abs(d) / 1.2));
-  c.thr = vf < tgt ? 1 : (vf > tgt + 60 * SPEED_K ? -0.6 : 0);
+  c.thr = vf < tgt ? 1 : (vf > tgt + 18 * KMH ? -0.6 : 0);
 }
 /* police route: the next point to drive to along the shortest road route toward the player (RD from roadFieldTo) */
 let copFieldT = 0, copTarget = null;
@@ -184,7 +185,7 @@ function copDrive(c, dt) {
   }
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = -clamp(angDiff(c.ang, Math.atan2(ty - c.y, tx - c.x)) * 2, -1, 1); return; }
   if (spd < 22 && d > 70) { c.stuck += dt; if (c.stuck > 1.1) { c.rev = 0.9; c.stuck = 0; } } else c.stuck = 0;
-  steerToward(c, tx, ty, d < 130 ? 260 * SPEED_K : c.t.max * 0.92);
+  steerToward(c, tx, ty, d < 130 ? 50 * KMH : Math.min(c.t.max * 0.92, 130 * KMH));   // cops chase at up to 130 km/h in town
   if (d < 55 && spd < 60) c.thr = 0;
 }
 function copsExit(c) {
@@ -202,17 +203,23 @@ function aiDrive(c, dt) {
     const s2 = projEdge(c.e, c.x, c.y); c.s = c.fw > 0 ? s2 : RE[c.e].len - s2;
   }
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, spd = carSpeed(c);
-  const near = laneAhead(c, 40 + Math.max(0, vf) * 0.3, _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));
-  c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
   const far = laneAhead(c, 120 + Math.max(0, vf) * 0.6, _cw), dfar = Math.abs(angDiff(c.ang, Math.atan2(far.y - c.y, far.x - c.x)));
-  if (!c.cruise) c.cruise = rand(170, 250) * SPEED_K;
-  let tgt = c.cruise * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.45 * Math.min(1, dfar / 1.1)), block = 999;
-  const look = (ox, oy, lw) => { const rx = ox - c.x, ry = oy - c.y, al = rx * fx + ry * fy, lat = Math.abs(-rx * fy + ry * fx); if (al > 18 && al < 150 && lat < lw && al < block) block = al; };
-  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < 170 && Math.abs(o.y - c.y) < 170) look(o.x, o.y, 24);   // cars in the parking lane (33 to the side) are not in the way
+  const near = laneAhead(c, (40 + Math.max(0, vf) * 0.3) * (1 - 0.45 * Math.min(1, dfar / 1.2)), _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));   // aim closer in a bend, so the corner is not cut into the other lane
+  c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
+  if (!c.cruise) c.cruise = rand(40, 55) * KMH;                   // town traffic: 40-55 km/h
+  let tgt = c.cruise * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
+  const stop = vf > 0 ? vf * vf / (2 * c.t.brake) : 0, reach = 70 + stop * 1.6 + Math.max(0, vf) * 0.4;   // look far enough ahead to stop in time
+  const look = (ox, oy, lw) => { const rx = ox - c.x, ry = oy - c.y, al = rx * fx + ry * fy, lat = Math.abs(-rx * fy + ry * fx); if (al > 18 && al < reach && lat < lw && al < block) block = al; };
+  const R = reach + 30;
+  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R && Math.abs(o.y - c.y) < R) look(o.x, o.y, 24);   // cars in the parking lane (33 to the side) are not in the way
   if (!P.car) look(P.x, P.y, 24);
-  for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < 170 && Math.abs(p.y - c.y) < 170) look(p.x, p.y, 20);
+  for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < R && Math.abs(p.y - c.y) < R) look(p.x, p.y, 20);
+  { const Ec = RE[c.e], toEnd = Ec.len - c.s, node = RN[c.fw > 0 ? Ec.b : Ec.a], box = ROAD_HALF + SW_W + 20;   // give way: wait at the junction while it is busy
+    if (node.e.length >= 3 && toEnd > box && toEnd < box + stop + 60)
+      for (const o of cars) if (o !== c && o.driver && !o.dead && Math.abs(o.x - node.x) < box && Math.abs(o.y - node.y) < box && o.e !== c.e && carSpeed(o) > 5) { block = Math.min(block, toEnd - box + 48); break; } }
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = 0; return; }
-  if (block < 70) { c.thr = vf > 25 ? -1 : 0; } else { if (block < 150) tgt = Math.min(tgt, Math.max(0, vf * 0.7)); c.thr = vf < tgt ? 0.8 : (vf > tgt + 50 * SPEED_K ? -0.5 : 0); }
+  if (block < 48 + stop) { c.thr = vf > 8 ? -1 : 0; }                                   // too close to stop gently: full brake
+  else { if (block < reach) tgt = Math.min(tgt, Math.max(0, (block - 48) * 1.1)); c.thr = vf < tgt ? 0.8 : (vf > tgt + 15 * KMH ? -0.6 : 0); }
   if (spd < 10 && block > 150) { c.stuck += dt; if (c.stuck > 2) { c.rev = 1; c.stuck = 0; } } else c.stuck = 0;
 }
 

@@ -136,7 +136,7 @@ function fireWeapon() {
 }
 
 function pedBlocked(x, y) {
-  nearBuildings(x, y, _nb); for (const rc of _nb) if (circleSolid(x, y, 9, rc)) return true; return false;
+  nearBuildings(x, y, _nb); for (const rc of _nb) if (!rc.gate && circleSolid(x, y, 9, rc)) return true; return false;
 }
 function exitCar(forced) {
   const c = P.car; if (!c) return;
@@ -206,8 +206,8 @@ function updatePlayer(dt, inp) {
   if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
   // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
-  const gait = (mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(45, 95, (mg - 0.4) / 0.4) : lerp(125, 165, (mg - 0.8) / 0.2)) * SPEED_K;
-  const sp = (inp.sprint && mg > 0.4 ? 235 * SPEED_K : gait) * wk, m = Math.hypot(inp.ix, inp.iy) || 1;
+  const gait = mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(WALK, 2.4 * MPS, (mg - 0.4) / 0.4) : lerp(3.5 * MPS, RUN, (mg - 0.8) / 0.2);
+  const sp = (inp.sprint && mg > 0.4 ? SPRINT : gait) * wk, m = Math.hypot(inp.ix, inp.iy) || 1;
   const k = 1 - Math.exp(-14 * dt);
   P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
   P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;
