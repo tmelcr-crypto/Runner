@@ -26,11 +26,13 @@ const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicke
 };
 const WALK = 1.4 * MPS, RUN = 5 * MPS, SPRINT = 7 * MPS;      // people: a stroll, a run, a flat-out sprint
 const FOOT = 1.15;                                              // the player is 15% quicker on foot than other people
+// rate: seconds between shots; reload: seconds to swap a magazine; ammo: rounds you start with besides the full magazine.
+// The sniper rifle only fires standing still: hold FIRE, drag to the target in a 4x scope, let go to shoot. Its range is the whole screen.
 const WEAPONS = [
-  { name: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, hear: 140 },
-  { name: 'MACHINE GUN', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, hear: 200 }
+  { id: 'pistol', name: 'PISTOL', short: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, ammo: 60, reload: 5, hear: 140, shake: 3 },
+  { id: 'mg', name: 'MACHINE GUN', short: 'MG', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, ammo: 120, reload: 5, hear: 200, shake: 2.2 },
+  { id: 'sniper', name: 'SNIPER RIFLE', short: 'SNIPER', rate: 1.5, dmg: 160, spread: 0, range: 4000, heat: 6, auto: false, mag: 5, ammo: 15, reload: 10, hear: 320, shake: 6, scope: 4 }
 ];
-const RELOAD_T = 5;   // seconds to swap a magazine
 const STAR_AT = [18, 48, 90, 140, 200];   // heat needed for 1..5 stars
 
 const $ = id => document.getElementById(id);

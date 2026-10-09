@@ -129,16 +129,17 @@ function syncPlayer(time, dt) {
   o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
   o.torso.material = P.hurtT > 0 ? P3.red : P3.yel;
   if (P.busted) { o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; } else o.tilt.rotation.z = 0;      // knocked flat
-  const mg = P.weapon === 1; o.gun.scale.x = mg ? 18 : 10; o.gun.position.x = mg ? 12 : 8;
-  P3.flash.visible = P.flash > 0; P3.flash.position.set(mg ? 23 : 16, 14, 3.6);
+  const gl = [10, 18, 28][P.weapon] || 10; o.gun.scale.x = gl; o.gun.position.x = 3 + gl / 2;   // pistol, machine gun, rifle
+  P3.flash.visible = P.flash > 0; P3.flash.position.set(6 + gl, 14, 3.6);
   flashLight.intensity = P.flash > 0 ? 1.6 : 0; flashLight.position.set(P.x + Math.cos(P.ang) * 20, P3.gy + 16, P.y + Math.sin(P.ang) * 20);
 }
-const PICK_COL = { health: 0xff6b86, pistol: 0x3fe0ff, mg: 0x3fe0ff, cash: 0x58e08a };
+const PICK_COL = { health: 0xff6b86, pistol: 0x3fe0ff, mg: 0x3fe0ff, sniper: 0xffe14a, cash: 0x58e08a };
 function syncPickup(p, time) {
   if (!p.mesh) {
     const g = new THREE.Group(), it = new THREE.Group(); g.add(it);
     if (p.type === 'health') { part(it, GB, E.white, 10, 10, 10, 0, 0, 0); part(it, GB, mBas(0xe0364f), 6.5, 1.2, 2.2, 0, 5.4, 0); part(it, GB, mBas(0xe0364f), 2.2, 1.2, 6.5, 0, 5.4, 0); }
     else if (p.type === 'cash') { part(it, GB, mc(0x58b36b), 13, 3.5, 8, 0, 0, 0); part(it, GB, mc(0xd6f5dc), 9, 0.6, 5, 0, 1.9, 0); }
+    else if (p.type === 'sniper') { part(it, GB, mc(0x2a2410), 18, 6, 7, 0, 0, 0); part(it, GB, mBas(0xffe14a), 14, 1, 1.4, 0, 3.4, 0); }   // a long case with a yellow stripe
     else { part(it, GB, mc(0x17304a), 11, 8, 9, 0, 0, 0); for (let k = 0; k < (p.type === 'mg' ? 3 : 1); k++) part(it, GB, mBas(0x3fe0ff), 1.8, 1, 5, (p.type === 'mg' ? (k - 1) * 3 : 0), 4.4, 0); }
     part(g, GCyl, new THREE.MeshBasicMaterial({ color: PICK_COL[p.type], transparent: true, opacity: 0.2, depthWrite: false }), 2.6, 60, 2.6, 0, 30, 0);
     g.userData.it = it; p.mesh = g; scene.add(g);
