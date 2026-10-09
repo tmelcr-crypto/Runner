@@ -39,12 +39,13 @@ function restoreProp(o) {               // back where it stood, whole again
   Object.assign(o, { x: o.hx, y: o.hy, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, roll: 0, flying: false, gone: false, broken: false });
 }
 function placeProp(o) { o.group.position.set(o.x, o.z + o.hc, o.y); o.group.rotation.set(o.roll, -o.yaw, 0); }
-function throwProp(o, nx, ny, f) {
+function throwProp(o, nx, ny, f, t) {   // t: how hard the blast throws (1 = full)
+  if (t === undefined) t = 1;
   if (!o.group) liftProp(o);
   if (o.solid) o.solid.off = true;                                 // no longer in anybody's way while it flies
   const k = 1 / Math.sqrt(o.mass);
-  o.vx = (nx * rand(360, 520) + rand(-60, 60)) * f * k; o.vy = (ny * rand(360, 520) + rand(-60, 60)) * f * k; o.vz = rand(200, 340) * f * k + 60;
-  o.wy = rand(-9, 9) * f; o.wr = rand(-10, 10) * f;
+  o.vx = (nx * rand(360, 520) + rand(-60, 60)) * f * k * t; o.vy = (ny * rand(360, 520) + rand(-60, 60)) * f * k * t; o.vz = (rand(200, 340) * f * k + 60) * t;
+  o.wy = rand(-9, 9) * f * t; o.wr = rand(-10, 10) * f * t;
   if (!o.flying) { o.flying = true; FLY.push(o); }
 }
 const _tb = [];
@@ -67,15 +68,15 @@ function propStep(o, dt) {
     else landProp(o);
   }
 }
-function throwProps(x, y, reach) {
+function throwProps(x, y, reach, K) {
   const a0 = Math.floor((x - reach + SEA) / TG), a1 = Math.floor((x + reach + SEA) / TG), b0 = Math.floor((y - reach + SEA) / TG), b1 = Math.floor((y + reach + SEA) / TG);
   for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
     const l = TGRID.get(a * 1024 + b); if (!l) continue;
     for (const o of l.slice()) {
       if (o.gone) continue; const d = dist(o.x, o.y, x, y); if (d >= reach) continue;
       const [nx, ny] = away(o.x, o.y, x, y, d);
-      if (SHRED[o.smash] && d < reach * 0.45) { breakProp(o, nx, ny, 420); continue; }   // boxes, bags, crates near the middle: shredded (js/12e)
-      throwProp(o, nx, ny, 1 - d / reach); messed(o);
+      if (SHRED[o.smash] && d < reach * 0.45) { breakProp(o, nx, ny, 420 * (K === undefined ? 1 : K)); continue; }   // boxes, bags, crates near the middle: shredded (js/12e)
+      throwProp(o, nx, ny, 1 - d / reach, K); messed(o);
       if (o.smash === 'hydrant') spray(o.hx, o.hy);
     }
   }
@@ -83,8 +84,9 @@ function throwProps(x, y, reach) {
 function away(ox, oy, x, y, d) { if (d < 1) { const a = rand(0, TAU); return [Math.cos(a), Math.sin(a)]; } return [(ox - x) / d, (oy - y) / d]; }
 
 /* ---------- people, bodies and pickups knocked through the air ---------- */
-function knock(o, nx, ny, f, r) {
-  o.kvx = nx * rand(380, 540) * f; o.kvy = ny * rand(380, 540) * f; o.kvz = rand(240, 340) * f + 60; o.air = o.air || 0; o.kr = r;
+function knock(o, nx, ny, f, r, t) {   // t: how hard the blast throws (1 = full)
+  if (t === undefined) t = 1;
+  o.kvx = nx * rand(380, 540) * f * t; o.kvy = ny * rand(380, 540) * f * t; o.kvz = (rand(240, 340) * f + 60) * t; o.air = o.air || 0; o.kr = r;
   if (!o.knocked) { o.knocked = true; KNOCK.push(o); }
 }
 function knockStep(o, dt) {             // in steps of at most 3 units, so nobody flies through a wall, a dumpster, a car or another person
@@ -107,21 +109,21 @@ function knockStep(o, dt) {             // in steps of at most 3 units, so nobod
 }
 
 /* ---------- the blast itself ---------- */
-function blastPush(x, y, R, src) {       // throws whatever is left standing, out to 1.7 times the kill radius
-  const reach = R * 1.7;
+function blastPush(x, y, R, src, K) {    // throws whatever is left standing, out to 1.7 times the kill radius; K: how hard (1 = full)
+  const reach = R * 1.7; K = K === undefined ? 1 : K;
   for (const c of cars) {
     if (c.sunk) continue;
     if (c === src) { c.vz = 330; c.av += rand(-4, 4); continue; }  // the car that blew up jumps
     const d = dist(c.x, c.y, x, y); if (d >= reach) continue;
     const f = 1 - d / reach, k = 1 / Math.sqrt(c.t.mass), [nx, ny] = away(c.x, c.y, x, y, d);
-    c.vx += nx * 560 * f * k; c.vy += ny * 560 * f * k; c.av += rand(-6, 6) * f; c.vz = Math.max(c.vz || 0, 300 * f * k);
+    c.vx += nx * 560 * f * k * K; c.vy += ny * 560 * f * k * K; c.av += rand(-6, 6) * f * K; c.vz = Math.max(c.vz || 0, 300 * f * k * K);
   }
-  const push = (o, r) => { const d = dist(o.x, o.y, x, y); if (d >= reach) return; const [nx, ny] = away(o.x, o.y, x, y, d); o.kx0 = x; o.ky0 = y; knock(o, nx, ny, 1 - d / reach, r); };
+  const push = (o, r) => { const d = dist(o.x, o.y, x, y); if (d >= reach) return; const [nx, ny] = away(o.x, o.y, x, y, d); o.kx0 = x; o.ky0 = y; knock(o, nx, ny, 1 - d / reach, r, K); };
   for (const p of peds) push(p, 7);
   for (const o of officers) push(o, 7);
   for (const q of pickups) push(q, 6);
   if (!P.car) push(P, 7);
-  throwProps(x, y, reach);
+  throwProps(x, y, reach, K);
 }
 const FBALL = [];                       // the fireball: two soft glowing sprites, an orange ball and a white-hot core
 for (let k = 0; k < 6; k++) {

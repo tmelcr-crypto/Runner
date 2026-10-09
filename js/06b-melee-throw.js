@@ -133,7 +133,7 @@ function updateGrenades(dt) {
     }
     if ((g.beep -= dt) <= 0) { g.beep = clamp(g.fuse * 0.22, 0.07, 0.5); g.blink = 0.06; if (dist(g.x, g.y, P.x, P.y) < 450) Snd.tone(1700, 1700, 0.025, 0.05, 'square'); }
     if (g.fuse <= 0) {
-      g.dead = true; explosion(g.x, g.y, g.w.blast, RK_SRC); alertPeds(g.x, g.y, Math.max(g.w.panic, 500)); reportCrime(COP.crime.blast, COP.blastHear, g.x, g.y, true);
+      g.dead = true; explosion(g.x, g.y, g.w.blast, RK_SRC, g.w.blastThrow); alertPeds(g.x, g.y, Math.max(g.w.panic, 500)); reportCrime(COP.crime.blast, COP.blastHear, g.x, g.y, true);
     }
   }
   if (grenades.some(g => g.dead)) { for (const g of grenades) if (g.dead && g.mesh) scene.remove(g.mesh); grenades = grenades.filter(g => !g.dead); }

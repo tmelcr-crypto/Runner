@@ -60,7 +60,7 @@ function damageCar(c, d, byPlayer) {
     if (c.byPlayer) rampWreck(c);                                   // a wreck for the rampage (js/08f)
   }
 }
-function explosion(x, y, R, src) {
+function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws things (the weapon table's Blast throw; 1 = full); the damage is the same
   boomFlash = { x, y, t: 0.6 };
   Snd.boom(); cam.shake = Math.max(cam.shake, 16 * (1 - Math.min(1, dist(x, y, cam.x, cam.y) / 900)));
   boomFx(x, y, R);                                               // fireball, flames, smoke column, debris, embers (js/12c)
@@ -76,7 +76,7 @@ function explosion(x, y, R, src) {
     if (d < R + 20) damageCar(c, 110 * (1 - d / (R + 20)), byP);
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
-  blastPush(x, y, R, src);                                       // and throws everything still in one piece
+  blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }
 function explodeCar(c) {

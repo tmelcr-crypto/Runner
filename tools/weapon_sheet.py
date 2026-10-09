@@ -76,6 +76,7 @@ ROWS = [
     ('hold', 'Sight stays up between shots: yes / no', 'yesno', None, 'yes: the sight stays open while the next round is chambered.', 'yes or no'),
     ('#', 'EXPLOSIVES', 'For rockets and grenades.'),
     ('blast', 'Blast radius (m)', 'num', (0, 50), 'Everyone inside is thrown and killed; cars inside take heavy damage. A rocket: 10.8 m.', 'metres'),
+    ('blastThrow', 'Blast throw (%)', 'num', (0, 300), 'How hard its blast throws cars, people (you too), props and pickups: 100 = full strength, 40 = 60% less. The damage and the look of the blast stay the same.', '%, empty = 100'),
     ('speed', 'Flight speed (km/h)', 'num', (0, 2000), 'Top speed of a rocket; how fast a grenade leaves your hand (it needs about 60 km/h to reach 30 m).', 'km/h'),
     ('stray', 'Dud chance (%)', 'num', (0, 100), 'Share of shots that go off course.', '%'),
     ('strayDeg', 'Dud goes off by (degrees)', 'num', (0, 180), 'How far off course a dud flies.', 'degrees'),
@@ -92,7 +93,7 @@ SETTINGS = [r for r in ROWS if r[0] != '#']
 ROW = {r[0]: r for r in SETTINGS}
 ORDER = ['id', 'name', 'short', 'status', 'class', 'use', 'fires', 'sound', 'color', 'howTo', 'mechanic', 'dmg', 'pellets', 'spread', 'range', 'rate', 'carDmg', 'pierce',
          'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'carry', 'reload', 'start', 'keep', 'price', 'ammoPrice', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
-         'blast', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'reach', 'arc', 'knock', 'push', 'notes']
+         'blast', 'blastThrow', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'reach', 'arc', 'knock', 'push', 'notes']
 assert sorted(ORDER) == sorted(ROW)
 # a row label in a returned file is recognised by how it starts (lowercase), most specific first
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('status', 'status'), ('class', 'class'), ('use', 'how you use'), ('fires', 'what it fires'),
@@ -100,7 +101,7 @@ MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('st
          ('spread', 'spread'), ('range', 'range'), ('rate', 'time between'), ('carDmg', 'damage to veh'), ('pierce', 'goes through'), ('mag', 'magazine'),
          ('ammo', 'spare rounds'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per'), ('onMap', 'weapon pickups'), ('ammoMap', 'ammo pickups'), ('carry', 'carried by'), ('reload', 'reload'),
          ('start', 'have it'), ('keep', 'kept when'), ('price', 'price in'), ('ammoPrice', 'ammo price'), ('heat', 'heat'), ('hear', 'heard'), ('panic', 'people flee'), ('shake', 'screen shake'), ('zoom', 'zoom'),
-         ('sight', 'sight:'), ('blur', 'blur'), ('los', 'needs clear'), ('hold', 'sight stays'), ('blast', 'blast'), ('speed', 'flight speed'), ('stray', 'dud chance'),
+         ('sight', 'sight:'), ('blur', 'blur'), ('los', 'needs clear'), ('hold', 'sight stays'), ('blastThrow', 'blast throw'), ('blast', 'blast'), ('speed', 'flight speed'), ('stray', 'dud chance'),
          ('strayDeg', 'dud goes'), ('fuse', 'fuse'), ('throw', 'throw range'), ('bounce', 'bounces'), ('reach', 'reach'), ('arc', 'swing arc'), ('knock', 'knockdown'),
          ('push', 'push')]
 LONG = ('howTo', 'mechanic', 'notes')
