@@ -15,8 +15,8 @@ Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8
   - *Streets*: quiet, busy or packed - how much traffic and how many people.
   - *Start in*: the usual spot, a random street, or any of the 13 districts.
 - **Pause** with Esc, P or the MENU button (top); the game also pauses when you switch to another app or tab. From there: resume, save, load, new game, help, quit to the title.
-- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away or quit to the title), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. You cannot save while you are wanted. A save keeps where you are (and the car you are in), health and body armor, weapons and ammo, score and kills, the clock, the weather and the New game choices. Saves live in the browser (localStorage); *Download save file* and *Open save file* move a game to another device.
-- **Help**: five pages - controls (keyboard and touch), playing (points, cars, pickups, stores, wasted and busted), the weapons (from the weapon table), the police, and the city (map, day and weather, services, saving).
+- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away or quit to the title), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. You cannot save while you are wanted. A save keeps where you are (and the car you are in), health and body armor, weapons and ammo, the rampages found and passed, score and kills, the clock, the weather and the New game choices. Saves live in the browser (localStorage); *Download save file* and *Open save file* move a game to another device.
+- **Help**: five pages - controls (keyboard and touch), playing (points, cars, pickups, stores, rampages, wasted and busted), the weapons (from the weapon table), the police, and the city (map, day and weather, services, saving).
 
 ## The city
 
@@ -213,6 +213,55 @@ Each gun or bomb a store sells comes with a row for its ammo (one ammo pickup's 
 
 The items and the stores are `js/01g-shop-data.js` (what each item gives, its colour, how many are hidden, its price; each store's name, colour and what it sells - weapon ids from the weapon table and item ids). Weapon and ammo prices are two rows of the weapon table (*Shops* section of `tools/weapon_sheet.py`); an empty price means it is never sold.
 
+## Rampages
+
+Twenty rampages are hidden around the city, in alleys, yards, parks and parking lots near a street: a white skull facing you over a red ring, with the rampage's weapon circling it. The first is close to where you start; the others are spread as far apart as they can be. Come near one and it is **found**: from then on it is a skull on the minimap and the city map (green once you have passed it).
+
+On foot at a skull a **RAMPAGE** button appears by you (or press **E**). It opens the rampage's screen - the goal, the weapon, the time and the reward - and **START RAMPAGE** begins it. You cannot start one while you are wanted: lose the police first.
+
+During a rampage:
+- the weapon is in your hand and stays there: the weapon wheel and the number keys are locked, and you cannot get into a car;
+- it has endless spare ammo (the HUD shows ∞), but reloads still take their time;
+- the police look the other way: no crime adds heat;
+- a red bar at the top counts the kills or wrecks and the time left (the last ten seconds blink and beep);
+- people (for a people rampage) or vehicles (for a vehicle one) are brought in around you, out of sight, so there are always about 18 people or 10 vehicles nearby. Police officers count as people; a vehicle counts when it catches fire.
+
+Reach the count in time and the rampage is **passed**: the first time you get the cash and keep the weapon with its basic load (a full magazine and the spare rounds it comes with). A passed rampage can be played again for fun, without the reward. Running out of time or dying fails it, and a failed or replayed rampage gives you back the weapons you had before. Saved games remember which rampages you have found and passed (the pause menu shows how many); you cannot save during one.
+
+| # | Rampage | Weapon | Goal | Time | Reward |
+|---|---|---|---|---|---|
+| 1 | Knuckle Sandwich | Fists | kill 8 people | 2:00 | $1,000 |
+| 2 | Batter Up | Baseball bat | kill 15 people | 1:30 | $1,500 |
+| 3 | Pistol Whip | Pistol | kill 12 people | 2:00 | $1,500 |
+| 4 | Sharp Practice | Knife | kill 12 people | 1:30 | $1,500 |
+| 5 | Fore! | Golf club | kill 10 people | 2:00 | $1,500 |
+| 6 | Chop Shop | Machete | kill 15 people | 2:00 | $2,000 |
+| 7 | Six Feet Under | Revolver | kill 18 people | 2:00 | $2,000 |
+| 8 | Hubcap Hunter | Pistol | wreck 4 vehicles | 2:30 | $2,000 |
+| 9 | Spray And Pray | SMG | kill 20 people | 2:00 | $2,500 |
+| 10 | Scrap Metal | SMG | wreck 6 vehicles | 2:30 | $2,500 |
+| 11 | Buckshot Boulevard | Shotgun | kill 16 people | 2:00 | $2,500 |
+| 12 | Body Shop | Shotgun | wreck 8 vehicles | 2:00 | $3,000 |
+| 13 | Long Shot | Sniper rifle | kill 12 people | 2:00 | $3,000 |
+| 14 | Belt Fed | Machine gun | kill 30 people | 2:00 | $4,000 |
+| 15 | Rush Hour | Machine gun | wreck 10 vehicles | 2:00 | $4,000 |
+| 16 | Pineapple Party | Grenade | kill 12 people | 2:00 | $3,500 |
+| 17 | Traffic Calming | Revolver | wreck 6 vehicles | 2:30 | $3,500 |
+| 18 | Demolition Derby | Pipe bomb | wreck 6 vehicles | 2:30 | $4,000 |
+| 19 | Fireworks | Rocket launcher | kill 22 people | 2:00 | $5,000 |
+| 20 | Wrecking Crew | Rocket launcher | wreck 10 vehicles | 2:30 | $6,000 |
+
+A bot that aims perfectly but walks badly played every rampage in a headless browser while they were tuned; it passed them using roughly a fifth to two thirds of the time. Grenades are not used against vehicles: a grenade thrown at a car bounces off it and goes off too far away to do much damage.
+
+The rampages are `js/01h-rampage-data.js` - name, weapon, target (people or cars), how many, the time and the reward - and `tools/rampage_sheet.py` exports them to Apple Numbers or Excel (one row per rampage, Weapon and Target as pop-up lists) and reads an edited copy back, checking every value:
+
+```
+python3 tools/rampage_sheet.py export rampages.numbers      # or rampages.xlsx
+python3 tools/rampage_sheet.py import rampages.numbers [--dry-run]
+```
+
+The first row is the rampage nearest to where you start, so make it an easy one. The game picks the places itself.
+
 `js/00-map-data.js` is generated by `tools/build_city.py` from a reference map image: `python tools/build_city.py <map image> js/00-map-data.js [preview.png]` (needs numpy, opencv-python-headless, scikit-image, shapely 2, pillow). Landmark places, bridges, runways, district names and the start point are set in the script; the random seed is fixed, so the same image always gives the same city. After laying out the blocks it checks every parking lot: a lot that does not open onto a street is turned to face the one it touches, or becomes a garden or a service yard if it touches none, and each lot is tied to the building next to it (`lots[6]`). It then picks the four police stations (buildings with a lot of their own) and the four hospitals, spread over the city (`services`).
 
 ## Layout
@@ -229,6 +278,7 @@ The items and the stores are `js/01g-shop-data.js` (what each item gives, its co
 | `js/01e-radio-data.js` | the car radio stations: name, frequency, style, colour, music file; radio volume |
 | `js/01f-weapon-data.js` | the weapon table in everyday units (edit by hand or with `tools/weapon_sheet.py`), converted to `WEAPONS`; drafts are left out |
 | `js/01g-shop-data.js` | the hidden items (health, body armor, heat reducer) and the six stores: what each sells |
+| `js/01h-rampage-data.js` | the twenty rampages: weapon, target, count, time, reward (edit by hand or with `tools/rampage_sheet.py`) |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
@@ -242,6 +292,7 @@ The items and the stores are `js/01g-shop-data.js` (what each item gives, its co
 | `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
 | `js/08d-weapon-pickups.js` | hidden weapons, ammo and items: the hiding places off the streets, melee in fixed places, guns, ammo and items at random and coming back elsewhere, picking up, the coloured bubbles |
 | `js/08e-shops.js` | the six stores: which buildings, the markers at their doors, the SHOP button, the store screen and buying |
+| `js/08f-rampages.js` | the rampages: where they are, the skulls, found and passed, the RAMPAGE button and screen, the locked weapon, the clock, counting kills and wrecks, people and vehicles brought in, the reward |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
 | `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |

@@ -37,7 +37,7 @@ function drawMini(time) {
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
 }
-function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; police stations: a white star on blue; stores: a $
+function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; police stations: a white star on blue; stores: a $; rampages: a skull
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold ' + Math.round(q * 1.6) + 'px Arial';
   for (const s of SVC.hospital) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
     g.fillStyle = '#ffffff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#e0364f'; g.fillRect(x - q * 0.75, y - q * 0.25, q * 1.5, q * 0.5); g.fillRect(x - q * 0.25, y - q * 0.75, q * 0.5, q * 1.5); }
@@ -45,6 +45,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
     g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
   for (const s of STORES || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
     g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('$', x, y + q * 0.08); }
+  for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
@@ -89,9 +90,9 @@ function updateHud(time) {
   if (H.hp !== hp) { H.hp = hp; const segs = $('hpSegs'); [...segs.children].forEach((e, k) => e.classList.toggle('on', k < hp)); segs.classList.toggle('low', hp <= 3); }
   const ar = Math.ceil(clamp(P.armor, 0, 100) / 10);                // body armor: a blue bar under the health, only while you wear some
   if (H.ar !== ar) { H.ar = ar; $('armorRow').hidden = ar <= 0; [...$('arSegs').children].forEach((e, k) => e.classList.toggle('on', k < ar)); }
-  const w = WEAPONS[P.weapon], am = String(P.ammo[P.weapon]).padStart(3, '0');
+  const w = WEAPONS[P.weapon], inf = RAMP.on && P.weapon === RAMP.on.wi, am = inf ? '\u221e' : String(P.ammo[P.weapon]).padStart(3, '0');   // a rampage: endless spare rounds
   const mel = isMelee(w); setText('wname', 'wname', w.short); setText('ammo', 'ammo', mel ? '--' : String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);   // melee: no ammo
-  $('ammo').classList.toggle('empty', !mel && P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
+  $('ammo').classList.toggle('empty', !mel && !inf && P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
   { const rl = $('reload'), a = P.act; let on = true, t = 0, dur = 1, lab = '', col = '';   // one bar: stealing, being arrested, the stop order, reloading
     if (a) { t = a.t; dur = a.dur; lab = a.occ ? 'CARJACKING ' : 'STEALING '; col = 'var(--cyan)'; }
     else if (PS.bustT > 0 && !P.dead) { t = PS.bustT; dur = COP.bustTime; lab = 'ARRESTING '; col = 'var(--hot)'; }
@@ -102,7 +103,7 @@ function updateHud(time) {
     if (H.ra !== col) { H.ra = col; rl.firstElementChild.style.background = col; }
     if (on) { rl.firstElementChild.style.width = Math.min(100, t / dur * 100) + '%'; rl.lastElementChild.textContent = lab + Math.max(0, dur - t).toFixed(1) + 's'; } }
   if (H.weapon !== P.weapon) { H.weapon = P.weapon; $('wIcon').innerHTML = wIcon(w); $('wIcon').style.color = w.color; }   // the weapon button shows the weapon in hand, in its colour
-  setText('wAmmo', 'wAmmo', isMelee(WEAPONS[P.weapon]) ? WEAPONS[P.weapon].short : pad(P.mag[P.weapon], 2) + '/' + pad(P.ammo[P.weapon], 3));
+  setText('wAmmo', 'wAmmo', isMelee(WEAPONS[P.weapon]) ? WEAPONS[P.weapon].short : pad(P.mag[P.weapon], 2) + '/' + (inf ? '\u221e' : pad(P.ammo[P.weapon], 3)));
   if (H.stars !== P.stars) { H.stars = P.stars; [...$('stars').children].forEach((e, k) => e.classList.toggle('on', k < P.stars)); }
   const fade = P.stars > 0 && !PS.seen; if (H.fade !== fade) { H.fade = fade; $('stars').classList.toggle('fade', fade); }   // the stars blink while they search, stay lit while they see you
   setText('clock', 'clock', skyText());
@@ -114,8 +115,9 @@ function updateHud(time) {
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
     else if (c.t.weapon) hint = touchMode ? 'FIRE: ROCKETS' : 'CLICK OR J: ROCKETS';
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
-  else { const n = nearestCar(), s = shopKey(); if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
-  storeUi();                                                        // the SHOP button by you at a store door (js/08e)
+  else if (RAMP.on) hint = RAMP.on.name + ': ' + goalText(RAMP.on) + (RAMP.on.target === 'cars' ? ' - THEY COUNT WHEN THEY CATCH FIRE' : '');
+  else { const n = nearestCar(), s = shopKey(), r = rampKey(); if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
+  storeUi(); rampUi(); rampHudUpdate();                             // the SHOP and RAMPAGE buttons by you (js/08e, js/08f), the rampage's count and clock
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
   const inCar = !!c; if (H.inCar !== inCar) { H.inCar = inCar; $('radioBtn').hidden = !inCar; }   // the RADIO button, in a car only
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);

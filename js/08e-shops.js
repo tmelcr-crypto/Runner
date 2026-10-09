@@ -16,7 +16,7 @@ function pickStores() {                  // the shop buildings that become store
     if (zy < -0.3) continue;                                         // a front facing north would hide its door from the camera behind the building
     for (const off of [14, 20, 28]) {
       const x = r.cx + zx * (r.lh / 2 + off), y = r.cy + zy * (r.lh / 2 + off);
-      if (pedBlocked(x, y) || shoreDist(x, y) < 10 || inLandmark(x, y) || !nearestRoad(x, y, ROAD_HALF + SW_W + 6) || svc.some(b => dist(b.cx, b.cy, x, y) < 700)) continue;
+      if (pedBlocked(x, y) || shoreDist(x, y) < 10 || inLandmark(x, y) || !nearestRoad(x, y, ROAD_HALF + SW_W + 6) || svc.some(b => dist(b.cx, b.cy, x, y) < 700) || RAMPAGES.some(q => q.placed && dist(q.x, q.y, x, y) < 250)) continue;
       cand.push({ r, x, y, zx, zy }); break;
     }
   }
@@ -61,7 +61,7 @@ function gfxStores(time) {
   for (const s of STORES) { if (!s.g) continue; s.g.userData.icon.rotation.y = time * 1.2; s.g.userData.ring.scale.setScalar(STORE_R - 4 + Math.sin(time * 3) * 1.5); }
 }
 function nearStore() {                   // the store whose door you stand at, on foot
-  if (!STORES || P.car || P.dead || P.act || state !== 'play') return null;
+  if (!STORES || P.car || P.dead || P.act || RAMP.on || state !== 'play') return null;
   for (const s of STORES) if (Math.abs(s.x - P.x) < STORE_R && Math.abs(s.y - P.y) < STORE_R && dist(s.x, s.y, P.x, P.y) < STORE_R) return s;
   return null;
 }
@@ -73,8 +73,10 @@ function storeUi() {                     // every frame (js/14): the SHOP button
   const s = nearStore(), b = $('shopBtn');
   if (!s) { if (!b.hidden) b.hidden = true; return; }
   if (b.hidden) { b.hidden = false; b.style.setProperty('--sc', s.color); b.querySelector('b').textContent = s.name; }
-  const q = worldToScreen(P.x, P.y);                                // up and to the right of you: clear of the store's sign and of the touch buttons
-  const hw = b.offsetWidth / 2 + 6, hh = b.offsetHeight / 2 + 6;
+  doorBtnAt(b);
+}
+function doorBtnAt(b) {                  // a button by you (SHOP, RAMPAGE): up and to the right, clear of the signs and of the touch buttons
+  const q = worldToScreen(P.x, P.y), hw = b.offsetWidth / 2 + 6, hh = b.offsetHeight / 2 + 6;
   b.style.left = Math.round(clamp(q.x + 95, hw, VW - hw)) + 'px'; b.style.top = Math.round(clamp(q.y - 110, hh, VH - hh)) + 'px';
 }
 $('shopBtn').addEventListener('click', e => { e.stopPropagation(); const s = nearStore(); if (s) openShop(s); });

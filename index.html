@@ -36,7 +36,9 @@
   <div id="radioName"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
-  <button id="shopBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
+  <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
+  <div id="rampHud" hidden><span id="rampIcoHud"></span><span class="rl">RAMPAGE</span><b id="rampCount">0 / 0</b><span id="rampWhat"></span><i id="rampClock">0:00</i></div>
+  <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
   <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
   <div id="wasted">WASTED</div>
@@ -121,14 +123,14 @@
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> punch, swing, shoot (hold for automatics)</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>GRENADES</b> hold CLICK and drag the opposite way, let go to throw (J: hold to wind up)</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in (E or ESC leaves)</li></ul></div>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves)</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK</b> in the tank: rockets</li></ul>
         <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades: hold FIRE, drag the opposite way, let go</li>
-        <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> button: shows by you at a store's door</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
+        <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> / <b>RAMPAGE</b> button: shows by you at a store's door or a rampage's skull</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
@@ -147,6 +149,11 @@
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>$</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
+      <div><h3>RAMPAGES</h3><ul>
+        <li>Twenty red skulls are hidden around the city. Once you have been near one it shows on the maps (green once passed).</li>
+        <li>On foot at a skull, tap <b>RAMPAGE</b> or press <b>E</b> to see the goal, then <b>START</b>: kill so many people, or wreck so many vehicles, with the weapon you are given before the clock runs out.</li>
+        <li>The weapon stays in your hand with endless ammo (reloads still take time), you stay on foot, and the police look the other way. You cannot start one while you are wanted.</li>
+        <li>The first pass pays cash and you keep the weapon. You can play a passed rampage again, without the reward.</li></ul></div>
       <div><h3>WASTED OR BUSTED</h3><ul>
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your score.</li>
         <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep every weapon you found.</li></ul></div>
@@ -166,7 +173,7 @@
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($) and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($), the rampages you have found (skulls) and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>DAY, NIGHT, WEATHER</h3><ul>
         <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
@@ -187,6 +194,19 @@
     <p class="warn" id="shopMsg"></p>
     <div class="menu"><button id="shopLeave" class="big alt back pri" type="button">LEAVE</button></div>
     <p class="keys">ESC OR E LEAVES</p>
+  </div>
+
+  <div class="card" id="rampCard" hidden>
+    <p class="tag">RAMPAGE!</p>
+    <h2 id="rampName">RAMPAGE</h2>
+    <p class="sub" id="rampSub"></p>
+    <div id="rampWeap"><span id="rampIco"></span><b id="rampWname"></b></div>
+    <p id="rampGoal"></p>
+    <div class="stats"><span>TIME</span><span id="rampTime"></span><span>REWARD</span><span id="rampReward"></span></div>
+    <p class="sub rampRules" id="rampRules"></p>
+    <p class="warn" id="rampWarn" hidden></p>
+    <div class="menu"><button id="rampGo" class="big pri" type="button">START RAMPAGE</button><button id="rampNo" class="big alt back" type="button">NOT NOW</button></div>
+    <p class="keys">ENTER STARTS · ESC OR E LEAVES</p>
   </div>
 
   <div class="card" id="overCard" hidden>
@@ -216,6 +236,7 @@
 <script src="js/01e-radio-data.js"></script>
 <script src="js/01f-weapon-data.js"></script>
 <script src="js/01g-shop-data.js"></script>
+<script src="js/01h-rampage-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -229,6 +250,7 @@
 <script src="js/08c-services.js"></script>
 <script src="js/08d-weapon-pickups.js"></script>
 <script src="js/08e-shops.js"></script>
+<script src="js/08f-rampages.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

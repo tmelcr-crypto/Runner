@@ -47,7 +47,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); }
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -56,6 +56,7 @@ function back() {
   const id = curCard();
   if (id === 'pauseCard') resumeGame();
   else if (id === 'shopCard') closeShop();
+  else if (id === 'rampCard') closeRamp();
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
 function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim'); document.documentElement.classList.remove('menus'); }
@@ -84,7 +85,7 @@ function pauseGame() {
 }
 function resumeGame() { if (state !== 'pause') return; state = 'play'; closeMenus(); }
 function paintPause() {
-  $('pauseInfo').textContent = skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + P.score.toLocaleString('en-US') + ' PTS';
+  $('pauseInfo').textContent = skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + P.score.toLocaleString('en-US') + ' PTS  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length;
   const why = saveBlock(); $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why;
 }
 function quitToTitle() {
@@ -124,6 +125,7 @@ function getSave(s) { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY +
 function putSave(s, d) { try { localStorage.setItem(SAVE_KEY + s, JSON.stringify(d)); return true; } catch (e) { return false; } }
 function latestSave() { let b = null; for (const s of SLOTS) { const d = getSave(s); if (d && (!b || d.t > b.t)) b = d; } return b; }
 function saveBlock() {                               // why you cannot save now ('' = you can)
+  if (RAMP.on) return 'FINISH THE RAMPAGE FIRST';
   if (P.stars > 0) return 'LOSE THE POLICE FIRST';
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
@@ -135,6 +137,7 @@ function makeSave(thumb) {
   return { v: SAVE_V, t: Date.now(), where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
+    ramp: { found: [...rampFound], done: [...rampDone] },
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -164,6 +167,8 @@ function applySave(sv) {                             // called by resetGame (js/
   if (!(p.arms && typeof p.arms === 'object')) P.has = WEAPONS.map((w, i) => w.start || P.mag[i] + P.ammo[i] > 0);   // a save from before weapons had to be found
   if (!P.has[P.weapon]) P.weapon = Math.max(0, P.has.indexOf(true));
   gameT = n(sv.gameT, 0, 1e9, 0);
+  const rp = sv.ramp || {}, ids = v => Array.isArray(v) ? v.filter(id => RAMPAGES.some(r => r.id === id)) : [];   // rampages found and passed (js/08f)
+  rampFound = new Set(ids(rp.found)); rampDone = new Set(ids(rp.done)); for (const id of rampDone) rampFound.add(id);
   const s = sv.sky;
   if (s) {
     SKY.hour = n(s.hour, 0, 23.999, SKY.hour); setWeather(WX_KINDS[s.kind] ? s.kind : 'clear', true); SKY.left = n(s.left, 1, 1e5, SKY.left);

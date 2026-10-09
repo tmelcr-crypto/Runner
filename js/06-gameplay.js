@@ -13,7 +13,7 @@ let boomFlash = null;
 const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
 cv.addEventListener('mousemove', () => { if (!touchMode) P.mouseOn = true; });
 
-function addHeat(n) { P.heat = Math.min(9999, P.heat + n * OPT.police); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
+function addHeat(n) { if (RAMP.on) return; P.heat = Math.min(9999, P.heat + n * OPT.police); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
 function updateStars() {
   let s = 0; for (let k = 1; k <= 5; k++) if (P.heat >= COP.lv.heat[k]) s = k;   // heat needed per level: the police table (js/01b)
   if (s > P.stars) { toast('WANTED LEVEL ' + s, true); policeAlert(P.stars, s); } else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');
@@ -26,13 +26,13 @@ function alertPeds(x, y, r) {
 function killPed(p, how, byPlayer, ang) {
   if (p.dead) return; p.dead = true; p.deadT = 0; bloodFx(p.x, p.y, 14, ang);
   if (decals.length < 120) decals.push({ x: p.x, y: p.y, r: rand(8, 13), life: 50, blood: true });
-  if (byPlayer) { P.kills++; addScore(how === 'car' ? 100 : 50, p.x, p.y, how === 'car' ? 'ROADKILL' : ''); if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); }
+  if (byPlayer) { P.kills++; addScore(how === 'car' ? 100 : 50, p.x, p.y, how === 'car' ? 'ROADKILL' : ''); if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }
   alertPeds(p.x, p.y, 300); callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
 }
 function killOfficer(o, byPlayer) {
   if (o.dead) return; o.dead = true; o.deadT = 0; bloodFx(o.x, o.y, 16);
   crewLost(o); callFor('ambulance', o.x, o.y, o);
-  if (byPlayer) { P.kills++; addScore(200, o.x, o.y, 'COP DOWN'); addHeat(COP.crime.killCop); PS.armedT = gameT; }
+  if (byPlayer) { P.kills++; addScore(200, o.x, o.y, 'COP DOWN'); addHeat(COP.crime.killCop); PS.armedT = gameT; rampHit('people', o.x, o.y); }
 }
 function damagePlayer(d) {
   if (P.dead || state === 'over') return;
@@ -41,7 +41,7 @@ function damagePlayer(d) {
   if (P.hp <= 0) killPlayer();
 }
 function killPlayer() {
-  P.hp = 0; P.dead = true; deadTimer = 0; state = 'dying'; bloodFx(P.x, P.y, 30);
+  P.hp = 0; P.dead = true; deadTimer = 0; state = 'dying'; bloodFx(P.x, P.y, 30); rampEnd(false, 'WASTED');
   if (P.car) { P.car.driver = null; P.car.thr = 0; P.car.str = 0; P.car = null; }
   $('wasted').style.display = 'flex';
 }
@@ -52,6 +52,7 @@ function damageCar(c, d, byPlayer) {
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
     if (c.driver === 'ai' || c.driver === 'cop') c.driver = null;
+    if (c.byPlayer) rampWreck(c);                                   // a wreck for the rampage (js/08f)
   }
 }
 function explosion(x, y, R, src) {
@@ -186,7 +187,7 @@ function letGo(c) {                                              // a carjacking
 function tryEnterExit() {
   if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
   if (P.car) { exitCar(); return; }
-  const c = nearestCar(); if (!c) return;
+  const c = nearestCar(); if (!c || rampLocked('ON FOOT DURING A RAMPAGE')) return;
   const occ = c.driver === 'ai' || c.driver === 'cop';
   P.act = { k: 'steal', c, t: 0, dur: occ ? 3 : 1, occ }; P.vx = P.vy = 0;       // an empty car takes a second; pulling a driver out takes three
 }

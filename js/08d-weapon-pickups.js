@@ -34,7 +34,7 @@ function buildSpots() {                  // every hiding place, the same every g
 function freeSpot(rnd, away, key) {      // an unused hiding place, not too close to other pickups (or to (away) = the player)
   for (let tr = 0; tr < 80; tr++) {
     const s = WSPOTS[Math.floor(rnd() * WSPOTS.length)];
-    if (!s || s.used) continue;
+    if (!s || s.used || s.ramp) continue;
     if (away && dist(s.x, s.y, away.x, away.y) < away.r) continue;
     if (WPICKS.some(q => dist(q.x, q.y, s.x, s.y) < (q.key === key ? 600 : WP_GAP))) continue;   // the same thing well spread out
     return s;
@@ -42,7 +42,7 @@ function freeSpot(rnd, away, key) {      // an unused hiding place, not too clos
   return null;
 }
 function placeWeapons() {                // a new game: melee in their fixed places, the rest at random
-  if (!WSPOTS) WSPOTS = withSeed(1979, buildSpots);
+  if (!WSPOTS) { WSPOTS = withSeed(1979, buildSpots); pickRampages(); }   // the rampages take some of the hiding places (js/08f)
   for (const s of WSPOTS) s.used = null; WPICKS = []; wpQ = [];
   withSeed(2024, () => {                                            // melee weapons: the same places every game
     WEAPONS.forEach((w, wi) => { if (isMelee(w)) for (let k = 0; k < w.onMap; k++) putPick(freeSpot(Math.random, null, 'w' + wi), wi, false, true); });
@@ -77,6 +77,7 @@ function updateWeaponPicks(dt) {
   for (let k = WPICKS.length - 1; k >= 0; k--) {
     const p = WPICKS[k]; p.bob += dt * 3;
     if (P.dead || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
+    if (RAMP.on && p.wi === RAMP.on.wi) continue;                     // the rampage's own weapon and ammo wait until it is over (js/08f)
     if (p.item) { if (!takeItem(p)) continue; }
     else { const w = WEAPONS[p.wi], i = p.wi, col = w.color;
     if (p.ammo) {                                                    // ammo: kept even before you have the gun
@@ -85,14 +86,14 @@ function updateWeaponPicks(dt) {
     } else if (isMelee(w)) {                                         // melee: only if you do not carry it; it stays where it is
       if (P.has[i]) continue;
       P.has[i] = true; popup(p.x, p.y - 12, '+' + w.name, col); toast(w.name + ': ' + w.howTo);
-      if (WEAPONS[P.weapon].id === 'fists' && !P.car) P.weapon = i;
+      if (WEAPONS[P.weapon].id === 'fists' && !P.car && !RAMP.on) P.weapon = i;
     } else {                                                         // a gun or a bomb: yours, loaded, with its spare rounds
       if (P.has[i] && P.ammo[i] >= w.maxAmmo) continue;
       const fresh = !P.has[i]; P.has[i] = true;
       if (fresh) P.mag[i] = Math.max(P.mag[i], w.mag);
       P.ammo[i] = Math.min(Math.max(w.maxAmmo, P.ammo[i]), P.ammo[i] + w.ammo + (fresh ? 0 : w.mag));
       popup(p.x, p.y - 12, '+' + w.name, col); if (fresh) toast(w.name + ': ' + w.howTo);
-      if (fresh && !P.car && (isMelee(WEAPONS[P.weapon]) || P.mag[P.weapon] + P.ammo[P.weapon] <= 0)) P.weapon = i;   // a new gun goes into your hand
+      if (fresh && !P.car && !RAMP.on && (isMelee(WEAPONS[P.weapon]) || P.mag[P.weapon] + P.ammo[P.weapon] <= 0)) P.weapon = i;   // a new gun goes into your hand
     } }
     Snd.pickup();
     if (p.fixed) continue;
