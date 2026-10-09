@@ -69,8 +69,8 @@ function syncCar(c, time, dt) {
   if (!c.mesh) buildCar(c); track(c);
   const gy = groundH(c.x, c.y); c.gy = c.gy === undefined ? gy : c.gy + (gy - c.gy) * Math.min(1, dt * 14);
   if (c.sunk) { c.mesh.visible = c.sinkT < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, c.sinkT * c.sinkT * 9 + c.sinkT * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, c.sinkT * 0.3); return; }
-  c.mesh.position.set(c.x, c.gy, c.y); c.mesh.rotation.y = -c.ang;
-  const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), want = -clamp(c.av * vf / 450, -0.12, 0.12);
+  c.mesh.position.set(c.x, c.gy + (c.air || 0), c.y); c.mesh.rotation.y = -c.ang;
+  const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), want = c.air > 0 ? clamp(c.av * 0.07, -0.6, 0.6) : -clamp(c.av * vf / 450, -0.12, 0.12);   // rolls over a little in the air
   c.roll += (want - c.roll) * Math.min(1, dt * 8); c.tilt.rotation.x = c.roll;
   const f = c.hp / c.maxhp, m = c.m;
   m.ug.visible = !c.dead; m.hb.visible = !!c.driver && !c.dead;
@@ -100,7 +100,7 @@ function syncPerson(p, kind, time, dt) {
   if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; }
   track(p); const o = p.pm, g = p.mesh;
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
-  g.position.set(p.x, p.gy, p.y);
+  g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
   if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;
   g.rotation.y = -p.h3;
@@ -124,7 +124,7 @@ function syncPlayer(time, dt) {
   }
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over'; P3.mesh.visible = vis; if (!vis) return;
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
-  P3.mesh.position.set(P.x, P3.gy - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
+  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8;
   o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
   o.torso.material = P.hurtT > 0 ? P3.red : P3.yel;
@@ -146,6 +146,6 @@ function syncPickup(p, time) {
     g.userData.it = it; p.mesh = g; scene.add(g);
   }
   track(p); const it = p.mesh.userData.it;
-  p.mesh.position.set(p.x, SIDE_H, p.y); it.position.y = 11 + Math.sin(p.bob) * 2; it.rotation.y = time * 1.6;
+  p.mesh.position.set(p.x, SIDE_H + (p.air || 0), p.y); it.position.y = 11 + Math.sin(p.bob) * 2; it.rotation.y = time * 1.6;
 }
 

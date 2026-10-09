@@ -28,13 +28,13 @@ function makeClutter() {
   function junk(x, y, yaw, ux, uy, nx, ny, wall) {                 // one heap of back-alley junk against a wall
     if (street(x, y) || inLandmark(x, y) || shoreDist(x, y) < 12 || wallAt(x, y) || lotAt(x, y, 8)) return;
     const r = Math.random();
-    if (r < 0.22) { out.push({ k: 'dump', x, y, yaw, c: pick(['#2f6f4f', '#2a4aa8', '#7a3b2a', '#3a3f5c', '#4f6f2f']) }); solid(x, y, 26, 14, yaw); }
+    if (r < 0.22) { const o = { k: 'dump', x, y, yaw, c: pick(['#2f6f4f', '#2a4aa8', '#7a3b2a', '#3a3f5c', '#4f6f2f']) }; out.push(o); o.solid = solid(x, y, 26, 14, yaw); }
     else if (r < 0.42) out.push({ k: 'bags', x, y, n: randi(2, 5) });
-    else if (r < 0.56) { const n = randi(1, 3); out.push({ k: 'crates', x, y, yaw, n }); if (n > 1) solid(x, y, 11, 11, yaw); }
+    else if (r < 0.56) { const n = randi(1, 3), o = { k: 'crates', x, y, yaw, n }; out.push(o); if (n > 1) o.solid = solid(x, y, 11, 11, yaw); }
     else if (r < 0.64) out.push({ k: 'pallet', x, y, yaw, top: Math.random() < 0.4 });
     else if (r < 0.76) out.push({ k: 'bins', x, y, yaw, ux, uy });
     else if (r < 0.84) out.push({ k: 'barrel', x, y, c: pick(['#b8452f', '#3a5f9e', '#5f6b3a']) });
-    else if (r < 0.94 && wall) { out.push({ k: 'ac', x, y, yaw }); solid(x, y, 12, 10, yaw); }
+    else if (r < 0.94 && wall) { const o = { k: 'ac', x, y, yaw }; out.push(o); o.solid = solid(x, y, 12, 10, yaw); }
   }
   for (const a of MAP.alleys || []) {                              // back alleys: junk along both walls, puddles, lamps, graffiti, washing lines
     const ang = a[4] * Math.PI / 180, ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux, L = a[2], W = a[3], yaw = ang;
@@ -112,8 +112,10 @@ function drawYards() {
 /* the clutter as instanced boxes, cylinders, spheres and flat discs, merged with the street furniture */
 function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
   const off = (o, d, s) => [o.x + Math.cos(o.yaw) * d - Math.sin(o.yaw) * s, o.y + Math.sin(o.yaw) * d + Math.cos(o.yaw) * s];
+  const lists = [[fb, GB, false], [fg, GB, true], [fc, GCyl, false], [fs, GSphLo, false], [crowns, GSph, false]];
+  const MASS = { dump: 2.4, bags: 0.5, crates: 1.1, pallet: 0.8, bins: 0.7, barrel: 1, ac: 1.2, bench: 1, planter: 1.8, cart: 1.4 };   // what a blast can throw, and how heavy
   for (const o of CLUTTER) {
-    const ry = -(o.yaw || 0);
+    const ry = -(o.yaw || 0), mark = MASS[o.k] ? partMark(lists) : null;
     if (o.k === 'dump') { fb.push({ x: o.x, y: 7, z: o.y, sx: 26, sy: 14, sz: 14, ry, c: o.c }); fb.push({ x: o.x, y: 14.7, z: o.y, sx: 26.8, sy: 1.4, sz: 14.8, ry, c: shade(o.c, -30) }); }
     else if (o.k === 'bags') for (let i = 0; i < o.n; i++) { const r = rand(3, 4.6); fs.push({ x: o.x + rand(-7, 7), y: r * 0.8, z: o.y + rand(-5, 5), sx: r, sy: r * 0.85, sz: r, c: pick(['#17151e', '#24222c', '#33303f', '#2a3a2a']) }); }
     else if (o.k === 'crates') for (let i = 0; i < o.n; i++) fb.push({ x: o.x + rand(-1, 1), y: 5 + i * 10, z: o.y + rand(-1, 1), sx: 10, sy: 10, sz: 10, ry: ry + rand(-0.2, 0.2), c: pick(['#8a6a44', '#6e5236', '#9a7a50']) });
@@ -135,6 +137,7 @@ function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
     else if (o.k === 'bollard') { fc.push({ x: o.x, y: 3, z: o.y, sx: 2.6, sy: 6, sz: 2.6, c: '#2b2e38' }); fc.push({ x: o.x, y: 6.4, z: o.y, sx: 3.2, sy: 0.8, sz: 3.2, c: '#ffb02e' }); }
     else if (o.k === 'flood') { poles.push({ x: o.x, y: 35, z: o.y, sx: 2, sy: 70, sz: 2, c: '#14102a' }); heads.push({ x: o.x, y: 70, z: o.y, sx: 10, sy: 4, sz: 10, c: '#fff3b0' }); pools.push({ x: o.x, y: 1.5, z: o.y, sx: 220, sy: 1, sz: 220, c: '#fff1c0' }); }
     else if (o.k === 'cart') { fb.push({ x: o.x, y: 4, z: o.y, sx: 16, sy: 5, sz: 10, ry, c: '#d6d2c4' }); fb.push({ x: o.x, y: 8.5, z: o.y, sx: 12, sy: 4, sz: 8, ry, c: pick(['#2a4aa8', '#7a3b2a', '#4a4e5c']) }); }
+    if (mark) registerThrow(o.x, o.y, partsSince(lists, mark), o.solid || null, MASS[o.k]);
   }
   for (const L of LOTS) {                                         // a light on the lot's front corner and a P sign
     const ca = Math.cos(L.a), sa = Math.sin(L.a), x = L.cx + ca * (L.w / 2 - 6) - sa * (L.d / 2 - 6), y = L.cy + sa * (L.w / 2 - 6) + ca * (L.d / 2 - 6);

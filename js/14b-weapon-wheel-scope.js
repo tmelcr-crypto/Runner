@@ -115,7 +115,7 @@ function updateScope(inp, dt) {         // called from updatePlayer while a scop
     } else { SCOPE.on = false; Snd.tone(120, 90, 0.06, 0.12, 'square'); }
   }
 }
-const scopeLive = () => SCOPE.on && state === 'play' && !P.car && !P.act && !P.dead && !bigOpen && !wheelOpen && !!WEAPONS[P.weapon].scope;
+const scopeLive = () => SCOPE.on && state === 'play' && !P.car && !P.act && !P.dead && !P.knocked && !bigOpen && !wheelOpen && !!WEAPONS[P.weapon].scope;
 
 /* the frame while aiming: the whole view at half size (it gets blurred), the zoomed circle, then both put together on screen */
 let scopeRT = null, blurRT = null, compMat = null, compScene = null, compCam = null;

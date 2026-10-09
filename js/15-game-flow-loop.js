@@ -6,7 +6,7 @@ function startSpot() {                       // the longest road near the map's 
 }
 function resetGame() {
   genWorld(); buildMiniMap(); buildCity(); clearDynamic();
-  clearRockets(); cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
+  clearRockets(); resetBlast(); cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
   const e = startSpot(), E = RE[e], s0 = E.len / 2, at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
@@ -83,7 +83,7 @@ function update(dt, idle) {
   gameT += dt;
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
-  updatePeds(dt); updateOfficers(dt);
+  updatePeds(dt); updateOfficers(dt); updateBlast(dt);
   if (!idle) updatePickups(dt);
   manageSpawns(dt); updateParticles(dt);
   if (!idle && P.heat > 0 && P.sinceCrime > 5) {

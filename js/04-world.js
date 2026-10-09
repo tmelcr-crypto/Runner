@@ -23,7 +23,7 @@ Hash.prototype.query = function (x0, y0, x1, y1, out) {
   const a0 = Math.floor((x0 + SEA) / HS), a1 = Math.floor((x1 + SEA) / HS), b0 = Math.floor((y0 + SEA) / HS), b1 = Math.floor((y1 + SEA) / HS);
   for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
     const l = this.m.get(a * 1024 + b); if (!l) continue;
-    for (const o of l) if (o._q !== q) { o._q = q; out.push(o); }
+    for (const o of l) if (o._q !== q && !o.off) { o._q = q; out.push(o); }     // off: a prop thrown away from here
   }
   return out;
 };

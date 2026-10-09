@@ -159,7 +159,7 @@ function buildCity() {
     pools.push({ x: ix, y: 1.5, z: iy, sx: 170, sy: 1, sz: 170, c: lc });
   }
   // street furniture along the sidewalks: palms at the kerb, benches, bins, hydrants, phone booths, newspaper boxes, bus shelters
-  const fb = [], fg = [], fc = [], fs = [], fp = [], trunks = [], crowns = [];
+  const fb = [], fg = [], fc = [], fs = [], fp = [], trunks = [], crowns = [], furn = [[fb, GB, false], [fc, GCyl, false]];
   const PALMY = { 'CORAL SHORE': 0.45, 'SUNSTRIP': 0.4, 'SEAVIEW': 0.4, 'PEARL KEY': 0.5, 'HERON KEY': 0.4, 'FAIRWAY ISLES': 0.4, 'MERCADO': 0.2, 'PALM HEIGHTS': 0.22, 'DOCKSIDE': 0.06, 'SKYPORT': 0.15 };
   for (const E of RE) for (const sd of [-1, 1]) {
     let nextStop = rand(200, 600);
@@ -167,18 +167,19 @@ function buildCity() {
       const c = edgeAt(E.i, s, q), rx = -c.ty * sd, ry = c.tx * sd, yaw = -Math.atan2(c.ty, c.tx);
       const kx = c.x + rx * (ROAD_HALF + 5), ky = c.y + ry * (ROAD_HALF + 5), bx = c.x + rx * (SWO - 5), by = c.y + ry * (SWO - 5);
       if (shoreDist(bx, by) < 24 || inLandmark(bx, by) || nearLot(bx, by)) continue;
-      const pr = PALMY[districtAt(c.x, c.y)] || 0.15, r = Math.random();
+      const pr = PALMY[districtAt(c.x, c.y)] || 0.15, r = Math.random(), mark = partMark(furn); let thr = null;   // thr: [x, y, mass] of a piece a blast can throw
       if (s > nextStop) {                                        // bus shelter: roof, glass back, two posts, a lit sign
         nextStop = s + rand(700, 1100); const ox = rx * 3, oy = ry * 3;
         fb.push({ x: bx + ox, y: 24, z: by + oy, sx: 44, sy: 2, sz: 13, ry: yaw, c: '#3a3f5c' }); fg.push({ x: bx + ox * 2.6, y: 13, z: by + oy * 2.6, sx: 40, sy: 18, sz: 1, ry: yaw, c: '#2bd8ff' });
         for (const e of [-20, 20]) fb.push({ x: bx + c.tx * e, y: 12, z: by + c.ty * e, sx: 1.6, sy: 24, sz: 1.6, ry: yaw, c: '#2b2e38' });
         fg.push({ x: bx - c.tx * 26, y: 22, z: by - c.ty * 26, sx: 2, sy: 10, sz: 8, ry: yaw, c: '#ffe14a' });
       } else if (r < pr) { trunks.push({ x: kx, y: 16, z: ky, sx: 2.4, sy: 32, sz: 2.4, c: '#3b2a1e' }); crowns.push({ x: kx, y: 33, z: ky, sx: 15, sy: 5, sz: 15, c: pick(['#14a37f', '#1ec9a6', '#0f8f86']) }); }
-      else if (r < pr + 0.12) { fb.push({ x: bx, y: 5, z: by, sx: 16, sy: 1.4, sz: 5, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx + rx * 2.5, y: 8, z: by + ry * 2.5, sx: 16, sy: 5, sz: 1, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx, y: 2.2, z: by, sx: 14, sy: 4.4, sz: 3, ry: yaw, c: '#2b2e38' }); }
-      else if (r < pr + 0.2) fc.push({ x: bx, y: 4.5, z: by, sx: 3.2, sy: 9, sz: 3.2, c: pick(['#2f6f4f', '#3a3f5c']) });
-      else if (r < pr + 0.25) fc.push({ x: kx, y: 3.5, z: ky, sx: 2.4, sy: 7, sz: 2.4, c: '#e0364f' });
+      else if (r < pr + 0.12) { fb.push({ x: bx, y: 5, z: by, sx: 16, sy: 1.4, sz: 5, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx + rx * 2.5, y: 8, z: by + ry * 2.5, sx: 16, sy: 5, sz: 1, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx, y: 2.2, z: by, sx: 14, sy: 4.4, sz: 3, ry: yaw, c: '#2b2e38' }); thr = [bx, by, 1]; }
+      else if (r < pr + 0.2) { fc.push({ x: bx, y: 4.5, z: by, sx: 3.2, sy: 9, sz: 3.2, c: pick(['#2f6f4f', '#3a3f5c']) }); thr = [bx, by, 0.6]; }
+      else if (r < pr + 0.25) { fc.push({ x: kx, y: 3.5, z: ky, sx: 2.4, sy: 7, sz: 2.4, c: '#e0364f' }); thr = [kx, ky, 1.6]; }
       else if (r < pr + 0.28) { fb.push({ x: bx, y: 11, z: by, sx: 8, sy: 22, sz: 8, ry: yaw, c: '#2a4aa8' }); fg.push({ x: bx, y: 23, z: by, sx: 8.4, sy: 2, sz: 8.4, ry: yaw, c: '#3fe0ff' }); }
-      else if (r < pr + 0.31) fb.push({ x: bx, y: 4, z: by, sx: 5, sy: 8, sz: 5, ry: yaw, c: pick(['#e0364f', '#2f6fd6', '#ffb02e', '#2fbf71']) });
+      else if (r < pr + 0.31) { fb.push({ x: bx, y: 4, z: by, sx: 5, sy: 8, sz: 5, ry: yaw, c: pick(['#e0364f', '#2f6fd6', '#ffb02e', '#2fbf71']) }); thr = [bx, by, 0.8]; }
+      if (thr) registerThrow(thr[0], thr[1], partsSince(furn, mark), null, thr[2]);
     }
   }
   // traffic lights on the near right corner of every approach to a junction

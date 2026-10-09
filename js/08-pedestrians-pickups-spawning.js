@@ -23,6 +23,7 @@ function snapPed(p) {                         // after fleeing or fighting: rejo
 function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
+    if (p.knocked) continue;                                       // flying through the air (js/12c)
     if (p.cop && P.stars > 0 && !P.dead && dist(p.x, p.y, P.x, P.y) < 700) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }
     if (p.combat) { p.combat = false; p.cv = null; snapPed(p); }
     if (p.e < 0) snapPed(p);
@@ -79,6 +80,7 @@ function updateOfficers(dt) {
   for (let k = officers.length - 1; k >= 0; k--) {
     const o = officers[k];
     if (o.dead) { o.deadT += dt; if (o.deadT > 20) officers.splice(k, 1); continue; }
+    if (o.knocked) continue;
     const tgt = P.car || P, d = dist(o.x, o.y, tgt.x, tgt.y), los = losClear(o.x, o.y, tgt.x, tgt.y);
     o.away = (P.stars === 0 || d > 1500 || (!los && d > 400)) ? (o.away || 0) + dt : 0;
     if (o.away > 8 || d > 1700) { officers.splice(k, 1); continue; }
