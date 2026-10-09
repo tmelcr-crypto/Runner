@@ -200,16 +200,16 @@ function nearRoads(x, y, maxD) {
   }
   return [...best.values()];
 }
-// shortest road distance from every node to the point (x, y); RD[n] = Infinity when unreachable
+// shortest road distance from every node to the point (x, y) into RD (or into `out`); Infinity where unreachable. Returns the road point.
 const RD = new Float64Array(RN.length);
-function roadFieldTo(x, y) {
-  RD.fill(Infinity); const t = nearestRoad(x, y, 900); if (!t) return null;
-  const E = RE[t.e], done = new Uint8Array(RN.length); RD[E.a] = Math.min(RD[E.a], t.s); RD[E.b] = Math.min(RD[E.b], E.len - t.s);
+function roadFieldTo(x, y, out = RD) {
+  const D = out; D.fill(Infinity); const t = nearestRoad(x, y, 900); if (!t) return null;
+  const E = RE[t.e], done = new Uint8Array(RN.length); D[E.a] = Math.min(D[E.a], t.s); D[E.b] = Math.min(D[E.b], E.len - t.s);
   for (;;) {
     let u = -1, best = Infinity;
-    for (let k = 0; k < RN.length; k++) if (!done[k] && RD[k] < best) { best = RD[k]; u = k; }
+    for (let k = 0; k < RN.length; k++) if (!done[k] && D[k] < best) { best = D[k]; u = k; }
     if (u < 0) break; done[u] = 1;
-    for (const ei of RN[u].e) { const F = RE[ei], v = F.a === u ? F.b : F.a, nd = best + F.len; if (nd < RD[v]) RD[v] = nd; }
+    for (const ei of RN[u].e) { const F = RE[ei], v = F.a === u ? F.b : F.a, nd = best + F.len; if (nd < D[v]) D[v] = nd; }
   }
   return t;
 }

@@ -29,10 +29,10 @@ The police only know what they see or hear, and they come in small numbers.
 
 - **Seeing**: a cop sees you within 37.5 m, inside an 80 degree cone in front of them, with nothing in between; once they have you they keep watching all round for a moment. A crime counts only when a cop sees it or hears it (gunshots as far as each weapon is heard, explosions within 25 m). Each crime adds heat, and enough heat is a wanted level: a seen carjacking is 1 star; carjacking a police car, killing someone in front of a cop or hurting a cop is 2 stars.
 - **Radio and search**: whoever sees you tells the others where you are. When nobody sees you they search around the spot where you were last seen: a red circle on the minimap and the city map, growing to 60-140 m, and the stars blink. Police cars cruise the streets inside it and cops on foot walk to the spot and look round. Stay out of sight for 12 s at 1 star up to 50 s at 5 stars and they give up; inside the circle that takes about three times longer.
-- **Fewer cops, later**: two foot patrols walk the sidewalks around you and one car in twenty in traffic is a patrol car. At 1 star one police car comes (patrol cars nearby join at once, otherwise one is sent after 15 s); 2, 3, 5 and 7 cars at the higher levels, sent sooner; extra officers on foot from 3 stars.
+- **Fewer cops, later**: two foot patrols walk the sidewalks around you, and patrol cars are part of the traffic (how many is set in the vehicle table). At 1 star one police car comes (patrol cars nearby join at once, otherwise one is sent after 15 s); 2, 3, 5 and 7 cars at the higher levels, sent sooner; extra officers on foot from 3 stars.
 - **1 star, a stop order**: a cop near you shouts STOP. Stand still - on foot or in your car - for 3 s and you pay a fine of 250 and the stars go. Keep moving for 3 s while they can see you and it is 2 stars.
 - **2 stars, an arrest**: police cars follow you and pull up beside you when you stop; the crew gets out, and a cop who holds you for a second (on foot, or beside your car while it does under 12 km/h) arrests you. Drive away and the crew runs back to their car and carries on. No shooting unless you fired a gun where they could see or hear it, rammed a police car or hurt a cop.
-- **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire.
+- **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire. From 3 stars an armoured APC may come too, at 5 stars a tank that drives straight at you, on foot or not.
 - **Busted or wasted** is not the end: you start again at the nearest district's police station (bail: 10% of your score, and they keep your weapons except the pistol) or hospital (the bill: 10%).
 
 Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/police_sheet.py` turns it into an Apple Numbers file or an Excel workbook and reads an edited copy (either kind) back (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
@@ -43,6 +43,28 @@ python3 tools/police_sheet.py import police.numbers [--dry-run]
 ```
 
 Both have a sheet per kind of setting - Wanted levels (one column per star), Settings, Crimes - and a How to fill sheet. Yellow cells are the values and YES / NO cells are pop-up menus. The Excel workbook also has grey Check cells that say OK or what is wrong; a Numbers file is written without formulas. The import checks every value against its allowed range, lists what changed and only then rewrites the table.
+
+## Vehicles
+
+| Vehicle | Length | Top speed | Notes |
+|---|---|---|---|
+| Sedan, estate | 4.5 m, 5.5 m | 180 km/h | the everyday cars; the estate has a long roof and roof rails |
+| Sports | 3.2 m | 260 km/h | fast, slides easily |
+| Pickup | 6.5 m | 150 km/h | open bed; 2.4 m wide, so it parks only in parking lots |
+| Limo | 10 m | 144 km/h | long and low |
+| Motorbike | 3 m | 330 km/h | one seat; leans into bends, stands on its stand when parked; the rider is in the open (you ride in yellow) |
+| Truck | 6.5 m | 130 km/h | box truck |
+| Bus | 10 m | 100 km/h | slow, wide turns, never parks |
+| Trash truck | 7 m | 80 km/h | stops at the bins along its way, beacon flashing; armoured |
+| Ambulance | 6 m | 147 km/h | comes for the dead with its lights on and takes the body away |
+| Fire engine | 8 m | 120 km/h | comes to explosions and burning wrecks and hoses them down |
+| Police car | 4.5 m | 220 km/h | patrols in traffic and chases you |
+| APC | 5 m | 130 km/h | armoured police, in traffic and in chases from 3 stars |
+| Tank | 6 m | 80 km/h | one stands at a secret spot (always the same parking lot) for you to find; driving it, FIRE launches rockets straight ahead (one every 1.5 s, no ammo needed); the police send their own only at 5 stars, and it just rams |
+
+Ambulances and fire engines on a call take the shortest way by road at up to 65 km/h; one already in traffic nearby takes the call, otherwise one comes from further away. Drivers sit inside under the roof behind tinted glass. Long vehicles keep their distance in traffic from their front bumper, not their middle, and use more collision circles along their length.
+
+Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, acceleration, braking, steering, grip, health, weight, armour, how often it drives in traffic, parks or is sent by the police (and from which wanted level), how many are hidden, its job, its weapon, its colours. Acceleration given to a speed at or above the top speed counts as the time to reach top speed. `tools/vehicle_sheet.py` exports it to Apple Numbers or Excel and imports an edited copy (`export vehicles.numbers`, `import vehicles.numbers [--dry-run]`): one column per vehicle, rows found by their label, every value checked; a new column becomes a new vehicle (body `new` until its model is built).
 
 ## Weapons
 
@@ -72,6 +94,7 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, buildings, lots, alleys, yards, landmarks, props, districts (generated) |
 | `js/01-config.js` | constants, helpers, `$()` |
 | `js/01b-police-data.js` | the police table: every police number in everyday units (edit by hand or with `tools/police_sheet.py`), converted to game units as `COP` |
+| `js/01c-vehicle-data.js` | the vehicle table in everyday units (edit by hand or with `tools/vehicle_sheet.py`), converted to `CAR_TYPES`; picking a vehicle type by weight |
 | `js/02-audio.js` | synthesized Web Audio |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
 | `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |
@@ -80,12 +103,13 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/07-vehicles-traffic-police.js` | car physics, lane following traffic, road routing for the police |
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
 | `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
+| `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
 | `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |
 | `js/10c-render-fill.js` | the low street-front buildings, merged per area, with their back doors and fire escapes, and the see-through hole over the player |
 | `js/10d-render-clutter.js` | back alleys, yards, promenades, quays and the apron, and everything lying about in them |
-| `js/11-render-dynamic-meshes.js` | cars, people, pickups |
+| `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/12b-rockets.js` | rockets: flight, wandering after the target, hits, the glowing motor and the smoke trail |
 | `js/12c-blast.js` | explosions: fireball, flames, smoke, debris, and throwing cars, people, pickups and props |

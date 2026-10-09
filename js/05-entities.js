@@ -8,9 +8,10 @@ function makeCar(type, x, y, ang, driver, color) {
     thr: 0, str: 0, hb: false, e: -1, fw: 1, s: 0, nx: null, burn: 0, dead: false, deadT: 0, stuck: 0, rev: 0,
     slip: 0, smokeT: 0, hitCd: 0, way: null, wayT: 0, sirenT: rand(0, 2) };
 }
-function carCircles(c) {
-  const t = c.t, r = t.wid * 0.5 + 1, o = t.len * 0.5 - r, fx = Math.cos(c.ang), fy = Math.sin(c.ang);
-  return [[c.x + fx * o, c.y + fy * o, r], [c.x, c.y, r], [c.x - fx * o, c.y - fy * o, r]];
+function carCircles(c) {                     // a row of circles along the body: three for a car, five for a bus or a limo
+  const t = c.t, r = t.wid * 0.5 + 1, o = Math.max(0, t.len * 0.5 - r), n = Math.max(1, Math.ceil(o / (r * 1.6))), fx = Math.cos(c.ang), fy = Math.sin(c.ang), out = [];
+  for (let k = -n; k <= n; k++) { const d = o * k / n; out.push([c.x + fx * d, c.y + fy * d, r]); }
+  return out;
 }
 const carSpeed = c => Math.hypot(c.vx, c.vy);
 // w: a sidewalk spot { e, fw, s, side } from sidewalkSpot(); without one the person finds the nearest sidewalk on the next update

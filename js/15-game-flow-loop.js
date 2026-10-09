@@ -13,13 +13,15 @@ function resetGame() {
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   const kerb = PARK_OFF, side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1;            // starter cars in the parking lane on the player's side
-  for (const [ds, type, col] of [[-60, 'sedan', '#d94f4f'], [50, 'sports', '#3fe0ff'], [160, 'sedan', '#3d6fb0']])
+  const kerbT = Object.keys(CAR_TYPES).filter(k => CAR_TYPES[k].parked > 0 && CAR_TYPES[k].wid <= KERB_W).sort((a, b) => CAR_TYPES[b].parked - CAR_TYPES[a].parked);
+  for (const [ds, type, col] of [[-60, kerbT[0], '#d94f4f'], [50, kerbT[1] || kerbT[0], '#3fe0ff'], [160, kerbT[0], '#3d6fb0']])
     for (const dd of [0, 20, -20, 40, 60]) { const q = at(s0 + ds + dd, kerb * side); if (kerbFits(q.x, q.y, q.ang, type)) { cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); break; } }
   for (let k = 0; k < 32; k++) spawnTraffic(true);
   for (let k = 0; k < 14; k++) spawnParked(true);
   for (let k = 0; k < 50; k++) spawnPedNear(true);
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
   for (let k = 0; k < PICKUP_N; k++) spawnPickup();
+  CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
   spawnT = 0; resetPolice(); refuges = null;
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
@@ -85,7 +87,7 @@ function update(dt, idle) {
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); updateBlast(dt);
   if (!idle) updatePickups(dt);
-  manageSpawns(dt); updateParticles(dt);
+  manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {
     const c = P.car;

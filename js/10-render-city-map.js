@@ -175,7 +175,7 @@ function buildCity() {
         fg.push({ x: bx - c.tx * 26, y: 22, z: by - c.ty * 26, sx: 2, sy: 10, sz: 8, ry: yaw, c: '#ffe14a' });
       } else if (r < pr) { trunks.push({ x: kx, y: 16, z: ky, sx: 2.4, sy: 32, sz: 2.4, c: '#3b2a1e' }); crowns.push({ x: kx, y: 33, z: ky, sx: 15, sy: 5, sz: 15, c: pick(['#14a37f', '#1ec9a6', '#0f8f86']) }); }
       else if (r < pr + 0.12) { fb.push({ x: bx, y: 5, z: by, sx: 16, sy: 1.4, sz: 5, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx + rx * 2.5, y: 8, z: by + ry * 2.5, sx: 16, sy: 5, sz: 1, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx, y: 2.2, z: by, sx: 14, sy: 4.4, sz: 3, ry: yaw, c: '#2b2e38' }); thr = [bx, by, 1]; }
-      else if (r < pr + 0.2) { fc.push({ x: bx, y: 4.5, z: by, sx: 3.2, sy: 9, sz: 3.2, c: pick(['#2f6f4f', '#3a3f5c']) }); thr = [bx, by, 0.6]; }
+      else if (r < pr + 0.2) { fc.push({ x: bx, y: 4.5, z: by, sx: 3.2, sy: 9, sz: 3.2, c: pick(['#2f6f4f', '#3a3f5c']) }); thr = [bx, by, 0.6]; BINS.push({ x: bx, y: by, t: -999 }); }   // a bin: the trash truck stops here (js/08c)
       else if (r < pr + 0.25) { fc.push({ x: kx, y: 3.5, z: ky, sx: 2.4, sy: 7, sz: 2.4, c: '#e0364f' }); thr = [kx, ky, 1.6]; }
       else if (r < pr + 0.28) { fb.push({ x: bx, y: 11, z: by, sx: 8, sy: 22, sz: 8, ry: yaw, c: '#2a4aa8' }); fg.push({ x: bx, y: 23, z: by, sx: 8.4, sy: 2, sz: 8.4, ry: yaw, c: '#3fe0ff' }); }
       else if (r < pr + 0.31) { fb.push({ x: bx, y: 4, z: by, sx: 5, sy: 8, sz: 5, ry: yaw, c: pick(['#e0364f', '#2f6fd6', '#ffb02e', '#2fbf71']) }); thr = [bx, by, 0.8]; }

@@ -91,44 +91,48 @@ function kerbFits(x, y, ang, type) {           // the whole car stands in the pa
   for (const k of [-1, 0, 1]) { const r = nearestRoad(x + fx * o * k, y + fy * o * k, ROAD_HALF + 10); if (!r || Math.abs(r.d - PARK_OFF) > 2.5) return false; }
   return true;
 }
-function laneSpot(minD, maxD, kerb) {         // a point on a lane (or, given a car type, in the parking lane) between minD and maxD from the player
+function laneSpot(minD, maxD, kerb, type) {   // a point on a lane (kerb: a car type, in the parking lane) between minD and maxD from the player
+  const half = (type || kerb) ? CAR_TYPES[type || kerb].len / 2 : 30;
   for (let tr = 0; tr < 40; tr++) {
     const a = rand(0, TAU), d0 = rand(minD, maxD), r = nearestRoad(P.x + Math.cos(a) * d0, P.y + Math.sin(a) * d0, 300); if (!r) continue;
-    const E = RE[r.e], keep = kerb ? ROAD_HALF + SW_W + 60 : 60; if (E.nt || r.s < keep || r.s > E.len - keep) continue;   // not in a junction; parked cars stay clear of the corners
+    const E = RE[r.e], keep = kerb ? ROAD_HALF + SW_W + 60 : 30 + half; if (E.nt || r.s < keep || r.s > E.len - keep) continue;   // not in a junction; parked cars stay clear of the corners
     const fw = Math.random() < 0.5 ? 1 : -1, s = fw > 0 ? r.s : E.len - r.s, q = lanePoint(r.e, fw, s, kerb ? PARK_OFF : LANE, {});
     const d = dist(q.x, q.y, P.x, P.y); if (d < minD || d > maxD) continue;
-    if (shoreDist(q.x, q.y) < (kerb ? 60 : 20) || cars.some(c => dist(c.x, c.y, q.x, q.y) < 90)) continue;
+    if (shoreDist(q.x, q.y) < (kerb ? 60 : 20) || cars.some(c => dist(c.x, c.y, q.x, q.y) < (kerb ? 36 : 60) + half + c.t.len / 2)) continue;
     if (kerb && !kerbFits(q.x, q.y, Math.atan2(q.ty, q.tx), kerb)) continue;
     return { x: q.x, y: q.y, ang: Math.atan2(q.ty, q.tx), e: r.e, fw, s };
   }
   return null;
 }
-function spawnTraffic(initial) {
-  const s = laneSpot(initial ? 140 : offDist(), initial ? 1100 : 1500); if (!s) return;
-  const r = Math.random(), type = Math.random() < COP.trafficShare ? 'police' : r < 0.56 ? 'sedan' : r < 0.78 ? 'sports' : 'truck';   // police share: js/01b
+function spawnTraffic(initial) {               // which vehicle: by the traffic weights of the vehicle table (js/01c), police patrols included
+  const type = pickType('traffic'); if (!type) return;
+  const s = laneSpot(initial ? 140 : offDist(), initial ? 1100 : 1500, null, type); if (!s) return;
   const c = makeCar(type, s.x, s.y, s.ang, 'ai'); c.e = s.e; c.fw = s.fw; c.s = s.s;
   c.vx = Math.cos(c.ang) * 40 * KMH; c.vy = Math.sin(c.ang) * 40 * KMH; cars.push(c);
 }
 function spawnParked(initial) {                                    // in a parking lane at the kerb, or in a stall of a parking lot
-  const minD = initial ? 130 : offDist(), maxD = initial ? 1300 : 1500;
-  if (Math.random() < 0.45 && PARK_SPOTS.length) {
+  const minD = initial ? 130 : offDist(), maxD = initial ? 1300 : 1500, type = pickType('parked', t => t.wid <= STALL_W); if (!type) return;
+  const kerbOk = CAR_TYPES[type].wid <= KERB_W;                       // wider than the parking lane: parking lots only
+  if ((!kerbOk || Math.random() < 0.45) && PARK_SPOTS.length) {
     for (let tr = 0; tr < 6; tr++) {
       const p = PARK_SPOTS[randi(0, PARK_SPOTS.length - 1)], d = dist(p.x, p.y, P.x, P.y);
-      if (d < minD || d > maxD || cars.some(c => dist(c.x, c.y, p.x, p.y) < 36)) continue;
-      cars.push(makeCar(pick(['sedan', 'sedan', 'sports']), p.x, p.y, p.ang + rand(-0.04, 0.04), null)); return;
+      if (d < minD || d > maxD || cars.some(c => dist(c.x, c.y, p.x, p.y) < 36 + c.t.len / 2)) continue;
+      cars.push(makeCar(type, p.x, p.y, p.ang + rand(-0.04, 0.04), null)); return;
     }
   }
-  const type = pick(['sedan', 'sedan', 'sports']), s = laneSpot(minD, maxD, type); if (!s) return;   // trucks are too wide for the parking lane
+  if (!kerbOk) return;
+  const s = laneSpot(minD, maxD, type); if (!s) return;
   cars.push(makeCar(type, s.x, s.y, s.ang, null));
 }
-function spawnCop() {                         // a police car sent from further away (js/08b decides when)
-  const s = laneSpot(offDist(), offDist() + 700); if (!s) return null;
-  const c = makeCar('police', s.x, s.y, s.ang, 'cop'); c.vx = Math.cos(c.ang) * 60 * KMH; c.vy = Math.sin(c.ang) * 60 * KMH; cars.push(c); return c;
+function spawnCop() {                         // a police vehicle sent from further away (js/08b decides when): by chase weight, among those allowed at this level
+  const type = pickType('chase', t => t.cop && t.chaseFrom <= Math.max(1, P.stars)); if (!type) return null;
+  const s = laneSpot(offDist(), offDist() + 700, null, type); if (!s) return null;
+  const c = makeCar(type, s.x, s.y, s.ang, 'cop'); c.vx = Math.cos(c.ang) * 60 * KMH; c.vy = Math.sin(c.ang) * 60 * KMH; cars.push(c); return c;
 }
 let spawnT = 0;
 function manageSpawns(dt) {
   spawnT -= dt;
-  for (let k = cars.length - 1; k >= 0; k--) { const c = cars[k]; if (P.car !== c && (dist(c.x, c.y, P.x, P.y) > 2200 || (c.dead && c.deadT > 30) || (c.sunk && c.sinkT > 4))) cars.splice(k, 1); }
+  for (let k = cars.length - 1; k >= 0; k--) { const c = cars[k]; if (P.car !== c && ((!c.keep && dist(c.x, c.y, P.x, P.y) > 2200) || (c.dead && c.deadT > 30) || (c.sunk && c.sinkT > 4))) cars.splice(k, 1); }
   for (let k = peds.length - 1; k >= 0; k--) { const p = peds[k]; if (p.dead ? p.deadT > 25 : dist(p.x, p.y, P.x, P.y) > 1500) peds.splice(k, 1); }
   if (spawnT <= 0) {
     spawnT = 0.3; let traffic = 0, parked = 0, live = 0;

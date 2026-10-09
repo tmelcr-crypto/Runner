@@ -29,7 +29,6 @@ const POLICE_TABLE = /*POLICE-JSON*/{
   {"id": "blastHear", "group": "Seeing", "name": "Explosions heard within", "unit": "m", "min": 0, "max": 200, "v": 25, "note": "A cop this close hears an explosion and knows it was you."},
   {"id": "impactHear", "group": "Seeing", "name": "Bullet hits heard within", "unit": "m", "min": 0, "max": 50, "v": 4, "note": "A cop this close to where a bullet lands notices it. (How far a gunshot is heard is set per weapon.)"},
   {"id": "footPatrols", "group": "Patrols", "name": "Foot patrols around", "unit": "count", "min": 0, "max": 20, "v": 2, "note": "Cops walking the sidewalks within about 120 m of you, wherever you are."},
-  {"id": "trafficShare", "group": "Patrols", "name": "Police cars in traffic", "unit": "%", "min": 0, "max": 100, "v": 5, "note": "Share of the moving traffic that is a patrol car."},
   {"id": "searchStart", "group": "Search", "name": "Search area at first", "unit": "m", "min": 1, "max": 200, "v": 15, "note": "Radius of the search area the moment they lose sight of you."},
   {"id": "searchGrow", "group": "Search", "name": "Search area grows by", "unit": "m/s", "min": 0, "max": 50, "v": 3, "note": "How fast the search area widens while they cannot see you (up to the level's Search area grows to)."},
   {"id": "insideRate", "group": "Search", "name": "Losing them inside the area", "unit": "%", "min": 0, "max": 100, "v": 35, "note": "While you are still inside the search area the lose-them time runs at this % (0 = you must get out of the area)."},

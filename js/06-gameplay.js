@@ -23,11 +23,11 @@ function killPed(p, how, byPlayer, ang) {
   if (p.dead) return; p.dead = true; p.deadT = 0; bloodFx(p.x, p.y, 14, ang);
   if (decals.length < 120) decals.push({ x: p.x, y: p.y, r: rand(8, 13), life: 50, blood: true });
   if (byPlayer) { P.kills++; addScore(how === 'car' ? 100 : 50, p.x, p.y, how === 'car' ? 'ROADKILL' : ''); if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); }
-  alertPeds(p.x, p.y, 300);
+  alertPeds(p.x, p.y, 300); callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
 }
 function killOfficer(o, byPlayer) {
   if (o.dead) return; o.dead = true; o.deadT = 0; bloodFx(o.x, o.y, 16);
-  crewLost(o);
+  crewLost(o); callFor('ambulance', o.x, o.y, o);
   if (byPlayer) { P.kills++; addScore(200, o.x, o.y, 'COP DOWN'); addHeat(COP.crime.killCop); PS.armedT = gameT; }
 }
 function damagePlayer(d) {
@@ -43,7 +43,7 @@ function killPlayer() {
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
   c.hp -= d; if (byPlayer) c.byPlayer = true;
-  if (byPlayer && c.type === 'police') reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
+  if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
     if (c.driver === 'ai' || c.driver === 'cop') c.driver = null;
@@ -66,6 +66,7 @@ function explosion(x, y, R, src) {
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
   blastPush(x, y, R, src);                                       // and throws everything still in one piece
+  callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }
 function explodeCar(c) {
   c.burn = 0; c.dead = true; c.deadT = 0; c.hp = 0;
@@ -73,7 +74,7 @@ function explodeCar(c) {
   if (wasPlayer) exitCar(true);
   explosion(c.x, c.y, 130, c);
   if (wasPlayer) damagePlayer(45);
-  if (c.byPlayer && c.type === 'police') { addScore(300, c.x, c.y, 'COP CAR'); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
+  if (c.byPlayer && c.t.cop) { addScore(300, c.x, c.y, 'COP ' + c.t.name); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
   else if (c.byPlayer) addScore(60, c.x, c.y, 'BOOM');
   c.vx *= 0.2; c.vy *= 0.2; c.driver = null;
 }
@@ -158,11 +159,11 @@ function exitCar(forced) {
 }
 function enterCar(c) {
   if (c.driver === 'ai' || c.driver === 'cop') {
-    const cop = c.driver === 'cop' || c.type === 'police';
+    const cop = c.driver === 'cop' || c.t.cop;
     const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30);
     ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0); addScore(50, c.x, c.y, 'CARJACK');
-  } else if (c.type === 'police') reportCrime(COP.crime.stealCop, 0);
+  } else if (c.t.cop) reportCrime(COP.crime.stealCop, 0);
   else reportCrime(COP.crime.steal, 0);
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
 }
@@ -211,6 +212,7 @@ function updatePlayer(dt, inp) {
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
     c.hb = inp.sprint;
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
+    if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     return;
   }
   const orig = inp; if (SCOPE.on && SCOPE.by === 'key') inp = { ix: 0, iy: 0, mag: 0, sprint: false, fire: inp.fire, held: inp.held };   // J held: the arrow keys move the scope, not you

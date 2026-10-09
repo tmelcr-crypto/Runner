@@ -21,7 +21,7 @@ function copSees(ex, ey, face, px, py, wide) {
   if (!wide && d > 1 && Math.abs(angDiff(face, Math.atan2(py - ey, px - ex))) > COP.fov / 2) return false;
   return losClear(ex, ey, px, py);
 }
-const isPatrolCar = c => c.type === 'police' && (c.driver === 'ai' || c.driver === 'cop') && !c.dead;
+const isPatrolCar = c => c.t.cop && (c.driver === 'ai' || c.driver === 'cop') && !c.dead;
 function forCops(fn) {                   // every cop who can look: police cars with a crew inside (eyes at the windscreen), foot patrols, officers
   for (const c of cars) if (isPatrolCar(c)) fn(c, c.x + Math.cos(c.ang) * c.t.len * 0.3, c.y + Math.sin(c.ang) * c.t.len * 0.3, c.ang);
   for (const q of peds) if (q.cop && !q.dead && !q.knocked) fn(q, q.x, q.y, q.hd || 0);
@@ -98,13 +98,13 @@ function resist() {
 
 /* ---------- sending cars and officers ---------- */
 function chasingCars() {
-  let n = 0; for (const c of cars) if (c.type === 'police' && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;
+  let n = 0; for (const c of cars) if (c.t.cop && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;
 }
 function dispatch(dt) {
   const lv = P.stars, cap = COP.lv.cars[lv]; let n = chasingCars();
   for (const c of cars) {                // patrol cars that see you, or are near where you were last seen, join first
     if (n >= cap) break;
-    if (c.type === 'police' && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
+    if (c.t.cop && c.t.chaseFrom <= lv && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
   }
   if (n < cap && (PS.dispT -= dt) <= 0) PS.dispT = spawnCop() ? COP.lv.every[lv] : 0.5;   // then cars from further away
   let foot = 0; for (const o of officers) if (!o.dead && !o.car) foot++;
@@ -126,8 +126,8 @@ function copDrive(c, dt) {
   let tx = PS.lx, ty = PS.ly, direct = false;
   if (PS.seen) {
     tx = tgt.x + (tgt.vx || 0) * 0.35; ty = tgt.y + (tgt.vy || 0) * 0.35;
-    const stopAt = COP.pullUp + c.t.len * 0.5 + (P.car ? P.car.t.len * 0.5 : 0) + spd * 0.3;
-    if ((!P.car || !COP.lv.ram[lv]) && d < stopAt) {                  // pull up near you; once you are stopped (or on foot) the crew gets out
+    const stopAt = COP.pullUp + c.t.len * 0.5 + (P.car ? P.car.t.len * 0.5 : 0) + spd * 0.3, heavy = c.t.mass >= 10;   // heavy: the tank - no crew gets out, it just rolls at you
+    if (!heavy && (!P.car || !COP.lv.ram[lv]) && d < stopAt) {        // pull up near you; once you are stopped (or on foot) the crew gets out
       c.str = 0; c.thr = spd > 30 ? -1 : 0; c.hb = c.thr === 0;
       if (spd < 30 && c.sees && (!P.car || carSpeed(P.car) < COP.bustCarSpeed * 2)) copsExit(c);
       return;
@@ -255,12 +255,13 @@ function respawn() {
   if (strip) { P.ammo = WEAPONS.map((w, i) => i ? 0 : w.ammo); P.mag = WEAPONS.map((w, i) => i ? 0 : w.mag); P.weapon = 0; }
   clearRockets(); officers = []; resetPolice();
   for (const c of cars) if (c.driver === 'cop' || c.crewOut) { c.driver = 'ai'; c.crewOut = c.crewIn = 0; c.e = -1; c.searching = false; }
-  cars = cars.filter(c => dist(c.x, c.y, P.x, P.y) < 2200); peds = peds.filter(p => !p.dead && dist(p.x, p.y, P.x, P.y) < 1500);
+  cars = cars.filter(c => c.keep || dist(c.x, c.y, P.x, P.y) < 2200); CALLS = []; peds = peds.filter(p => !p.dead && dist(p.x, p.y, P.x, P.y) < 1500);
   let traffic = 0, parked = 0, foot = 0; for (const c of cars) { if (c.driver === 'ai') traffic++; else if (!c.driver && !c.dead) parked++; }
   for (const p of peds) if (p.cop) foot++;
   for (; traffic < 32; traffic++) spawnTraffic(true);
   for (; parked < 14; parked++) spawnParked(true);
   for (let k = peds.length; k < 50; k++) spawnPedNear(true);
+  for (const c of cars) if (c.task) endCall(c);
   for (; foot < COP.footPatrols; foot++) spawnFootCop(true);
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; streamCity(true);
   state = 'play'; deadTimer = 0; $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED'; updateGearUi();

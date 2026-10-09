@@ -17,13 +17,6 @@ function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d
 // real-world scale: 12 world units to the metre (a car is 54 units, 4.5 m long). Speeds are world units per second.
 const UNITS_PER_M = 12, MPS = UNITS_PER_M, KMH = UNITS_PER_M / 3.6, G_ACC = 9.81 * UNITS_PER_M;
 const LAT_GRIP = 2 * G_ACC;                                   // cornering limit: about twice a road car's grip, so driving stays fun
-const acc0to100 = (top, secs) => -top * KMH * Math.log(1 - 100 / top) / secs;   // throttle force that reaches 100 km/h in `secs`
-const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicker off the line), braking about 1 g; armored: true stops rifle rounds (none yet)
-  sedan:  { name: 'SEDAN',  len: 54, wid: 26, max: 180 * KMH, acc: acc0to100(180, 7),   brake: 9.5 * MPS,  turn: 2.7, grip: 5.5, hp: 100, mass: 1.0,  colors: ['#ff2bd6', '#2bf3ff', '#a259ff', '#ffe14a', '#3dffa6', '#6f86ff'] },
-  sports: { name: 'SPORTS', len: 52, wid: 24, max: 260 * KMH, acc: acc0to100(260, 4),   brake: 10.5 * MPS, turn: 3.0, grip: 3.4, hp: 70,  mass: 0.85, colors: ['#ff2bd6', '#ffe14a', '#2bf3ff', '#ff4d4d'] },
-  truck:  { name: 'TRUCK',  len: 78, wid: 33, max: 130 * KMH, acc: acc0to100(130, 12),  brake: 7.5 * MPS,  turn: 1.9, grip: 6.5, hp: 220, mass: 2.4,  colors: ['#3d6fff', '#ff7a3d', '#3dffa6', '#b79cff'] },
-  police: { name: 'POLICE', len: 54, wid: 26, max: 220 * KMH, acc: acc0to100(220, 5.5), brake: 10 * MPS,   turn: 2.9, grip: 5.0, hp: 130, mass: 1.1,  colors: ['#171a24'] }
-};
 const WALK = 1.4 * MPS, RUN = 5 * MPS, SPRINT = 7 * MPS;      // people: a stroll, a run, a flat-out sprint
 const FOOT = 1.15;                                              // the player is 15% quicker on foot than other people
 // rate: seconds between shots; reload: seconds to swap a magazine; ammo: rounds you start with besides the full magazine.
