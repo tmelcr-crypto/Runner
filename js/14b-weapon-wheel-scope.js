@@ -54,7 +54,7 @@ function pickWeapon(i) {
 }
 
 /* ---------- the scope ---------- */
-const SCOPE = { on: false, by: null, sx: 0, sy: 0, R: 100, aim: null, ready: false, hit: false, tag: '' };
+const SCOPE = { on: false, hold: false, by: null, sx: 0, sy: 0, R: 100, aim: null, ready: false, hit: false, tag: '' };   // hold: shown after a shot while the bolt works
 const _sRay = new THREE.Raycaster(), _sV = new THREE.Vector2(), _sP = new THREE.Vector3(), _sQ = new THREE.Vector3();
 const scopeRadius = () => Math.round(clamp(Math.min(VW, VH) * 0.21, 74, 150));
 function worldToScreen(x, y) { placeCamera(false); _sP.set(x, 0, y).project(camera); return { x: (_sP.x + 1) / 2 * VW, y: (1 - _sP.y) / 2 * VH }; }
@@ -73,7 +73,12 @@ function scopePick(sx, sy) {            // what the crosshair is on: the nearest
 }
 function updateScope(inp, dt) {         // called from updatePlayer while the rifle is out and you are on foot
   const w = WEAPONS[P.weapon], held = inp.held, R = SCOPE.R = scopeRadius();
-  if (held && !SCOPE.on && !P.trig) {                            // a fresh press starts aiming
+  if (SCOPE.hold) {                                              // after a shot the scope stays where it was while the bolt works (1.5 s), the finger does nothing;
+    if (P.cool <= 0) { SCOPE.on = SCOPE.hold = false; return; }   // after the last round the magazine reload is already running and this counts toward it
+    SCOPE.tag = P.relW === P.weapon ? 'RELOADING ' + Math.max(0, w.reload - P.rel).toFixed(1) + 'S' : 'NEXT ROUND ' + P.cool.toFixed(1) + 'S';
+    return;
+  }
+  if (held && !SCOPE.on && !P.trig) {                            // a fresh press starts aiming (once the scope from the last shot is gone)
     SCOPE.on = true; SCOPE.by = held;
     if (held === 'key') { const q = worldToScreen(P.x + Math.cos(P.ang) * 360, P.y + Math.sin(P.ang) * 360); SCOPE.sx = q.x; SCOPE.sy = q.y; }
   }
@@ -94,9 +99,10 @@ function updateScope(inp, dt) {         // called from updatePlayer while the ri
   else ready = true;
   SCOPE.ready = ready; SCOPE.tag = ready && SCOPE.hit ? 'ON TARGET' : tag;
   if (!held) {                                                   // let go: the shot
-    SCOPE.on = false;
-    if (ready && SCOPE.aim) { fireWeapon(SCOPE.aim); if (P.mag[P.weapon] > 0) Snd.bolt(); }
-    else Snd.tone(120, 90, 0.06, 0.12, 'square');
+    if (ready && SCOPE.aim) {
+      fireWeapon(SCOPE.aim); if (P.mag[P.weapon] > 0) Snd.bolt();
+      SCOPE.hold = true; SCOPE.ready = SCOPE.hit = false;                  // the scope stays up for the bolt time
+    } else { SCOPE.on = false; Snd.tone(120, 90, 0.06, 0.12, 'square'); }
   }
 }
 const scopeLive = () => SCOPE.on && state === 'play' && !P.car && !P.act && !P.dead && !bigOpen && !wheelOpen && !!WEAPONS[P.weapon].scope;
