@@ -47,7 +47,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); }
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -55,6 +55,8 @@ function showCard(id, fresh) {                       // fresh: start a new stack
 function back() {
   const id = curCard();
   if (id === 'pauseCard') resumeGame();
+  else if (id === 'shopCard') closeShop();
+  else if (id === 'rampCard') closeRamp();
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
 function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim'); document.documentElement.classList.remove('menus'); }
@@ -83,7 +85,7 @@ function pauseGame() {
 }
 function resumeGame() { if (state !== 'pause') return; state = 'play'; closeMenus(); }
 function paintPause() {
-  $('pauseInfo').textContent = skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + P.score.toLocaleString('en-US') + ' PTS';
+  $('pauseInfo').textContent = skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + P.score.toLocaleString('en-US') + ' PTS  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length;
   const why = saveBlock(); $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why;
 }
 function quitToTitle() {
@@ -100,6 +102,7 @@ $('pHelpBtn').addEventListener('click', () => showCard('helpCard'));
 $('quitBtn').addEventListener('click', quitToTitle);
 document.addEventListener('visibilitychange', () => {           // switching to another app or tab: pause, and keep the game safe
   if (document.hidden && state === 'play') { if (!saveBlock()) putSave('auto', makeSave(lastThumb)); pauseGame(); }
+  else if (document.hidden && state === 'shop' && shopBought && !saveBlock()) putSave('auto', makeSave(lastThumb));   // in a store: keep what you bought
 });
 
 /* game over (only when starting again at a hospital or police station is switched off in the police table) */
@@ -107,7 +110,12 @@ $('againBtn').addEventListener('click', () => startGame());
 $('oLoadBtn').addEventListener('click', () => openSlots('load'));
 $('oMenuBtn').addEventListener('click', showTitle);
 
-/* help: one page per tab */
+/* help: one page per tab; the WEAPONS page comes from the weapon table (js/01f): its name and how to use it; the points from js/01i */
+{ const rg = id => Array.isArray(ECO[id]) ? '$' + ECO[id][0] + '-' + ECO[id][1] : '$' + ECO[id];
+  $('helpPoints').textContent = 'Your score is your cash. Every car you steal or hijack has ' + rg('carCash') + ' inside. Killing pays nothing by itself: the dead drop a cash stack ('
+    + rg('pedCash') + ', police ' + rg('copCash') + ') and the weapon they carried - pick them up within ' + ECO.dropTime + ' s. ' + ECO.townN + ' cash stacks of ' + rg('townCash')
+    + ' lie around town (not on the maps). Destroying pays nothing.'; }
+for (const w of WEAPONS) { const d = document.createElement('div'), h = document.createElement('h3'), u = document.createElement('ul'), li = document.createElement('li'); h.textContent = w.name; li.textContent = w.howTo || ''; u.append(li); d.append(h, u); $('helpArms').append(d); }
 for (const t of document.querySelectorAll('#helpTabs button')) t.addEventListener('click', () => {
   for (const u of document.querySelectorAll('#helpTabs button')) u.classList.toggle('on', u === t);
   for (const p of document.querySelectorAll('#helpCard .page')) p.hidden = p.dataset.tab !== t.dataset.tab;
@@ -121,6 +129,7 @@ function getSave(s) { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY +
 function putSave(s, d) { try { localStorage.setItem(SAVE_KEY + s, JSON.stringify(d)); return true; } catch (e) { return false; } }
 function latestSave() { let b = null; for (const s of SLOTS) { const d = getSave(s); if (d && (!b || d.t > b.t)) b = d; } return b; }
 function saveBlock() {                               // why you cannot save now ('' = you can)
+  if (RAMP.on) return 'FINISH THE RAMPAGE FIRST';
   if (P.stars > 0) return 'LOSE THE POLICE FIRST';
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
@@ -130,8 +139,9 @@ function saveBlock() {                               // why you cannot save now 
 function makeSave(thumb) {
   const c = P.car;
   return { v: SAVE_V, t: Date.now(), where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
-    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, weapon: P.weapon, ammo: P.ammo.slice(), mag: P.mag.slice(), score: P.score, kills: P.kills, maxStars: P.maxStars },
+    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
+    ramp: { found: [...rampFound], done: [...rampDone] },
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -147,11 +157,22 @@ function saveSpot(sv) {                              // where a saved game puts 
 }
 function applySave(sv) {                             // called by resetGame (js/15) once the city is set up again
   const p = sv.P, n = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? clamp(v, lo, hi) : d;
-  P.hp = n(p.hp, 1, 100, 100); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
-  P.weapon = Math.round(n(p.weapon, 0, WEAPONS.length - 1, 0));
-  if (Array.isArray(p.ammo)) P.ammo = WEAPONS.map((w, i) => Math.round(n(p.ammo[i], 0, 9999, w.ammo)));
-  if (Array.isArray(p.mag)) P.mag = WEAPONS.map((w, i) => Math.round(n(p.mag[i], 0, w.mag, w.mag)));
+  P.hp = n(p.hp, 1, 100, 100); P.armor = n(p.armor, 0, 100, 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
+  const wi = typeof p.weapon === 'string' ? WEAPONS.findIndex(w => w.id === p.weapon) : Math.round(n(p.weapon, 0, WEAPONS.length - 1, 0));
+  P.weapon = Math.max(0, wi);
+  if (p.arms && typeof p.arms === 'object') {                     // by weapon id, so the weapon table can change between saves
+    const a = id => Array.isArray(p.arms[id]) ? p.arms[id] : null;
+    P.mag = WEAPONS.map((w, i) => a(w.id) ? Math.round(n(a(w.id)[0], 0, w.mag, 0)) : P.mag[i]); P.ammo = WEAPONS.map((w, i) => a(w.id) ? Math.round(n(a(w.id)[1], 0, 99999, 0)) : P.ammo[i]);
+    P.has = WEAPONS.map((w, i) => w.start || (a(w.id) ? (a(w.id)[2] === undefined ? a(w.id)[0] + a(w.id)[1] > 0 : !!a(w.id)[2]) : false));   // older saves: a weapon with ammo counts as yours
+  } else {                                                          // older saves: by position
+    if (Array.isArray(p.ammo)) P.ammo = WEAPONS.map((w, i) => Math.round(n(p.ammo[i], 0, 9999, w.ammo)));
+    if (Array.isArray(p.mag)) P.mag = WEAPONS.map((w, i) => Math.round(n(p.mag[i], 0, w.mag, w.mag)));
+  }
+  if (!(p.arms && typeof p.arms === 'object')) P.has = WEAPONS.map((w, i) => w.start || P.mag[i] + P.ammo[i] > 0);   // a save from before weapons had to be found
+  if (!P.has[P.weapon]) P.weapon = Math.max(0, P.has.indexOf(true));
   gameT = n(sv.gameT, 0, 1e9, 0);
+  const rp = sv.ramp || {}, ids = v => Array.isArray(v) ? v.filter(id => RAMPAGES.some(r => r.id === id)) : [];   // rampages found and passed (js/08f)
+  rampFound = new Set(ids(rp.found)); rampDone = new Set(ids(rp.done)); for (const id of rampDone) rampFound.add(id);
   const s = sv.sky;
   if (s) {
     SKY.hour = n(s.hour, 0, 23.999, SKY.hour); setWeather(WX_KINDS[s.kind] ? s.kind : 'clear', true); SKY.left = n(s.left, 1, 1e5, SKY.left);

@@ -17,10 +17,10 @@ function resetGame(sv) {                     // a new game with the options in O
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
   const side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1, load = sv ? saveSpot(sv) : null;   // a saved game puts you back where you were
   if (load) sp = load;
-  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
-  if (load && load.car) { const c = load.car; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
+  if (load && load.car) { const c = load.car; c.searched = true; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
   else if (!sv) {                                                  // starter cars in the parking lane on the player's side
     const kerb = PARK_OFF, kerbT = Object.keys(CAR_TYPES).filter(k => CAR_TYPES[k].parked > 0 && CAR_TYPES[k].wid <= KERB_W).sort((a, b) => CAR_TYPES[b].parked - CAR_TYPES[a].parked);
     for (const [ds, type, col] of [[-60, kerbT[0], '#d94f4f'], [50, kerbT[1] || kerbT[0], '#3fe0ff'], [160, kerbT[0], '#3d6fb0']])
@@ -32,8 +32,11 @@ function resetGame(sv) {                     // a new game with the options in O
   for (const L of LOTS) L.filled = false; fillLots(true);
   for (let k = 0; k < 50 * crowd; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
-  for (let k = 0; k < PICKUP_N; k++) spawnPickup();
+  for (let k = 0; k < ECO.townN; k++) spawnPickup();               // cash stacks around town (js/01i)
   CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
+  placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
+  placeStores();                                                   // the six stores and their markers (js/08e)
+  rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
   if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
   spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
   if (sv) applySave(sv);                                        // score, weapons, health, the clock and the weather (js/15b)
@@ -59,18 +62,22 @@ function showOver() {
 
 function handleKeys() {
   if (state === 'over') { if (pressed.KeyR) startGame(); }         // menus: Enter, the arrows and Esc are handled in js/15b
+  else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) closeShop(); }   // E leaves the store again
+  else if (state === 'ramp') { if (pressed.KeyE || pressed.KeyF) closeRamp(); }   // and the rampage's screen
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
     if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
-      if (dig >= 0 && dig < WEAPONS.length) pickWeapon(dig); else if (pressed.KeyQ || pressed.Escape || pressed.Tab) toggleWheel(false);
+      if (dig >= 0 && dig < owned().length) pickWeapon(owned()[dig]); else if (pressed.KeyQ || pressed.Escape || pressed.Tab) toggleWheel(false);
     } else {
-      if (pressed.KeyR && !P.car) startReload(P.weapon);
+      if (pressed.KeyR && !P.car && !isMelee(WEAPONS[P.weapon])) startReload(P.weapon);
       if ((pressed.KeyR || pressed.radio) && P.car) Radio.next();   // in a car R tunes the radio (js/02b)
-      if (dig >= 0 && dig < WEAPONS.length) P.weapon = dig;
-      if (pressed.wheel) P.weapon = (P.weapon + pressed.wheel + WEAPONS.length) % WEAPONS.length;
-      if (pressed.KeyQ && !bigOpen) toggleWheel(true);
+      const own = owned();                                          // only the weapons you have: 1, 2, 3... and the mouse wheel
+      const lock = (dig >= 0 || pressed.wheel || pressed.KeyQ) && rampLocked('WEAPON LOCKED DURING THE RAMPAGE');   // js/08f
+      if (!lock && dig >= 0 && dig < own.length) P.weapon = own[dig];
+      if (!lock && pressed.wheel) { const k = own.indexOf(P.weapon); P.weapon = own[(Math.max(0, k) + pressed.wheel + own.length) % own.length]; }
+      if (!lock && pressed.KeyQ && !bigOpen) toggleWheel(true);
       if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
-      if ((pressed.KeyE || pressed.KeyF) && !bigOpen) tryEnterExit();
+      if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(); if (r) openRamp(r); else if (s) openShop(s); else tryEnterExit(); }   // at a store's door E goes in, at a skull the rampage's screen
     }
   }
   if (pressed.KeyM) Snd.toggle();
@@ -97,8 +104,8 @@ function update(dt, idle) {
   gameT += dt; updateSky(dt);                                          // the clock and the weather (js/12d)
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
-  updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt);
-  if (!idle) { updatePickups(dt); autosaveTick(dt); }              // an autosave every minute while no police are after you (js/15b)
+  updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
+  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // rampages: found, the clock, people and cars brought in (js/08f)              // an autosave every minute while no police are after you (js/15b)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {
@@ -119,7 +126,7 @@ function frame(ts) {
   if (state === 'preview') { pvFrame(); return; }
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else if (state !== 'pause') update(rdt, true);                  // paused: the picture stands still behind the menu
+  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp') update(rdt, true);   // paused, in a store, at a rampage: the picture stands still behind the menu
   Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);

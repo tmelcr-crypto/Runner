@@ -10,9 +10,9 @@ const THROW = [], TGRID = new Map(), TG = 240, FLY = [], KNOCK = [];
 const tkey = (x, y) => Math.floor((x + SEA) / TG) * 1024 + Math.floor((y + SEA) / TG);
 const partMark = lists => lists.map(l => l[0].length);             // lists: [[array of instance items, geometry, unlit?], ...]
 function partsSince(lists, mark) { const out = []; lists.forEach(([arr, geo, basic], i) => { for (let k = mark[i]; k < arr.length; k++) out.push({ it: arr[k], geo, basic }); }); return out; }
-function registerThrow(x, y, parts, solid, mass) {
+function registerThrow(x, y, parts, solid, mass, smash) {      // smash: what a car does to it (js/12e): box, bag, crate, pallet, bin, hydrant
   if (!parts.length) return;
-  const o = { x, y, hx: x, hy: y, parts, solid, solid0: solid, mass: mass || 1, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, roll: 0, wy: 0, wr: 0, flying: false, gone: false, group: null, key: tkey(x, y) };
+  const o = { x, y, hx: x, hy: y, parts, solid, solid0: solid, mass: mass || 1, smash: smash || null, broken: false, t: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, roll: 0, wy: 0, wr: 0, flying: false, gone: false, group: null, key: tkey(x, y) };
   o.hc = parts.reduce((a, p) => a + p.it.y, 0) / parts.length;      // turns about its middle, not its foot
   THROW.push(o); let l = TGRID.get(o.key); if (!l) TGRID.set(o.key, l = []); l.push(o);
 }
@@ -29,6 +29,14 @@ function liftProp(o) {                  // the first time it moves: hide it in t
     m.position.set(it.x - o.hx, it.y, it.z - o.hy); m.scale.set(it.sx, it.sy, it.sz); m.rotation.y = it.ry || 0; inner.add(m);
   }
   scene.add(g); o.group = g; placeProp(o);
+}
+function restoreProp(o) {               // back where it stood, whole again
+  if (o.group) scene.remove(o.group); o.group = null;
+  for (const p of o.parts) if (p.it._orig) { p.it._m.setMatrixAt(p.it._k, p.it._orig); p.it._m.instanceMatrix.needsUpdate = true; }
+  if (o.solid && o.solid !== o.solid0) o.solid.off = true; if (o.solid0) o.solid0.off = false; o.solid = o.solid0;
+  const l = TGRID.get(o.key); l.splice(l.indexOf(o), 1); o.key = tkey(o.hx, o.hy); let n = TGRID.get(o.key); if (!n) TGRID.set(o.key, n = []); n.push(o);
+  const f = FLY.indexOf(o); if (f >= 0) FLY.splice(f, 1);
+  Object.assign(o, { x: o.hx, y: o.hy, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, roll: 0, flying: false, gone: false, broken: false });
 }
 function placeProp(o) { o.group.position.set(o.x, o.z + o.hc, o.y); o.group.rotation.set(o.roll, -o.yaw, 0); }
 function throwProp(o, nx, ny, f) {
@@ -65,7 +73,10 @@ function throwProps(x, y, reach) {
     const l = TGRID.get(a * 1024 + b); if (!l) continue;
     for (const o of l.slice()) {
       if (o.gone) continue; const d = dist(o.x, o.y, x, y); if (d >= reach) continue;
-      const [nx, ny] = away(o.x, o.y, x, y, d); throwProp(o, nx, ny, 1 - d / reach);
+      const [nx, ny] = away(o.x, o.y, x, y, d);
+      if (SHRED[o.smash] && d < reach * 0.45) { breakProp(o, nx, ny, 420); continue; }   // boxes, bags, crates near the middle: shredded (js/12e)
+      throwProp(o, nx, ny, 1 - d / reach); messed(o);
+      if (o.smash === 'hydrant') spray(o.hx, o.hy);
     }
   }
 }
@@ -149,14 +160,7 @@ function gfxBlast(dt) {
   }
 }
 function resetBlast() {                 // a new game: everything thrown goes back where it stood
-  for (const o of THROW) {
-    if (!o.group && !o.flying) continue;
-    if (o.group) scene.remove(o.group); o.group = null;
-    for (const p of o.parts) if (p.it._orig) { p.it._m.setMatrixAt(p.it._k, p.it._orig); p.it._m.instanceMatrix.needsUpdate = true; }
-    if (o.solid && o.solid !== o.solid0) o.solid.off = true; if (o.solid0) o.solid0.off = false; o.solid = o.solid0;
-    const l = TGRID.get(o.key); l.splice(l.indexOf(o), 1); o.key = tkey(o.hx, o.hy); let n = TGRID.get(o.key); if (!n) TGRID.set(o.key, n = []); n.push(o);
-    Object.assign(o, { x: o.hx, y: o.hy, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, roll: 0, flying: false, gone: false });
-  }
-  FLY.length = 0; for (const o of KNOCK) o.knocked = false; KNOCK.length = 0; P.knocked = false; P.air = 0;
+  for (const o of THROW) if (o.group || o.flying || o.broken) restoreProp(o);
+  FLY.length = 0; MESSED.length = 0; SPRAYS.length = 0; for (const o of KNOCK) o.knocked = false; KNOCK.length = 0; P.knocked = false; P.air = 0;
   for (const f of FBALL) { f.t = 9; f.outer.visible = f.core.visible = false; }
 }

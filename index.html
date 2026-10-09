@@ -17,7 +17,7 @@
   <div id="popLayer"></div>
   <div class="hud-tl">
     <div class="box"><span class="lbl">SCORE</span><span id="score">00000000</span></div>
-    <div class="box"><span class="lbl">HEALTH</span><div id="hpSegs"></div></div>
+    <div class="box"><span class="lbl">HEALTH</span><div id="hpSegs"></div><div id="armorRow" hidden><span class="lbl">ARMOR</span><div id="arSegs"></div></div></div>
     <div class="box"><div class="ammoRow"><span class="lbl" id="wname">PISTOL</span><span id="ammo">07 / 060</span></div><div id="reload"><i></i><span></span></div></div>
   </div>
   <div class="hud-tr">
@@ -36,8 +36,11 @@
   <div id="radioName"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
+  <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
+  <div id="rampHud" hidden><span id="rampIcoHud"></span><span class="rl">RAMPAGE</span><b id="rampCount">0 / 0</b><span id="rampWhat"></span><i id="rampClock">0:00</i></div>
+  <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
-  <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div></div>
+  <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
   <div id="wasted">WASTED</div>
   <div id="bigmap" hidden><canvas id="bigCv"></canvas><span class="lbl">TAB OR TAP TO CLOSE</span></div>
 </div>
@@ -116,34 +119,47 @@
 
   <div class="card" id="helpCard" hidden>
     <h2>HELP</h2>
-    <div class="tabs" id="helpTabs"><button type="button" class="on" data-tab="ctl">CONTROLS</button><button type="button" data-tab="play">PLAYING</button><button type="button" data-tab="cops">POLICE</button><button type="button" data-tab="city">CITY</button></div>
+    <div class="tabs" id="helpTabs"><button type="button" class="on" data-tab="ctl">CONTROLS</button><button type="button" data-tab="play">PLAYING</button><button type="button" data-tab="arms">WEAPONS</button><button type="button" data-tab="cops">POLICE</button><button type="button" data-tab="city">CITY</button></div>
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
-        <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> pistol tap, MG hold</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 4</b> pick</li><li><b>E or F</b> enter / exit car</li></ul></div>
+        <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> punch, swing, shoot (hold for automatics)</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>GRENADES</b> hold CLICK and drag the opposite way, let go to throw (J: hold to wind up)</li><li><b>R</b> reload</li>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves)</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK</b> in the tank: rockets</li></ul>
         <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
-        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap pistol, hold MG; rifle and rockets: stand still, hold FIRE, drag to the target, let go</li>
-        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
+        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades: hold FIRE, drag the opposite way, let go</li>
+        <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> / <b>RAMPAGE</b> button: shows by you at a store's door or a rampage's skull</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
         <li>No missions: the city is yours. Steal cars, cause trouble, collect cash and stay alive.</li>
-        <li><b>POINTS</b> carjacking +50, running someone over +100, taking someone down +50, a cop +200, blowing up a car +60, a police car +300, cash +500.</li></ul></div>
+        <li><b>POINTS</b> <span id="helpPoints"></span></li></ul></div>
       <div><h3>CARS</h3><ul>
         <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
         <li>Fast cars slide, heavy ones push through. Wet roads are slippery.</li>
         <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
-        <li>Lying on the sidewalks: <b>HEALTH</b> (+40, when you are hurt), ammo for each weapon, and <b>CASH</b>. They come back after a while.</li></ul></div>
+        <li><b>CASH</b> stacks lie on sidewalks around town, not on the maps; the dead drop cash too, and every car has some inside.</li>
+        <li><b>ARMED PEOPLE</b> some passers-by carry a pistol or a melee weapon: hurt them, or someone next to them, and they fight back. They drop it when killed.</li>
+        <li><b>WEAPONS</b> you have to find: only your fists to start with. Each weapon and its ammo float in a bubble of the weapon's own colour, hidden in alleys, yards, parks, parking lots and on the beaches. Melee weapons are the most common and always lie in the same places.</li>
+        <li>Hidden the same way, each in its own bubble: <b>HEALTH</b> (white, +50 when you are hurt), <b>BODY ARMOR</b> (blue, +50) and the <b>HEAT REDUCER</b> (flashing red and blue: one star less while you are wanted). None of it shows on the maps.</li>
+        <li><b>BODY ARMOR</b> is the blue bar under your health: it takes the damage first.</li></ul></div>
+      <div><h3>STORES</h3><ul>
+        <li>Six stores, each with a <b>$</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
+        <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
+      <div><h3>RAMPAGES</h3><ul>
+        <li>Twenty red skulls are hidden around the city. Once you have been near one it shows on the maps (green once passed).</li>
+        <li>On foot at a skull, tap <b>RAMPAGE</b> or press <b>E</b> to see the goal, then <b>START</b>: kill so many people, or wreck so many vehicles, with the weapon you are given before the clock runs out.</li>
+        <li>The weapon stays in your hand with endless ammo (reloads still take time), you stay on foot, and the police look the other way. You cannot start one while you are wanted.</li>
+        <li>The first pass pays cash and you keep the weapon. You can play a passed rampage again, without the reward.</li></ul></div>
       <div><h3>WASTED OR BUSTED</h3><ul>
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your score.</li>
-        <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep your weapons except the pistol.</li></ul></div>
+        <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep every weapon you found.</li></ul></div>
     </div>
+    <div class="ctl page" data-tab="arms" id="helpArms" hidden></div>
     <div class="ctl page" data-tab="cops" hidden>
       <div><h3>WHAT THEY KNOW</h3><ul>
         <li>The police only know what they see or hear: a crime counts when a cop sees it, or hears the gunfire or the blast.</li>
@@ -158,7 +174,7 @@
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue) and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($), the rampages you have found (skulls) and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>DAY, NIGHT, WEATHER</h3><ul>
         <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
@@ -170,6 +186,28 @@
         <li>In the pause menu: three save slots, and a save file to download - open it on another device to carry on there.</li></ul></div>
     </div>
     <div class="row"><button class="big alt back pri" type="button">BACK</button></div>
+  </div>
+
+  <div class="card" id="shopCard" hidden>
+    <h2 id="shopName">STORE</h2>
+    <p class="sub" id="shopCash"></p>
+    <div id="shopList"></div>
+    <p class="warn" id="shopMsg"></p>
+    <div class="menu"><button id="shopLeave" class="big alt back pri" type="button">LEAVE</button></div>
+    <p class="keys">ESC OR E LEAVES</p>
+  </div>
+
+  <div class="card" id="rampCard" hidden>
+    <p class="tag">RAMPAGE!</p>
+    <h2 id="rampName">RAMPAGE</h2>
+    <p class="sub" id="rampSub"></p>
+    <div id="rampWeap"><span id="rampIco"></span><b id="rampWname"></b></div>
+    <p id="rampGoal"></p>
+    <div class="stats"><span>TIME</span><span id="rampTime"></span><span>REWARD</span><span id="rampReward"></span></div>
+    <p class="sub rampRules" id="rampRules"></p>
+    <p class="warn" id="rampWarn" hidden></p>
+    <div class="menu"><button id="rampGo" class="big pri" type="button">START RAMPAGE</button><button id="rampNo" class="big alt back" type="button">NOT NOW</button></div>
+    <p class="keys">ENTER STARTS · ESC OR E LEAVES</p>
   </div>
 
   <div class="card" id="overCard" hidden>
@@ -197,16 +235,25 @@
 <script src="js/01c-vehicle-data.js"></script>
 <script src="js/01d-sky-data.js"></script>
 <script src="js/01e-radio-data.js"></script>
+<script src="js/01f-weapon-data.js"></script>
+<script src="js/01g-shop-data.js"></script>
+<script src="js/01h-rampage-data.js"></script>
+<script src="js/01i-economy-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
 <script src="js/04-world.js"></script>
 <script src="js/05-entities.js"></script>
 <script src="js/06-gameplay.js"></script>
+<script src="js/06b-melee-throw.js"></script>
 <script src="js/07-vehicles-traffic-police.js"></script>
 <script src="js/08-pedestrians-pickups-spawning.js"></script>
 <script src="js/08b-police.js"></script>
 <script src="js/08c-services.js"></script>
+<script src="js/08d-weapon-pickups.js"></script>
+<script src="js/08e-shops.js"></script>
+<script src="js/08f-rampages.js"></script>
+<script src="js/08g-armed-people.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -214,10 +261,12 @@
 <script src="js/10d-render-clutter.js"></script>
 <script src="js/10e-render-services.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
+<script src="js/11b-weapon-models.js"></script>
 <script src="js/12-render-effects.js"></script>
 <script src="js/12b-rockets.js"></script>
 <script src="js/12c-blast.js"></script>
 <script src="js/12d-sky-weather.js"></script>
+<script src="js/12e-smash.js"></script>
 <script src="js/13-render-frame.js"></script>
 <script src="js/14-hud-minimap.js"></script>
 <script src="js/14b-weapon-wheel-scope.js"></script>

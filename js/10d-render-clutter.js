@@ -28,21 +28,22 @@ function makeClutter() {
   function junk(x, y, yaw, ux, uy, nx, ny, wall) {                 // one heap of back-alley junk against a wall
     if (street(x, y) || inLandmark(x, y) || shoreDist(x, y) < 12 || wallAt(x, y) || lotAt(x, y, 8)) return;
     const r = Math.random();
-    if (r < 0.22) { const o = { k: 'dump', x, y, yaw, c: pick(['#2f6f4f', '#2a4aa8', '#7a3b2a', '#3a3f5c', '#4f6f2f']) }; out.push(o); o.solid = solid(x, y, 26, 14, yaw); }
-    else if (r < 0.42) out.push({ k: 'bags', x, y, n: randi(2, 5) });
-    else if (r < 0.56) { const n = randi(1, 3), o = { k: 'crates', x, y, yaw, n }; out.push(o); if (n > 1) o.solid = solid(x, y, 11, 11, yaw); }
-    else if (r < 0.64) out.push({ k: 'pallet', x, y, yaw, top: Math.random() < 0.4 });
-    else if (r < 0.76) out.push({ k: 'bins', x, y, yaw, ux, uy });
-    else if (r < 0.84) out.push({ k: 'barrel', x, y, c: pick(['#b8452f', '#3a5f9e', '#5f6b3a']) });
+    if (r < 0.18) { const o = { k: 'dump', x, y, yaw, c: pick(['#2f6f4f', '#2a4aa8', '#7a3b2a', '#3a3f5c', '#4f6f2f']) }; out.push(o); o.solid = solid(x, y, 26, 14, yaw); }
+    else if (r < 0.34) out.push({ k: 'bags', x, y, n: randi(2, 5) });
+    else if (r < 0.5) out.push({ k: 'boxes', x, y, yaw, ux, uy, n: randi(1, 4) });
+    else if (r < 0.6) { const n = randi(1, 3), o = { k: 'crates', x, y, yaw, n }; out.push(o); if (n > 1) o.solid = solid(x, y, 11, 11, yaw); }
+    else if (r < 0.66) out.push({ k: 'pallet', x, y, yaw, top: Math.random() < 0.4 });
+    else if (r < 0.78) out.push({ k: 'bins', x, y, yaw, ux, uy });
+    else if (r < 0.85) out.push({ k: 'barrel', x, y, c: pick(['#b8452f', '#3a5f9e', '#5f6b3a']) });
     else if (r < 0.94 && wall) { const o = { k: 'ac', x, y, yaw }; out.push(o); o.solid = solid(x, y, 12, 10, yaw); }
   }
   for (const a of MAP.alleys || []) {                              // back alleys: junk along both walls, puddles, lamps, graffiti, washing lines
     const ang = a[4] * Math.PI / 180, ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux, L = a[2], W = a[3], yaw = ang;
     for (const sd of [-1, 1]) {
       const wx = a[0] + nx * sd * W / 2, wy = a[1] + ny * sd * W / 2, inx = -nx * sd, iny = -ny * sd;
-      for (let t = -L / 2 + 14 + Math.random() * 30; t < L / 2 - 12; t += rand(36, 72)) {   // the middle stays clear to walk (or squeeze a car) through
+      for (let t = -L / 2 + 14 + Math.random() * 30; t < L / 2 - 12; t += rand(28, 56)) {   // the middle stays clear to walk (or squeeze a car) through
         const px = wx + ux * t, py = wy + uy * t, wall = wallAt(px - inx * 2, py - iny * 2);
-        if (Math.random() < (wall ? 0.8 : 0.3)) junk(px + inx * 9, py + iny * 9, yaw, ux, uy, inx, iny, wall);
+        if (Math.random() < (wall ? 0.85 : 0.35)) junk(px + inx * 9, py + iny * 9, yaw, ux, uy, inx, iny, wall);
         if (wall && Math.random() < 0.12 && !street(px, py)) out.push({ k: 'graf', x: px + inx * 0.6, y: py + iny * 0.6, yaw, w: rand(12, 28), h: rand(5, 10), c: pick(GRAF) });
         if (wall && Math.random() < 0.12 && !street(px, py)) out.push({ k: 'lamp', x: px + inx * 2, y: py + iny * 2, yaw, gx: px + inx * 18, gy: py + iny * 18 });
       }
@@ -99,6 +100,25 @@ function makeClutter() {
   return out;
 }
 
+/* small junk shared with the sidewalks (js/10): a pile of cardboard boxes along a wall, a heap of garbage bags, a wheelie bin */
+function boxPile(fb, x, y, yaw, ux, uy, n) {
+  let h = 0;
+  for (let i = 0; i < n; i++) {
+    const s = rand(5.5, 9), stack = i > 0 && Math.random() < 0.35, along = stack ? 0 : (i - (n - 1) / 2) * 8.5 + rand(-1, 1), y0 = stack ? h : 0;
+    const bx = x + ux * along + rand(-1, 1), by = y + uy * along + rand(-1, 1), r = yaw + rand(-0.35, 0.35), c = pick(['#a07a4c', '#b98d58', '#8a6a44', '#c9a676']);
+    fb.push({ x: bx, y: y0 + s * 0.4, z: by, sx: s, sy: s * 0.8, sz: s * 0.85, ry: r, c });
+    fb.push({ x: bx, y: y0 + s * 0.8 + 0.1, z: by, sx: s * 1.01, sy: 0.25, sz: 1.4, ry: r, c: '#d9c29a' });   // packing tape across the top
+    h = stack ? h + s * 0.8 : s * 0.8;
+  }
+}
+function bagHeap(fs, x, y, n) {
+  for (let i = 0; i < n; i++) { const r = rand(3, 4.6); fs.push({ x: x + rand(-6, 6), y: r * 0.8, z: y + rand(-4, 4), sx: r, sy: r * 0.85, sz: r, c: pick(['#17151e', '#24222c', '#33303f', '#2a3a2a']) }); }
+}
+function wheelie(fb, x, y, yaw) {
+  const c = pick(['#2f6f4f', '#2a4aa8', '#55586a', '#3a3f5c']);
+  fb.push({ x, y: 5.2, z: y, sx: 7, sy: 10.4, sz: 7.4, ry: yaw, c }); fb.push({ x, y: 10.8, z: y, sx: 7.6, sy: 0.9, sz: 8, ry: yaw, c: shade(c, -25) });
+}
+
 /* ground: the yards as flat shapes, the alleys as dark asphalt strips with a gutter down the middle */
 function drawYards() {
   for (const k of ['y', 'p', 'ap', 'q']) { const ps = (MAP.yards || []).filter(y => y.k === k); if (ps.length) shapeMesh(ps, 0.3, YARD_COL[k]); }
@@ -113,10 +133,12 @@ function drawYards() {
 function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
   const off = (o, d, s) => [o.x + Math.cos(o.yaw) * d - Math.sin(o.yaw) * s, o.y + Math.sin(o.yaw) * d + Math.cos(o.yaw) * s];
   const lists = [[fb, GB, false], [fg, GB, true], [fc, GCyl, false], [fs, GSphLo, false], [crowns, GSph, false]];
-  const MASS = { dump: 2.4, bags: 0.5, crates: 1.1, pallet: 0.8, bins: 0.7, barrel: 1, ac: 1.2, bench: 1, planter: 1.8, cart: 1.4 };   // what a blast can throw, and how heavy
+  const MASS = { dump: 2.4, bags: 0.5, boxes: 0.4, crates: 1.1, pallet: 0.8, bins: 0.7, barrel: 1, ac: 1.2, bench: 1, planter: 1.8, cart: 1.4 };   // what a blast can throw, and how heavy
+  const SMASHK = o => ({ bags: 'bag', boxes: 'box', crates: o.n === 1 ? 'crate' : null, pallet: 'pallet', bins: 'bin', barrel: 'bin' })[o.k] || null;   // what a car does to it (js/12e)
   for (const o of CLUTTER) {
     const ry = -(o.yaw || 0), mark = MASS[o.k] ? partMark(lists) : null;
     if (o.k === 'dump') { fb.push({ x: o.x, y: 7, z: o.y, sx: 26, sy: 14, sz: 14, ry, c: o.c }); fb.push({ x: o.x, y: 14.7, z: o.y, sx: 26.8, sy: 1.4, sz: 14.8, ry, c: shade(o.c, -30) }); }
+    else if (o.k === 'boxes') boxPile(fb, o.x, o.y, ry, o.ux, o.uy, o.n);
     else if (o.k === 'bags') for (let i = 0; i < o.n; i++) { const r = rand(3, 4.6); fs.push({ x: o.x + rand(-7, 7), y: r * 0.8, z: o.y + rand(-5, 5), sx: r, sy: r * 0.85, sz: r, c: pick(['#17151e', '#24222c', '#33303f', '#2a3a2a']) }); }
     else if (o.k === 'crates') for (let i = 0; i < o.n; i++) fb.push({ x: o.x + rand(-1, 1), y: 5 + i * 10, z: o.y + rand(-1, 1), sx: 10, sy: 10, sz: 10, ry: ry + rand(-0.2, 0.2), c: pick(['#8a6a44', '#6e5236', '#9a7a50']) });
     else if (o.k === 'pallet') { fb.push({ x: o.x, y: 0.9, z: o.y, sx: 14, sy: 1.8, sz: 12, ry, c: '#9a7a50' }); if (o.top) fb.push({ x: o.x, y: 6.8, z: o.y, sx: 11, sy: 10, sz: 9, ry, c: pick(['#c9c4b0', '#6e5236', '#3a5f9e']) }); }
@@ -137,7 +159,7 @@ function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
     else if (o.k === 'bollard') { fc.push({ x: o.x, y: 3, z: o.y, sx: 2.6, sy: 6, sz: 2.6, c: '#2b2e38' }); fc.push({ x: o.x, y: 6.4, z: o.y, sx: 3.2, sy: 0.8, sz: 3.2, c: '#ffb02e' }); }
     else if (o.k === 'flood') { poles.push({ x: o.x, y: 35, z: o.y, sx: 2, sy: 70, sz: 2, c: '#14102a' }); heads.push({ x: o.x, y: 70, z: o.y, sx: 10, sy: 4, sz: 10, c: '#fff3b0' }); pools.push({ x: o.x, y: 1.5, z: o.y, sx: 220, sy: 1, sz: 220, c: '#fff1c0' }); }
     else if (o.k === 'cart') { fb.push({ x: o.x, y: 4, z: o.y, sx: 16, sy: 5, sz: 10, ry, c: '#d6d2c4' }); fb.push({ x: o.x, y: 8.5, z: o.y, sx: 12, sy: 4, sz: 8, ry, c: pick(['#2a4aa8', '#7a3b2a', '#4a4e5c']) }); }
-    if (mark) registerThrow(o.x, o.y, partsSince(lists, mark), o.solid || null, MASS[o.k]);
+    if (mark) registerThrow(o.x, o.y, partsSince(lists, mark), o.solid || null, MASS[o.k], SMASHK(o));
   }
   for (const L of LOTS) {                                         // a light on the lot's front corner and a P sign in the colour of the building it belongs to
     const o = L.owner, pc = !o ? '#3f6bff' : o.special === 'hospital' ? '#e0364f' : o.special === 'police' ? '#3f6bff' : o.c;

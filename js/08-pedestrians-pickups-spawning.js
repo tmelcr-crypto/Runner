@@ -24,6 +24,8 @@ function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
     if (p.knocked) continue;                                       // flying through the air (js/12c)
+    if (p.stunT > 0) { p.stunT -= dt; p.vx = p.vy = 0; continue; }   // knocked down by a melee hit (js/06b)
+    if (p.hostile && fightBack(p, dt)) continue;                    // armed and provoked: after you (js/08g)
     if (p.cop && copEngaged(p)) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }   // a foot patrol on the case (js/08b)
     if (p.combat) { p.combat = false; p.cv = null; if (!p.stroll) snapPed(p); }
     if (p.e < 0 && !p.stroll) snapPed(p);
@@ -115,28 +117,31 @@ function bumpPeople(o, r, h) {                // push o (flying) out of the peop
     const d = Math.hypot(dx, dy), rr = r + 7; if (d < rr && d > 0.001) { o.x += dx / d * (rr - d); o.y += dy / d * (rr - d); h.nx += dx / d; h.ny += dy / d; } };
   for (const q of peds) hit(q); for (const q of officers) hit(q); if (!P.car) hit(P);
 }
-let pickupQ = [];                            // game times at which a picked-up item comes back somewhere else
-const PICKUP_N = 60, PICKUP_BACK = 25;
+let pickupQ = [];                            // game times at which a cash stack taken comes back somewhere else
+const PICKUP_BACK = 25;
+/* cash: ECO.townN stacks lie on sidewalks anywhere in town (not on the maps), each worth a random amount (js/01i); one taken comes back
+   elsewhere. The dead drop smaller stacks by their bodies (js/08g: drop, until) that vanish after a while and do not come back. */
 function spawnPickup() {                      // anywhere on the map: a random sidewalk spot, chosen by road length
   const total = RE.reduce((a, e) => a + e.len, 0);
   for (let tr = 0; tr < 30; tr++) {
     let r = Math.random() * total, e = 0; while (e < RE.length - 1 && r > RE[e].len) { r -= RE[e].len; e++; }
     const w = { e, fw: 1, s: r, side: Math.random() < 0.5 ? 1 : -1 }, q = sidewalkPoint(w, 0, {});
     if (shoreDist(q.x, q.y) < 12 || pedBlocked(q.x, q.y) || pickups.some(k => dist(k.x, k.y, q.x, q.y) < 200)) continue;
-    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'sniper', 'rocket', 'cash', 'cash']), bob: rand(0, 6) }); return;
+    pickups.push({ x: q.x, y: q.y, type: 'cash', amt: ecoRoll('townCash'), bob: rand(0, 6) }); return;
   }
 }
 function updatePickups(dt) {
   for (let k = pickups.length - 1; k >= 0; k--) {
     const p = pickups[k]; p.bob += dt * 4;
+    if (p.until && gameT > p.until) { pickups.splice(k, 1); continue; }   // a dropped stack left lying too long
     if (dist(P.x, P.y, p.x, p.y) > 26) continue;
     if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
-    else if (p.type === 'pistol') { P.ammo[0] = Math.min(250, P.ammo[0] + 24); popup(p.x, p.y - 12, '+24 PISTOL', '#3fe0ff'); }
-    else if (p.type === 'mg') { P.ammo[1] = Math.min(400, P.ammo[1] + 60); popup(p.x, p.y - 12, '+60 MG', '#3fe0ff'); }
-    else if (p.type === 'sniper') { P.ammo[2] = Math.min(60, P.ammo[2] + 10); popup(p.x, p.y - 12, '+10 SNIPER', '#3fe0ff'); }
-    else if (p.type === 'rocket') { P.ammo[3] = Math.min(12, P.ammo[3] + 2); popup(p.x, p.y - 12, '+2 ROCKETS', '#ff9d2b'); }
-    else addScore(500, p.x, p.y, 'CASH');
-    Snd.pickup(); pickups.splice(k, 1); pickupQ.push(gameT + PICKUP_BACK);
+    else if (p.type === 'cash') addScore(p.amt || 0, p.x, p.y, 'CASH');
+    else {                                                          // ammunition: as much as the weapon table says, up to what you can carry
+      const wi = WEAPONS.findIndex(w => w.id === p.type), w = WEAPONS[wi]; if (!w) { pickups.splice(k, 1); continue; }
+      P.ammo[wi] = Math.min(Math.max(w.maxAmmo, P.ammo[wi]), P.ammo[wi] + w.pickup); popup(p.x, p.y - 12, '+' + w.pickup + ' ' + w.short, w.blast ? '#ff9d2b' : '#3fe0ff');
+    }
+    Snd.pickup(); pickups.splice(k, 1); if (!p.drop) pickupQ.push(gameT + PICKUP_BACK);
   }
   while (pickupQ.length && pickupQ[0] <= gameT) { pickupQ.shift(); spawnPickup(); }
 }

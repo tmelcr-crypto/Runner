@@ -35,6 +35,7 @@ function unitSees(u, ex, ey, face) {     // a cop who has just seen you keeps wa
 function policeKnow(x, y) { PS.lx = x; PS.ly = y; PS.r = COP.searchStart; PS.lose = 0; PS.seenT = gameT; }
 /* a crime: it only counts when a cop sees it, hears it (hear: radius around you) or a bullet lands near one (ix, iy); armed: a gun or a blast */
 function reportCrime(n, hear, ix, iy, armed) {
+  if (RAMP.on) return;                                             // a rampage: the police look the other way (js/08f)
   let w = false;
   forCops((u, x, y, face) => {
     if (w) return;
@@ -208,6 +209,7 @@ function updateOfficers(dt) {
     const o = officers[k];
     if (o.dead) { o.deadT += dt; if (o.deadT > bodyTime(o)) officers.splice(k, 1); continue; }
     if (o.knocked) continue;
+    if (o.stunT > 0) { o.stunT -= dt; continue; }                   // knocked down by a melee hit (js/06b)
     const c = o.car;
     if (c && (c.dead || c.sunk || c.driver || !cars.includes(c))) crewLost(o);      // their car is gone, or someone drove off in it
     const tgt = P.car || P, d = dist(o.x, o.y, tgt.x, tgt.y);
@@ -261,10 +263,13 @@ function respawn() {
   const busted = P.busted, lose = Math.round(P.score * (busted ? COP.bustedCash : COP.wastedCash));
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const sp = serviceDoor(busted ? 'police' : 'hospital', P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;
-  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: 100, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: 100, armor: 0, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
     rel: 0, relW: -1, cool: 0, hurtT: 0, trig: false, dry: false, score: P.score - lose });
   if (P.knocked) { P.knocked = false; P.air = 0; P.kvx = P.kvy = P.kvz = 0; const i = KNOCK.indexOf(P); if (i >= 0) KNOCK.splice(i, 1); }
-  if (strip) { P.ammo = WEAPONS.map((w, i) => i ? 0 : w.ammo); P.mag = WEAPONS.map((w, i) => i ? 0 : w.mag); P.weapon = 0; }
+  if (strip) {                                                    // they take your weapons, except the ones the weapon table lets you keep
+    P.has = WEAPONS.map((w, i) => w.keep && P.has[i]); P.ammo = WEAPONS.map((w, i) => w.keep ? P.ammo[i] : 0); P.mag = WEAPONS.map((w, i) => w.keep ? P.mag[i] : 0);
+    P.weapon = Math.max(0, P.has.indexOf(true)); P.swing = null;
+  }
   clearRockets(); officers = []; resetPolice();
   for (const c of cars) if (c.driver === 'cop' || c.crewOut) { c.driver = 'ai'; c.crewOut = c.crewIn = 0; c.e = -1; c.searching = false; }
   cars = cars.filter(c => c.keep || dist(c.x, c.y, P.x, P.y) < 2200); CALLS = []; peds = peds.filter(p => !p.dead && dist(p.x, p.y, P.x, P.y) < 1500);

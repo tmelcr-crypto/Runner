@@ -188,22 +188,29 @@ function buildPerson(kind, shirt, skin) {
   return o;
 }
 function syncPerson(p, kind, time, dt) {
-  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; }
+  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; }
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;
+  if (kind === 'ped' && p.hostile) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
-  if (p.dead) {
+  if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
-    g.scale.setScalar(clamp((bodyTime(p) + 1 - p.deadT) / 6, 0.01, 1));   // shrinks away at the end (later while an ambulance is coming)
+    g.scale.setScalar(p.dead ? clamp((bodyTime(p) + 1 - p.deadT) / 6, 0.01, 1) : 1);   // a body shrinks away at the end (later while an ambulance is coming)
   } else {
+    if (o.tilt.rotation.z) o.tilt.rotation.z = 0;
     const k = Math.sin(p.bob * 3) * Math.min(1, sp / 60) * 0.8;
     o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.8; o.arms[1].rotation.z = k * 0.8;
     o.tilt.position.y = Math.abs(k) * 0.8;
     if (kind === 'ped' && p.state === 'flee') { o.arms[0].rotation.z = -2.4; o.arms[1].rotation.z = -2.4; }
+  }
+  const hid = kind === 'ped' && p.hostile && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you
+  if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }
+  if (p.held) {
+    if (isMelee(WEAPONS[p.arm])) { const u = p.swingT > 0 ? 1 - p.swingT / 0.25 : 0; p.held.rotation.set(0, p.swingT > 0 ? lerp(1.3, -1.3, u) : 0.7, p.swingT > 0 ? lerp(0.9, 0.1, u) : 1.05); o.arms[1].rotation.z = p.swingT > 0 ? -1.4 * Math.sin(Math.PI * u) : -0.5; }
+    else { p.held.rotation.set(0, 0, 0); o.arms[1].rotation.z = -1.45; }   // a gun held out at you
   }
 }
 const P3 = { mesh: null, pm: null, arrow: null, flash: null, yel: mc(0xffd23f), red: mc(0xff6b86), mgOn: false };
@@ -221,8 +228,15 @@ function syncPlayer(time, dt) {
   o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
   o.torso.material = P.hurtT > 0 ? P3.red : P3.yel;
   if (P.busted) { o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; } else o.tilt.rotation.z = 0;      // knocked flat
-  const gl = [10, 18, 28, 26][P.weapon] || 10, gt = P.weapon === 3 ? 4.6 : 2.4; o.gun.scale.set(gl, gt, gt); o.gun.position.x = 3 + gl / 2;   // pistol, machine gun, rifle, rocket tube
-  P3.flash.visible = P.flash > 0; P3.flash.position.set(6 + gl, 14, 3.6);
+  const w = WEAPONS[P.weapon];                                       // the weapon in your hand (js/11b); a melee weapon rests on the shoulder and swings
+  if (P3.heldId !== w.id) {
+    if (P3.held) o.tilt.remove(P3.held); P3.held = new THREE.Group(); P3.held.add(weaponModel(w.id)); P3.held.position.set(5, 14, 3.6); o.tilt.add(P3.held);
+    P3.heldId = w.id; P3.gl = Math.max(4, new THREE.Box3().setFromObject(P3.held.children[0]).max.x); o.gun.visible = false;
+  }
+  const sw = P.swing, u = sw ? clamp(sw.t / SWING_T, 0, 1) : 0, e = u * u * (3 - 2 * u);
+  if (isMelee(w)) { P3.held.rotation.set(0, sw ? lerp(1.3, -1.3, e) : 0.7, sw ? lerp(0.9, 0.1, e) : 1.05); o.arms[1].rotation.z = sw ? -1.4 * Math.sin(Math.PI * u) : -0.5; }
+  else P3.held.rotation.set(0, 0, 0);
+  P3.flash.visible = P.flash > 0; P3.flash.position.set(6 + P3.gl, 14, 3.6);
   flashLight.intensity = P.flash > 0 ? 1.6 : 0; flashLight.position.set(P.x + Math.cos(P.ang) * 20, P3.gy + 16, P.y + Math.sin(P.ang) * 20);
 }
 const PICK_COL = { health: 0xff6b86, pistol: 0x3fe0ff, mg: 0x3fe0ff, sniper: 0xffe14a, rocket: 0xff9d2b, cash: 0x58e08a };
@@ -234,10 +248,12 @@ function syncPickup(p, time) {
     else if (p.type === 'rocket') { part(it, GB, mc(0x3d4528), 18, 8, 10, 0, 0, 0); part(it, GB, mBas(0xff9d2b), 18.4, 1.6, 10.4, 0, 1, 0); part(it, GB, mBas(0xff9d2b), 2, 1, 8, -5, 4.5, 0); part(it, GB, mBas(0xff9d2b), 2, 1, 8, 5, 4.5, 0); }   // a crate with orange bands
     else if (p.type === 'sniper') { part(it, GB, mc(0x2a2410), 18, 6, 7, 0, 0, 0); part(it, GB, mBas(0xffe14a), 14, 1, 1.4, 0, 3.4, 0); }   // a long case with a yellow stripe
     else { part(it, GB, mc(0x17304a), 11, 8, 9, 0, 0, 0); for (let k = 0; k < (p.type === 'mg' ? 3 : 1); k++) part(it, GB, mBas(0x3fe0ff), 1.8, 1, 5, (p.type === 'mg' ? (k - 1) * 3 : 0), 4.4, 0); }
-    part(g, GCyl, new THREE.MeshBasicMaterial({ color: PICK_COL[p.type], transparent: true, opacity: 0.2, depthWrite: false }), 2.6, 60, 2.6, 0, 30, 0);
+    if (p.drop) { g.scale.setScalar(0.7); const gl = new THREE.Mesh(GP, glowMat('#58e08a', 0.7)); gl.scale.set(34, 1, 34); gl.position.y = 1.4; g.add(gl); }   // dropped by the dead: smaller, a glow, no beam (js/08g)
+    else part(g, GCyl, new THREE.MeshBasicMaterial({ color: PICK_COL[p.type] || 0x3fe0ff, transparent: true, opacity: 0.2, depthWrite: false }), 2.6, 60, 2.6, 0, 30, 0);
     g.userData.it = it; p.mesh = g; scene.add(g);
   }
   track(p); const it = p.mesh.userData.it;
-  p.mesh.position.set(p.x, SIDE_H + (p.air || 0), p.y); it.position.y = 11 + Math.sin(p.bob) * 2; it.rotation.y = time * 1.6;
+  p.mesh.visible = !(p.until && p.until - gameT < 10 && Math.floor(gameT * 6) % 2);   // blinking: about to go
+  p.mesh.position.set(p.x, (p.drop ? groundH(p.x, p.y) : SIDE_H) + (p.air || 0), p.y); it.position.y = (p.drop ? 8 : 11) + Math.sin(p.bob) * 2; it.rotation.y = time * 1.6;
 }
 

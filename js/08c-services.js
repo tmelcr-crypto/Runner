@@ -93,7 +93,7 @@ function placeHidden() {
 function vehicleGun(c, inp, dt) {
   c.gunT = (c.gunT || 0) - dt;
   if (!inp.fire || c.gunT > 0 || c.t.weapon !== 'rockets') return;
-  const w = WEAPONS.find(q => q.rocket), a = c.ang; c.gunT = 1.5;
+  const w = WEAPONS.find(q => q.rocket) || RK_DEF, a = c.ang; c.gunT = 1.5;
   launchRocket({ x: c.x + Math.cos(a) * 900, y: c.y + Math.sin(a) * 900 }, w, c); Snd.rocket();
   c.vx -= Math.cos(a) * 30; c.vy -= Math.sin(a) * 30; cam.shake = Math.max(cam.shake, w.shake + 2);   // the recoil
   alertPeds(c.x, c.y, 500); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true);

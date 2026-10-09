@@ -39,7 +39,7 @@ function gfxDecals() {
   for (const d of decals) {
     if (n >= MAXD) break; const sc = d.r * clamp(d.life / 6, 0.05, 1);
     _dm.position.set(d.x, 3.5, d.y); _dm.scale.set(sc, 1, sc); _dm.updateMatrix(); decalMesh.setMatrixAt(n, _dm.matrix);
-    _dc.set(d.scorch ? 0x1c1619 : 0x7d0c1e); decalMesh.setColorAt(n, _dc); n++;
+    _dc.set(d.col || (d.scorch ? 0x1c1619 : 0x7d0c1e)); decalMesh.setColorAt(n, _dc); n++;
   }
   decalMesh.count = n; decalMesh.instanceMatrix.needsUpdate = true; if (decalMesh.instanceColor) decalMesh.instanceColor.needsUpdate = true;
 }

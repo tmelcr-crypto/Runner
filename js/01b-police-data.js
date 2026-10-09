@@ -56,9 +56,9 @@ const POLICE_TABLE = /*POLICE-JSON*/{
   {"id": "bystanders", "group": "Shooting", "name": "Hold fire near bystanders", "unit": "yes/no", "v": true, "note": "YES: a cop does not shoot while a passer-by is in the line of fire."},
   {"id": "respawn", "group": "Busted and wasted", "name": "Carry on after busted or wasted", "unit": "yes/no", "v": true, "note": "YES: you start again at the nearest police station (busted) or hospital (wasted). NO: the game ends, as before."},
   {"id": "bustedCash", "group": "Busted and wasted", "name": "Busted: score lost", "unit": "%", "min": 0, "max": 100, "v": 10, "note": "Bail: this share of your score."},
-  {"id": "bustedWeapons", "group": "Busted and wasted", "name": "Busted: weapons taken", "unit": "yes/no", "v": true, "note": "YES: you keep only the pistol with its starting ammo."},
+  {"id": "bustedWeapons", "group": "Busted and wasted", "name": "Busted: weapons taken", "unit": "yes/no", "v": true, "note": "YES: you keep only the weapons the weapon table marks Kept when busted (your fists)."},
   {"id": "wastedCash", "group": "Busted and wasted", "name": "Wasted: score lost", "unit": "%", "min": 0, "max": 100, "v": 10, "note": "Hospital bill: this share of your score."},
-  {"id": "wastedWeapons", "group": "Busted and wasted", "name": "Wasted: weapons lost", "unit": "yes/no", "v": false, "note": "YES: you keep only the pistol with its starting ammo."}
+  {"id": "wastedWeapons", "group": "Busted and wasted", "name": "Wasted: weapons lost", "unit": "yes/no", "v": false, "note": "YES: you keep only the weapons the weapon table marks Kept when busted (your fists)."}
 ],
 "crimes": [
   {"id": "steal", "name": "Steal a parked car", "unit": "points", "min": 0, "max": 500, "v": 5, "note": "Only when a cop sees it, like every crime below that says seen."},
