@@ -35,7 +35,7 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 - **Stealing cars**: an empty car is yours after a second and drives off at once. Carjacking takes three seconds of fighting the driver for the wheel while the car lurches and swerves; let go (E again) and you drop off beside it.
 - Traffic keeps to its lane, brakes in time for what is ahead and waits at a busy junction; police take the shortest route by road and only drive straight at you when nothing is in between. People walk the sidewalks, and some stroll about the back alleys, the parks, the beaches and the promenades. Nobody walks through anybody: people push each other aside and step round cars, parked or not, and never into a wall.
 - The sea is everywhere outside the coast: you can wade a little; a car you drive off the shore sinks (traffic and police stop at the water and cannot be shoved in). Bridges have rails.
-- **TAB** (or the **MAP** button) opens the whole city map; the game waits while it is open. The district name shows when you enter a new one.
+- **TAB**, or a tap / click on the minimap, opens the whole city map; the game waits while it is open, and a tap (or TAB) closes it. The district name shows when you enter a new one.
 - Only what is near the camera exists as meshes; the low buildings are merged per area into one mesh each. Buildings and landmarks between the camera and the player turn see-through.
 
 ## Police
@@ -82,6 +82,22 @@ Both have a sheet per kind of setting - Wanted levels (one column per star), Set
 Ambulances and fire engines on a call take the shortest way by road at up to 65 km/h; one already in traffic nearby takes the call, otherwise one comes from further away. Drivers sit inside under the roof behind tinted glass. Long vehicles keep their distance in traffic from their front bumper, not their middle, and use more collision circles along their length.
 
 Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, acceleration, braking, steering, grip, health, weight, armour, how often it drives in traffic, parks or is sent by the police (and from which wanted level), how many are hidden, its job, its weapon, its colours. Acceleration given to a speed at or above the top speed counts as the time to reach top speed. `tools/vehicle_sheet.py` exports it to Apple Numbers or Excel and imports an edited copy (`export vehicles.numbers`, `import vehicles.numbers [--dry-run]`): one column per vehicle, rows found by their label, every value checked; a new column becomes a new vehicle (body `new` until its model is built).
+
+## Car radio
+
+Most cars have the radio on when you get in (85%; police and service vehicles start with it off). **R** in a car, or the **RADIO** button (top, shown in a car), tunes to the next station with a burst of static, and the last step turns it off; the station's name shows above the speedometer. Each car keeps its station, and a saved game keeps the one you were driving with.
+
+| Station | Style | File |
+|---|---|---|
+| NEON FM 101.1 | synthwave | `audio/radio/neon-fm.mp3` |
+| BAY BEATS 94.7 | house | `audio/radio/bay-beats.mp3` |
+| RADIO PALMERA 89.5 | reggaeton | `audio/radio/radio-palmera.mp3` |
+| RIOT 97.0 | punk rock | `audio/radio/riot.mp3` |
+| LOW TIDE 88.3 | lo-fi | `audio/radio/low-tide.mp3` |
+
+The stations are "live": each runs on its own clock, so you tune in mid-song, and coming back later you hear it further on (this needs a server that sends parts of files, as GitHub Pages does; elsewhere a station starts from the top). The radio fades out when you get out, die or pause, and M mutes it with everything else.
+
+The music files now are placeholders: 50-60 s seamless loops synthesized by `tools/radio_placeholders.py` (numpy, scipy and ffmpeg; `python3 tools/radio_placeholders.py [station ids]`). **Replace any of them with real music under the same file name** - MP3 plays in every browser, any length, and it loops. Names, frequencies, styles, colours, files, the radio volume and how many cars have it on are in `js/01e-radio-data.js`.
 
 ## Day, night & weather
 
@@ -133,7 +149,9 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/01b-police-data.js` | the police table: every police number in everyday units (edit by hand or with `tools/settings_sheet.py police`), converted to game units as `COP` |
 | `js/01c-vehicle-data.js` | the vehicle table in everyday units (edit by hand or with `tools/vehicle_sheet.py`), converted to `CAR_TYPES`; picking a vehicle type by weight |
 | `js/01d-sky-data.js` | the day, night and weather settings in everyday units (edit by hand or with `tools/settings_sheet.py sky`), converted to `SKYP` |
+| `js/01e-radio-data.js` | the car radio stations: name, frequency, style, colour, music file; radio volume |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
+| `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
 | `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |
 | `js/05-entities.js` | entity and effect data |

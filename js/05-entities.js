@@ -6,7 +6,8 @@ function makeCar(type, x, y, ang, driver, color) {
   const t = CAR_TYPES[type];
   return { type, t, x, y, ang, vx: 0, vy: 0, av: 0, hp: t.hp, maxhp: t.hp, color: color || pick(t.colors), driver: driver || null,
     thr: 0, str: 0, hb: false, e: -1, fw: 1, s: 0, nx: null, burn: 0, dead: false, deadT: 0, stuck: 0, rev: 0,
-    slip: 0, smokeT: 0, hitCd: 0, way: null, wayT: 0, sirenT: rand(0, 2) };
+    slip: 0, smokeT: 0, hitCd: 0, way: null, wayT: 0, sirenT: rand(0, 2),
+    radio: !t.cop && !t.job && RADIO.length && Math.random() * 100 < RADIO_TABLE.onAir ? Math.floor(Math.random() * RADIO.length) : -1 };   // its radio station (js/01e), -1 off
 }
 function carCircles(c) {                     // a row of circles along the body: three for a car, five for a bus or a limo
   const t = c.t, r = t.wid * 0.5 + 1, o = Math.max(0, t.len * 0.5 - r), n = Math.max(1, Math.ceil(o / (r * 1.6))), fx = Math.cos(c.ang), fy = Math.sin(c.ang), out = [];

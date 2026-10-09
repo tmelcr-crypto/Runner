@@ -48,7 +48,7 @@ function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for 
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
   g.lineWidth = lw; g.strokeStyle = ph ? '#ff3b5c' : '#3f6bff'; g.stroke();
 }
-/* full map: Tab or the MAP button; the game waits while it is open */
+/* full map: Tab or a tap on the minimap; the game waits while it is open */
 let bigOpen = false;
 function toggleBigMap(on) {
   bigOpen = on === undefined ? !bigOpen : on; $('bigmap').hidden = !bigOpen;
@@ -75,7 +75,7 @@ function drawBigMap(time) {
   g.fillStyle = '#ffd23f'; g.strokeStyle = '#000'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(11, 0); g.lineTo(-8, -7); g.lineTo(-4, 0); g.lineTo(-8, 7); g.closePath(); g.stroke(); g.fill(); g.restore();
 }
 
-const H = { zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
+const H = { inCar: null, zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
 (function buildHud() {
   $('hpSegs').innerHTML = '<i></i>'.repeat(10); $('stars').innerHTML = '<div class="star"></div>'.repeat(5);
   for (const b of document.querySelectorAll('#weaponbar button')) b.addEventListener('click', () => b.blur());
@@ -112,6 +112,7 @@ function updateHud(time) {
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
   else { const n = nearestCar(); if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
+  const inCar = !!c; if (H.inCar !== inCar) { H.inCar = inCar; $('radioBtn').hidden = !inCar; }   // the RADIO button, in a car only
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
   const bf = $('bFire'), noFire = !!c && !c.t.weapon; if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets

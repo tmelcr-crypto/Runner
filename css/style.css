@@ -256,3 +256,10 @@ button.del:focus,button.del:hover{outline:0;color:var(--hot);border-color:var(--
   .slot .sd{font-size:16px}
   button.opt{font-size:8px}
 }
+
+/* ---- minimap opens the city map; car radio (js/02b) ---- */
+#mini{pointer-events:auto;cursor:pointer;touch-action:manipulation}
+#radioName{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom,0px));font-family:var(--f-display);font-size:13px;text-align:center;
+  white-space:nowrap;text-shadow:0 0 10px currentColor,2px 2px 0 #000;opacity:0;transition:opacity .35s;pointer-events:none}
+#radioName.on{opacity:1}
+#radioName small{display:block;margin-top:7px;font-size:8px;letter-spacing:2px;color:var(--paper);opacity:.8}

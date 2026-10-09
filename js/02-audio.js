@@ -30,6 +30,7 @@ const Snd = {
       const sgn = c.createGain(); sgn.gain.value = 0; so.connect(sgn); sgn.connect(this.out); so.start();
       this.sir = { o: so, g: sgn };
     } catch (e) { this.ctx = null; }
+    if (typeof Radio !== 'undefined') Radio.init();                // the car radio (js/02b)
   },
   setEngine(on, spd, thr) {
     if (!this.ctx) return; const t = this.ctx.currentTime, e = this.eng, f = 38 + spd * 95 + Math.abs(thr) * 8;

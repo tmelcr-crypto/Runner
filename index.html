@@ -28,11 +28,12 @@
   </div>
   <div id="weaponbar">
     <button id="wBtn" type="button" aria-label="Choose weapon"><span id="wIcon"></span><span id="wAmmo">07/060</span></button>
-    <button id="mapBtn" type="button">MAP</button>
+    <button id="radioBtn" type="button" hidden>RADIO</button>
     <button id="mute" type="button">SND</button>
     <button id="menuBtn" type="button" aria-label="Pause menu">MENU</button>
   </div>
   <div id="hint"></div>
+  <div id="radioName"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
@@ -122,11 +123,11 @@
         <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 4</b> pick</li><li><b>E or F</b> enter / exit car</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
-        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>CLICK</b> in the tank: rockets</li></ul>
-        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
+        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK</b> in the tank: rockets</li></ul>
+        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap pistol, hold MG; rifle and rockets: stand still, hold FIRE, drag to the target, let go</li>
-        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MAP, SND, MENU</b> buttons (top)</li></ul></div>
+        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
@@ -135,6 +136,7 @@
       <div><h3>CARS</h3><ul>
         <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
         <li>Fast cars slide, heavy ones push through. Wet roads are slippery.</li>
+        <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
         <li>Lying on the sidewalks: <b>HEALTH</b> (+40, when you are hurt), ammo for each weapon, and <b>CASH</b>. They come back after a while.</li></ul></div>
@@ -156,7 +158,7 @@
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or <b>MAP</b> shows the whole city: hospitals (red cross), police stations (blue) and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue) and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>DAY, NIGHT, WEATHER</h3><ul>
         <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
@@ -194,7 +196,9 @@
 <script src="js/01b-police-data.js"></script>
 <script src="js/01c-vehicle-data.js"></script>
 <script src="js/01d-sky-data.js"></script>
+<script src="js/01e-radio-data.js"></script>
 <script src="js/02-audio.js"></script>
+<script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
 <script src="js/04-world.js"></script>
 <script src="js/05-entities.js"></script>

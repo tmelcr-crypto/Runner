@@ -65,6 +65,7 @@ function handleKeys() {
       if (dig >= 0 && dig < WEAPONS.length) pickWeapon(dig); else if (pressed.KeyQ || pressed.Escape || pressed.Tab) toggleWheel(false);
     } else {
       if (pressed.KeyR && !P.car) startReload(P.weapon);
+      if ((pressed.KeyR || pressed.radio) && P.car) Radio.next();   // in a car R tunes the radio (js/02b)
       if (dig >= 0 && dig < WEAPONS.length) P.weapon = dig;
       if (pressed.wheel) P.weapon = (P.weapon + pressed.wheel + WEAPONS.length) % WEAPONS.length;
       if (pressed.KeyQ && !bigOpen) toggleWheel(true);
@@ -119,6 +120,7 @@ function frame(ts) {
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
   else if (state !== 'pause') update(rdt, true);                  // paused: the picture stands still behind the menu
+  Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);
 }

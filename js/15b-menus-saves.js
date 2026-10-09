@@ -131,7 +131,7 @@ function makeSave(thumb) {
   const c = P.car;
   return { v: SAVE_V, t: Date.now(), where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, weapon: P.weapon, ammo: P.ammo.slice(), mag: P.mag.slice(), score: P.score, kills: P.kills, maxStars: P.maxStars },
-    car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang } : null,
+    car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -139,6 +139,7 @@ function saveSpot(sv) {                              // where a saved game puts 
   if (c && CAR_TYPES[c.type] && num(c.x) && num(c.y) && shoreDist(c.x, c.y) > 0) {
     const car = makeCar(c.type, c.x, c.y, num(c.ang) ? c.ang : 0, null, typeof c.color === 'string' ? c.color : undefined);
     if (num(c.hp)) car.hp = clamp(c.hp, 1, car.hp);
+    if (Number.isInteger(c.radio) && c.radio < RADIO.length) car.radio = Math.max(-1, c.radio);
     return { x: car.x, y: car.y, ang: car.ang, car };
   }
   if (num(p.x) && num(p.y) && !pedBlocked(p.x, p.y) && shoreDist(p.x, p.y) > 4) return { x: p.x, y: p.y, ang: num(p.ang) ? p.ang : 0 };
