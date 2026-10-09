@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 8. HUD & MINIMAP ---------- */
-const MM = 600, MMS = 0.16;                 // sea margin drawn around the map, map canvas scale (px per world unit)
+const MM = 600, MMS = 0.13;                 // sea margin drawn around the map, map canvas scale (px per world unit)
 let mapCv = null;
 function buildMiniMap() {                   // the whole city drawn once; the minimap and the big map cut from it
   if (mapCv) return;
@@ -12,11 +12,12 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
   m.strokeStyle = '#1e1640'; m.lineWidth = ROAD_W; m.lineJoin = m.lineCap = 'round';
   for (const E of RE) { m.beginPath(); m.moveTo(E.p[0][0], E.p[0][1]); for (let k = 1; k < E.p.length; k++) m.lineTo(E.p[k][0], E.p[k][1]); m.stroke(); }
   const box = r => { m.beginPath(); solidCorners(r).forEach(([x, y], k) => k ? m.lineTo(x, y) : m.moveTo(x, y)); m.closePath(); m.fill(); };
+  m.fillStyle = '#2a2244'; for (const L of LOTS) box({ cx: L.cx, cy: L.cy, lw: L.w, lh: L.d, ca: Math.cos(L.a), sa: Math.sin(L.a) });   // parking lots
   m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld) box(r);       // landmarks and props
   m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
 }
 function drawMini(time) {
-  const size = miniCv.width, view = 1300, sc = size / view;
+  const size = miniCv.width, view = 1500, sc = size / view;
   mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.fillStyle = '#0e2f8a'; mctx.fillRect(0, 0, size, size);
   mctx.imageSmoothingEnabled = true;
   mctx.setTransform(sc, 0, 0, sc, size / 2 - P.x * sc, size / 2 - P.y * sc); mctx.drawImage(mapCv, -MM, -MM, MW + 2 * MM, MH + 2 * MM);

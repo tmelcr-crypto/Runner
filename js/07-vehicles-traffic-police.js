@@ -203,12 +203,12 @@ function aiDrive(c, dt) {
   }
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, spd = carSpeed(c);
   const near = laneAhead(c, 40 + Math.max(0, vf) * 0.3, _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));
-  c.str = clamp(d * 2.4, -1, 1);
+  c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
   const far = laneAhead(c, 120 + Math.max(0, vf) * 0.6, _cw), dfar = Math.abs(angDiff(c.ang, Math.atan2(far.y - c.y, far.x - c.x)));
   if (!c.cruise) c.cruise = rand(170, 250) * SPEED_K;
   let tgt = c.cruise * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.45 * Math.min(1, dfar / 1.1)), block = 999;
   const look = (ox, oy, lw) => { const rx = ox - c.x, ry = oy - c.y, al = rx * fx + ry * fy, lat = Math.abs(-rx * fy + ry * fx); if (al > 18 && al < 150 && lat < lw && al < block) block = al; };
-  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < 170 && Math.abs(o.y - c.y) < 170) look(o.x, o.y, 32);
+  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < 170 && Math.abs(o.y - c.y) < 170) look(o.x, o.y, 24);   // cars in the parking lane (33 to the side) are not in the way
   if (!P.car) look(P.x, P.y, 24);
   for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < 170 && Math.abs(p.y - c.y) < 170) look(p.x, p.y, 20);
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = 0; return; }
@@ -227,11 +227,12 @@ function updateCars(dt) {
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = false; }
-    if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea: brake and turn back to land
-      const spd = carSpeed(c), ahead = 30 + spd * 0.5, hx = c.x + Math.cos(c.ang) * ahead, hy = c.y + Math.sin(c.ang) * ahead;
-      if (spd > 20 && shoreDist(hx, hy) < 6) {
-        const g = shoreGrad(hx, hy), vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang);
-        c.thr = vf > 30 ? -1 : 0; c.hb = false; c.str = clamp(angDiff(c.ang, Math.atan2(g[1], g[0])) * 2, -1, 1);
+    if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
+      const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;
+      const ahead = (30 + spd * 0.5) * back, hx = c.x + fx * ahead, hy = c.y + fy * ahead;
+      if (shoreDist(hx, hy) < 6) {
+        if (back < 0) { c.thr = vf < -10 ? 1 : 0; c.rev = 0; }                // backing toward the water: stop
+        else { const g = shoreGrad(hx, hy); c.thr = vf > 30 ? -1 : 0; c.hb = false; c.str = clamp(angDiff(c.ang, Math.atan2(g[1], g[0])) * 2, -1, 1); }
       }
     }
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }

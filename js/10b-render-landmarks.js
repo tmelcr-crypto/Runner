@@ -164,8 +164,8 @@ function colonySpot() {
   const r = nearestRoad(L.x, L.y, 500); if (!r) return null;
   const q = edgeAt(r.e, r.s, {}); let nx = -q.ty, ny = q.tx; if (nx > 0) { nx = -nx; ny = -ny; }   // the side away from the beach
   let back = 260;                                                 // the lot runs back until the sidewalk of the next street
-  for (let t = ROAD_HALF + 40; t < 420; t += 6) { const o = nearestRoad(q.x + nx * t, q.y + ny * t, ROAD_HALF + 2); if (o && o.e !== r.e) { back = t - 18; break; } }
-  const fr = ROAD_HALF + 16 + COLONY_SIGN, D = clamp(back - fr, 70, 124), Wf = 156, off = fr + D / 2, a = Math.atan2(-ny, -nx);
+  for (let t = ROAD_HALF + 40; t < 420; t += 6) { const o = nearestRoad(q.x + nx * t, q.y + ny * t, ROAD_HALF + 2); if (o && o.e !== r.e) { back = t - 18 - SW_W; break; } }
+  const fr = ROAD_HALF + SW_W + 4 + COLONY_SIGN, D = clamp(back - fr, 70, 124), Wf = 156, off = fr + D / 2, a = Math.atan2(-ny, -nx);
   return (COLONY = { cx: q.x + nx * off, cy: q.y + ny * off, a, ca: Math.cos(a), sa: Math.sin(a), lw: D, lh: Wf });
 }
 function hitsColony(cx, cy, w, h, angDeg) {                      // does a map building overlap the Colony's lot?
@@ -257,6 +257,72 @@ function makePlane() {                                           // parked airli
   return lmMesh(T, G);
 }
 
+/* ---------- street-front props from the fill pass: gas stations, plazas, basketball courts. Local +z faces the street ---------- */
+function gasLayout(p) {                                          // shop at the back on one side, a canopy over two pump islands on the other
+  const w = p.w, h = p.h, sx0 = -w / 2 + 8, sw = w * 0.38, cx = (sx0 + sw + w / 2) / 2 + 2, chw = Math.min(52, (w / 2 - sx0 - sw) / 2 - 6), zc = h * 0.06, chd = Math.min(42, h * 0.27);
+  return { w, h, shop: [sx0, -h / 2 + 6, sx0 + sw, -h / 2 + 48], cx, chw, zc, chd, isl: [zc - chd * 0.5, zc + chd * 0.5] };
+}
+function makeGas(p) {
+  const T = new GeoBuilder(), G = new GeoBuilder(), L = gasLayout(p), { w, h } = L, [a0, b0, a1, b1] = L.shop;
+  const conc = _C('#3a3450'), white = _C('#eeeaf4'), neon = _C(pick(['#3dffa6', '#ff2bd6', '#2bf3ff', '#ffb02e'])), dark = _C('#22202e');
+  flat(T, -w / 2, -h / 2, w / 2, h / 2, 0.7, conc);
+  for (let x = -w / 2 + 6; x < w / 2 - 6; x += 22) flat(G, x, h / 2 - 3, x + 11, h / 2 - 1.5, 0.8, _C('#ffe14a'));   // painted edge at the driveway
+  box5(T, a0, 0, b0, a1, 22, b1, white); box5(T, a0 - 1, 22, b0 - 1, a1 + 1, 25, b1 + 1, _C('#d8d2ee'));        // the shop
+  face(G, [[a0 + 6, 3, b1 + 0.3], [a1 - 6, 3, b1 + 0.3], [a1 - 6, 15, b1 + 0.3], [a0 + 6, 15, b1 + 0.3]], [0, 0, 1], _C('#ffe9b0'));   // lit windows
+  box5(G, a0 - 1.2, 19, b1 + 0.6, a1 + 1.2, 21, b1 + 1.6, neon);
+  for (const ax of [a0 + 10, a1 - 22]) box5(T, ax, 25, b0 + 8, ax + 12, 31, b0 + 18, _C('#9aa0ab'));               // AC on the shop roof
+  const { cx, chw, zc, chd } = L;
+  for (const z of L.isl) {
+    box5(T, cx - 36, 0, z - 4, cx + 36, 1.6, z + 4, _C('#cfc8e8'));                                               // pump island
+    for (const px of [cx - 18, cx + 18]) { box5(T, px - 3, 1.6, z - 2.5, px + 3, 13, z + 2.5, white); box5(G, px - 3.2, 9, z - 2.7, px + 3.2, 11.5, z + 2.7, neon); }
+    for (const px of [cx - 34, cx + 34]) box5(T, px - 1.6, 1.6, z - 1.6, px + 1.6, 26, z + 1.6, dark);            // canopy posts
+  }
+  box5(T, cx - chw, 26, zc - chd, cx + chw, 30.5, zc + chd, white);                                                // canopy
+  for (const [x0, z0, x1, z1] of [[cx - chw - 0.6, zc + chd - 1.4, cx + chw + 0.6, zc + chd + 0.6], [cx - chw - 0.6, zc - chd - 0.6, cx + chw + 0.6, zc - chd + 1.4],
+    [cx - chw - 0.6, zc - chd, cx - chw + 1.4, zc + chd], [cx + chw - 1.4, zc - chd, cx + chw + 0.6, zc + chd]]) box5(G, x0, 27, z0, x1, 31.2, z1, neon);   // glowing fascia
+  for (let k = 0; k < 3; k++) flat(G, cx - chw + 6, zc - chd + 8 + k * 6, cx + chw - 6, zc - chd + 10 + k * 6, 30.6, neon);              // brand stripes on the roof
+  const px = w / 2 - 12, pz = h / 2 - 12;                                                                          // price pylon at the corner
+  box5(T, px - 1.5, 0, pz - 1.5, px + 1.5, 30, pz + 1.5, dark); box5(T, px - 10, 30, pz - 2, px + 10, 48, pz + 2, dark);
+  const m = lmMesh(T, G), sg = signMesh('FUEL', neon.getStyle(), 19, 7), sg2 = signMesh('GAS', neon.getStyle(), 2 * chw * 0.5, 4);
+  sg.position.set(px, 41, pz + 2.2); sg2.position.set(cx, 29, zc + chd + 0.7); m.add(sg); m.add(sg2); m.userData.own.push(sg.material, sg2.material);
+  const top = signMesh('FUEL', neon.getStyle(), chw * 1.3, chw * 0.33); top.rotation.x = -Math.PI / 2; top.position.set(cx, 30.7, zc + chd * 0.35); m.add(top); m.userData.own.push(top.material);   // name on the canopy roof
+  const pr = new THREE.Mesh(new THREE.PlaneGeometry(17, 6), new THREE.MeshBasicMaterial({ map: SIGNTEX })); pr.position.set(px, 33.5, pz + 2.2); m.add(pr); m.userData.own.push(pr.material);
+  return m;
+}
+function makePlaza(p) {                                          // tiled square with a fountain, benches, palms and planters
+  const T = new GeoBuilder(), G = new GeoBuilder(), w = p.w, h = p.h, t1 = _C('#5a4f86'), t2 = _C('#4a4174'), stone = _C('#e6e0f0'), wood = _C('#7a5a3a');
+  const n = Math.max(2, Math.round(w / 14)), m2 = Math.max(2, Math.round(h / 14)), tw = w / n, td = h / m2;
+  for (let i = 0; i < n; i++) for (let j = 0; j < m2; j++) flat(T, -w / 2 + i * tw, -h / 2 + j * td, -w / 2 + (i + 1) * tw, -h / 2 + (j + 1) * td, 0.8, (i + j) % 2 ? t1 : t2);
+  T.prism(0, 0, 17, 0.8, 4.5, stone, 16, 17, true); disc(G, 0, 0, 14.5, 4.7, _C('#3fe8ff'), 16);
+  T.prism(0, 0, 2.2, 4.5, 13, stone, 8); T.prism(0, 0, 6.5, 12, 13.4, stone, 12, 6.5, true); disc(G, 0, 0, 5.4, 13.5, _C('#3fe8ff'), 12);
+  T.prism(0, 0, 1.2, 13.4, 19, _C('#bff6ff'), 6, 0.2, true);
+  for (let k = 0; k < 4; k++) {                                                                  // benches facing the fountain
+    const a = k * Math.PI / 2 + Math.PI / 4, bx = Math.cos(a) * 32, bz = Math.sin(a) * 32, ux = -Math.sin(a), uz = Math.cos(a), P = (u, v, y) => [bx + ux * u + Math.cos(a) * v, y, bz + uz * u + Math.sin(a) * v];
+    face(T, [P(-8, -2.5, 4), P(8, -2.5, 4), P(8, 2.5, 4), P(-8, 2.5, 4)], [0, 1, 0], wood);
+    face(T, [P(-8, 2.5, 4), P(8, 2.5, 4), P(8, 2.5, 9), P(-8, 2.5, 9)], [Math.cos(a), 0, Math.sin(a)], wood);
+    face(T, [P(-8, 2.5, 9), P(8, 2.5, 9), P(8, 2.5, 4), P(-8, 2.5, 4)], [-Math.cos(a), 0, -Math.sin(a)], wood);
+  }
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const x = sx * (w / 2 - 14), z = sz * (h / 2 - 14); box5(T, x - 7, 0, z - 7, x + 7, 4, z + 7, stone); flat(T, x - 6, z - 6, x + 6, z + 6, 4.2, _C('#2f8f4e')); palm(T, x, z, 30);
+  }
+  for (const sx of [-1, 1]) { const x = sx * (w / 2 - 34); T.prism(x, 0, 0.9, 0, 26, _C('#14102a'), 6); box5(G, x - 2.5, 26, -2.5, x + 2.5, 29, 2.5, _C('#fff3b0')); }
+  return lmMesh(T, G);
+}
+function makeCourt() {                                           // outdoor basketball court with two hoops
+  const T = new GeoBuilder(), G = new GeoBuilder(), Lw = 150, Ld = 84, line = _C('#f4efe6'), blue = _C('#2a5fb0'), rim = _C('#ff7a3d');
+  flat(T, -Lw / 2 - 8, -Ld / 2 - 8, Lw / 2 + 8, Ld / 2 + 8, 0.5, _C('#b24a3a')); flat(T, -Lw / 2, -Ld / 2, Lw / 2, Ld / 2, 0.6, blue);
+  const ln = (x0, z0, x1, z1) => flat(G, x0, z0, x1, z1, 0.7, line);
+  ln(-Lw / 2, -Ld / 2, Lw / 2, -Ld / 2 + 1.4); ln(-Lw / 2, Ld / 2 - 1.4, Lw / 2, Ld / 2); ln(-Lw / 2, -Ld / 2, -Lw / 2 + 1.4, Ld / 2); ln(Lw / 2 - 1.4, -Ld / 2, Lw / 2, Ld / 2); ln(-0.7, -Ld / 2, 0.7, Ld / 2);
+  for (let k = 0; k < 20; k++) { const a0 = k / 20 * TAU, a1 = (k + 1) / 20 * TAU; face(G, [[Math.cos(a0) * 11, 0.7, Math.sin(a0) * 11], [Math.cos(a1) * 11, 0.7, Math.sin(a1) * 11], [Math.cos(a1) * 12.4, 0.7, Math.sin(a1) * 12.4], [Math.cos(a0) * 12.4, 0.7, Math.sin(a0) * 12.4]], [0, 1, 0], line); }
+  for (const s of [-1, 1]) {
+    const xe = s * Lw / 2, xk = xe - s * 30; flat(T, Math.min(xe, xk), -9, Math.max(xe, xk), 9, 0.65, _C('#c4553a'));   // the key
+    ln(Math.min(xk, xk + s * 1.4), -9, Math.max(xk, xk + s * 1.4), 9);
+    box5(T, xe + s * 2 - 1.5, 0, -1.5, xe + s * 2 + 1.5, 24, 1.5, _C('#2b2e38'));                                      // pole, backboard, rim
+    box5(T, xe - s * 1 - 0.6, 20, -7, xe - s * 1 + 0.6, 29, 7, line); box5(G, xe - s * 4 - 2.2, 21, -2.2, xe - s * 4 + 2.2, 21.6, 2.2, rim);
+  }
+  return lmMesh(T, G);
+}
+
 /* ---------- registration: collision boxes into the world, builders into LMS ---------- */
 function genLandmarks() {
   LMS = []; LM_CLEAR = [];
@@ -299,6 +365,17 @@ function genLandmarks() {
     if (p.t === 'crane') { for (const [lx, lz] of CRANE_LEGS) solid(p.x, p.y, a, lx, lz, 7, 7); add(p.x, p.y, a, 180, makeCrane); }
     else if (p.t === 'containers') { solid(p.x, p.y, a, 0, 0, 190, 66); add(p.x, p.y, a, 110, makeContainers); }
     else if (p.t === 'plane') { solid(p.x, p.y, a, -5, 0, 236, 26); solid(p.x, p.y, a, 5, 0, 50, 200); add(p.x, p.y, a, 130, makePlane); }
+    else if (p.t === 'gas' || p.t === 'plaza' || p.t === 'court') {
+      const w = p.w || 166, h = p.h || 100, ex = Math.abs(Math.cos(a)) * w / 2 + Math.abs(Math.sin(a)) * h / 2, ey = Math.abs(Math.sin(a)) * w / 2 + Math.abs(Math.cos(a)) * h / 2;
+      if (hitsColony(p.x, p.y, w, h, p.a)) continue;
+      if (p.t === 'gas') {
+        const L = gasLayout(p), [a0, b0, a1, b1] = L.shop; solid(p.x, p.y, a, (a0 + a1) / 2, (b0 + b1) / 2, a1 - a0, b1 - b0);
+        for (const z of L.isl) solid(p.x, p.y, a, L.cx, z, 72, 8);
+        solid(p.x, p.y, a, w / 2 - 12, h / 2 - 12, 4, 4);
+        add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makeGas(p), ex - 20, ey - 20);
+      } else if (p.t === 'plaza') { solid(p.x, p.y, a, 0, 0, 30, 30); add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makePlaza(p), ex - 20, ey - 20); }
+      else { for (const s of [-1, 1]) solid(p.x, p.y, a, s * 77, 0, 4, 4); add(p.x, p.y, a, 95, makeCourt, ex - 30, ey - 30); }
+    }
   }
   // props are random-looking but must come back the same after streaming out and in
   LMS.forEach((o, i) => { const mk = o.make; o.make = () => withSeed(9001 + i * 31, mk); });

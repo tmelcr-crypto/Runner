@@ -1,8 +1,10 @@
 'use strict';
 /* ---------- 1. CONFIG & HELPERS ---------- */
 const MW = MAP.W, MH = MAP.H;                                          // world size (map from js/00-map-data.js)
-const ROAD_W = MAP.roadW, ROAD_HALF = ROAD_W / 2, LANE = 22;            // road width, lane centre offset from the centre line
-const SIDEWALK = ROAD_HALF + 8;                                         // where people walk, measured from the road centre line
+// a street, from the centre line out: traffic lane (centre at LANE), parking lane (cars park at PARK_OFF), kerb at ROAD_HALF, sidewalk SW_W wide.
+// With ROAD_W 132 a car parked at the kerb (only sedans and sports cars park there) stays clear of a truck passing in the lane.
+const ROAD_W = MAP.roadW, ROAD_HALF = ROAD_W / 2, LANE = 19, PARK_OFF = ROAD_HALF - 14, SW_W = MAP.sw || 16;
+const SIDEWALK = ROAD_HALF + SW_W / 2;                                  // people walk down the middle of the sidewalk
 const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const randi = (a, b) => Math.floor(rand(a, b + 1));

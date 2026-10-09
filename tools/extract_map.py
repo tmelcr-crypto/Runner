@@ -48,8 +48,10 @@ def classify(path):
     fill = land & (lab == WATER); lab[fill] = alt2[fill]; lab[~land] = WATER
     return lab
 
-S = 14                      # world units per image pixel
-ROAD_W = 96                 # rendered road width (units)
+S = 20                      # world units per image pixel
+ROAD_W = 132                # carriageway: two traffic lanes plus a parking lane on each side (a parked car clears a passing truck)
+SW = 22                     # sidewalk width on each side
+PAD = 10                    # raised pavement around buildings
 lab = classify(sys.argv[1]); H, W = lab.shape
 
 # ---------- roads: skeleton -> graph ----------
@@ -168,44 +170,23 @@ print('road nodes', len(nodes), 'edges', len(out_edges), 'bridge segs', sum(sum(
 corr = np.zeros((H, W), np.uint8); buf = np.zeros((H, W), np.uint8)
 for e in out_edges:
     p = np.array(e['p'], np.float64) / S
-    cv2.polylines(corr, [np.round(p * 8).astype(np.int32)], False, 1, thickness=int(round(ROAD_W / S)), shift=3)
-    cv2.polylines(buf, [np.round(p * 8).astype(np.int32)], False, 1, thickness=int(round((ROAD_W + 32) / S)), shift=3)
+    cv2.polylines(corr, [np.round(p * 8).astype(np.int32)], False, 1, thickness=int(round((ROAD_W + 2 * SW) / S)), shift=3)   # road and sidewalks are land (bridge decks too)
+    cv2.polylines(buf, [np.round(p * 8).astype(np.int32)], False, 1, thickness=int(round((ROAD_W + 2 * SW + 2 * PAD + 8) / S)), shift=3)
 for x, y in nodes:
-    cv2.circle(corr, (int(round(x)), int(round(y))), int(ROAD_W / S / 2), 1, -1)
-    cv2.circle(buf, (int(round(x)), int(round(y))), int((ROAD_W + 32) / S / 2), 1, -1)
+    cv2.circle(corr, (int(round(x)), int(round(y))), int((ROAD_W + 2 * SW) / S / 2), 1, -1)
+    cv2.circle(buf, (int(round(x)), int(round(y))), int((ROAD_W + 2 * SW + 2 * PAD + 8) / S / 2), 1, -1)
 land = (land0 | (corr > 0)).astype(np.uint8)
 
-# ---------- area polygons ----------
-def chaikin(pts, it=1):
-    for _ in range(it):
-        q = []
-        for i in range(len(pts)):
-            a, b = pts[i], pts[(i + 1) % len(pts)]
-            q += [(0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]), (0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1])]
-        pts = q
-    return pts
-def polys(mask, min_area, eps):
-    cs, hier = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
-    edge = lambda c: (c[:, 0, 0].min() < 3 or c[:, 0, 1].min() < 3 or c[:, 0, 0].max() > W - 4 or c[:, 0, 1].max() > H - 4) and cv2.contourArea(c) < 400
-    res = []
-    if hier is None: return res
-    hier = hier[0]
-    for i, c in enumerate(cs):
-        if hier[i][3] != -1 or cv2.contourArea(c) < min_area or edge(c): continue   # specks on the screenshot border are not land
-        def conv(c):
-            a = cv2.approxPolyDP(c, eps, True).reshape(-1, 2).astype(float) + 0.5
-            return [[round(x * S), round(y * S)] for x, y in chaikin([tuple(p) for p in a], 1)]
-        holes, j = [], hier[i][2]
-        while j != -1:
-            if cv2.contourArea(cs[j]) >= min_area: holes.append(conv(cs[j]))
-            j = hier[j][0]
-        res.append({'o': conv(c), 'h': holes})
-    return res
-land_p = polys(land, 25, 0.9)
-grass = ((lab == GRASS) & (corr == 0)).astype(np.uint8); grass = cv2.morphologyEx(grass, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
-sand = ((lab == SAND) & (corr == 0)).astype(np.uint8)
-grass_p = polys(grass, 14, 0.9); sand_p = polys(sand, 14, 0.9)
-print('land polys', len(land_p), 'grass', len(grass_p), 'sand', len(sand_p), 'points', sum(len(p['o']) + sum(len(h) for h in p['h']) for p in land_p + grass_p + sand_p), file=sys.stderr)
+DIST = [  # original names; rects in image px [x0, y0, x1, y1], first match wins
+    ['THE SANDBAR', [636, 70, 740, 800]], ['GRAVEL FLATS', [120, 20, 262, 130]], ['HERON KEY', [462, 88, 540, 200]],
+    ['PALM HEIGHTS', [200, 0, 450, 292]], ['FAIRWAY ISLES', [418, 222, 572, 470]], ['PEARL KEY', [330, 428, 470, 545]],
+    ['MERCADO', [185, 292, 360, 560]], ['SKYPORT', [50, 370, 212, 810]], ['DOCKSIDE', [212, 560, 380, 800]],
+    ['GULL ROCKS', [395, 630, 462, 810]], ['SEAVIEW', [520, 60, 660, 300]], ['SUNSTRIP', [500, 300, 660, 480]],
+    ['CORAL SHORE', [430, 480, 660, 810]]]
+def district(x, y):
+    for nm, r in DIST:
+        if r[0] <= x < r[2] and r[1] <= y < r[3]: return nm
+    return ''
 
 # ---------- landmarks (hand placed on the reference image, image px) ----------
 LM_PX = [
@@ -328,6 +309,159 @@ apron = gray & (cv2.erode(gray.astype(np.uint8), np.ones((15, 15), np.uint8)) > 
 for x, y in place((50, 370, 212, 810), apron, 26, 4):
     props.append({'t': 'plane', 'x': round(x * S), 'y': round(y * S), 'a': float(np.random.default_rng(x * 7 + y).uniform(-180, 180))})
 print('props', len(props), {t: sum(1 for p in props if p['t'] == t) for t in ('crane', 'containers', 'plane')}, file=sys.stderr)
+# ---------- lakes: Gravel Flats becomes a lake inside a park; ponds in the larger parks ----------
+rng = np.random.default_rng(11)
+reg = np.zeros((H, W), bool); reg[20:130, 120:262] = True
+blob = reg & (land > 0) & (corr == 0) & (lm_mask == 0)
+lake = cv2.erode(blob.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (27, 27)))
+lake = cv2.morphologyEx(lake, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))) > 0
+lab[blob & ~lake] = GRASS; lab[lake] = WATER; land[lake] = 0
+g = ((lab == GRASS) & (land > 0) & (buf == 0) & (cv2.dilate(lm_mask, np.ones((9, 9), np.uint8)) == 0) & ~reg).astype(np.uint8)
+dg = cv2.distanceTransform(g, cv2.DIST_L2, 5)
+ys, xs = np.nonzero(dg >= 8); ponds = []
+for k in np.argsort(-dg[ys, xs]):
+    x, y = int(xs[k]), int(ys[k])
+    if any((x - u) ** 2 + (y - v) ** 2 < 45 ** 2 for u, v, _ in ponds): continue
+    ponds.append((x, y, float(min(dg[y, x] - 3, 13))))
+    if len(ponds) >= 12: break
+for x, y, r in ponds:
+    m = np.zeros((H, W), np.uint8); a = float(rng.uniform(0, 180))
+    cv2.ellipse(m, (x, y), (int(r), int(max(4, r * rng.uniform(0.55, 0.9)))), a, 0, 360, 1, -1)
+    cv2.ellipse(m, (int(x + np.cos(np.radians(a)) * r * 0.5), int(y + np.sin(np.radians(a)) * r * 0.5)), (int(r * 0.6), int(r * 0.45)), a + 40, 0, 360, 1, -1)
+    m = (m > 0) & (dg >= 3)
+    lab[m] = WATER; land[m] = 0
+print('lake and ponds', len(ponds), file=sys.stderr)
+
+# ---------- fill: rows of buildings along every street, with parking lots, gas stations, plazas and pocket parks in the row;
+#            then the insides of the blocks (more buildings, container yards at the docks, courtyard parks) ----------
+R = 8                                                  # fill raster: world units per cell
+FW, FH = W * S // R, H * S // R
+up = lambda m: cv2.resize(m.astype(np.uint8), (FW, FH), interpolation=cv2.INTER_NEAREST) > 0
+free = up((lab == LAND) & (land > 0) & (lm_mask == 0))
+RH = ROAD_W / 2; FRONT = RH + SW + PAD + 2             # building fronts stand this far from the road centre line
+blk = np.zeros((FH, FW), np.uint8)
+for e in out_edges:
+    cv2.polylines(blk, [np.round(np.array(e['p'], float) / R * 8).astype(np.int32)], False, 1, thickness=int(round(2 * (FRONT - 14) / R)), shift=3)   # drawn a little narrow: rasterising widens it
+for x, y in nodes: cv2.circle(blk, (int(round(x * S / R)), int(round(y * S / R))), int(round((FRONT + 6) / R)), 1, -1)
+free &= blk == 0
+def rect_pts(cx, cy, w, h, a):
+    ca, sa = np.cos(a), np.sin(a)
+    return np.array([[cx + ca * u - sa * v, cy + sa * u + ca * v] for u, v in [(-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)]])
+def poly_mask(pts):
+    q = pts / R; x0, y0 = np.floor(q.min(0)).astype(int) - 1; x1, y1 = np.ceil(q.max(0)).astype(int) + 2
+    if x0 < 0 or y0 < 0 or x1 > FW or y1 > FH: return None
+    m = np.zeros((y1 - y0, x1 - x0), np.uint8); cv2.fillPoly(m, [np.round((q - [x0, y0]) * 8).astype(np.int32)], 1, shift=3)
+    return x0, y0, m > 0
+def fits(pts):
+    pm = poly_mask(pts)
+    if pm is None: return False
+    x0, y0, m = pm; return bool(free[y0:y0 + m.shape[0], x0:x0 + m.shape[1]][m].all())
+def take(pts):
+    pm = poly_mask(pts)
+    if pm is not None: x0, y0, m = pm; free[y0:y0 + m.shape[0], x0:x0 + m.shape[1]][m] = False
+for b in bl:                                           # the map's own buildings and the props already placed keep their ground
+    take(rect_pts(b[0], b[1], b[2] + 2 * PAD + 8, b[3] + 2 * PAD + 8, np.radians(b[4])))
+for q in props: take(rect_pts(q['x'], q['y'], 260, 260, 0))
+# per district: chance to leave a gap, frontage width, depth, spacing, and chances of a lot / pocket park / plaza / gas station
+FILLP = {
+    'PALM HEIGHTS': dict(skip=0.04, w=(90, 170), d=(90, 160), gap=(6, 14), lot=0.06, park=0.04, plaza=0.05, gas=0.05),
+    'MERCADO':      dict(skip=0.05, w=(50, 90), d=(50, 90), gap=(10, 24), lot=0.04, park=0.07, plaza=0.02, gas=0.05),
+    'DOCKSIDE':     dict(skip=0.12, w=(120, 220), d=(100, 170), gap=(14, 30), lot=0.06, park=0.0, plaza=0.0, gas=0.06),
+    'SKYPORT':      dict(skip=0.6, w=(110, 200), d=(90, 150), gap=(20, 50), lot=0.12, park=0.0, plaza=0.0, gas=0.05),
+    'SEAVIEW':      dict(skip=0.05, w=(80, 150), d=(80, 140), gap=(8, 18), lot=0.06, park=0.05, plaza=0.03, gas=0.05),
+    'SUNSTRIP':     dict(skip=0.04, w=(80, 150), d=(80, 140), gap=(6, 14), lot=0.06, park=0.04, plaza=0.05, gas=0.05),
+    'CORAL SHORE':  dict(skip=0.04, w=(70, 130), d=(80, 130), gap=(6, 12), lot=0.05, park=0.04, plaza=0.05, gas=0.05),
+    'PEARL KEY':    dict(skip=0.2, w=(70, 110), d=(70, 110), gap=(40, 70), lot=0.0, park=0.0, plaza=0.0, gas=0.0),
+    'HERON KEY':    dict(skip=0.2, w=(70, 110), d=(70, 110), gap=(30, 60), lot=0.0, park=0.0, plaza=0.0, gas=0.0),
+    'FAIRWAY ISLES': dict(skip=0.5, w=(70, 110), d=(70, 110), gap=(40, 80), lot=0.0, park=0.0, plaza=0.0, gas=0.0),
+    'GULL ROCKS':   dict(skip=0.4, w=(60, 100), d=(60, 100), gap=(30, 60), lot=0.0, park=0.0, plaza=0.0, gas=0.0)}
+DEFP = dict(skip=0.08, w=(60, 110), d=(60, 110), gap=(12, 26), lot=0.03, park=0.06, plaza=0.02, gas=0.03)
+fillb, lots, parks, gas_at = [], [], [], []
+def along(P, cum, t):                                  # point and unit tangent at arc length t of a polyline
+    k = min(np.searchsorted(cum, t, side='right') - 1, len(P) - 2); d = P[k + 1] - P[k]; l = np.linalg.norm(d) or 1
+    return P[k] + d * ((t - cum[k]) / l), d / l
+for e in out_edges:
+    P = np.array(e['p'], float); cum = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]); total = cum[-1]
+    for side in (1, -1):
+        t = 8.0
+        while t < total - 40:
+            mid, _ = along(P, cum, t); prof = FILLP.get(district(mid[0] / S, mid[1] / S), DEFP)
+            if rng.random() < prof['skip']: t += 50; continue
+            r = rng.random(); kind = 'b'
+            if r < prof['gas'] and all(np.hypot(*(mid - q)) > 1800 for q in gas_at): kind = 'gas'
+            elif r < prof['gas'] + prof['lot']: kind = 'lot'
+            elif r < prof['gas'] + prof['lot'] + prof['park']: kind = 'park'
+            elif r < prof['gas'] + prof['lot'] + prof['park'] + prof['plaza']: kind = 'plaza'
+            w, d = {'gas': (rng.uniform(180, 220), rng.uniform(135, 160)), 'lot': (rng.uniform(150, 230), rng.uniform(112, 150)),
+                    'park': (rng.uniform(130, 220), rng.uniform(110, 170)), 'plaza': (rng.uniform(120, 180), rng.uniform(100, 140))}.get(kind) or (rng.uniform(*prof['w']), rng.uniform(*prof['d']))
+            placed = False
+            for fw in ((1,) if kind != 'b' else (1, 0.75, 0.55)):            # lots, parks and stations keep their size or are skipped;
+                ww = min(w * fw, total - 6 - t)                                # buildings get narrower and shallower until they fit
+                if ww < (150 if kind == 'lot' else 44): break
+                q, u = along(P, cum, t + ww / 2); nrm = side * np.array([-u[1], u[0]]); ang = float(np.arctan2(nrm[0], -nrm[1]))   # front faces the street
+                for fd in ((1, 0.88) if kind == 'gas' else (1,) if kind != 'b' else (1, 0.8, 0.62, 0.48, 0.36)):
+                    dd = d * fd
+                    if dd < 40: break
+                    c = q + nrm * (FRONT + dd / 2)
+                    if fits(rect_pts(c[0], c[1], ww, dd, ang)): placed = True; break
+                if placed: break
+            if not placed: t += 16; continue
+            take(rect_pts(c[0], c[1], ww + 8, dd + 8, ang))
+            deg = round(float(np.degrees(ang)), 1); cx, cy = round(float(c[0])), round(float(c[1]))
+            if kind == 'b': fillb.append([cx, cy, round(ww), round(dd), deg, -1, 0, 1])
+            elif kind == 'lot': lots.append([cx, cy, round(ww), round(dd), deg])
+            elif kind == 'gas': props.append({'t': 'gas', 'x': cx, 'y': cy, 'w': round(ww), 'h': round(dd), 'a': deg}); gas_at.append(c)
+            elif kind == 'plaza': props.append({'t': 'plaza', 'x': cx, 'y': cy, 'w': round(ww), 'h': round(dd), 'a': deg})
+            else:
+                parks.append(rect_pts(c[0], c[1], ww, dd, ang))
+                if ww > 150 and dd > 120 and rng.random() < 0.45: props.append({'t': 'court', 'x': cx, 'y': cy, 'a': deg})
+            t += ww + rng.uniform(*prof['gap'])
+print('frontage: buildings', len(fillb), 'lots', len(lots), 'parks', len(parks), 'gas', len(gas_at), 'plazas', sum(1 for q in props if q['t'] == 'plaza'), file=sys.stderr)
+segs = [(np.array(e['p'][k], float), np.array(e['p'][k + 1], float)) for e in out_edges for k in range(len(e['p']) - 1)]
+def road_dir(x, y):
+    best, bd = 0.0, 1e18
+    for A, B in segs:
+        d = B - A; l2 = d @ d or 1; t = np.clip(((x - A[0]) * d[0] + (y - A[1]) * d[1]) / l2, 0, 1); q = A + d * t; dd = (q[0] - x) ** 2 + (q[1] - y) ** 2
+        if dd < bd: bd, best = dd, float(np.arctan2(d[1], d[0]))
+    return best
+def interior(step_k, size_k, minsz, gapsz, tag):        # buildings on a grid lined up with the nearest street; container yards at the docks
+    inner = cv2.erode(free.astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1)
+    n_, cc_, st_, cen_ = cv2.connectedComponentsWithStats(inner, 8); nb = nc = 0
+    for i in range(1, n_):
+        if st_[i, cv2.CC_STAT_AREA] * R * R < minsz * minsz: continue
+        cx, cy = cen_[i] * R; dn = district(cx / S, cy / S)
+        if dn in ('SKYPORT', 'THE SANDBAR', 'GRAVEL FLATS', 'FAIRWAY ISLES'): continue
+        prof = FILLP.get(dn, DEFP); a = road_dir(cx, cy); ca, sa = np.cos(a), np.sin(a)
+        half = np.hypot(st_[i, 2], st_[i, 3]) * R / 2 + 40; step = max(minsz, prof['w'][1] * step_k)
+        for gy in np.arange(-half, half, step):
+            for gx in np.arange(-half, half, step):
+                px, py = cx + ca * gx - sa * gy, cy + sa * gx + ca * gy
+                if dn == 'DOCKSIDE' and rng.random() < 0.5:
+                    if fits(rect_pts(px, py, 200, 76, a)): take(rect_pts(px, py, 216, 92, a)); props.append({'t': 'containers', 'x': round(px), 'y': round(py), 'a': round(float(np.degrees(a)), 1)}); nc += 1
+                    continue
+                w0, d0 = rng.uniform(*prof['w']) * size_k, rng.uniform(*prof['d']) * size_k
+                for f in (1, 0.75, 0.55):
+                    ww, dd = max(minsz, w0 * f), max(minsz, d0 * f)
+                    if fits(rect_pts(px, py, ww, dd, a)):
+                        take(rect_pts(px, py, ww + gapsz, dd + gapsz, a)); fillb.append([round(px), round(py), round(ww), round(dd), round(float(np.degrees(a)), 1), -1, 0, 1]); nb += 1; break
+    print(tag, 'buildings', nb, 'container yards', nc, file=sys.stderr)
+interior(0.9, 1.1, 60, 16, 'block interiors:')
+interior(0.45, 0.6, 46, 12, 'small infill:')
+park_img = np.zeros((H, W), np.uint8)
+for pts in parks: cv2.fillPoly(park_img, [np.round(pts / S * 8).astype(np.int32)], 1, shift=3)
+inner = cv2.erode(free.astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)
+n_, cc_, st_, cen_ = cv2.connectedComponentsWithStats(inner, 8)
+cy_parks = 0
+for i in range(1, n_):
+    if st_[i, cv2.CC_STAT_AREA] * R * R < 100 * 100: continue
+    cx, cy = cen_[i] * R; dn = district(cx / S, cy / S)
+    if dn in ('SKYPORT', 'THE SANDBAR', 'GRAVEL FLATS', 'DOCKSIDE') or rng.random() < 0.15: continue
+    park_img |= cv2.resize((cc_ == i).astype(np.uint8), (W, H), interpolation=cv2.INTER_AREA) > 0
+    cy_parks += 1
+lab[(park_img > 0) & (lab == LAND) & (land > 0)] = GRASS
+bl += fillb
+print('courtyard parks', cy_parks, 'buildings in all', len(bl), file=sys.stderr)
+
 LM = []
 for L in LM_PX:
     o = {'t': L['t']}
@@ -337,17 +471,43 @@ for L in LM_PX:
     if 'house' in L: x0, y0, x1, y1 = L['house']; o['house'] = [round((x0 + x1) / 2 * S), round((y0 + y1) / 2 * S), (x1 - x0) * S, (y1 - y0) * S]
     LM.append(o)
 
-DIST = [  # original names; rects in image px [x0, y0, x1, y1], first match wins
-    ['THE SANDBAR', [636, 70, 740, 800]], ['GRAVEL FLATS', [120, 20, 262, 130]], ['HERON KEY', [462, 88, 540, 200]],
-    ['PALM HEIGHTS', [200, 0, 450, 292]], ['FAIRWAY ISLES', [418, 222, 572, 470]], ['PEARL KEY', [330, 428, 470, 545]],
-    ['MERCADO', [185, 292, 360, 560]], ['SKYPORT', [50, 370, 212, 810]], ['DOCKSIDE', [212, 560, 380, 800]],
-    ['GULL ROCKS', [395, 630, 462, 810]], ['SEAVIEW', [520, 60, 660, 300]], ['SUNSTRIP', [500, 300, 660, 480]],
-    ['CORAL SHORE', [430, 480, 660, 810]]]
+# ---------- area polygons ----------
+def chaikin(pts, it=1):
+    for _ in range(it):
+        q = []
+        for i in range(len(pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            q += [(0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]), (0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1])]
+        pts = q
+    return pts
+def polys(mask, min_area, eps):
+    cs, hier = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    edge = lambda c: (c[:, 0, 0].min() < 3 or c[:, 0, 1].min() < 3 or c[:, 0, 0].max() > W - 4 or c[:, 0, 1].max() > H - 4) and cv2.contourArea(c) < 400
+    res = []
+    if hier is None: return res
+    hier = hier[0]
+    for i, c in enumerate(cs):
+        if hier[i][3] != -1 or cv2.contourArea(c) < min_area or edge(c): continue   # specks on the screenshot border are not land
+        def conv(c):
+            a = cv2.approxPolyDP(c, eps, True).reshape(-1, 2).astype(float) + 0.5
+            return [[round(x * S), round(y * S)] for x, y in chaikin([tuple(p) for p in a], 1)]
+        holes, j = [], hier[i][2]
+        while j != -1:
+            if cv2.contourArea(cs[j]) >= min_area: holes.append(conv(cs[j]))
+            j = hier[j][0]
+        res.append({'o': conv(c), 'h': holes})
+    return res
+land_p = polys(land, 25, 0.9)
+grass = ((lab == GRASS) & (corr == 0)).astype(np.uint8); grass = cv2.morphologyEx(grass, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+sand = ((lab == SAND) & (corr == 0)).astype(np.uint8)
+grass_p = polys(grass, 14, 0.9); sand_p = polys(sand, 14, 0.9)
+print('land polys', len(land_p), 'grass', len(grass_p), 'sand', len(sand_p), 'points', sum(len(p['o']) + sum(len(h) for h in p['h']) for p in land_p + grass_p + sand_p), file=sys.stderr)
+
 data = {'S': S, 'W': W * S, 'H': H * S, 'roadW': ROAD_W, 'nodes': [[round(x * S), round(y * S)] for x, y in nodes], 'edges': out_edges,
-        'land': land_p, 'grass': grass_p, 'sand': sand_p, 'bld': bl, 'lm': LM, 'props': props,
+        'land': land_p, 'grass': grass_p, 'sand': sand_p, 'bld': bl, 'lm': LM, 'props': props, 'lots': lots, 'sw': SW,
         'districts': [[nm, [r[0] * S, r[1] * S, r[2] * S, r[3] * S]] for nm, r in DIST], 'start': [560 * S, 652 * S]}
 with open(sys.argv[2], 'w') as f:
     f.write("'use strict';\n/* Bay city map, generated by tools/extract_map.py from a reference map image.\n"
             "   Units are world units (S per source pixel). land/grass/sand: polygons {o: outer ring, h: holes}.\n"
-            "   nodes/edges: road graph, edge.p is the centre-line polyline. bld: building boxes [cx, cy, w, h, angle deg, block id, inner-side flags N1 S2 W4 E8].\n   lm: landmarks, props: cranes, containers, planes. */\nconst MAP = ")
+            "   nodes/edges: road graph, edge.p is the centre-line polyline. bld: building boxes [cx, cy, w, h, angle deg, block id, inner-side flags N1 S2 W4 E8, 1 = street-front fill].\n   lm: landmarks; props: cranes, containers, planes, gas stations, plazas, courts; lots: parking lots [cx, cy, w, d, angle deg]; sw: sidewalk width. */\nconst MAP = ")
     json.dump(data, f, separators=(',', ':'), default=lambda o: o.item()); f.write(';\n')

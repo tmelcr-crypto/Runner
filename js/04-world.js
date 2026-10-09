@@ -233,30 +233,49 @@ function blockStyle(cx, cy, big) {
   else if (d === 'PEARL KEY' || d === 'FAIRWAY ISLES' || d === 'HERON KEY') Object.assign(o, { H: rand(24, 36), kind: 'deco', pal: PASTEL, pastel: true });
   o.c = pick(o.pal); return o;
 }
+function fillStyle(cx, cy, w, h) {                               // style of one street-front or interior building
+  const d = districtAt(cx, cy), o = blockStyle(cx, cy, false), cap = Math.min(w, h) < 70 ? 40 : 52;
+  if (d === 'MERCADO') o.H = rand(22, 36);
+  else if (d === 'PEARL KEY' || d === 'HERON KEY' || d === 'FAIRWAY ISLES' || d === 'GULL ROCKS') o.H = rand(22, 32);
+  o.H = Math.min(o.H, cap); if (o.kind === 'condo' || o.kind === 'glass') o.kind = 'office';
+  return o;
+}
+let LOTS = [], PARK_SPOTS = [];                                   // parking lots; stalls { x, y, ang }
 let worldReady = false;
 function genWorld() {
   if (worldReady) return;
   buildShoreField();
   const blocks = {}; colonySpot();                               // the Colony takes its real lot on Ocean Drive; map buildings there make way
-  BLD = MAP.bld.filter(b => !hitsColony(b[0], b[1], b[2], b[3], b[4])).map(([cx, cy, w, h, ang, grp, inner]) => {
+  BLD = MAP.bld.filter(b => !hitsColony(b[0], b[1], b[2], b[3], b[4])).map(([cx, cy, w, h, ang, grp, inner, fill]) => {
+    if (fill) {                                                   // street-front and block-interior buildings: drawn merged per chunk, kept low enough
+      const g = fillStyle(cx, cy, w, h), a = ang * Math.PI / 180, fx = cx - Math.sin(a) * h / 2, fy = cy + Math.cos(a) * h / 2;   // that nobody on the sidewalk disappears behind them
+      const H = GFH + Math.max(1, Math.round((g.H - GFH) / FLOOR)) * FLOOR, shop = !!nearestRoad(fx, fy, ROAD_HALF + SW_W + 24);   // a shop if its front is on a street
+      return makeSolid(cx, cy, w, h, a, { seed: cx * 7 + cy * 13 + 1, inner: 0, pad: true, bld: true, fill: true, shop, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel });
+    }
     const g = blocks[grp] || (blocks[grp] = blockStyle(cx, cy, Math.max(w, h) >= 90)), tiny = Math.min(w, h) < 45;
     let H = g.H * rand(0.8, 1.15); if (tiny) H = Math.min(H, 36); else if (Math.min(w, h) < 90) H = Math.min(H, 130);
     return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
   });
+  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang]) => ({ cx, cy, w, d, a: ang * Math.PI / 180 }));
+  PARK_SPOTS = [];
+  for (const L of LOTS) {                                         // one row of nose-in stalls along the back of each lot; the street side stays open
+    const ca = Math.cos(L.a), sa = Math.sin(L.a), n = Math.floor((L.w - 20) / 30), z = -L.d / 2 + 36;
+    for (let k = 0; k < n; k++) { const x = -L.w / 2 + 25 + k * 30; PARK_SPOTS.push({ x: L.cx + ca * x - sa * z, y: L.cy + sa * x + ca * z, ang: Math.atan2(-ca, sa) }); }
+  }
   { // the hotel next to where the player starts gets its name in lights
     const se = RE[startSpot()], sp = edgeAt(se.i, se.len / 2, {});
-    let best = null, bd = 1e9; for (const r of BLD) { const d = dist(r.cx, r.cy, sp.x, sp.y) + (r.kind === 'deco' ? 0 : 400); if (Math.min(r.lw, r.lh) >= 56 && d < bd) { bd = d; best = r; } }
+    let best = null, bd = 1e9; for (const r of BLD) { if (r.fill) continue; const d = dist(r.cx, r.cy, sp.x, sp.y) + (r.kind === 'deco' ? 0 : 400); if (Math.min(r.lw, r.lh) >= 56 && d < bd) { bd = d; best = r; } }
     if (best) { best.kind = 'deco'; best.pastel = true; }
     if (best) { best.sign = 'SEA BREEZE'; best.H = Math.max(best.H, 60); best.c = '#9be8c8'; }
   }
   genLandmarks();
-  DRAW = BLD.concat(LMS);
+  DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck
   const q = {};
   for (const E of RE) {
     const n = Math.max(2, Math.ceil(E.len / 26)), wet = [];
     for (let k = 0; k <= n; k++) {
-      edgeAt(E.i, E.len * k / n, q); const ox = -q.ty * (ROAD_HALF + 22), oy = q.tx * (ROAD_HALF + 22);
+      edgeAt(E.i, E.len * k / n, q); const ox = -q.ty * (ROAD_HALF + SW_W + 24), oy = q.tx * (ROAD_HALF + SW_W + 24);   // beyond the sidewalk
       wet.push(shoreDist(q.x + ox, q.y + oy) < 0 && shoreDist(q.x - ox, q.y - oy) < 0);
     }
     for (let k = 0; k <= n; k++) {
@@ -265,7 +284,7 @@ function genWorld() {
       const k0 = Math.max(0, k - 1), k1 = Math.min(n, j + 1); if (k1 - k0 < 2) continue;
       BRIDGES.push({ e: E.i, s0: E.len * k0 / n, s1: E.len * k1 / n });
       for (const sd of [-1, 1]) for (let m = k0; m < k1; m++) {
-        const a = edgeAt(E.i, E.len * m / n, {}), b = edgeAt(E.i, E.len * (m + 1) / n, {}), off = sd * (ROAD_HALF - 2);
+        const a = edgeAt(E.i, E.len * m / n, {}), b = edgeAt(E.i, E.len * (m + 1) / n, {}), off = sd * (ROAD_HALF + SW_W - 2);   // rails at the outer edge of the sidewalk
         const s = { x1: a.x - a.ty * off, y1: a.y + a.tx * off, x2: b.x - b.ty * off, y2: b.y + b.tx * off };
         RAILS.push(s); rHash.add(s, Math.min(s.x1, s.x2) - 4, Math.min(s.y1, s.y2) - 4, Math.max(s.x1, s.x2) + 4, Math.max(s.y1, s.y2) + 4);
       }

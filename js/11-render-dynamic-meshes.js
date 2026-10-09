@@ -11,39 +11,46 @@ function sweepDynamic() {
 }
 function part(parent, geo, mat, sx, sy, sz, x, y, z) { const o = new THREE.Mesh(geo, mat); o.scale.set(sx, sy, sz); o.position.set(x, y, z); parent.add(o); return o; }
 
-function buildCar(c) {
+const _cg = {};
+function mergedGeo(key, parts) {            // scaled, moved copies of shared geometry as one geometry; cached, so every car of a type shares it
+  if (_cg[key]) return _cg[key];
+  const pos = [], nor = [], uv = [], m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), t = new THREE.Vector3(), sc = new THREE.Vector3();
+  for (const [geo, sx, sy, sz, x, y, z] of parts) {
+    const g = geo.toNonIndexed(); g.applyMatrix4(m4.compose(t.set(x, y, z), q, sc.set(sx, sy, sz)));
+    for (const v of g.attributes.position.array) pos.push(v); for (const v of g.attributes.normal.array) nor.push(v); for (const v of g.attributes.uv.array) uv.push(v); g.dispose();
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.computeBoundingSphere(); return (_cg[key] = g);
+}
+function buildCar(c) {                       // parts that never move on their own are merged: one mesh per material
   const t = c.t, L = t.len, Wd = t.wid, g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   const body = new THREE.MeshLambertMaterial({ color: c.color }), m = { body, tail: [], bar: [], cabin: null };
+  const merged = (key, mat, parts) => { const o = new THREE.Mesh(mergedGeo(c.type + key, parts), mat); tilt.add(o); return o; };
+  const wheels = [], wheel = (x, z, r) => wheels.push([GCylZ, r, r, 3.6, x, r, z]), lamp = (x, y, h) => [-1, 1].map(s => [GB, 1.4, h, 5, x, y, s * (Wd / 2 - (c.type === 'truck' ? 5 : 4))]);
   part(g, GCirc, E.shadow, L * 0.62, 1, Wd * 0.64, 0, 1.3, 0);
-  const wheel = (x, z, r) => part(tilt, GCylZ, E.tire, r, r, 3.6, x, r, z);
   if (c.type === 'truck') {
-    part(tilt, GB, body, L * 0.32, 13, Wd, L * 0.34, 9.5, 0);
+    merged('b', body, [[GB, L * 0.32, 13, Wd, L * 0.34, 9.5, 0]]);
     m.cabin = part(tilt, GB, E.glass, L * 0.1, 6, Wd - 4, L * 0.42, 16, 0);
     part(tilt, GB, E.cargo, L * 0.62, 20, Wd, -L * 0.19, 13, 0);
     for (const x of [L * 0.34, -L * 0.1, -L * 0.34]) for (const s of [-1, 1]) wheel(x, s * (Wd / 2 + 0.4), 5);
-    for (const s of [-1, 1]) m.tail.push(part(tilt, GB, E.tailOff, 1.4, 3, 5, -L / 2, 7, s * (Wd / 2 - 5)));
-    for (const s of [-1, 1]) part(tilt, GB, E.headL, 1.4, 3, 5, L / 2, 8, s * (Wd / 2 - 5));
+    m.tail.push(merged('t', E.tailOff, lamp(-L / 2, 7, 3))); merged('h', E.headL, lamp(L / 2, 8, 3));
   } else if (c.type === 'sports') {
-    part(tilt, GB, body, L, 6.5, Wd, 0, 6, 0);
+    merged('b', body, [[GB, L, 6.5, Wd, 0, 6, 0], [GB, L * 0.24, 1.2, Wd - 9, -L * 0.06, 14.6, 0], [GB, 3, 1.2, Wd - 2, -L / 2 + 2, 12.5, 0]]);
     m.cabin = part(tilt, GB, E.glass, L * 0.3, 5, Wd - 6, -L * 0.06, 11.7, 0);
-    part(tilt, GB, body, L * 0.24, 1.2, Wd - 9, -L * 0.06, 14.6, 0);
     part(tilt, GB, E.white, L * 0.98, 0.5, 4, 0, 9.5, 0);
-    part(tilt, GB, body, 3, 1.2, Wd - 2, -L / 2 + 2, 12.5, 0);
     for (const x of [L * 0.3, -L * 0.3]) for (const s of [-1, 1]) wheel(x, s * (Wd / 2 + 0.3), 4.4);
-    for (const s of [-1, 1]) m.tail.push(part(tilt, GB, E.tailOff, 1.4, 2.4, 5, -L / 2, 6.5, s * (Wd / 2 - 4)));
-    for (const s of [-1, 1]) part(tilt, GB, E.headL, 1.4, 2.2, 5, L / 2, 6.5, s * (Wd / 2 - 4));
+    m.tail.push(merged('t', E.tailOff, lamp(-L / 2, 6.5, 2.4))); merged('h', E.headL, lamp(L / 2, 6.5, 2.2));
   } else {
-    part(tilt, GB, body, L, 8, Wd, 0, 7, 0);
+    merged('b', body, [[GB, L, 8, Wd, 0, 7, 0], [GB, L * 0.34, 1.4, Wd - 8, -L * 0.04, 18.6, 0]]);
     m.cabin = part(tilt, GB, E.glass, L * 0.4, 7, Wd - 5, -L * 0.04, 14.5, 0);
-    part(tilt, GB, body, L * 0.34, 1.4, Wd - 8, -L * 0.04, 18.6, 0);
     if (c.type === 'police') {
       part(tilt, GB, E.white, L * 0.3, 6.5, Wd + 0.8, -L * 0.04, 7, 0);
       m.bar.push(part(tilt, GB, E.redOff, 4, 2.6, Wd * 0.36, -L * 0.04, 20.2, -Wd * 0.2), part(tilt, GB, E.blueOff, 4, 2.6, Wd * 0.36, -L * 0.04, 20.2, Wd * 0.2));
     }
     for (const x of [L * 0.31, -L * 0.31]) for (const s of [-1, 1]) wheel(x, s * (Wd / 2 + 0.3), 4.6);
-    for (const s of [-1, 1]) m.tail.push(part(tilt, GB, E.tailOff, 1.4, 2.6, 5, -L / 2, 8, s * (Wd / 2 - 4)));
-    for (const s of [-1, 1]) part(tilt, GB, E.headL, 1.4, 2.6, 5, L / 2, 8, s * (Wd / 2 - 4));
+    m.tail.push(merged('t', E.tailOff, lamp(-L / 2, 8, 2.6))); merged('h', E.headL, lamp(L / 2, 8, 2.6));
   }
+  merged('w', E.tire, wheels);
   { // the driver: a head and shoulders over the roof; only present while someone is at the wheel
     const hy = c.type === 'truck' ? 21 : c.type === 'sports' ? 17.5 : 22.5, hx = c.type === 'truck' ? L * 0.4 : c.type === 'sports' ? -L * 0.05 : -L * 0.02, hz = -Wd * 0.2;
     const dg = new THREE.Group(); dg.position.set(hx, hy, hz); tilt.add(dg);
