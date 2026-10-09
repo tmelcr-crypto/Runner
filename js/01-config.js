@@ -18,7 +18,7 @@ function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d
 const UNITS_PER_M = 12, MPS = UNITS_PER_M, KMH = UNITS_PER_M / 3.6, G_ACC = 9.81 * UNITS_PER_M;
 const LAT_GRIP = 2 * G_ACC;                                   // cornering limit: about twice a road car's grip, so driving stays fun
 const acc0to100 = (top, secs) => -top * KMH * Math.log(1 - 100 / top) / secs;   // throttle force that reaches 100 km/h in `secs`
-const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicker off the line), braking about 1 g
+const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicker off the line), braking about 1 g; armored: true stops rifle rounds (none yet)
   sedan:  { name: 'SEDAN',  len: 54, wid: 26, max: 180 * KMH, acc: acc0to100(180, 7),   brake: 9.5 * MPS,  turn: 2.7, grip: 5.5, hp: 100, mass: 1.0,  colors: ['#ff2bd6', '#2bf3ff', '#a259ff', '#ffe14a', '#3dffa6', '#6f86ff'] },
   sports: { name: 'SPORTS', len: 52, wid: 24, max: 260 * KMH, acc: acc0to100(260, 4),   brake: 10.5 * MPS, turn: 3.0, grip: 3.4, hp: 70,  mass: 0.85, colors: ['#ff2bd6', '#ffe14a', '#2bf3ff', '#ff4d4d'] },
   truck:  { name: 'TRUCK',  len: 78, wid: 33, max: 130 * KMH, acc: acc0to100(130, 12),  brake: 7.5 * MPS,  turn: 1.9, grip: 6.5, hp: 220, mass: 2.4,  colors: ['#3d6fff', '#ff7a3d', '#3dffa6', '#b79cff'] },
@@ -26,11 +26,13 @@ const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicke
 };
 const WALK = 1.4 * MPS, RUN = 5 * MPS, SPRINT = 7 * MPS;      // people: a stroll, a run, a flat-out sprint
 const FOOT = 1.15;                                              // the player is 15% quicker on foot than other people
+// rate: seconds between shots; reload: seconds to swap a magazine; ammo: rounds you start with besides the full magazine.
+// The sniper rifle only fires standing still: hold FIRE, drag to the target in a 4x scope, let go to shoot. Its range is the whole screen.
 const WEAPONS = [
-  { name: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, hear: 140 },
-  { name: 'MACHINE GUN', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, hear: 200 }
+  { id: 'pistol', name: 'PISTOL', short: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, ammo: 60, reload: 5, hear: 140, shake: 3 },
+  { id: 'mg', name: 'MACHINE GUN', short: 'MG', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, ammo: 120, reload: 5, hear: 200, shake: 2.2 },
+  { id: 'sniper', name: 'SNIPER RIFLE', short: 'SNIPER', rate: 1.5, dmg: 160, spread: 0, range: 4000, heat: 6, auto: false, mag: 5, ammo: 15, reload: 10, hear: 320, shake: 6, scope: 4 }
 ];
-const RELOAD_T = 5;   // seconds to swap a magazine
 const STAR_AT = [18, 48, 90, 140, 200];   // heat needed for 1..5 stars
 
 const $ = id => document.getElementById(id);

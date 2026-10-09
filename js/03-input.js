@@ -2,7 +2,7 @@
 /* ---------- 3. INPUT (keyboard, mouse, touch) ---------- */
 const keys = {}, pressed = {};
 const mouse = { x: 0, y: 0, down: false };
-const TS = { mx: 0, my: 0, ax: 0, ay: 0, aim: false, fire: false, tap: 0, sprint: false };  // touch state
+const TS = { mx: 0, my: 0, ax: 0, ay: 0, aim: false, fire: false, tap: 0, sprint: false, fx: 0, fy: 0 };  // touch state; fx, fy: where the finger on FIRE is now
 let touchMode = false;
 
 addEventListener('keydown', e => {
@@ -46,11 +46,19 @@ function bindBtn(el, down, up) {
   const end = () => { el.classList.remove('down'); if (up) up(); };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('pointerleave', end);
 }
-bindBtn($('bFire'), () => { TS.fire = true; TS.tap = 3; }, () => { TS.fire = false; });
+(function () {                              // FIRE: held down it keeps firing; the finger may slide off it (to aim the rifle scope) and it still counts
+  const b = $('bFire'); let id = null;
+  b.addEventListener('pointerdown', e => {
+    if (id !== null) return; id = e.pointerId; try { b.setPointerCapture(id); } catch (err) { }
+    b.classList.add('down'); TS.fire = true; TS.tap = 3; TS.fx = e.clientX; TS.fy = e.clientY; e.preventDefault();
+  });
+  b.addEventListener('pointermove', e => { if (e.pointerId === id) { TS.fx = e.clientX; TS.fy = e.clientY; e.preventDefault(); } });
+  const end = e => { if (e.pointerId !== id) return; id = null; b.classList.remove('down'); TS.fire = false; };
+  b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+})();
 bindBtn($('bAct'), () => { pressed.KeyE = true; });
 bindBtn($('bDash'), () => { TS.sprint = true; }, () => { TS.sprint = false; });
-$('w0').addEventListener('pointerdown', e => { pressed.Digit1 = true; e.preventDefault(); });
-$('w1').addEventListener('pointerdown', e => { pressed.Digit2 = true; e.preventDefault(); });
+$('wBtn').addEventListener('click', () => { pressed.KeyQ = true; });   // opens the weapon wheel
 $('mute').addEventListener('click', () => { pressed.KeyM = true; });
 $('mapBtn').addEventListener('click', () => { pressed.Tab = true; });
 $('bigmap').addEventListener('click', () => { pressed.Tab = true; });
@@ -81,6 +89,7 @@ function readInput() {
   const tm = Math.hypot(TS.mx, TS.my), kk = Math.hypot((keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0));
   const mag = Math.max(Math.min(1, tm), kk > 0 ? (keys.ShiftLeft || keys.ShiftRight ? 0.6 : 1) : 0);   // stick offset 0..1; keys run, Shift walks
   const tapFire = TS.tap > 0; if (tapFire) TS.tap--;
-  return { ix, iy, mag, sprint: !!keys.Space || TS.sprint, fire: mouse.down || !!keys.KeyJ || TS.fire || tapFire };
+  return { ix, iy, mag, sprint: !!keys.Space || TS.sprint, fire: mouse.down || !!keys.KeyJ || TS.fire || tapFire,
+    held: TS.fire ? 'touch' : mouse.down ? 'mouse' : keys.KeyJ ? 'key' : null };   // what is holding the trigger, for the rifle scope
 }
 

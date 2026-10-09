@@ -93,7 +93,7 @@ function spawnPickup() {                      // anywhere on the map: a random s
     let r = Math.random() * total, e = 0; while (e < RE.length - 1 && r > RE[e].len) { r -= RE[e].len; e++; }
     const w = { e, fw: 1, s: r, side: Math.random() < 0.5 ? 1 : -1 }, q = sidewalkPoint(w, 0, {});
     if (shoreDist(q.x, q.y) < 12 || pedBlocked(q.x, q.y) || pickups.some(k => dist(k.x, k.y, q.x, q.y) < 200)) continue;
-    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'cash', 'cash']), bob: rand(0, 6) }); return;
+    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'sniper', 'cash', 'cash']), bob: rand(0, 6) }); return;
   }
 }
 function updatePickups(dt) {
@@ -103,6 +103,7 @@ function updatePickups(dt) {
     if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
     else if (p.type === 'pistol') { P.ammo[0] = Math.min(250, P.ammo[0] + 24); popup(p.x, p.y - 12, '+24 PISTOL', '#3fe0ff'); }
     else if (p.type === 'mg') { P.ammo[1] = Math.min(400, P.ammo[1] + 60); popup(p.x, p.y - 12, '+60 MG', '#3fe0ff'); }
+    else if (p.type === 'sniper') { P.ammo[2] = Math.min(60, P.ammo[2] + 10); popup(p.x, p.y - 12, '+10 SNIPER', '#3fe0ff'); }
     else addScore(500, p.x, p.y, 'CASH');
     Snd.pickup(); pickups.splice(k, 1); pickupQ.push(gameT + PICKUP_BACK);
   }

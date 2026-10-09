@@ -54,7 +54,11 @@ const Snd = {
     const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g); g.connect(this.out); o.start(t); o.stop(t + dur + 0.02);
   },
-  shot(mg) { this.burst(mg ? 0.09 : 0.14, mg ? 2600 : 3400, 300, mg ? 0.35 : 0.5); this.tone(mg ? 170 : 140, 50, 0.08, 0.25, 'square'); },
+  shot(id) {
+    if (id === 'sniper') { this.burst(0.5, 2200, 90, 0.8); this.tone(110, 34, 0.35, 0.4, 'sawtooth'); return; }   // a heavy crack and a long tail
+    const mg = id === 'mg'; this.burst(mg ? 0.09 : 0.14, mg ? 2600 : 3400, 300, mg ? 0.35 : 0.5); this.tone(mg ? 170 : 140, 50, 0.08, 0.25, 'square');
+  },
+  bolt() { this.tone(900, 500, 0.05, 0.12, 'square'); setTimeout(() => this.tone(600, 1100, 0.06, 0.12, 'square'), 380); },
   boom() { this.burst(1.3, 1400, 60, 0.9); this.tone(90, 28, 0.9, 0.7, 'sine'); },
   thud(v) { this.burst(0.12, 500, 120, Math.min(0.5, 0.1 + v * 0.002)); },
   pickup() { this.tone(660, 990, 0.12, 0.15, 'square'); },

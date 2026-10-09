@@ -2,7 +2,7 @@
 /* ---------- 6. GAMEPLAY: state, wanted level, combat, vehicles in/out ---------- */
 let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play | dying | over
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
-const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
   heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
 const cam = { x: MW / 2, y: MH / 2, zoom: 1, shake: 0 };
 let boomFlash = null;
@@ -105,6 +105,26 @@ function raycast(ox, oy, ang, range) {
   }
   return { x: ox + dx * bt, y: oy + dy * bt, type, obj, t: bt, dx, dy };
 }
+function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and one unarmoured car; a building, the first person, an armoured or a second car stops it
+  const dx = Math.cos(ang), dy = Math.sin(ang), R = w.range, hits = [];
+  buildingsAlong(ox, oy, ox + dx * R, oy + dy * R, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < R) hits.push({ t, type: softSolid(rc) ? 'soft' : 'wall', obj: rc }); });
+  for (const p of peds) if (!p.dead) { const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < R) hits.push({ t, type: 'ped', obj: p }); }
+  for (const o of officers) if (!o.dead) { const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < R) hits.push({ t, type: 'officer', obj: o }); }
+  for (const c of cars) {
+    if (c === P.car || c.sunk) continue; let t = Infinity;
+    for (const q of carCircles(c)) t = Math.min(t, rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]));
+    if (t < R) hits.push({ t, type: 'car', obj: c });
+  }
+  hits.sort((u, v) => u.t - v.t);
+  let through = 0;
+  for (const h of hits) {
+    const x = ox + dx * h.t, y = oy + dy * h.t;
+    if (h.type === 'soft') { spark(x, y, 3); continue; }                                  // straight through the dumpster
+    if (h.type === 'car' && !h.obj.t.armored && through < 1) { through++; spark(x, y, 5); damageCar(h.obj, w.dmg * 0.55, true); continue; }   // and through one car
+    return { x, y, type: h.type, obj: h.obj, t: h.t, dx, dy };
+  }
+  return { x: ox + dx * R, y: oy + dy * R, type: null, obj: null, t: R, dx, dy };
+}
 function startReload(wi) {
   const w = WEAPONS[wi]; if (P.relW >= 0 || P.mag[wi] >= w.mag || P.ammo[wi] <= 0) return false;
   P.relW = wi; P.rel = 0; Snd.tone(200, 120, 0.08, 0.1, 'square'); return true;
@@ -113,26 +133,27 @@ function updateReload(dt) {
   if (P.relW >= 0) {
     if (P.relW !== P.weapon || P.dead) { P.relW = -1; return; }          // switching weapons throws the reload away
     P.rel += dt;
-    if (P.rel >= RELOAD_T) {
+    if (P.rel >= WEAPONS[P.relW].reload) {
       const wi = P.relW, take = Math.min(WEAPONS[wi].mag - P.mag[wi], P.ammo[wi]);
       P.mag[wi] += take; P.ammo[wi] -= take; P.relW = -1; Snd.tone(420, 300, 0.07, 0.12, 'square');
     }
   } else if (!P.dead && P.mag[P.weapon] <= 0) startReload(P.weapon);
 }
-function fireWeapon() {
+function fireWeapon(aim) {                                      // aim: a point on the map for the scoped rifle; otherwise you shoot the way you face
   const w = WEAPONS[P.weapon]; if (P.cool > 0 || P.relW >= 0) return;
   if (P.mag[P.weapon] <= 0) { if (!P.dry) { Snd.tone(120, 90, 0.06, 0.12, 'square'); P.dry = true; } P.cool = 0.3; return; }
   P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
-  const a = P.ang + rand(-w.spread, w.spread);
-  const h = raycast(P.x, P.y, a, w.range);
+  const a = aim ? Math.atan2(aim.y - P.y, aim.x - P.x) : P.ang + rand(-w.spread, w.spread);
+  if (aim) P.ang = a;
+  const h = w.scope ? rifleRay(P.x, P.y, a, w) : raycast(P.x, P.y, a, w.range);
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
-  tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: 0.06 });
+  tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
   if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) addHeat(30); else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
   else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); }
   else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * 0.55, true); }
   else if (h.type === 'wall') spark(h.x, h.y, 4);
-  Snd.shot(P.weapon === 1); alertPeds(P.x, P.y, 380); reportCrime(w.heat, w.hear, h.x, h.y);
-  cam.shake = Math.max(cam.shake, P.weapon === 1 ? 2.2 : 3);
+  Snd.shot(w.id); alertPeds(P.x, P.y, w.scope ? 600 : 380); reportCrime(w.heat, w.hear, h.x, h.y);
+  cam.shake = Math.max(cam.shake, w.shake);
 }
 
 function pedBlocked(x, y) {
@@ -204,6 +225,7 @@ function updatePlayer(dt, inp) {
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
     return;
   }
+  const orig = inp; if (SCOPE.on && SCOPE.by === 'key') inp = { ix: 0, iy: 0, mag: 0, sprint: false, fire: inp.fire, held: inp.held };   // J held: the arrow keys move the scope, not you
   const mg = inp.mag === undefined ? Math.min(1, Math.hypot(inp.ix, inp.iy)) : inp.mag;
   if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
@@ -229,6 +251,8 @@ function updatePlayer(dt, inp) {
     }
   }
   updateReload(dt);
-  if (inp.fire && !P.dead && (WEAPONS[P.weapon].auto || !P.trig)) fireWeapon(); if (!inp.fire) P.dry = false; P.trig = inp.fire;
+  if (WEAPONS[P.weapon].scope) updateScope(orig, dt);                 // the rifle: aim in the scope while FIRE is held, shoot on letting go
+  else if (inp.fire && !P.dead && (WEAPONS[P.weapon].auto || !P.trig)) fireWeapon();
+  if (!inp.fire) P.dry = false; P.trig = inp.fire;
 }
 

@@ -9,7 +9,7 @@ function resetGame() {
   cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
   const e = startSpot(), E = RE[e], s0 = E.len / 2, at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
-  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: [60, 120], mag: [7, 30], rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   const kerb = PARK_OFF, side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1;            // starter cars in the parking lane on the player's side
@@ -24,13 +24,13 @@ function resetGame() {
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
 function startGame() {
-  Snd.init(); toggleBigMap(false); resetGame(); state = 'play';
+  Snd.init(); toggleBigMap(false); toggleWheel(false); resetGame(); state = 'play';
   $('overlay').hidden = true; $('hud').hidden = false;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   toast('FIND A CAR. CAUSE SOME TROUBLE.');
 }
 function showOver() {
-  state = 'over'; toggleBigMap(false);
+  state = 'over'; toggleBigMap(false); toggleWheel(false);
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const s = Math.floor(gameT), mm = Math.floor(s / 60), ss = String(s % 60).padStart(2, '0');
   $('oScore').textContent = P.score; $('oBest').textContent = best; $('oKills').textContent = P.kills;
@@ -47,12 +47,17 @@ function handleKeys() {
   if (state === 'menu') { if (pressed.Enter || pressed.NumpadEnter) startGame(); }
   else if (state === 'over') { if (pressed.Enter || pressed.KeyR) startGame(); }
   else if (state === 'play') {
-    if (pressed.KeyR && !P.car) startReload(P.weapon);
-    if (pressed.Digit1) P.weapon = 0;
-    if (pressed.Digit2) P.weapon = 1;
-    if (pressed.wheel) P.weapon = 1 - P.weapon;
-    if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false);
-    if ((pressed.KeyE || pressed.KeyF) && !bigOpen) tryEnterExit();
+    const dig = ['Digit1', 'Digit2', 'Digit3'].findIndex(k => pressed[k]);
+    if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
+      if (dig >= 0 && dig < WEAPONS.length) pickWeapon(dig); else if (pressed.KeyQ || pressed.Escape || pressed.Tab) toggleWheel(false);
+    } else {
+      if (pressed.KeyR && !P.car) startReload(P.weapon);
+      if (dig >= 0 && dig < WEAPONS.length) P.weapon = dig;
+      if (pressed.wheel) P.weapon = (P.weapon + pressed.wheel + WEAPONS.length) % WEAPONS.length;
+      if (pressed.KeyQ && !bigOpen) toggleWheel(true);
+      if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false);
+      if ((pressed.KeyE || pressed.KeyF) && !bigOpen) tryEnterExit();
+    }
   }
   if (pressed.KeyM) Snd.toggle();
   for (const k in pressed) delete pressed[k];
@@ -103,7 +108,7 @@ function frame(ts) {
   const rdt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016); lastTs = ts;
   handleKeys();
   if (state === 'preview') { pvFrame(); return; }
-  if (state === 'play') { if (!bigOpen) update(rdt, false); }
+  if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) showOver(); }
   else update(rdt, true);
   render(ts / 1000);

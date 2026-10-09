@@ -69,13 +69,14 @@ function updateHud(time) {
   const hp = Math.ceil(clamp(P.hp, 0, 100) / 10);
   if (H.hp !== hp) { H.hp = hp; const segs = $('hpSegs'); [...segs.children].forEach((e, k) => e.classList.toggle('on', k < hp)); segs.classList.toggle('low', hp <= 3); }
   const w = WEAPONS[P.weapon], am = String(P.ammo[P.weapon]).padStart(3, '0');
-  setText('wname', 'wname', w.name); setText('ammo', 'ammo', String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);
+  setText('wname', 'wname', w.short); setText('ammo', 'ammo', String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);
   $('ammo').classList.toggle('empty', P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
-  { const rl = $('reload'), a = P.act, on = !!a || P.relW >= 0, t = a ? a.t : P.rel, dur = a ? a.dur : RELOAD_T, lab = a ? (a.occ ? 'CARJACKING ' : 'STEALING ') : 'RELOADING ';
+  { const rl = $('reload'), a = P.act, on = !!a || P.relW >= 0, t = a ? a.t : P.rel, dur = a ? a.dur : WEAPONS[Math.max(0, P.relW)].reload, lab = a ? (a.occ ? 'CARJACKING ' : 'STEALING ') : 'RELOADING ';
     if (H.rl !== on) { H.rl = on; rl.classList.toggle('on', on); }
     if (H.ra !== !!a) { H.ra = !!a; rl.firstElementChild.style.background = a ? 'var(--cyan)' : ''; }
     if (on) { rl.firstElementChild.style.width = Math.min(100, t / dur * 100) + '%'; rl.lastElementChild.textContent = lab + Math.max(0, dur - t).toFixed(1) + 's'; } }
-  if (H.weapon !== P.weapon) { H.weapon = P.weapon; $('w0').classList.toggle('on', P.weapon === 0); $('w1').classList.toggle('on', P.weapon === 1); }
+  if (H.weapon !== P.weapon) { H.weapon = P.weapon; $('wIcon').innerHTML = WICON[w.id]; }      // the weapon button shows the weapon in hand
+  setText('wAmmo', 'wAmmo', pad(P.mag[P.weapon], 2) + '/' + pad(P.ammo[P.weapon], 3));
   if (H.stars !== P.stars) { H.stars = P.stars; [...$('stars').children].forEach((e, k) => e.classList.toggle('on', k < P.stars)); }
   const fade = P.stars > 0 && P.sinceCrime > 5; if (H.fade !== fade) { H.fade = fade; $('stars').classList.toggle('fade', fade); }
   const hot = P.stars > 0; if (H.hot !== hot) { H.hot = hot; miniCv.classList.toggle('hot', hot); }
