@@ -10,18 +10,20 @@
 let rockets = [];
 const RK_V0 = 280, RK_V1 = 650, RK_ACC = 1100, RK_H0 = 12, RK_STEP = 5, RK_R = 130, RK_BURN = 3600, RK_SRC = { byPlayer: true };
 const _rkb = [];
-function launchRocket(aim, w) {
-  let ang = Math.atan2(aim.y - P.y, aim.x - P.x);
+function launchRocket(aim, w, car) {    // car: fired from a vehicle (the tank's gun): leaves from the muzzle and never hits that vehicle
+  const ox = car ? car.x : P.x, oy = car ? car.y : P.y, off = car ? car.t.len / 2 + 18 : 22;
+  let ang = car ? car.ang : Math.atan2(aim.y - oy, aim.x - ox);
   const stray = Math.random() < w.stray;
   if (stray) ang += (Math.random() < 0.5 ? -1 : 1) * w.strayDeg * Math.PI / 180;      // the dud
-  rockets.push({ x: P.x + Math.cos(ang) * 22, y: P.y + Math.sin(ang) * 22, ang, v: RK_V0, h: RK_H0, vh: 0, s: 22, D: Math.max(30, dist(P.x, P.y, aim.x, aim.y)),
-    stray, wander: false, wt: 0, wa: 0, wA: 0, wf: 0, wp: 0, wNext: 0, burnt: false, puff: 0, mesh: null, glow: null, dead: false });
-  for (let k = 0; k < 10; k++) addP({ x: P.x - Math.cos(ang) * 16 + rand(-4, 4), y: P.y - Math.sin(ang) * 16 + rand(-4, 4), z: rand(10, 16), vz: rand(5, 20), grav: 0,   // back-blast
-    vx: -Math.cos(ang) * rand(60, 160) + rand(-30, 30), vy: -Math.sin(ang) * rand(60, 160) + rand(-30, 30), life: rand(0.6, 1.2), max: 1.2, s0: 10, s1: 26, col: '#d9dbe2', drag: 3, alpha: 0.7 });
+  rockets.push({ x: ox + Math.cos(ang) * off, y: oy + Math.sin(ang) * off, ang, v: car ? RK_V1 * 0.8 : RK_V0, h: car ? 17 : RK_H0, vh: 0, s: off, D: Math.max(30, dist(ox, oy, aim.x, aim.y)),
+    stray, wander: false, wt: 0, wa: 0, wA: 0, wf: 0, wp: 0, wNext: 0, burnt: false, puff: 0, mesh: null, glow: null, dead: false, src: car || null });
+  const bx = car ? ox + Math.cos(ang) * off : ox - Math.cos(ang) * 16, by = car ? oy + Math.sin(ang) * off : oy - Math.sin(ang) * 16, bk = car ? -0.3 : 1;   // back-blast, or the muzzle smoke
+  for (let k = 0; k < 10; k++) addP({ x: bx + rand(-4, 4), y: by + rand(-4, 4), z: rand(10, 16), vz: rand(5, 20), grav: 0,
+    vx: -Math.cos(ang) * rand(60, 160) * bk + rand(-30, 30), vy: -Math.sin(ang) * rand(60, 160) * bk + rand(-30, 30), life: rand(0.6, 1.2), max: 1.2, s0: 10, s1: 26, col: '#d9dbe2', drag: 3, alpha: 0.7 });
 }
-function rocketHits(x, y) {             // anything solid at this point?
+function rocketHits(x, y, src) {        // anything solid at this point? (never the vehicle that fired it)
   nearBuildings(x, y, _rkb); for (const rc of _rkb) if (inSolid(x, y, rc, 1)) return true;
-  for (const c of cars) { if (c.sunk || Math.abs(c.x - x) > 60 || Math.abs(c.y - y) > 60) continue; for (const q of carCircles(c)) if (Math.hypot(x - q[0], y - q[1]) < q[2]) return true; }
+  for (const c of cars) { if (c.sunk || c === src || Math.abs(c.x - x) > c.t.len / 2 + 20 || Math.abs(c.y - y) > c.t.len / 2 + 20) continue; for (const q of carCircles(c)) if (Math.hypot(x - q[0], y - q[1]) < q[2]) return true; }
   for (const p of peds) if (!p.dead && Math.abs(p.x - x) < 9 && Math.abs(p.y - y) < 9 && Math.hypot(p.x - x, p.y - y) < 9) return true;
   for (const o of officers) if (!o.dead && Math.hypot(o.x - x, o.y - y) < 9) return true;
   return x < CX0 || x > CX1 || y < CY0 || y > CY1;
@@ -46,7 +48,7 @@ function updateRockets(dt) {
     while (go > 0 && !r.dead) {
       const st = Math.min(RK_STEP, go); go -= st;
       r.x += dx * st; r.y += dy * st; r.s += st;
-      if (rocketHits(r.x, r.y) || r.h <= 0) { rocketBoom(r, r.x, r.y); break; }
+      if (rocketHits(r.x, r.y, r.src) || r.h <= 0) { rocketBoom(r, r.x, r.y); break; }
       if (r.s >= RK_BURN) r.burnt = true;
       if (!r.burnt && (r.puff -= st) <= 0) {                     // smoke: a thick grey core right behind, a white trail that spreads and takes 5 s to fade
         r.puff = 6;

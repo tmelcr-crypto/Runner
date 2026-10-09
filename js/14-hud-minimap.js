@@ -16,6 +16,8 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
   m.fillStyle = '#1e1640'; for (const p of MAP.props) if (p.t === 'runway') { const a = p.a * Math.PI / 180; box({ cx: p.x, cy: p.y, lw: p.w, lh: p.h, ca: Math.cos(a), sa: Math.sin(a) }); }   // runways
   m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate) box(r);       // landmarks and props
   m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
+  for (const s of SVC.hospital) { m.fillStyle = '#f4f4f6'; box(s.r); const k = Math.min(s.r.lw, s.r.lh) * 0.8; m.fillStyle = '#e0364f'; m.fillRect(s.r.cx - k / 2, s.r.cy - k / 6, k, k / 3); m.fillRect(s.r.cx - k / 6, s.r.cy - k / 2, k / 3, k); }   // a red cross
+  for (const s of SVC.police) { m.fillStyle = '#3f6bff'; box(s.r); if (s.lot) { m.fillStyle = '#2a3a8a'; box({ cx: s.lot.cx, cy: s.lot.cy, lw: s.lot.w, lh: s.lot.d, ca: Math.cos(s.lot.a), sa: Math.sin(s.lot.a) }); } }
 }
 function drawMini(time) {
   const size = miniCv.width, view = 1500, sc = size / view;
@@ -26,19 +28,27 @@ function drawMini(time) {
   const mxp = x => size / 2 + (x - P.x) * sc, myp = y => size / 2 + (y - P.y) * sc, ph = Math.floor(time * 4) % 2 === 0;
   for (const c of cars) {
     const x = mxp(c.x), y = myp(c.y); if (x < 0 || y < 0 || x > size || y > size || c.dead) continue;
-    if (c.type === 'police' && c.driver) { mctx.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; mctx.fillRect(x - 5, y - 5, 10, 10); }
+    if (c.t.cop && c.driver) { mctx.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; mctx.fillRect(x - 5, y - 5, 10, 10); }
     else { mctx.fillStyle = '#8b90b8'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   }
+  svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
   for (const p of pickups) { const x = mxp(p.x), y = myp(p.y); if (x < 0 || y < 0 || x > size || y > size) continue; mctx.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
 }
+function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; police stations: a white star on blue
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold ' + Math.round(q * 1.6) + 'px Arial';
+  for (const s of SVC.hospital) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
+    g.fillStyle = '#ffffff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#e0364f'; g.fillRect(x - q * 0.75, y - q * 0.25, q * 1.5, q * 0.5); g.fillRect(x - q * 0.25, y - q * 0.75, q * 0.5, q * 1.5); }
+  for (const s of SVC.police) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
+    g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
+}
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
   g.lineWidth = lw; g.strokeStyle = ph ? '#ff3b5c' : '#3f6bff'; g.stroke();
 }
-/* full map: Tab or the MAP button; the game waits while it is open */
+/* full map: Tab or a tap on the minimap; the game waits while it is open */
 let bigOpen = false;
 function toggleBigMap(on) {
   bigOpen = on === undefined ? !bigOpen : on; $('bigmap').hidden = !bigOpen;
@@ -58,13 +68,14 @@ function drawBigMap(time) {
   }
   const ph = Math.floor(time * 4) % 2 === 0;
   for (const p of pickups) { g.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; g.fillRect(X(p.x) - 2 * pr, Y(p.y) - 2 * pr, 4 * pr, 4 * pr); }
+  svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
-  for (const o of cars) if (o.type === 'police' && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
+  for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
   g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);
   g.fillStyle = '#ffd23f'; g.strokeStyle = '#000'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(11, 0); g.lineTo(-8, -7); g.lineTo(-4, 0); g.lineTo(-8, 7); g.closePath(); g.stroke(); g.fill(); g.restore();
 }
 
-const H = { zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
+const H = { inCar: null, zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
 (function buildHud() {
   $('hpSegs').innerHTML = '<i></i>'.repeat(10); $('stars').innerHTML = '<div class="star"></div>'.repeat(5);
   for (const b of document.querySelectorAll('#weaponbar button')) b.addEventListener('click', () => b.blur());
@@ -90,18 +101,21 @@ function updateHud(time) {
   setText('wAmmo', 'wAmmo', pad(P.mag[P.weapon], 2) + '/' + pad(P.ammo[P.weapon], 3));
   if (H.stars !== P.stars) { H.stars = P.stars; [...$('stars').children].forEach((e, k) => e.classList.toggle('on', k < P.stars)); }
   const fade = P.stars > 0 && !PS.seen; if (H.fade !== fade) { H.fade = fade; $('stars').classList.toggle('fade', fade); }   // the stars blink while they search, stay lit while they see you
+  setText('clock', 'clock', skyText());
   const hot = P.stars > 0; if (H.hot !== hot) { H.hot = hot; miniCv.classList.toggle('hot', hot); }
   if (Snd.muted !== H.mute) { H.mute = Snd.muted; $('mute').textContent = Snd.muted ? 'MUTED' : 'SND'; }
   const c = P.car; let vname = 'ON FOOT', vinfo = '', vhp = 0, hint = '';
   if (c) {
     vname = c.t.name; vhp = Math.round(c.hp / c.maxhp * 100); vinfo = (touchMode ? P.gear + '  ' : '') + Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
+    else if (c.t.weapon) hint = touchMode ? 'FIRE: ROCKETS' : 'CLICK OR J: ROCKETS';
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
   else { const n = nearestCar(); if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
+  const inCar = !!c; if (H.inCar !== inCar) { H.inCar = inCar; $('radioBtn').hidden = !inCar; }   // the RADIO button, in a car only
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
-  const bf = $('bFire'); if (bf.hidden !== !!c) bf.hidden = !!c;
+  const bf = $('bFire'), noFire = !!c && !c.t.weapon; if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }

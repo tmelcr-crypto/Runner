@@ -11,6 +11,7 @@
 <canvas id="game"></canvas>
 <div id="vig"></div>
 <div id="hurt"></div>
+<div id="flashFx"></div>
 
 <div id="hud" hidden>
   <div id="popLayer"></div>
@@ -22,14 +23,17 @@
   <div class="hud-tr">
     <canvas id="mini" width="280" height="280"></canvas>
     <div id="stars" class="box"></div>
+    <div id="clock">17:30</div>
     <div id="zone"></div>
   </div>
   <div id="weaponbar">
     <button id="wBtn" type="button" aria-label="Choose weapon"><span id="wIcon"></span><span id="wAmmo">07/060</span></button>
-    <button id="mapBtn" type="button">MAP</button>
+    <button id="radioBtn" type="button" hidden>RADIO</button>
     <button id="mute" type="button">SND</button>
+    <button id="menuBtn" type="button" aria-label="Pause menu">MENU</button>
   </div>
   <div id="hint"></div>
+  <div id="radioName"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
@@ -66,22 +70,108 @@
   <div class="card" id="startCard">
     <h1>BLOCK<br>RUNNER</h1>
     <p class="tag">TOP-DOWN CRIME SPREE '97</p>
-    <div class="ctl">
+    <div class="menu">
+      <button id="contBtn" class="big pri" type="button" hidden>CONTINUE</button>
+      <p class="sub" id="contInfo" hidden></p>
+      <button id="newBtn" class="big pri" type="button">NEW GAME</button>
+      <button id="loadBtn" class="big alt" type="button">LOAD GAME</button>
+      <button id="helpBtn" class="big alt" type="button">HELP</button>
+      <button id="loadMap" class="big alt minor" type="button">CITY FILE PREVIEW</button><input id="mapFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p class="small" id="loadMsg"></p>
+    <p class="small" id="bestLine">Steal a car, make trouble, outrun the police.</p>
+    <p class="keys">ARROWS MOVE · ENTER PICKS · ESC GOES BACK</p>
+  </div>
+
+  <div class="card" id="newCard" hidden>
+    <h2>NEW GAME</h2>
+    <div id="optRows" class="opts"></div>
+    <p class="tip" id="optTip"></p>
+    <p class="warn" id="newWarn" hidden>THE GAME YOU ARE PLAYING ENDS - SAVE IT FIRST TO KEEP IT</p>
+    <div class="row"><button id="goBtn" class="big pri" type="button">START</button><button class="big alt back" type="button">BACK</button></div>
+  </div>
+
+  <div class="card" id="slotCard" hidden>
+    <h2 id="slotTitle">LOAD GAME</h2>
+    <div id="slotList" class="slots"></div>
+    <p class="small" id="slotMsg" role="status"></p>
+    <div class="row"><button id="fileBtn" class="big alt" type="button">OPEN SAVE FILE</button><button class="big alt back" type="button">BACK</button></div>
+    <input id="saveFile" type="file" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="card" id="pauseCard" hidden>
+    <h2>PAUSED</h2>
+    <p class="sub" id="pauseInfo"></p>
+    <div class="menu">
+      <button id="resumeBtn" class="big pri" type="button">RESUME</button>
+      <button id="saveBtn" class="big alt" type="button">SAVE GAME</button>
+      <p class="warn" id="saveWhy" hidden></p>
+      <button id="pLoadBtn" class="big alt" type="button">LOAD GAME</button>
+      <button id="pNewBtn" class="big alt" type="button">NEW GAME</button>
+      <button id="pHelpBtn" class="big alt" type="button">HELP</button>
+      <button id="quitBtn" class="big alt" type="button">QUIT TO TITLE</button>
+    </div>
+    <p class="keys">ESC OR P CARRIES ON</p>
+  </div>
+
+  <div class="card" id="helpCard" hidden>
+    <h2>HELP</h2>
+    <div class="tabs" id="helpTabs"><button type="button" class="on" data-tab="ctl">CONTROLS</button><button type="button" data-tab="play">PLAYING</button><button type="button" data-tab="cops">POLICE</button><button type="button" data-tab="city">CITY</button></div>
+    <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> pistol tap, MG hold</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 4</b> pick</li><li><b>E or F</b> enter / exit car</li><li><b>TAB</b> city map</li></ul></div>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 4</b> pick</li><li><b>E or F</b> enter / exit car</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
-        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>M</b> mute sound</li></ul></div>
+        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK</b> in the tank: rockets</li></ul>
+        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap pistol, hold MG; rifle and rockets: stand still, hold FIRE, drag to the target, let go</li>
-        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li></ul></div>
+        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
     </div>
-    <button id="startBtn" class="big" type="button">PRESS TO START</button>
-    <p class="small" style="margin-top:18px"><button id="loadMap" class="big alt" type="button">LOAD CITY FILE (PREVIEW)</button><input id="mapFile" type="file" accept=".json,application/json" hidden></p>
-    <p class="small" id="loadMsg"></p>
-    <p class="small">Steal a car, make trouble, outrun the police. Enter also starts.</p>
+    <div class="ctl page" data-tab="play" hidden>
+      <div><h3>THE GAME</h3><ul>
+        <li>No missions: the city is yours. Steal cars, cause trouble, collect cash and stay alive.</li>
+        <li><b>POINTS</b> carjacking +50, running someone over +100, taking someone down +50, a cop +200, blowing up a car +60, a police car +300, cash +500.</li></ul></div>
+      <div><h3>CARS</h3><ul>
+        <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
+        <li>Fast cars slide, heavy ones push through. Wet roads are slippery.</li>
+        <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
+        <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
+      <div><h3>PICKUPS</h3><ul>
+        <li>Lying on the sidewalks: <b>HEALTH</b> (+40, when you are hurt), ammo for each weapon, and <b>CASH</b>. They come back after a while.</li></ul></div>
+      <div><h3>WASTED OR BUSTED</h3><ul>
+        <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your score.</li>
+        <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep your weapons except the pistol.</li></ul></div>
+    </div>
+    <div class="ctl page" data-tab="cops" hidden>
+      <div><h3>WHAT THEY KNOW</h3><ul>
+        <li>The police only know what they see or hear: a crime counts when a cop sees it, or hears the gunfire or the blast.</li>
+        <li>They see less far at night, in the rain and in fog.</li></ul></div>
+      <div><h3>THE STARS</h3><ul>
+        <li><b>1 STAR</b> a cop shouts STOP: stand still for 3 s and pay a fine. Keep going and it is 2 stars.</li>
+        <li><b>2 STARS</b> they come to arrest you. No shooting unless you fired, rammed a police car or hurt a cop.</li>
+        <li><b>3 STARS AND UP</b> cars ram you and cops shoot. An armoured APC from 3 stars, a tank at 5.</li></ul></div>
+      <div><h3>LOSING THEM</h3><ul>
+        <li>Get out of sight. While they search, the stars blink and a red circle on the map shows where they are looking.</li>
+        <li>Stay unseen long enough (12 s at 1 star, 50 s at 5) and they give up - it takes longer inside the circle.</li></ul></div>
+    </div>
+    <div class="ctl page" data-tab="city" hidden>
+      <div><h3>THE MAP</h3><ul>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue) and where the police search.</li>
+        <li>The district's name shows as you drive into it.</li></ul></div>
+      <div><h3>DAY, NIGHT, WEATHER</h3><ul>
+        <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
+        <li>Rain makes the roads slippery, storms bring lightning, and fog hides you from the police.</li></ul></div>
+      <div><h3>CITY SERVICES</h3><ul>
+        <li>Ambulances come for the dead, fire engines put out burning wrecks, and trash trucks stop at the bins.</li></ul></div>
+      <div><h3>SAVING</h3><ul>
+        <li>The game saves itself every minute while no police are after you. <b>CONTINUE</b> picks up the latest save.</li>
+        <li>In the pause menu: three save slots, and a save file to download - open it on another device to carry on there.</li></ul></div>
+    </div>
+    <div class="row"><button class="big alt back pri" type="button">BACK</button></div>
   </div>
+
   <div class="card" id="overCard" hidden>
     <h1>WASTED</h1>
     <div class="stats">
@@ -91,8 +181,12 @@
       <span>TOP WANTED</span><span id="oStars">0</span>
       <span>SURVIVED</span><span id="oTime">0:00</span>
     </div>
-    <button id="againBtn" class="big" type="button">PLAY AGAIN</button>
-    <p class="small">Press R or Enter to restart.</p>
+    <div class="menu">
+      <button id="againBtn" class="big pri" type="button">PLAY AGAIN</button>
+      <button id="oLoadBtn" class="big alt" type="button">LOAD GAME</button>
+      <button id="oMenuBtn" class="big alt" type="button">MAIN MENU</button>
+    </div>
+    <p class="keys">R PLAYS AGAIN</p>
   </div>
 </div>
 
@@ -100,7 +194,11 @@
 <script src="js/00-map-data.js"></script>
 <script src="js/01-config.js"></script>
 <script src="js/01b-police-data.js"></script>
+<script src="js/01c-vehicle-data.js"></script>
+<script src="js/01d-sky-data.js"></script>
+<script src="js/01e-radio-data.js"></script>
 <script src="js/02-audio.js"></script>
+<script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
 <script src="js/04-world.js"></script>
 <script src="js/05-entities.js"></script>
@@ -108,19 +206,23 @@
 <script src="js/07-vehicles-traffic-police.js"></script>
 <script src="js/08-pedestrians-pickups-spawning.js"></script>
 <script src="js/08b-police.js"></script>
+<script src="js/08c-services.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
 <script src="js/10c-render-fill.js"></script>
 <script src="js/10d-render-clutter.js"></script>
+<script src="js/10e-render-services.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/12-render-effects.js"></script>
 <script src="js/12b-rockets.js"></script>
 <script src="js/12c-blast.js"></script>
+<script src="js/12d-sky-weather.js"></script>
 <script src="js/13-render-frame.js"></script>
 <script src="js/14-hud-minimap.js"></script>
 <script src="js/14b-weapon-wheel-scope.js"></script>
 <script src="js/15-game-flow-loop.js"></script>
+<script src="js/15b-menus-saves.js"></script>
 <script src="js/16-octagrid-map-preview.js"></script>
 <script src="js/main.js"></script>
 </body>

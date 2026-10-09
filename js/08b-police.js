@@ -17,11 +17,11 @@ function resetPolice() {
 
 /* ---------- seeing and hearing ---------- */
 function copSees(ex, ey, face, px, py, wide) {
-  const d = dist(ex, ey, px, py); if (d > COP.sight) return false;
+  const d = dist(ex, ey, px, py); if (d > COP.sight * SKY.vis) return false;   // less far at night, in rain and fog (js/12d)
   if (!wide && d > 1 && Math.abs(angDiff(face, Math.atan2(py - ey, px - ex))) > COP.fov / 2) return false;
   return losClear(ex, ey, px, py);
 }
-const isPatrolCar = c => c.type === 'police' && (c.driver === 'ai' || c.driver === 'cop') && !c.dead;
+const isPatrolCar = c => c.t.cop && (c.driver === 'ai' || c.driver === 'cop') && !c.dead;
 function forCops(fn) {                   // every cop who can look: police cars with a crew inside (eyes at the windscreen), foot patrols, officers
   for (const c of cars) if (isPatrolCar(c)) fn(c, c.x + Math.cos(c.ang) * c.t.len * 0.3, c.y + Math.sin(c.ang) * c.t.len * 0.3, c.ang);
   for (const q of peds) if (q.cop && !q.dead && !q.knocked) fn(q, q.x, q.y, q.hd || 0);
@@ -46,7 +46,7 @@ function reportCrime(n, hear, ix, iy, armed) {
   return w;
 }
 function policeAlert(from, to) {         // a new wanted level: when the next car is sent
-  PS.dispT = from === 0 ? COP.lv.delay[to] : Math.min(PS.dispT, COP.lv.delay[to]);
+  const dl = COP.lv.delay[to] / OPT.police; PS.dispT = from === 0 ? dl : Math.min(PS.dispT, dl);   // tougher police (OPT) come sooner
   if (from === 0) { PS.lose = 0; PS.warned = false; PS.stopOn = false; PS.holdT = PS.ignT = 0; }
 }
 function clearWanted(msg) {              // they gave up, or you paid: the cars go back to patrolling and the crews back to their cars
@@ -68,7 +68,7 @@ function updatePolice(dt) {
   else {
     PS.seen = false; PS.r = Math.min(COP.lv.searchMax[lv], PS.r + COP.searchGrow * dt);
     PS.lose += dt * (dist(P.x, P.y, PS.lx, PS.ly) < PS.r ? COP.insideRate : 1);
-    if (PS.lose >= COP.lv.lose[lv]) { clearWanted('YOU LOST THEM'); return; }
+    if (PS.lose >= COP.lv.lose[lv] * OPT.police) { clearWanted('YOU LOST THEM'); return; }
   }
   if (COP.lv.stop[lv]) stopOrder(dt); else PS.stopOn = false;
   if (PS.grab) { PS.bustT += dt; if (PS.bustT >= COP.bustTime) { bustPlayer(); return; } }   // a cop has hold of you
@@ -98,13 +98,13 @@ function resist() {
 
 /* ---------- sending cars and officers ---------- */
 function chasingCars() {
-  let n = 0; for (const c of cars) if (c.type === 'police' && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;
+  let n = 0; for (const c of cars) if (c.t.cop && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;
 }
 function dispatch(dt) {
-  const lv = P.stars, cap = COP.lv.cars[lv]; let n = chasingCars();
+  const lv = P.stars, cap = lv ? Math.max(1, Math.round(COP.lv.cars[lv] * OPT.police)) : 0; let n = chasingCars();
   for (const c of cars) {                // patrol cars that see you, or are near where you were last seen, join first
     if (n >= cap) break;
-    if (c.type === 'police' && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
+    if (c.t.cop && c.t.chaseFrom <= lv && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
   }
   if (n < cap && (PS.dispT -= dt) <= 0) PS.dispT = spawnCop() ? COP.lv.every[lv] : 0.5;   // then cars from further away
   let foot = 0; for (const o of officers) if (!o.dead && !o.car) foot++;
@@ -126,8 +126,8 @@ function copDrive(c, dt) {
   let tx = PS.lx, ty = PS.ly, direct = false;
   if (PS.seen) {
     tx = tgt.x + (tgt.vx || 0) * 0.35; ty = tgt.y + (tgt.vy || 0) * 0.35;
-    const stopAt = COP.pullUp + c.t.len * 0.5 + (P.car ? P.car.t.len * 0.5 : 0) + spd * 0.3;
-    if ((!P.car || !COP.lv.ram[lv]) && d < stopAt) {                  // pull up near you; once you are stopped (or on foot) the crew gets out
+    const stopAt = COP.pullUp + c.t.len * 0.5 + (P.car ? P.car.t.len * 0.5 : 0) + spd * 0.3, heavy = c.t.mass >= 10;   // heavy: the tank - no crew gets out, it just rolls at you
+    if (!heavy && (!P.car || !COP.lv.ram[lv]) && d < stopAt) {        // pull up near you; once you are stopped (or on foot) the crew gets out
       c.str = 0; c.thr = spd > 30 ? -1 : 0; c.hb = c.thr === 0;
       if (spd < 30 && c.sees && (!P.car || carSpeed(P.car) < COP.bustCarSpeed * 2)) copsExit(c);
       return;
@@ -206,7 +206,7 @@ function copCombat(q, dt) {
 function updateOfficers(dt) {
   for (let k = officers.length - 1; k >= 0; k--) {
     const o = officers[k];
-    if (o.dead) { o.deadT += dt; if (o.deadT > 20) officers.splice(k, 1); continue; }
+    if (o.dead) { o.deadT += dt; if (o.deadT > bodyTime(o)) officers.splice(k, 1); continue; }
     if (o.knocked) continue;
     const c = o.car;
     if (c && (c.dead || c.sunk || c.driver || !cars.includes(c))) crewLost(o);      // their car is gone, or someone drove off in it
@@ -245,22 +245,36 @@ function refugeSpot(x, y) {              // the police station or hospital of th
   let best = null, bd = Infinity; for (const q of refuges) { const d = dist(q.x, q.y, x, y); if (d < bd) { bd = d; best = q; } }
   return best || { x, y };
 }
+function serviceDoor(kind, x, y) {        // the nearest hospital (or police station): a spot on the pavement in front of its door
+  let best = null, bd = Infinity;
+  for (const s of SVC[kind]) { const d = dist(s.r.cx, s.r.cy, x, y); if (d < bd) { bd = d; best = s.r; } }
+  if (best) {
+    const zx = -best.sa, zy = best.ca;
+    for (const off of [22, 34, 48, 64]) {
+      const px = best.cx + zx * (best.lh / 2 + off), py = best.cy + zy * (best.lh / 2 + off);
+      if (!pedBlocked(px, py) && shoreDist(px, py) > 8) return { x: px, y: py, ang: Math.atan2(zy, zx) };
+    }
+  }
+  return refugeSpot(x, y);
+}
 function respawn() {
   const busted = P.busted, lose = Math.round(P.score * (busted ? COP.bustedCash : COP.wastedCash));
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
-  const sp = refugeSpot(P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;
-  Object.assign(P, { x: sp.x, y: sp.y, vx: 0, vy: 0, hp: 100, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
+  const sp = serviceDoor(busted ? 'police' : 'hospital', P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: 100, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
     rel: 0, relW: -1, cool: 0, hurtT: 0, trig: false, dry: false, score: P.score - lose });
   if (P.knocked) { P.knocked = false; P.air = 0; P.kvx = P.kvy = P.kvz = 0; const i = KNOCK.indexOf(P); if (i >= 0) KNOCK.splice(i, 1); }
   if (strip) { P.ammo = WEAPONS.map((w, i) => i ? 0 : w.ammo); P.mag = WEAPONS.map((w, i) => i ? 0 : w.mag); P.weapon = 0; }
   clearRockets(); officers = []; resetPolice();
   for (const c of cars) if (c.driver === 'cop' || c.crewOut) { c.driver = 'ai'; c.crewOut = c.crewIn = 0; c.e = -1; c.searching = false; }
-  cars = cars.filter(c => dist(c.x, c.y, P.x, P.y) < 2200); peds = peds.filter(p => !p.dead && dist(p.x, p.y, P.x, P.y) < 1500);
-  let traffic = 0, parked = 0, foot = 0; for (const c of cars) { if (c.driver === 'ai') traffic++; else if (!c.driver && !c.dead) parked++; }
+  cars = cars.filter(c => c.keep || dist(c.x, c.y, P.x, P.y) < 2200); CALLS = []; peds = peds.filter(p => !p.dead && dist(p.x, p.y, P.x, P.y) < 1500);
+  let traffic = 0, parked = 0, foot = 0; for (const c of cars) { if (c.driver === 'ai') traffic++; else if (!c.driver && !c.dead && !c.lot && !c.keep) parked++; }
   for (const p of peds) if (p.cop) foot++;
   for (; traffic < 32; traffic++) spawnTraffic(true);
   for (; parked < 14; parked++) spawnParked(true);
-  for (let k = peds.length; k < 50; k++) spawnPedNear(true);
+  for (const L of LOTS) L.filled = cars.some(c => c.lot === L); fillLots(true);
+  for (let k = peds.length; k < 50; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);
+  for (const c of cars) if (c.task) endCall(c);
   for (; foot < COP.footPatrols; foot++) spawnFootCop(true);
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; streamCity(true);
   state = 'play'; deadTimer = 0; $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED'; updateGearUi();

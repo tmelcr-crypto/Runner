@@ -630,6 +630,92 @@ n0 = len(bl) + len(lots)                                 # last check: nothing s
 bl = [b for b in bl if not footprint(b).intersects(WALKS)]; lots = [l for l in lots if not footprint(l).intersects(WALKS)]
 if len(bl) + len(lots) < n0: print('warning: dropped', n0 - len(bl) - len(lots), 'buildings and lots on a street', file=sys.stderr)
 
+# ---------- parking lots the way a real town has them: open onto a street, next to the building they serve ----------
+# A lot that does not touch a street is turned so its entrance (local +z) faces the street it does touch; one that touches no street
+# at all becomes a garden or a service yard. Every lot gets the building it belongs to (lots[6]): the one sharing most of its edge,
+# or, if none stands next to it, a building carved out of the back (or one end) of the lot itself.
+def lot_sides(l):                                        # (name, outward normal, extent along it, length of the side)
+    a = math.radians(l[4]); X = (math.cos(a), math.sin(a)); Z = (-math.sin(a), math.cos(a))
+    return [('front', Z, l[3], l[2]), ('back', (-Z[0], -Z[1]), l[3], l[2]), ('right', X, l[2], l[3]), ('left', (-X[0], -X[1]), l[2], l[3])]
+def on_street(l, N, ext, span):                          # 2 of 3 points just outside this side lie on a street or its sidewalk
+    T = (-N[1], N[0]); hits = 0
+    for f in (-0.3, 0, 0.3):
+        q = Point(l[0] + N[0] * (ext / 2 + 30) + T[0] * span * f, l[1] + N[1] * (ext / 2 + 30) + T[1] * span * f)
+        if CENTRE.distance(q) < RH + SW + 6: hits += 1
+    return hits >= 2
+def turn_lot(l, side):
+    cx, cy, w, d, deg = l[:5]
+    if side == 'back': deg += 180
+    elif side == 'right': deg -= 90; w, d = d, w
+    elif side == 'left': deg += 90; w, d = d, w
+    deg = (deg + 180) % 360 - 180; return [cx, cy, w, d, round(deg, 1), 2 if d >= 190 else 1]
+kept, n_turned, n_gone = [], 0, 0
+for l in lots:
+    st = [sd for sd in lot_sides(l) if on_street(l, sd[1], sd[2], sd[3])]
+    if not st:                                           # no street: a garden or a service yard instead
+        n_gone += 1; q = footprint(l)
+        if rng.random() < 0.6: grass.append(q.buffer(-4))
+        else: yards.append((q, 'y'))
+        continue
+    best = 'front' if any(sd[0] == 'front' for sd in st) else max(st, key=lambda sd: sd[3])[0]
+    if best != 'front': n_turned += 1
+    kept.append(turn_lot(l, best))
+lots = kept
+from shapely.strtree import STRtree
+BF = [footprint(b) for b in bl]; BT = STRtree(BF); n_carved = 0
+for l in lots:
+    lp = footprint(l); near = lp.buffer(22); owner, share = -1, 150
+    for i in BT.query(near):
+        a = BF[i].intersection(near).area
+        if a > share: owner, share = int(i), a
+    if owner < 0:                                        # nobody next door: the lot's own building at its back (or at one end)
+        a = math.radians(l[4]); X = (math.cos(a), math.sin(a)); Z = (-math.sin(a), math.cos(a)); cx, cy, w, d = l[:4]
+        if d >= 160:
+            bd = min(90, d - 105); l[3] = d - bd - 6; l[0], l[1] = round(cx + Z[0] * (bd + 6) / 2), round(cy + Z[1] * (bd + 6) / 2); l[5] = 2 if l[3] >= 190 else 1
+            bl.append([round(cx - Z[0] * (d - bd) / 2), round(cy - Z[1] * (d - bd) / 2), round(w - 8), round(bd), l[4], 9999, BACK, 1])
+        elif w >= 230:
+            bw = min(90, w - 150); l[2] = w - bw - 6; l[0], l[1] = round(cx - X[0] * (bw + 6) / 2), round(cy - X[1] * (bw + 6) / 2)
+            bl.append([round(cx + X[0] * (w - bw) / 2), round(cy + X[1] * (w - bw) / 2), round(bw), round(d - 10), l[4], 9999, BACK, 1])
+        else:
+            dmin = 140
+            for i in BT.query(lp.buffer(140)):
+                dd = lp.distance(BF[i])
+                if dd < dmin: owner, dmin = int(i), dd
+        if owner < 0 and len(bl) and bl[-1][5] == 9999 and (d >= 160 or w >= 230): owner = len(bl) - 1; n_carved += 1
+    l.append(owner)
+print('lots: kept', len(lots), 'turned to their street', n_turned, 'made gardens or yards', n_gone, 'own building carved', n_carved,
+      'without a building', sum(1 for l in lots if l[6] < 0), file=sys.stderr)
+
+# ---------- four police stations (each with its own lot for the patrol cars) and four hospitals, spread over the city ----------
+def spread(cands, k, others=(), keep_off=0):
+    """farthest-point picking: the first next to the start, then each as far as possible from those already picked"""
+    out = []; sx, sy = 560 * S, 652 * S
+    pool = [c for c in cands if all(math.hypot(c[0] - o[0], c[1] - o[1]) > keep_off for o in others)]
+    if not pool: return out
+    out.append(min(pool, key=lambda c: math.hypot(c[0] - sx, c[1] - sy)))
+    while len(out) < k:
+        rest = [c for c in pool if c not in out]
+        if not rest: break
+        out.append(max(rest, key=lambda c: min(math.hypot(c[0] - o[0], c[1] - o[1]) for o in out)))
+    return out
+NOSVC = ('FAIRWAY ISLES', 'PEARL KEY', 'SKYPORT')
+def front_on_street(b):
+    a = math.radians(b[4]); Z = (-math.sin(a), math.cos(a)); return CENTRE.distance(Point(b[0] + Z[0] * (b[3] / 2 + 30), b[1] + Z[1] * (b[3] / 2 + 30))) < RH + SW + 6
+pol_c = [(bl[l[6]][0], bl[l[6]][1], l[6], j) for j, l in enumerate(lots) if l[6] >= 0 and bl[l[6]][7] == 1 and l[2] >= 170 and l[3] >= 100
+         and min(bl[l[6]][2], bl[l[6]][3]) >= 55 and district(bl[l[6]][0], bl[l[6]][1]) not in NOSVC]
+police = spread(pol_c, 4)
+lot_of = {}
+for j, l in enumerate(lots):
+    if l[6] >= 0: lot_of.setdefault(l[6], j)
+taken_b = {c[2] for c in police}
+hos_c = [(b[0], b[1], i, lot_of.get(i, -1)) for i, b in enumerate(bl) if b[7] == 1 and i not in taken_b and min(b[2], b[3]) >= 70 and max(b[2], b[3]) >= 90
+         and district(b[0], b[1]) not in NOSVC and front_on_street(b)]
+hos_c.sort(key=lambda c: c[3] < 0)                       # with a lot of their own (for the ambulances) first
+hospital = spread([c for c in hos_c if c[3] >= 0] or hos_c, 4, police, 900)
+if len(hospital) < 4: hospital += spread([c for c in hos_c if c not in hospital], 4 - len(hospital), police + hospital, 900)
+SERVICES = {'police': [[c[2], c[3]] for c in police], 'hospital': [[c[2], c[3]] for c in hospital]}
+print('police stations', [(district(c[0], c[1])) for c in police], 'hospitals', [(district(c[0], c[1])) for c in hospital], file=sys.stderr)
+
 # ---------- every bit of ground that is left: promenades on the water, forecourts round the landmarks, the apron, the quays ----------
 BLOCKU = unary_union(BLOCKS)
 LEFT = city.buffer(-2).difference(CENTRE.buffer(FRONT + 2, cap_style=2, join_style=2, mitre_limit=2.5)).difference(BLOCKU.buffer(2)).difference(unary_union([g for g in RES if g not in PARKG and g not in APRONG])).difference(unary_union(PARKG)).difference(unary_union(LAKES).buffer(4) if LAKES else Polygon()).difference(QUAY)
@@ -687,7 +773,7 @@ for L in LM_PX:
     LM.append(o)
 out_edges = [dict({'a': a, 'b': b, 'p': [[round(x), round(y)] for x, y in p]}, **({'nt': 1} if k == 'drive' else {})) for a, b, p, k in edges]
 data = {'S': S, 'W': W * S, 'H': H * S, 'roadW': ROAD_W, 'sw': SW, 'nodes': [[round(x), round(y)] for x, y in nodes], 'edges': out_edges,
-        'land': land_out, 'grass': grass_out, 'sand': to_rings(SANDG, 14 * S * S), 'bld': bl, 'lm': LM, 'props': props, 'lots': lots, 'alleys': alleys,
+        'land': land_out, 'grass': grass_out, 'sand': to_rings(SANDG, 14 * S * S), 'bld': bl, 'lm': LM, 'props': props, 'lots': lots, 'alleys': alleys, 'services': SERVICES,
         'yards': [dict(r, k=k) for g, k in yards for r in to_rings(g.simplify(1.5), 20 * 20)],
         'districts': [[nm, [r[0] * S, r[1] * S, r[2] * S, r[3] * S]] for nm, r in DIST], 'start': [560 * S, 652 * S]}
 with open(sys.argv[2], 'w') as f:
@@ -695,7 +781,8 @@ with open(sys.argv[2], 'w') as f:
             "   Units are world units. land/grass/sand: polygons {o: outer ring, h: holes}. nodes/edges: road graph, edge.p is the centre line;\n"
             "   nt = closed to traffic (a driveway to a landmark gate). bld: buildings [cx, cy, w, d, angle deg, block id, 16 = back on an alley or yard, 1 = merged low-rise / 0 = tower];\n"
             "   the front of a building (local +z) faces its street. lm: landmarks; props: cranes, containers, planes, runways, gas stations, plazas, courts;\n"
-            "   lots: parking lots [cx, cy, w, d, angle deg, stall rows]; alleys: back alleys [cx, cy, length, width, angle deg];\n"
+            "   lots: parking lots [cx, cy, w, d, angle deg, stall rows, owner building index or -1], entrance (local +z) on a street;\n"
+            "   services: {police, hospital}: [building index, its lot or -1]; alleys: back alleys [cx, cy, length, width, angle deg];\n"
             "   yards: open ground {o, h, k}: y = service yard, p = promenade or forecourt, ap = airport apron, q = quay; sw: sidewalk width. */\nconst MAP = ")
     json.dump(data, f, separators=(',', ':'), default=lambda o: o.item()); f.write(';\n')
 print('wrote', sys.argv[2], 'nodes', len(nodes), 'edges', len(out_edges), 'buildings', len(bl), file=sys.stderr)
@@ -713,4 +800,4 @@ def preview(path, roads=(), blds=(), extra=()):
     cv2.imwrite(path, img)
 if len(sys.argv) > 3:
     def foot(b): return list(affinity.rotate(box(b[0] - b[2] / 2, b[1] - b[3] / 2, b[0] + b[2] / 2, b[1] + b[3] / 2), b[4], origin=(b[0], b[1])).exterior.coords)
-    preview(sys.argv[3], roads=[e[2] for e in edges], blds=[foot(b) for b in bl], extra=[(list(g.exterior.coords), (0, 0, 255)) for g in RES] + [(p_['o'], (60, 200, 60)) for p_ in grass_out] + [(foot([l[0], l[1], l[2], l[3], l[4]]), (0, 200, 255)) for l in lots])
+    preview(sys.argv[3], roads=[e[2] for e in edges], blds=[foot(b) for b in bl], extra=[(list(g.exterior.coords), (0, 0, 255)) for g in RES] + [(p_['o'], (60, 200, 60)) for p_ in grass_out] + [(foot([l[0], l[1], l[2], l[3], l[4]]), (0, 200, 255)) for l in lots] + [(foot(bl[i]), (0, 0, 255)) for i, _ in SERVICES['hospital']] + [(foot(bl[i]), (255, 80, 0)) for i, _ in SERVICES['police']])

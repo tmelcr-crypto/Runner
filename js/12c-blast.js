@@ -76,9 +76,17 @@ function knock(o, nx, ny, f, r) {
   o.kvx = nx * rand(380, 540) * f; o.kvy = ny * rand(380, 540) * f; o.kvz = rand(240, 340) * f + 60; o.air = o.air || 0; o.kr = r;
   if (!o.knocked) { o.knocked = true; KNOCK.push(o); }
 }
-function knockStep(o, dt) {
+function knockStep(o, dt) {             // in steps of at most 3 units, so nobody flies through a wall, a dumpster, a car or another person
   o.kvz -= 900 * dt; o.air = Math.max(0, o.air + o.kvz * dt);
-  o.x += o.kvx * dt; o.y += o.kvy * dt; resolveCircle(o, o.kr);
+  const n = Math.max(1, Math.ceil(Math.hypot(o.kvx, o.kvy) * dt / 3));
+  for (let i = 0; i < n; i++) {
+    o.x += o.kvx * dt / n; o.y += o.kvy * dt / n;
+    const h = resolveCircle(o, o.kr) || { nx: 0, ny: 0 };
+    if (o.air < 26) bumpCars(o, o.kr, h);                         // high enough, it sails over a car
+    if (o.air < 18) bumpPeople(o, o.kr, h);
+    const m = Math.hypot(h.nx, h.ny);
+    if (m > 0) { const nx = h.nx / m, ny = h.ny / m, vn = o.kvx * nx + o.kvy * ny; if (vn < 0) { o.kvx = (o.kvx - 1.3 * vn * nx) * 0.6; o.kvy = (o.kvy - 1.3 * vn * ny) * 0.6; } }   // bounce off, losing speed
+  }
   if (o.air === 0) { o.kvz = o.kvz < -160 ? -o.kvz * 0.25 : 0; const fr = Math.exp(-6 * dt); o.kvx *= fr; o.kvy *= fr; }
   if (o === P) { P.vx = o.kvx; P.vy = o.kvy; }
   if (o.air > 0 || o.kvz !== 0 || Math.hypot(o.kvx, o.kvy) > 8) return false;

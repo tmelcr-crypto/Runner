@@ -4,30 +4,46 @@ function startSpot() {                       // the longest road near the map's 
   const rs = nearRoads(MAP.start[0], MAP.start[1], 900).sort((u, v) => RE[v.e].len - RE[u.e].len);
   return rs.length ? rs[0].e : nearestRoad(MAP.start[0], MAP.start[1], 3000).e;
 }
-function resetGame() {
+function streetIn(name) {                   // a random street, in district `name` if given (New game: START IN)
+  const ok = [], q = {};
+  for (const E of RE) { if (E.nt || E.len < 240) continue; edgeAt(E.i, E.len / 2, q); if (shoreDist(q.x, q.y) > 40 && (!name || districtAt(q.x, q.y) === name)) ok.push(E.i); }
+  return ok.length ? pick(ok) : startSpot();
+}
+function resetGame(sv) {                     // a new game with the options in OPT, or the saved game sv (js/15b)
   genWorld(); buildMiniMap(); buildCity(); clearDynamic();
   clearRockets(); resetBlast(); cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
-  const e = startSpot(), E = RE[e], s0 = E.len / 2, at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
+  const e = OPT.start === 'usual' ? startSpot() : streetIn(OPT.start === 'random' ? null : OPT.start), E = RE[e], s0 = E.len / 2;
+  const at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
+  const side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1, load = sv ? saveSpot(sv) : null;   // a saved game puts you back where you were
+  if (load) sp = load;
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
-  const kerb = PARK_OFF, side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1;            // starter cars in the parking lane on the player's side
-  for (const [ds, type, col] of [[-60, 'sedan', '#d94f4f'], [50, 'sports', '#3fe0ff'], [160, 'sedan', '#3d6fb0']])
-    for (const dd of [0, 20, -20, 40, 60]) { const q = at(s0 + ds + dd, kerb * side); if (kerbFits(q.x, q.y, q.ang, type)) { cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); break; } }
-  for (let k = 0; k < 32; k++) spawnTraffic(true);
-  for (let k = 0; k < 14; k++) spawnParked(true);
-  for (let k = 0; k < 50; k++) spawnPedNear(true);
+  if (load && load.car) { const c = load.car; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
+  else if (!sv) {                                                  // starter cars in the parking lane on the player's side
+    const kerb = PARK_OFF, kerbT = Object.keys(CAR_TYPES).filter(k => CAR_TYPES[k].parked > 0 && CAR_TYPES[k].wid <= KERB_W).sort((a, b) => CAR_TYPES[b].parked - CAR_TYPES[a].parked);
+    for (const [ds, type, col] of [[-60, kerbT[0], '#d94f4f'], [50, kerbT[1] || kerbT[0], '#3fe0ff'], [160, kerbT[0], '#3d6fb0']])
+      for (const dd of [0, 20, -20, 40, 60]) { const q = at(s0 + ds + dd, kerb * side); if (kerbFits(q.x, q.y, q.ang, type)) { cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); break; } }
+  }
+  const crowd = OPT.crowd;                                       // quieter or busier streets (New game options)
+  for (let k = 0; k < 32 * crowd; k++) spawnTraffic(true);
+  for (let k = 0; k < 14 * crowd; k++) spawnParked(true);
+  for (const L of LOTS) L.filled = false; fillLots(true);
+  for (let k = 0; k < 50 * crowd; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
   for (let k = 0; k < PICKUP_N; k++) spawnPickup();
-  spawnT = 0; resetPolice(); refuges = null;
+  CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
+  if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
+  spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
+  if (sv) applySave(sv);                                        // score, weapons, health, the clock and the weather (js/15b)
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
-function startGame() {
-  Snd.init(); toggleBigMap(false); toggleWheel(false); resetGame(); state = 'play';
-  $('overlay').hidden = true; $('hud').hidden = false;
+function startGame(sv) {                     // sv: a saved game to carry on (js/15b), otherwise a new game with OPT
+  Snd.init(); toggleBigMap(false); toggleWheel(false); resetGame(sv); state = 'play'; closeMenus();
+  $('hud').hidden = false;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  toast('FIND A CAR. CAUSE SOME TROUBLE.');
+  toast(sv ? 'GAME LOADED' : 'FIND A CAR. CAUSE SOME TROUBLE.');
 }
 function showOver() {
   state = 'over'; toggleBigMap(false); toggleWheel(false);
@@ -37,25 +53,23 @@ function showOver() {
   $('oStars').textContent = P.maxStars; $('oTime').textContent = mm + ':' + ss;
   Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0);
   $('overCard').querySelector('h1').textContent = P.busted ? 'BUSTED' : 'WASTED';
-  $('shifter').hidden = true; $('startCard').hidden = true; $('overCard').hidden = false; $('overlay').hidden = false; $('hud').hidden = true;
+  $('shifter').hidden = true; showCard('overCard', true); $('hud').hidden = true;
   $('wasted').style.display = 'none';
 }
-$('startBtn').addEventListener('click', startGame);
-$('againBtn').addEventListener('click', startGame);
 
 function handleKeys() {
-  if (state === 'menu') { if (pressed.Enter || pressed.NumpadEnter) startGame(); }
-  else if (state === 'over') { if (pressed.Enter || pressed.KeyR) startGame(); }
+  if (state === 'over') { if (pressed.KeyR) startGame(); }         // menus: Enter, the arrows and Esc are handled in js/15b
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
     if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
       if (dig >= 0 && dig < WEAPONS.length) pickWeapon(dig); else if (pressed.KeyQ || pressed.Escape || pressed.Tab) toggleWheel(false);
     } else {
       if (pressed.KeyR && !P.car) startReload(P.weapon);
+      if ((pressed.KeyR || pressed.radio) && P.car) Radio.next();   // in a car R tunes the radio (js/02b)
       if (dig >= 0 && dig < WEAPONS.length) P.weapon = dig;
       if (pressed.wheel) P.weapon = (P.weapon + pressed.wheel + WEAPONS.length) % WEAPONS.length;
       if (pressed.KeyQ && !bigOpen) toggleWheel(true);
-      if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false);
+      if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
       if ((pressed.KeyE || pressed.KeyF) && !bigOpen) tryEnterExit();
     }
   }
@@ -80,12 +94,12 @@ function updateCam(dt, idle) {
   cam.shake = Math.max(0, cam.shake - dt * 28);
 }
 function update(dt, idle) {
-  gameT += dt;
+  gameT += dt; updateSky(dt);                                          // the clock and the weather (js/12d)
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
-  updatePeds(dt); updateOfficers(dt); updateBlast(dt);
-  if (!idle) updatePickups(dt);
-  manageSpawns(dt); updateParticles(dt);
+  updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt);
+  if (!idle) { updatePickups(dt); autosaveTick(dt); }              // an autosave every minute while no police are after you (js/15b)
+  manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {
     const c = P.car;
@@ -105,8 +119,9 @@ function frame(ts) {
   if (state === 'preview') { pvFrame(); return; }
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else update(rdt, true);
-  render(ts / 1000);
+  else if (state !== 'pause') update(rdt, true);                  // paused: the picture stands still behind the menu
+  Radio.update(rdt);                                                // the car radio: which station, fading in and out
+  render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);
 }
 

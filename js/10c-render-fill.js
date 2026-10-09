@@ -28,6 +28,7 @@ function fillMats() {
   FILL_M.push(lam({ map: SHOPTEX.map, emissive: 0xffffff, emissiveMap: SHOPTEX.emi }), lam({}), xray(new THREE.MeshBasicMaterial({ vertexColors: true })));
   for (const t of ROOFTEX) FILL_M.push(lam({ map: t }));
   FILL_M.push(xray(new THREE.MeshBasicMaterial({ map: SIGNTEX, vertexColors: true })));
+  FILL_M.forEach((m, i) => { if (m.emissiveMap) EMI_MATS.add(m); else if (i === FM_GLOW || i === FM_SIGN) NEON_MATS.add(m); });   // dimmed by day (js/12d)
   return FILL_M;
 }
 function fillChunks() {                                          // one drawable per chunk square that holds fill buildings
@@ -69,10 +70,10 @@ function fillBuilding(B, r) {
 
   const C = h => new THREE.Color(h), base = C(r.c), style = { office: 0, apartment: 1, deco: 1, brick: 2, warehouse: 3 }[kind] ?? 1;
   const tint = r.pastel ? base.clone().lerp(C(0xffffff), 0.15) : kind === 'brick' ? base.clone().multiplyScalar(0.85).lerp(C(0xb5654a), 0.5)
-    : kind === 'warehouse' ? base.clone().lerp(C(0xb9bcc4), 0.7) : base.clone().lerp(C(0xffffff), 0.35);
+    : kind === 'warehouse' ? base.clone().lerp(C(0xb9bcc4), 0.7) : r.special ? base.clone() : base.clone().lerp(C(0xffffff), 0.35);   // hospital white, police station blue
   const trimC = r.pastel ? C(0xf4efe6).multiplyScalar(0.8) : (kind === 'deco' ? C(0xd9c27a) : tint.clone().lerp(C(0xf0ece0), 0.7)).multiplyScalar(0.55);
   const gfC = tint.clone().lerp(C(0xdad5c9), 0.55).multiplyScalar(0.7), W1 = C(0xffffff), iron = C(0x2b2e38), acC = C(0x9aa0ab), fanC = C(0x555a66);
-  const roofC = r.pastel ? tint.clone().lerp(C(0xffffff), 0.45).multiplyScalar(0.8) : (kind === 'warehouse' ? C(0xc2c6d0) : kind === 'deco' ? C(0xcfcbc0) : C(0x8a8d97).lerp(base, 0.12)).multiplyScalar(0.42);
+  const roofC = r.special === 'hospital' ? C(0xdfe4ea) : r.special === 'police' ? C(0x2a4aa8).multiplyScalar(0.7) : r.pastel ? tint.clone().lerp(C(0xffffff), 0.45).multiplyScalar(0.8) : (kind === 'warehouse' ? C(0xc2c6d0) : kind === 'deco' ? C(0xcfcbc0) : C(0x8a8d97).lerp(base, 0.12)).multiplyScalar(0.42);
   const roofK = kind === 'warehouse' ? 1 : kind === 'deco' ? 2 : 0, NEO = C(pick(GLOW));
   const nF = Math.max(1, Math.round((r.H - GFH) / FLOOR)), yG = y0 + GFH, yT = yG + nF * FLOOR;
   const facUV = (floors) => { const ov = randi(0, 3) / 4, v = floors / 4; return len => { const u = Math.max(1, Math.round(len / BAY)) / 4, ou = randi(0, 3) / 4; return [[ou, ov], [ou + u, ov], [ou + u, ov + v], [ou, ov + v]]; }; };
@@ -189,7 +190,8 @@ function fillBuilding(B, r) {
     }
   }
 
-  /* roof kit */
+  /* roof kit (not on a hospital or a police station: their roofs carry the cross and the lettering, js/10e) */
+  if (r.special) return;
   const taken = [];
   const spot = (w, d) => {
     if (2 * hw < w + 14 || 2 * hd < d + 14) return null;

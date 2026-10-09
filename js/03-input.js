@@ -60,7 +60,8 @@ bindBtn($('bAct'), () => { pressed.KeyE = true; });
 bindBtn($('bDash'), () => { TS.sprint = true; }, () => { TS.sprint = false; });
 $('wBtn').addEventListener('click', () => { pressed.KeyQ = true; });   // opens the weapon wheel
 $('mute').addEventListener('click', () => { pressed.KeyM = true; });
-$('mapBtn').addEventListener('click', () => { pressed.Tab = true; });
+$('mini').addEventListener('click', () => { if (!bigOpen) pressed.Tab = true; });   // tap the minimap for the city map; tap the map to close it
+$('radioBtn').addEventListener('click', () => { pressed.radio = true; });
 $('bigmap').addEventListener('click', () => { pressed.Tab = true; });
 function updateGearUi() {
   $('gD').classList.toggle('on', P.gear === 'D'); $('gR').classList.toggle('on', P.gear === 'R');

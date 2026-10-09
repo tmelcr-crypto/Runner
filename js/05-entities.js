@@ -6,18 +6,20 @@ function makeCar(type, x, y, ang, driver, color) {
   const t = CAR_TYPES[type];
   return { type, t, x, y, ang, vx: 0, vy: 0, av: 0, hp: t.hp, maxhp: t.hp, color: color || pick(t.colors), driver: driver || null,
     thr: 0, str: 0, hb: false, e: -1, fw: 1, s: 0, nx: null, burn: 0, dead: false, deadT: 0, stuck: 0, rev: 0,
-    slip: 0, smokeT: 0, hitCd: 0, way: null, wayT: 0, sirenT: rand(0, 2) };
+    slip: 0, smokeT: 0, hitCd: 0, way: null, wayT: 0, sirenT: rand(0, 2),
+    radio: !t.cop && !t.job && RADIO.length && Math.random() * 100 < RADIO_TABLE.onAir ? Math.floor(Math.random() * RADIO.length) : -1 };   // its radio station (js/01e), -1 off
 }
-function carCircles(c) {
-  const t = c.t, r = t.wid * 0.5 + 1, o = t.len * 0.5 - r, fx = Math.cos(c.ang), fy = Math.sin(c.ang);
-  return [[c.x + fx * o, c.y + fy * o, r], [c.x, c.y, r], [c.x - fx * o, c.y - fy * o, r]];
+function carCircles(c) {                     // a row of circles along the body: three for a car, five for a bus or a limo
+  const t = c.t, r = t.wid * 0.5 + 1, o = Math.max(0, t.len * 0.5 - r), n = Math.max(1, Math.ceil(o / (r * 1.6))), fx = Math.cos(c.ang), fy = Math.sin(c.ang), out = [];
+  for (let k = -n; k <= n; k++) { const d = o * k / n; out.push([c.x + fx * d, c.y + fy * d, r]); }
+  return out;
 }
 const carSpeed = c => Math.hypot(c.vx, c.vy);
 // w: a sidewalk spot { e, fw, s, side } from sidewalkSpot(); without one the person finds the nearest sidewalk on the next update
 function makePed(x, y, w) {
   return { x, y, e: w ? w.e : -1, fw: w ? w.fw : 1, s: w ? w.s : 0, side: w ? w.side : 1, speed: rand(1.15, 1.6) * MPS, hp: 30, state: 'walk', fl: 0, fx: 0, fy: 0, dead: false, deadT: 0, wait: 0,
     shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']),
-    skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']), bob: rand(0, 6), vx: 0, vy: 0 };
+    skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']), bob: rand(0, 6), vx: 0, vy: 0, umb: Math.random() < 0.6 };
 }
 function makeFootCop(x, y, w) { const p = makePed(x, y, w); p.cop = true; p.hp = 45; p.speed = rand(1.2, 1.5) * MPS; p.hd = 0; p.ang = 0; return p; }
 function makeOfficer(x, y) { return { x, y, ang: 0, hp: 45, cool: rand(0.3, 1), dead: false, deadT: 0, bob: 0, vx: 0, vy: 0 }; }
