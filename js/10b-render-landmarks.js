@@ -492,7 +492,7 @@ function makeRunway(p) {                                         // asphalt stri
 function genLandmarks() {
   LMS = []; LM_CLEAR = [];
   const add = (cx, cy, a, rad, make, hw, hh) => { LMS.push({ cx, cy, a, rad, make, mesh: null }); LM_CLEAR.push([cx, cy, (hw || Math.min(rad, 300)) + 30, (hh || Math.min(rad, 300)) + 30]); };
-  const solid = (x, y, a, lx, lz, w, h) => { const ca = Math.cos(a), sa = Math.sin(a); makeSolid(x + ca * lx - sa * lz, y + sa * lx + ca * lz, w, h, a, {}); };
+  const solid = (x, y, a, lx, lz, w, h, soft) => { const ca = Math.cos(a), sa = Math.sin(a); makeSolid(x + ca * lx - sa * lz, y + sa * lx + ca * lz, w, h, a, soft ? { soft: true } : {}); };   // soft: a prop, not a building (rifle rounds go through)
   for (const L of MAP.lm) {
     if (L.t === 'stadium') {
       const R = L.r, seg = 56;
@@ -517,7 +517,7 @@ function genLandmarks() {
     else if (L.t === 'hangars') { makeSolid(L.x, L.y, L.w - 40, L.h - 20, 0, {}); add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeHangars(L), L.w / 2, L.h / 2); }
     else if (L.t === 'colony' && COLONY) {
       const c = COLONY; makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {});
-      solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_SIGN / 2, 0, COLONY_SIGN + 2, 22);                        // the sign pylon
+      solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_SIGN / 2, 0, COLONY_SIGN + 2, 22, true);                  // the sign pylon
       add(c.cx, c.cy, c.a, 120, makeColony, 90, 90);
     }
     else if (L.t === 'park') {
@@ -530,7 +530,7 @@ function genLandmarks() {
     else if (L.t === 'twist') { makeSolid(L.x, L.y, 200, 200, 0, {}); add(L.x, L.y, 0, 600, makeTwist, 105, 105); }
     else if (L.t === 'crown') { makeSolid(L.x, L.y, 220, 220, 0, {}); add(L.x, L.y, 0, 650, makeCrown, 115, 115); }
     else if (L.t === 'sail') { const a = (L.a || 0) * Math.PI / 180; solid(L.x, L.y, a, 0, -10, 190, 230); add(L.x, L.y, a, 600, makeSail, 130, 130); }
-    else if (L.t === 'wheel') { const a = (L.a || 0) * Math.PI / 180; for (const sx of [-72, 72]) solid(L.x, L.y, a, sx, 0, 14, 50); solid(L.x, L.y, a, 0, 36, 60, 20); add(L.x, L.y, a, 400, makeWheel, 140, 50); }
+    else if (L.t === 'wheel') { const a = (L.a || 0) * Math.PI / 180; for (const sx of [-72, 72]) solid(L.x, L.y, a, sx, 0, 14, 50, true); solid(L.x, L.y, a, 0, 36, 60, 20, true); add(L.x, L.y, a, 400, makeWheel, 140, 50); }
     else if (L.t === 'studio') {
       for (const [a, b, c, d] of studioStages(L)) makeSolid(L.x + (a + c) / 2, L.y + (b + d) / 2, c - a, d - b, 0, {});
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeStudio(L), L.w / 2, L.h / 2);
@@ -538,20 +538,20 @@ function genLandmarks() {
   }
   for (const p of MAP.props) {
     const a = p.a * Math.PI / 180;
-    if (p.t === 'crane') { for (const [lx, lz] of CRANE_LEGS) solid(p.x, p.y, a, lx, lz, 7, 7); add(p.x, p.y, a, 180, makeCrane); }
-    else if (p.t === 'containers') { solid(p.x, p.y, a, 0, 0, 190, 66); add(p.x, p.y, a, 110, makeContainers); }
-    else if (p.t === 'plane') { solid(p.x, p.y, a, -5, 0, 236, 26); solid(p.x, p.y, a, 5, 0, 50, 200); add(p.x, p.y, a, 130, makePlane); }
+    if (p.t === 'crane') { for (const [lx, lz] of CRANE_LEGS) solid(p.x, p.y, a, lx, lz, 7, 7, true); add(p.x, p.y, a, 180, makeCrane); }
+    else if (p.t === 'containers') { solid(p.x, p.y, a, 0, 0, 190, 66, true); add(p.x, p.y, a, 110, makeContainers); }
+    else if (p.t === 'plane') { solid(p.x, p.y, a, -5, 0, 236, 26, true); solid(p.x, p.y, a, 5, 0, 50, 200, true); add(p.x, p.y, a, 130, makePlane); }
     else if (p.t === 'runway') { LMS.push({ cx: p.x, cy: p.y, a, rad: p.w / 2, make: () => makeRunway(p), mesh: null }); LM_CLEAR.push([p.x, p.y, Math.abs(Math.cos(a)) * p.w / 2 + Math.abs(Math.sin(a)) * p.h / 2 + 20, Math.abs(Math.sin(a)) * p.w / 2 + Math.abs(Math.cos(a)) * p.h / 2 + 20]); }
     else if (p.t === 'gas' || p.t === 'plaza' || p.t === 'court') {
       const w = p.w || 166, h = p.h || 100, ex = Math.abs(Math.cos(a)) * w / 2 + Math.abs(Math.sin(a)) * h / 2, ey = Math.abs(Math.sin(a)) * w / 2 + Math.abs(Math.cos(a)) * h / 2;
       if (hitsColony(p.x, p.y, w, h, p.a)) continue;
       if (p.t === 'gas') {
         const L = gasLayout(p), [a0, b0, a1, b1] = L.shop; solid(p.x, p.y, a, (a0 + a1) / 2, (b0 + b1) / 2, a1 - a0, b1 - b0);
-        for (const z of L.isl) solid(p.x, p.y, a, L.cx, z, 72, 8);
-        solid(p.x, p.y, a, w / 2 - 12, h / 2 - 12, 4, 4);
+        for (const z of L.isl) solid(p.x, p.y, a, L.cx, z, 72, 8, true);                                 // pump islands and the sign post
+        solid(p.x, p.y, a, w / 2 - 12, h / 2 - 12, 4, 4, true);
         add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makeGas(p), ex - 20, ey - 20);
-      } else if (p.t === 'plaza') { solid(p.x, p.y, a, 0, 0, 30, 30); add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makePlaza(p), ex - 20, ey - 20); }
-      else { for (const s of [-1, 1]) solid(p.x, p.y, a, s * 77, 0, 4, 4); add(p.x, p.y, a, 95, makeCourt, ex - 30, ey - 30); }
+      } else if (p.t === 'plaza') { solid(p.x, p.y, a, 0, 0, 30, 30, true); add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makePlaza(p), ex - 20, ey - 20); }
+      else { for (const s of [-1, 1]) solid(p.x, p.y, a, s * 77, 0, 4, 4, true); add(p.x, p.y, a, 95, makeCourt, ex - 30, ey - 30); }
     }
   }
   // props are random-looking but must come back the same after streaming out and in

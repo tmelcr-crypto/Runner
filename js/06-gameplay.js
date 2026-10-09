@@ -105,6 +105,26 @@ function raycast(ox, oy, ang, range) {
   }
   return { x: ox + dx * bt, y: oy + dy * bt, type, obj, t: bt, dx, dy };
 }
+function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and one unarmoured car; a building, the first person, an armoured or a second car stops it
+  const dx = Math.cos(ang), dy = Math.sin(ang), R = w.range, hits = [];
+  buildingsAlong(ox, oy, ox + dx * R, oy + dy * R, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < R) hits.push({ t, type: softSolid(rc) ? 'soft' : 'wall', obj: rc }); });
+  for (const p of peds) if (!p.dead) { const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < R) hits.push({ t, type: 'ped', obj: p }); }
+  for (const o of officers) if (!o.dead) { const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < R) hits.push({ t, type: 'officer', obj: o }); }
+  for (const c of cars) {
+    if (c === P.car || c.sunk) continue; let t = Infinity;
+    for (const q of carCircles(c)) t = Math.min(t, rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]));
+    if (t < R) hits.push({ t, type: 'car', obj: c });
+  }
+  hits.sort((u, v) => u.t - v.t);
+  let through = 0;
+  for (const h of hits) {
+    const x = ox + dx * h.t, y = oy + dy * h.t;
+    if (h.type === 'soft') { spark(x, y, 3); continue; }                                  // straight through the dumpster
+    if (h.type === 'car' && !h.obj.t.armored && through < 1) { through++; spark(x, y, 5); damageCar(h.obj, w.dmg * 0.55, true); continue; }   // and through one car
+    return { x, y, type: h.type, obj: h.obj, t: h.t, dx, dy };
+  }
+  return { x: ox + dx * R, y: oy + dy * R, type: null, obj: null, t: R, dx, dy };
+}
 function startReload(wi) {
   const w = WEAPONS[wi]; if (P.relW >= 0 || P.mag[wi] >= w.mag || P.ammo[wi] <= 0) return false;
   P.relW = wi; P.rel = 0; Snd.tone(200, 120, 0.08, 0.1, 'square'); return true;
@@ -125,7 +145,7 @@ function fireWeapon(aim) {                                      // aim: a point 
   P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
   const a = aim ? Math.atan2(aim.y - P.y, aim.x - P.x) : P.ang + rand(-w.spread, w.spread);
   if (aim) P.ang = a;
-  const h = raycast(P.x, P.y, a, w.range);
+  const h = w.scope ? rifleRay(P.x, P.y, a, w) : raycast(P.x, P.y, a, w.range);
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
   if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) addHeat(30); else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }

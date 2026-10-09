@@ -99,12 +99,13 @@ function buildingsAlong(x1, y1, x2, y2, fn) {
   bHash.query(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), _ba);
   for (const rc of _ba) if (!rc.gate) fn(rc);                    // a gate's boom stops cars, not bullets or eyes
 }
-function losClear(x1, y1, x2, y2) {
+function losClear(x1, y1, x2, y2, hardOnly) {                 // hardOnly: only buildings and landmarks block, not the props a rifle round goes through
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
   const dx = (x2 - x1) / d, dy = (y2 - y1) / d; let clear = true;
-  buildingsAlong(x1, y1, x2, y2, rc => { const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; });
+  buildingsAlong(x1, y1, x2, y2, rc => { if (hardOnly && softSolid(rc)) return; const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; });
   return clear;
 }
+const softSolid = rc => !!(rc.clutter || rc.soft);             // dumpsters, crates, AC units, pumps, fountains, cranes, containers, planes, sign posts
 
 /* ---------- water: signed distance to the shore, sampled from a field built from the land polygons ---------- */
 const FR = 14;                                                 // field cell size in world units

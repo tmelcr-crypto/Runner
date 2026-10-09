@@ -18,7 +18,7 @@ function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d
 const UNITS_PER_M = 12, MPS = UNITS_PER_M, KMH = UNITS_PER_M / 3.6, G_ACC = 9.81 * UNITS_PER_M;
 const LAT_GRIP = 2 * G_ACC;                                   // cornering limit: about twice a road car's grip, so driving stays fun
 const acc0to100 = (top, secs) => -top * KMH * Math.log(1 - 100 / top) / secs;   // throttle force that reaches 100 km/h in `secs`
-const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicker off the line), braking about 1 g
+const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicker off the line), braking about 1 g; armored: true stops rifle rounds (none yet)
   sedan:  { name: 'SEDAN',  len: 54, wid: 26, max: 180 * KMH, acc: acc0to100(180, 7),   brake: 9.5 * MPS,  turn: 2.7, grip: 5.5, hp: 100, mass: 1.0,  colors: ['#ff2bd6', '#2bf3ff', '#a259ff', '#ffe14a', '#3dffa6', '#6f86ff'] },
   sports: { name: 'SPORTS', len: 52, wid: 24, max: 260 * KMH, acc: acc0to100(260, 4),   brake: 10.5 * MPS, turn: 3.0, grip: 3.4, hp: 70,  mass: 0.85, colors: ['#ff2bd6', '#ffe14a', '#2bf3ff', '#ff4d4d'] },
   truck:  { name: 'TRUCK',  len: 78, wid: 33, max: 130 * KMH, acc: acc0to100(130, 12),  brake: 7.5 * MPS,  turn: 1.9, grip: 6.5, hp: 220, mass: 2.4,  colors: ['#3d6fff', '#ff7a3d', '#3dffa6', '#b79cff'] },

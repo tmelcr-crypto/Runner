@@ -3,7 +3,8 @@
    The weapon button opens a wheel with every weapon, its picture and its ammo; the game waits until you tap one (tap outside to go back).
    The sniper rifle aims through a scope: hold FIRE and drag. The scope sits above your finger, so the finger does not cover it, and shows
    what is under its centre at 4x; everything outside it is blurred. Let go to shoot - only standing still, with a round chambered.
-   The game keeps running while you aim. With a mouse the scope is on the pointer; with the J key the arrow keys move it. */
+   The game keeps running while you aim. With a mouse the scope is on the pointer; with the J key the arrow keys move it.
+   You can only shoot what you can see: a building between you and the crosshair blocks the shot (props and cars do not). */
 
 // pictures, side view, pointing right; all in the same 96 x 40 box
 const WICON = {
@@ -88,6 +89,7 @@ function updateScope(inp, dt) {         // called from updatePlayer while the ri
   if (P.relW === P.weapon) tag = 'RELOADING ' + Math.max(0, w.reload - P.rel).toFixed(1) + 'S';
   else if (P.mag[P.weapon] <= 0) tag = P.ammo[P.weapon] > 0 ? 'RELOADING' : 'NO AMMO';
   else if (P.cool > 0) tag = 'NEXT ROUND ' + P.cool.toFixed(1) + 'S';
+  else if (SCOPE.aim && !losClear(P.x, P.y, SCOPE.aim.x, SCOPE.aim.y, true)) tag = 'NO LINE OF SIGHT';   // a building is in the way
   else if (!still) tag = 'STAND STILL TO SHOOT';
   else ready = true;
   SCOPE.ready = ready; SCOPE.tag = ready && SCOPE.hit ? 'ON TARGET' : tag;
