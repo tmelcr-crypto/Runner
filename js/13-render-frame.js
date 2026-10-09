@@ -3,7 +3,7 @@
 let lastRenderT = 0;
 function render(time) {
   frameId++; const dt = clamp(time - lastRenderT, 0.001, 0.05) || 0.016; lastRenderT = time;
-  placeCamera(true);
+  placeCamera(true); applySky(dt);                                    // light, fog, glows and rain for the hour and the weather (js/12d)
   for (const c of cars) syncCar(c, time, dt);
   for (const p of peds) syncPerson(p, p.cop ? 'officer' : 'ped', time, dt);
   for (const o of officers) syncPerson(o, 'officer', time, dt);

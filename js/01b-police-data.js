@@ -1,9 +1,9 @@
 'use strict';
 /* ---------- 1b. POLICE SETTINGS ----------
    Every number the police work with, in everyday units (metres, seconds, km/h, %). The game converts them when it starts (COP below).
-   tools/police_sheet.py exports this table to a spreadsheet for iOS Numbers or Excel and writes an edited copy back:
-     python3 tools/police_sheet.py export police.xlsx
-     python3 tools/police_sheet.py import police.xlsx
+   tools/settings_sheet.py exports this table to a spreadsheet for Apple Numbers or Excel and writes an edited copy back:
+     python3 tools/settings_sheet.py police export police.xlsx
+     python3 tools/settings_sheet.py police import police.xlsx
    The tool reads and rewrites the JSON between the two markers, so keep it valid JSON (double quotes, no trailing commas).
    levels: one value per wanted level, 1 to 5 stars. settings: one value each. crimes: the heat a crime adds. */
 const POLICE_TABLE = /*POLICE-JSON*/{

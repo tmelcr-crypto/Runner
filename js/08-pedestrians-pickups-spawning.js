@@ -39,9 +39,9 @@ function updatePeds(dt) {
     }
     else if (p.e >= 0) {
       const c = sidewalkPoint(p, 14, _pw), dx = c.x - p.x, dy = c.y - p.y, d = Math.hypot(dx, dy);
-      if (d < 26) p.s += p.speed * dt;        // keep the carrot just ahead; it only moves on once we are close to it
+      if (d < 26) p.s += p.speed * (1 + 0.3 * SKY.rain) * dt;        // keep the carrot just ahead; it only moves on once we are close to it
       if (p.s >= RE[p.e].len) pedNext(p);
-      if (d > 2) { mx = dx / d; my = dy / d; sp = p.speed; }
+      if (d > 2) { mx = dx / d; my = dy / d; sp = p.speed * (1 + 0.3 * SKY.rain); }   // hurrying in the rain
     }
     p.vx = lerp(p.vx, mx * sp, 1 - Math.exp(-10 * dt)); p.vy = lerp(p.vy, my * sp, 1 - Math.exp(-10 * dt));
     p.x += p.vx * dt; p.y += p.vy * dt; p.bob += Math.hypot(p.vx, p.vy) * dt * 0.12;
@@ -218,7 +218,7 @@ function manageSpawns(dt) {
     if (traffic < 32) spawnTraffic(false); else if (parked < 16) spawnParked(false);
     fillLots(false);
     let fc = 0; for (const q of peds) if (q.cop && !q.dead) fc++;
-    if (fc < COP.footPatrols) spawnFootCop(false); else if (live < 56) { if (Math.random() > 0.35 || !spawnStroller(false)) spawnPedNear(false); }
+    if (fc < COP.footPatrols) spawnFootCop(false); else if (live < 56) { if (Math.random() > 0.35 * (1 - SKY.rain) || !spawnStroller(false)) spawnPedNear(false); }   // nobody strolls in the rain
   }
 }
 function updateParticles(dt) {

@@ -141,7 +141,7 @@ function buildCity() {
       box(Mk, -L.w / 2 + 10, e - 65 * s, -L.w / 2 + 10 + n * 30, e - 66.6 * s, 0.9, stall);
     }
   }
-  const roadMat = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  const roadMat = ROAD_M = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   for (const t of roadT.values()) t.mesh(roadMat);
   for (const t of markT.values()) t.mesh(markMat);
   // bridge rails: glowing low walls along the outer edge of the bridge sidewalks
@@ -234,7 +234,7 @@ function buildCity() {
   chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instWhite, crowns);
   chunked(GCyl, M.instWhite, poles); chunked(GB, M.instBasic, heads);
   chunked(GB, M.instWhite, fb); chunked(GB, M.instBasic, fg); chunked(GCyl, M.instWhite, fc);
-  chunked(GP, new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), pools);
+  chunked(GP, LIGHT_POOL_M = new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), pools);   // lit at night only (js/12d)
   const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(shadowTris, 3));
   const sh = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));
   sh.frustumCulled = false; cityGroup.add(sh);

@@ -28,6 +28,7 @@ function fillMats() {
   FILL_M.push(lam({ map: SHOPTEX.map, emissive: 0xffffff, emissiveMap: SHOPTEX.emi }), lam({}), xray(new THREE.MeshBasicMaterial({ vertexColors: true })));
   for (const t of ROOFTEX) FILL_M.push(lam({ map: t }));
   FILL_M.push(xray(new THREE.MeshBasicMaterial({ map: SIGNTEX, vertexColors: true })));
+  FILL_M.forEach((m, i) => { if (m.emissiveMap) EMI_MATS.add(m); else if (i === FM_GLOW || i === FM_SIGN) NEON_MATS.add(m); });   // dimmed by day (js/12d)
   return FILL_M;
 }
 function fillChunks() {                                          // one drawable per chunk square that holds fill buildings

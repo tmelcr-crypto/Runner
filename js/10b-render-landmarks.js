@@ -100,7 +100,7 @@ function makeLighthouse() {                                      // striped towe
   for (let k = 0; k < 6; k++) { const y0 = 6 + k * 21, r0 = 15 - k * 0.8; T.prism(0, 0, r0, y0, y0 + 21, k % 2 ? red : white, 14, r0 - 0.8); }
   T.prism(0, 0, 17, 132, 134, _C('#2a2348'), 14, 17, true); G.prism(0, 0, 8, 134, 148, _C('#fff3b0'), 12, 8); T.prism(0, 0, 11, 148, 160, red, 12, 1, true);
   box5(T, 20, 6, -14, 52, 22, 14, white); box5(T, 18, 22, -16, 54, 25, 16, red);
-  const m = lmMesh(T, G), beam = new THREE.Mesh(GP, glowMat('#fff3b0', 0.55)); beam.scale.set(520, 1, 70); beam.position.set(260, 0, 0);
+  const m = lmMesh(T, G), beam = new THREE.Mesh(GP, glowMat('#fff3b0', 0.55, true)); beam.scale.set(520, 1, 70); beam.position.set(260, 0, 0);
   const pivot = new THREE.Group(); pivot.position.y = 141; pivot.add(beam); m.add(pivot);
   m.userData.anim = t => { pivot.rotation.y = t * 0.9; }; return m;
 }

@@ -18,7 +18,7 @@ const carSpeed = c => Math.hypot(c.vx, c.vy);
 function makePed(x, y, w) {
   return { x, y, e: w ? w.e : -1, fw: w ? w.fw : 1, s: w ? w.s : 0, side: w ? w.side : 1, speed: rand(1.15, 1.6) * MPS, hp: 30, state: 'walk', fl: 0, fx: 0, fy: 0, dead: false, deadT: 0, wait: 0,
     shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']),
-    skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']), bob: rand(0, 6), vx: 0, vy: 0 };
+    skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']), bob: rand(0, 6), vx: 0, vy: 0, umb: Math.random() < 0.6 };
 }
 function makeFootCop(x, y, w) { const p = makePed(x, y, w); p.cop = true; p.hp = 45; p.speed = rand(1.2, 1.5) * MPS; p.hd = 0; p.ang = 0; return p; }
 function makeOfficer(x, y) { return { x, y, ang: 0, hp: 45, cool: rand(0.3, 1), dead: false, deadT: 0, bob: 0, vx: 0, vy: 0 }; }

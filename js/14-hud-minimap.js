@@ -101,6 +101,7 @@ function updateHud(time) {
   setText('wAmmo', 'wAmmo', pad(P.mag[P.weapon], 2) + '/' + pad(P.ammo[P.weapon], 3));
   if (H.stars !== P.stars) { H.stars = P.stars; [...$('stars').children].forEach((e, k) => e.classList.toggle('on', k < P.stars)); }
   const fade = P.stars > 0 && !PS.seen; if (H.fade !== fade) { H.fade = fade; $('stars').classList.toggle('fade', fade); }   // the stars blink while they search, stay lit while they see you
+  setText('clock', 'clock', skyText());
   const hot = P.stars > 0; if (H.hot !== hot) { H.hot = hot; miniCv.classList.toggle('hot', hot); }
   if (Snd.muted !== H.mute) { H.mute = Snd.muted; $('mute').textContent = Snd.muted ? 'MUTED' : 'SND'; }
   const c = P.car; let vname = 'ON FOOT', vinfo = '', vhp = 0, hint = '';

@@ -21,6 +21,10 @@ const Snd = {
       const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = 4;
       const sg = c.createGain(); sg.gain.value = 0;
       ns.connect(bp); bp.connect(sg); sg.connect(this.out); ns.start(); this.scr = { g: sg };
+      // rain: looping noise, high-passed into a hiss
+      const rs = c.createBufferSource(); rs.buffer = buf; rs.loop = true; const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 900;
+      const rlp = c.createBiquadFilter(); rlp.type = 'lowpass'; rlp.frequency.value = 7000; const rg = c.createGain(); rg.gain.value = 0;
+      rs.connect(hp); hp.connect(rlp); rlp.connect(rg); rg.connect(this.out); rs.start(); this.rain = { g: rg };
       // police siren
       const so = c.createOscillator(); so.type = 'triangle'; so.frequency.value = 800;
       const sgn = c.createGain(); sgn.gain.value = 0; so.connect(sgn); sgn.connect(this.out); so.start();
@@ -33,6 +37,8 @@ const Snd = {
     e.lp.frequency.setTargetAtTime(260 + spd * 1100, t, 0.08);
     e.g.gain.setTargetAtTime(on ? 0.07 + 0.06 * Math.abs(thr) + 0.05 * spd : 0, t, 0.08);
   },
+  setRain(v) { if (this.ctx) this.rain.g.gain.setTargetAtTime(v * 0.11, this.ctx.currentTime, 0.5); },
+  thunder() { this.burst(2.8, 700, 40, 0.8); this.tone(52, 26, 2.2, 0.45, 'sine'); },
   setScreech(a) { if (this.ctx) this.scr.g.gain.setTargetAtTime(a * 0.13, this.ctx.currentTime, 0.04); },
   setSiren(v, time) {
     if (!this.ctx) return; const t = this.ctx.currentTime;

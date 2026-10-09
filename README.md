@@ -28,7 +28,7 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 
 The police only know what they see or hear, and they come in small numbers.
 
-- **Seeing**: a cop sees you within 37.5 m, inside an 80 degree cone in front of them, with nothing in between; once they have you they keep watching all round for a moment. A crime counts only when a cop sees it or hears it (gunshots as far as each weapon is heard, explosions within 25 m). Each crime adds heat, and enough heat is a wanted level: a seen carjacking is 1 star; carjacking a police car, killing someone in front of a cop or hurting a cop is 2 stars.
+- **Seeing**: a cop sees you within 37.5 m by day (less at night, in the rain and in fog - see Day, night & weather), inside an 80 degree cone in front of them, with nothing in between; once they have you they keep watching all round for a moment. A crime counts only when a cop sees it or hears it (gunshots as far as each weapon is heard, explosions within 25 m). Each crime adds heat, and enough heat is a wanted level: a seen carjacking is 1 star; carjacking a police car, killing someone in front of a cop or hurting a cop is 2 stars.
 - **Radio and search**: whoever sees you tells the others where you are. When nobody sees you they search around the spot where you were last seen: a red circle on the minimap and the city map, growing to 60-140 m, and the stars blink. Police cars cruise the streets inside it and cops on foot walk to the spot and look round. Stay out of sight for 12 s at 1 star up to 50 s at 5 stars and they give up; inside the circle that takes about three times longer.
 - **Fewer cops, later**: two foot patrols walk the sidewalks around you, and patrol cars are part of the traffic (how many is set in the vehicle table). At 1 star one police car comes (patrol cars nearby join at once, otherwise one is sent after 15 s); 2, 3, 5 and 7 cars at the higher levels, sent sooner; extra officers on foot from 3 stars.
 - **1 star, a stop order**: a cop near you shouts STOP. Stand still - on foot or in your car - for 3 s and you pay a fine of 250 and the stars go. Keep moving for 3 s while they can see you and it is 2 stars.
@@ -36,12 +36,14 @@ The police only know what they see or hear, and they come in small numbers.
 - **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire. From 3 stars an armoured APC may come too, at 5 stars a tank that drives straight at you, on foot or not.
 - **Busted or wasted** is not the end: you start again at the door of the nearest police station (bail: 10% of your score, and they keep your weapons except the pistol) or hospital (the bill: 10%); see Hospitals and police stations above.
 
-Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/police_sheet.py` turns it into an Apple Numbers file or an Excel workbook and reads an edited copy (either kind) back (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
+Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/settings_sheet.py` turns it into an Apple Numbers file or an Excel workbook and reads an edited copy (either kind) back (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
 
 ```
-python3 tools/police_sheet.py export police.numbers      # or police.xlsx
-python3 tools/police_sheet.py import police.numbers [--dry-run]
+python3 tools/settings_sheet.py police export police.numbers      # or police.xlsx
+python3 tools/settings_sheet.py police import police.numbers [--dry-run]
 ```
+
+(`tools/police_sheet.py export|import ...` still works and does the same.)
 
 Both have a sheet per kind of setting - Wanted levels (one column per star), Settings, Crimes - and a How to fill sheet. Yellow cells are the values and YES / NO cells are pop-up menus. The Excel workbook also has grey Check cells that say OK or what is wrong; a Numbers file is written without formulas. The import checks every value against its allowed range, lists what changed and only then rewrites the table.
 
@@ -66,6 +68,26 @@ Both have a sheet per kind of setting - Wanted levels (one column per star), Set
 Ambulances and fire engines on a call take the shortest way by road at up to 65 km/h; one already in traffic nearby takes the call, otherwise one comes from further away. Drivers sit inside under the roof behind tinted glass. Long vehicles keep their distance in traffic from their front bumper, not their middle, and use more collision circles along their length.
 
 Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, acceleration, braking, steering, grip, health, weight, armour, how often it drives in traffic, parks or is sent by the police (and from which wanted level), how many are hidden, its job, its weapon, its colours. Acceleration given to a speed at or above the top speed counts as the time to reach top speed. `tools/vehicle_sheet.py` exports it to Apple Numbers or Excel and imports an edited copy (`export vehicles.numbers`, `import vehicles.numbers [--dry-run]`): one column per vehicle, rows found by their label, every value checked; a new column becomes a new vehicle (body `new` until its model is built).
+
+## Day, night & weather
+
+A clock runs with the game, shown under the stars: a whole day lasts 24 real minutes and a new game starts at half past five in the afternoon. The clock stops while the game waits (city map, weapon wheel).
+
+- **The hour**: a hazy blue day in which the buildings show their own colours, a pink dawn around 6:00, a purple dusk around 19:30 and the neon night. The sun crosses the sky from east to west, so the lit side of the buildings turns with the hours; by night a cold moonlight comes from the north-west.
+- **Lights**: lit windows glow faintly by day and fully at night; neon signs, trims and underglow are dimmer by day; street lights and headlights come on at dusk and go off at dawn.
+- **Weather** changes every 2 to 6 minutes and blends in over 25 s: clear (45%), cloudy (20%), rain (20%), storm (8%), fog (7%).
+  - *Cloudy*: a weaker sun and greyer light.
+  - *Rain*: streaks and splashes, roads that get wet and shine with the lights at night, the hiss of rain, people under umbrellas and in a hurry, fewer people strolling. Wet roads give 75% of the grip (a hard stop from 80 km/h takes 30 m instead of 25 m), and traffic drives 20% slower. Roads dry 90 s after the rain stops.
+  - *Storm*: a wind-driven downpour, 62% grip, lightning that lights up the screen and thunder after it.
+  - *Fog*: you see less far, and so do the police.
+- **The police see less far**: 75% at night, 85% in the rain, 50% in fog (the factors multiply, so a stormy night is a good time to lose them).
+
+Every number is in `js/01d-sky-data.js`, in everyday units, and `tools/settings_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back, like the police table:
+
+```
+python3 tools/settings_sheet.py sky export sky.numbers      # or sky.xlsx
+python3 tools/settings_sheet.py sky import sky.numbers [--dry-run]
+```
 
 ## Weapons
 
@@ -94,9 +116,10 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 |---|---|
 | `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, buildings, lots, alleys, yards, landmarks, props, districts (generated) |
 | `js/01-config.js` | constants, helpers, `$()` |
-| `js/01b-police-data.js` | the police table: every police number in everyday units (edit by hand or with `tools/police_sheet.py`), converted to game units as `COP` |
+| `js/01b-police-data.js` | the police table: every police number in everyday units (edit by hand or with `tools/settings_sheet.py police`), converted to game units as `COP` |
 | `js/01c-vehicle-data.js` | the vehicle table in everyday units (edit by hand or with `tools/vehicle_sheet.py`), converted to `CAR_TYPES`; picking a vehicle type by weight |
-| `js/02-audio.js` | synthesized Web Audio |
+| `js/01d-sky-data.js` | the day, night and weather settings in everyday units (edit by hand or with `tools/settings_sheet.py sky`), converted to `SKYP` |
+| `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
 | `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |
 | `js/05-entities.js` | entity and effect data |
@@ -115,6 +138,7 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/12b-rockets.js` | rockets: flight, wandering after the target, hits, the glowing motor and the smoke trail |
 | `js/12c-blast.js` | explosions: fireball, flames, smoke, debris, and throwing cars, people, pickups and props |
+| `js/12d-sky-weather.js` | the clock and the weather: light, sun and moon, fog, sea, window and neon glow, street lights and headlights, wet roads, rain and splashes, lightning; grip and police sight |
 | `js/13-render-frame.js` | per-frame render |
 | `js/14-hud-minimap.js` | HUD, minimap and city map (with the search area), district name |
 | `js/14b-weapon-wheel-scope.js` | weapon wheel and button pictures, aiming through the sniper scope and the rocket sight (zoomed view, blurred or darkened surroundings) |
@@ -132,4 +156,4 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
 3. Convert the scripts to ES modules once the globals are untangled.
-4. Police, later: roadblocks, spike strips, armoured vans and a helicopter at 4-5 stars; a respray shop and changing cars to shake them off; police station and hospital buildings at the places you start again.
+4. Police, later: roadblocks, spike strips and a helicopter at 4-5 stars; a respray shop and changing cars to shake them off.

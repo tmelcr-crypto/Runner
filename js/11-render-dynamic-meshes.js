@@ -141,7 +141,7 @@ function buildCar(c) {                       // parts that never move on their o
   }
   merged('w', E.tire, wheels);
   { const ug = new THREE.Mesh(GP, glowMat(c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
-    const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool
+    const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38, true)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool
     body.emissive = new THREE.Color(c.color).multiplyScalar(0.22); }
   c.mesh = g; c.tilt = tilt; c.m = m; c.roll = 0; c.baseCol = new THREE.Color(c.color); c.tailOn = false; c.dead3 = false; c.hpShown = -1; scene.add(g);
 }
@@ -167,6 +167,7 @@ function syncCar(c, time, dt) {
   }
 }
 
+const GUmb = new THREE.ConeGeometry(1, 1, 8);
 function buildPerson(kind, shirt, skin) {
   const g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   const sm = mc(shirt), km = mc(skin), pm = mc(kind === 'officer' ? 0x1a2447 : 0x2a2d3a), o = { g, tilt, legs: [], arms: [], torso: null };
@@ -180,11 +181,16 @@ function buildPerson(kind, shirt, skin) {
   if (kind === 'officer') { part(tilt, GB, mc(0x1a2a6a), 5.4, 2.2, 7.6, 0.4, 26, 0); part(tilt, GB, mc(0x111111), 2.4, 0.8, 6, 3.2, 25, 0); }
   else part(tilt, GSph, mc(kind === 'player' ? 0x3a2a1a : 0x2a2018), 4.1, 3.3, 4.1, -0.4, 24, 0);
   if (kind !== 'ped') { o.gun = part(tilt, GB, E.black, kind === 'officer' ? 9 : 10, 2.4, 2.4, 8, 14, 3.6); }
+  else {                                     // an umbrella, up when it rains
+    const u = new THREE.Group(); u.position.set(1, 0, 3.5); u.visible = false; tilt.add(u);
+    part(u, GCyl, E.black, 0.5, 16, 0.5, 0, 26, 0); part(u, GUmb, mc(pick([0xe0364f, 0x2a4aa8, 0x14161d, 0xffd23f, 0x3dffa6, 0xff2bd6])), 11, 4, 11, 0, 35, 0); o.umb = u;
+  }
   return o;
 }
 function syncPerson(p, kind, time, dt) {
   if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; }
   track(p); const o = p.pm, g = p.mesh;
+  if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
@@ -192,7 +198,7 @@ function syncPerson(p, kind, time, dt) {
   g.rotation.y = -p.h3;
   if (p.dead) {
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
-    g.scale.setScalar(clamp((26 - p.deadT) / 6, 0.01, 1));
+    g.scale.setScalar(clamp((bodyTime(p) + 1 - p.deadT) / 6, 0.01, 1));   // shrinks away at the end (later while an ambulance is coming)
   } else {
     const k = Math.sin(p.bob * 3) * Math.min(1, sp / 60) * 0.8;
     o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.8; o.arms[1].rotation.z = k * 0.8;

@@ -142,7 +142,7 @@ TIPS = [('Yellow cells', 'What you type in. Each column is one vehicle. Body, Ro
 
 def export_numbers(path, t):
     from numbers_parser import Alignment, Document, RGB
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from police_sheet import exact_numbers; exact_numbers()
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from settings_sheet import exact_numbers; exact_numbers()
     vs = t['vehicles']; NV = max(20, len(vs) + 6)
     doc = Document(sheet_name='Vehicles', table_name='Vehicles', num_header_rows=1, num_header_cols=1, num_rows=len(ROWS), num_cols=NV + 1); tb = doc.sheets[0].tables[0]
     S = {}

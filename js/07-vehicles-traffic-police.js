@@ -15,15 +15,15 @@ function stepCar(c, dt) {
   c.slip = Math.abs(vl);
   if (c.thr !== 0) {
     const braking = c.thr * vf < 0;
-    const a = braking ? t.brake * H.brake : t.acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : Math.min(t.max * 0.45, 35 * KMH))));
+    const a = braking ? t.brake * H.brake * (0.55 + 0.45 * SKY.grip) : t.acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : Math.min(t.max * 0.45, 35 * KMH))));
     vf += c.thr * a * dt;
   }
   vf *= Math.exp(-(c.thr === 0 ? (c.driver ? H.coast : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little
-  vl *= Math.exp(-(c.hb ? t.grip * H.hbGrip : t.grip * H.grip) * dt);
+  vl *= Math.exp(-(c.hb ? t.grip * H.hbGrip : t.grip * H.grip) * SKY.grip * dt);   // wet roads: less grip (js/12d)
   if (c.hb) vf *= Math.exp(-0.9 * dt);
   c.vx = fx * vf + rx * vl; c.vy = fy * vf + ry * vl;            // velocity keeps its direction while the nose turns: that is the drift
   const sp = Math.max(c.assist ? 0.5 : 0, Math.min(1, Math.abs(vf) / H.full)), sgn = c.fs || (vf >= 0 ? 1 : -1);
-  const yaw = Math.min(t.turn * H.turn * sp, H.lat / Math.max(1, Math.abs(vf)));   // the faster you go, the wider you must turn
+  const yaw = Math.min(t.turn * H.turn * sp, H.lat * (0.6 + 0.4 * SKY.grip) / Math.max(1, Math.abs(vf)));   // the faster you go, the wider you must turn
   c.av = lerp(c.av, c.str * yaw * sgn * (c.hb ? 1.25 : 1), Math.min(1, dt * H.steer));
   c.ang += c.av * dt;
   c.x += c.vx * dt; c.y += c.vy * dt;
@@ -204,8 +204,8 @@ function aiDrive(c, dt) {
   const near = laneAhead(c, (40 + Math.max(0, vf) * 0.3) * (1 - 0.45 * Math.min(1, dfar / 1.2)), _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));   // aim closer in a bend, so the corner is not cut into the other lane
   c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
   if (!c.cruise) c.cruise = Math.min(c.t.max * 0.9, rand(40, 55) * KMH);   // town traffic: 40-55 km/h
-  let tgt = (c.task ? Math.min(c.t.max * 0.9, 65 * KMH) : c.cruise) * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
-  const stop = vf > 0 ? vf * vf / (2 * c.t.brake) : 0, reach = 70 + stop * 1.6 + Math.max(0, vf) * 0.4;   // look far enough ahead to stop in time
+  let tgt = (c.task ? Math.min(c.t.max * 0.9, 65 * KMH) : c.cruise) * (1 - SKYP.aiSlow * SKY.wet) * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
+  const stop = vf > 0 ? vf * vf / (2 * c.t.brake * (0.55 + 0.45 * SKY.grip)) : 0, reach = 70 + stop * 1.6 + Math.max(0, vf) * 0.4;   // look far enough ahead to stop in time
   const look = (ox, oy, lw, back) => { const rx = ox - c.x, ry = oy - c.y, al = rx * fx + ry * fy - F - (back || 0), lat = Math.abs(-rx * fy + ry * fx); if (al > 18 && al < reach && lat < lw && al < block) block = al; };
   const R = reach + 30 + F;
   for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R + o.t.len / 2 && Math.abs(o.y - c.y) < R + o.t.len / 2) look(o.x, o.y, 24, Math.max(0, o.t.len / 2 - 27));   // a bus ahead ends further back   // cars in the parking lane (33 to the side) are not in the way

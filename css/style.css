@@ -52,6 +52,8 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #vbar i{display:block;height:100%;width:100%;background:var(--good)}
 #vinfo{margin-top:5px;color:var(--dim);font-size:18px}
 #hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom,0px));font-family:var(--f-display);font-size:9px;color:var(--yellow);text-shadow:2px 2px 0 #000;white-space:nowrap}
+#clock{font-family:var(--f-display);font-size:9px;color:var(--paper);text-shadow:2px 2px 0 #000;text-align:right;white-space:nowrap}
+#flashFx{position:fixed;inset:0;background:#eef2ff;opacity:0;pointer-events:none}
 #zone{font-family:var(--f-display);font-size:9px;color:var(--cyan);text-shadow:2px 2px 0 #000;opacity:0;white-space:nowrap}
 #zone.show{animation:zone 3.2s ease-out forwards}
 @keyframes zone{0%{opacity:0;transform:translateY(-6px)}12%,75%{opacity:1;transform:none}100%{opacity:0}}

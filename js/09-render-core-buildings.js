@@ -12,7 +12,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(OUTSIDE_HEX);
 scene.fog = new THREE.Fog(OUTSIDE_HEX, 1700, 3800);
 const camera = new THREE.PerspectiveCamera(CAM_FOV, 1, 30, 7000);
-scene.add(new THREE.HemisphereLight(0x8a7cff, 0x2a1245, 0.95));
+const hemi = new THREE.HemisphereLight(0x8a7cff, 0x2a1245, 0.95); scene.add(hemi);   // sky and sun follow the hour and the weather (js/12d)
 const sun = new THREE.DirectionalLight(0x9fc4ff, 0.6); sun.position.set(-600, 1000, -400); scene.add(sun);   // sun in the north-west, shadows fall south-east
 const flashLight = new THREE.PointLight(0xffc060, 0, 220); scene.add(flashLight);
 const boomLight = new THREE.PointLight(0xff8a30, 0, 800); scene.add(boomLight);
@@ -57,7 +57,10 @@ const E = { glass: mLam(0x1d2740), glassDead: mLam(0x0a0a0c), tire: mLam(0x15151
 const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
 const glowMats = {};
-function glowMat(col, op) { const k = col + (op || 1); return glowMats[k] || (glowMats[k] = new THREE.MeshBasicMaterial({ map: glowTex, color: col, transparent: true, opacity: op || 1, blending: THREE.AdditiveBlending, depthWrite: false })); }
+/* materials the time of day dims: lit windows (emissive), neon (unlit vertex colours); glows fade by day, nightOnly ones (headlights) go out */
+const EMI_MATS = new Set(), NEON_MATS = new Set();
+function litMat(m, set) { set.add(m); m.addEventListener('dispose', () => set.delete(m)); return m; }
+function glowMat(col, op, nightOnly) { const k = col + (op || 1) + (nightOnly ? 'n' : ''); return glowMats[k] || (glowMats[k] = Object.assign(new THREE.MeshBasicMaterial({ map: glowTex, color: col, transparent: true, opacity: op || 1, blending: THREE.AdditiveBlending, depthWrite: false }), { userData: { base: op || 1, nightOnly: !!nightOnly } })); }
 const M = { asphalt: mLam(0x1a1626), instWhite: new THREE.MeshLambertMaterial({ color: 0xffffff }), instBasic: new THREE.MeshBasicMaterial({ color: 0xffffff }),
   wall: mLam(0x2b3060), red: mBas(0xff3b5c) };
 
@@ -451,9 +454,9 @@ function makeBuilding(r) {
     }
   }
 
-  const mats = [new THREE.MeshLambertMaterial({ map: FAC[style].map, emissive: 0xffffff, emissiveMap: FAC[style].emi, vertexColors: true }), new THREE.MeshLambertMaterial({ map: SHOPTEX.map, emissive: 0xffffff, emissiveMap: SHOPTEX.emi, vertexColors: true }),
-    new THREE.MeshLambertMaterial({ vertexColors: true }), new THREE.MeshBasicMaterial({ vertexColors: true }), new THREE.MeshLambertMaterial({ map: ROOFTEX[roofTex], vertexColors: true })];
-  mats.push(new THREE.MeshBasicMaterial({ map: SIGNTEX, vertexColors: true }));
+  const mats = [litMat(new THREE.MeshLambertMaterial({ map: FAC[style].map, emissive: 0xffffff, emissiveMap: FAC[style].emi, vertexColors: true }), EMI_MATS), litMat(new THREE.MeshLambertMaterial({ map: SHOPTEX.map, emissive: 0xffffff, emissiveMap: SHOPTEX.emi, vertexColors: true }), EMI_MATS),
+    new THREE.MeshLambertMaterial({ vertexColors: true }), litMat(new THREE.MeshBasicMaterial({ vertexColors: true }), NEON_MATS), new THREE.MeshLambertMaterial({ map: ROOFTEX[roofTex], vertexColors: true })];
+  mats.push(litMat(new THREE.MeshBasicMaterial({ map: SIGNTEX, vertexColors: true }), NEON_MATS));
   const mesh = new THREE.Mesh(mergeBuilders([U, G, T, L, R, S]), mats); mesh.userData.own = mats; r.mesh = mesh; r.fade = 1;
   return mesh;
 }
