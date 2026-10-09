@@ -18,9 +18,9 @@ function resetGame() {
   for (let k = 0; k < 32; k++) spawnTraffic(true);
   for (let k = 0; k < 14; k++) spawnParked(true);
   for (let k = 0; k < 50; k++) spawnPedNear(true);
-  for (let k = 0; k < 6; k++) spawnFootCop(true);
+  for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
   for (let k = 0; k < PICKUP_N; k++) spawnPickup();
-  spawnT = copT = offT = 0;
+  spawnT = 0; resetPolice(); refuges = null;
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
 function startGame() {
@@ -86,12 +86,7 @@ function update(dt, idle) {
   updatePeds(dt); updateOfficers(dt); updateBlast(dt);
   if (!idle) updatePickups(dt);
   manageSpawns(dt); updateParticles(dt);
-  if (!idle && P.heat > 0 && P.sinceCrime > 5) {
-    let near = false;
-    for (const c of cars) if (c.driver === 'cop' && dist(c.x, c.y, P.x, P.y) < 420) { near = true; break; }
-    if (!near) for (const o of officers) if (!o.dead && dist(o.x, o.y, P.x, P.y) < 420) { near = true; break; }
-    P.heat = Math.max(0, P.heat - (near ? 0.7 : 5) * dt); updateStars();
-  }
+  if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }
@@ -109,7 +104,7 @@ function frame(ts) {
   handleKeys();
   if (state === 'preview') { pvFrame(); return; }
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
-  else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) showOver(); }
+  else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
   else update(rdt, true);
   render(ts / 1000);
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);

@@ -39,7 +39,6 @@ const WEAPONS = [
 ];
 // scope: zoom, shape (round / rect), blur (the rest of the view blurred, else darkened), los (fires only with a clear line of sight),
 // hold (stays up after the shot while the next round is chambered)
-const STAR_AT = [18, 48, 90, 140, 200];   // heat needed for 1..5 stars
 
 const $ = id => document.getElementById(id);
 const cv = $('game');

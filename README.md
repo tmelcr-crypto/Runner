@@ -23,6 +23,27 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 - **TAB** (or the **MAP** button) opens the whole city map; the game waits while it is open. The district name shows when you enter a new one.
 - Only what is near the camera exists as meshes; the low buildings are merged per area into one mesh each. Buildings and landmarks between the camera and the player turn see-through.
 
+## Police
+
+The police only know what they see or hear, and they come in small numbers.
+
+- **Seeing**: a cop sees you within 37.5 m, inside an 80 degree cone in front of them, with nothing in between; once they have you they keep watching all round for a moment. A crime counts only when a cop sees it or hears it (gunshots as far as each weapon is heard, explosions within 25 m). Each crime adds heat, and enough heat is a wanted level: a seen carjacking is 1 star; carjacking a police car, killing someone in front of a cop or hurting a cop is 2 stars.
+- **Radio and search**: whoever sees you tells the others where you are. When nobody sees you they search around the spot where you were last seen: a red circle on the minimap and the city map, growing to 60-140 m, and the stars blink. Police cars cruise the streets inside it and cops on foot walk to the spot and look round. Stay out of sight for 12 s at 1 star up to 50 s at 5 stars and they give up; inside the circle that takes about three times longer.
+- **Fewer cops, later**: two foot patrols walk the sidewalks around you and one car in twenty in traffic is a patrol car. At 1 star one police car comes (patrol cars nearby join at once, otherwise one is sent after 15 s); 2, 3, 5 and 7 cars at the higher levels, sent sooner; extra officers on foot from 3 stars.
+- **1 star, a stop order**: a cop near you shouts STOP. Stand still - on foot or in your car - for 3 s and you pay a fine of 250 and the stars go. Keep moving for 3 s while they can see you and it is 2 stars.
+- **2 stars, an arrest**: police cars follow you and pull up beside you when you stop; the crew gets out, and a cop who holds you for a second (on foot, or beside your car while it does under 12 km/h) arrests you. Drive away and the crew runs back to their car and carries on. No shooting unless you fired a gun where they could see or hear it, rammed a police car or hurt a cop.
+- **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire.
+- **Busted or wasted** is not the end: you start again at the nearest district's police station (bail: 10% of your score, and they keep your weapons except the pistol) or hospital (the bill: 10%).
+
+Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/police_sheet.py` turns it into a spreadsheet for iOS Numbers or Excel and reads an edited copy back (needs openpyxl):
+
+```
+python3 tools/police_sheet.py export police.xlsx
+python3 tools/police_sheet.py import police.xlsx [--dry-run]
+```
+
+The workbook has a sheet per kind of setting - Wanted levels (one column per star), Settings, Crimes - and a How to fill sheet. Yellow cells are the values; grey Check cells say OK or what is wrong. The import checks every value against its allowed range, lists what changed and only then rewrites the table.
+
 ## Weapons
 
 The **weapon button** at the top shows the weapon in hand and its ammo; tap it (or press **Q**) for the weapon wheel, which shows every weapon with its picture and ammo. The game waits until you tap one; tap outside the wheel to go back. **1 - 4** pick directly, the mouse wheel cycles.
@@ -50,13 +71,15 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 |---|---|
 | `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, buildings, lots, alleys, yards, landmarks, props, districts (generated) |
 | `js/01-config.js` | constants, helpers, `$()` |
+| `js/01b-police-data.js` | the police table: every police number in everyday units (edit by hand or with `tools/police_sheet.py`), converted to game units as `COP` |
 | `js/02-audio.js` | synthesized Web Audio |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
 | `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |
 | `js/05-entities.js` | entity and effect data |
-| `js/06-gameplay.js` | state, wanted level, combat, enter/exit vehicles |
-| `js/07-vehicles-traffic-police.js` | car physics, lane following traffic, police routing |
-| `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, officers, pickups, spawning |
+| `js/06-gameplay.js` | state, heat and wanted level, combat, enter/exit vehicles |
+| `js/07-vehicles-traffic-police.js` | car physics, lane following traffic, road routing for the police |
+| `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
+| `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
 | `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |
@@ -67,9 +90,9 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/12b-rockets.js` | rockets: flight, wandering after the target, hits, the glowing motor and the smoke trail |
 | `js/12c-blast.js` | explosions: fireball, flames, smoke, debris, and throwing cars, people, pickups and props |
 | `js/13-render-frame.js` | per-frame render |
-| `js/14-hud-minimap.js` | HUD, minimap, full city map, district name |
+| `js/14-hud-minimap.js` | HUD, minimap and city map (with the search area), district name |
 | `js/14b-weapon-wheel-scope.js` | weapon wheel and button pictures, aiming through the sniper scope and the rocket sight (zoomed view, blurred or darkened surroundings) |
-| `js/15-game-flow-loop.js` | menu, play, dying, game over, main loop |
+| `js/15-game-flow-loop.js` | menu, play, dying, starting again or game over, main loop |
 | `js/16-octagrid-map-preview.js` | loads an Octagrid export and shows it in 3D (look only) |
 | `js/main.js` | starts the game; must load last |
 
@@ -83,3 +106,4 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
 3. Convert the scripts to ES modules once the globals are untangled.
+4. Police, later: roadblocks, spike strips, armoured vans and a helicopter at 4-5 stars; a respray shop and changing cars to shake them off; police station and hospital buildings at the places you start again.

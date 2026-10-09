@@ -9,43 +9,26 @@ let boomFlash = null;
 const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
 cv.addEventListener('mousemove', () => { if (!touchMode) P.mouseOn = true; });
 
-function addHeat(n) { P.heat = Math.min(260, P.heat + n); P.sinceCrime = 0; updateStars(); }
+function addHeat(n) { P.heat = Math.min(9999, P.heat + n); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
 function updateStars() {
-  let s = 0; for (let k = 0; k < 5; k++) if (P.heat >= STAR_AT[k]) s = k + 1;
-  if (s > P.stars) toast('WANTED LEVEL ' + s, true); else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');
+  let s = 0; for (let k = 1; k <= 5; k++) if (P.heat >= COP.lv.heat[k]) s = k;   // heat needed per level: the police table (js/01b)
+  if (s > P.stars) { toast('WANTED LEVEL ' + s, true); policeAlert(P.stars, s); } else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');
   P.stars = s; P.maxStars = Math.max(P.maxStars, s);
 }
 function addScore(n, x, y, label) { P.score += n; if (x !== undefined) popup(x, y - 14, '+' + n + (label ? ' ' + label : '')); }
-/* Cops only react to what they perceive: they SEE you inside an 80 degree cone, within COP_SIGHT and with nothing in the way,
-   or they HEAR gunfire inside the weapon's hearing radius (pistol 140, MG 200) / blasts (300). Seen or heard crimes raise your heat. */
-const IMPACT_HEAR = 50;   // cops also hear bullets landing this close to them
-const COP_SIGHT = 450, COP_FOV = 80 * Math.PI / 180, BLAST_HEAR = 300;
-function copSees(ex, ey, face, px, py) {
-  const d = dist(ex, ey, px, py); if (d > COP_SIGHT) return false;
-  if (d > 1 && Math.abs(angDiff(face, Math.atan2(py - ey, px - ex))) > COP_FOV / 2) return false;
-  return losClear(ex, ey, px, py);
-}
-function reportCrime(n, hear, ix, iy) {
-  const px = P.x, py = P.y; let w = false;
-  const test = (x, y, face) => { if (w) return; if (hear && dist(x, y, px, py) < hear) w = true; else if (ix !== undefined && dist(x, y, ix, iy) < IMPACT_HEAR) w = true; else if (copSees(x, y, face, px, py)) w = true; };
-  for (const c of cars) if (c.type === 'police' && c.driver && c.driver !== 'player' && !c.dead) test(c.x + Math.cos(c.ang) * c.t.len * 0.3, c.y + Math.sin(c.ang) * c.t.len * 0.3, c.ang);
-  for (const q of peds) if (q.cop && !q.dead) test(q.x, q.y, q.hd || 0);
-  for (const o of officers) if (!o.dead) test(o.x, o.y, o.ang);
-  if (w) addHeat(n);
-  return w;
-}
 function alertPeds(x, y, r) {
   for (const p of peds) if (!p.dead && !p.cop && dist(p.x, p.y, x, y) < r) { p.state = 'flee'; p.fl = rand(3, 6); p.fx = p.x - x; p.fy = p.y - y; }
 }
 function killPed(p, how, byPlayer, ang) {
   if (p.dead) return; p.dead = true; p.deadT = 0; bloodFx(p.x, p.y, 14, ang);
   if (decals.length < 120) decals.push({ x: p.x, y: p.y, r: rand(8, 13), life: 50, blood: true });
-  if (byPlayer) { P.kills++; addScore(how === 'car' ? 100 : 50, p.x, p.y, how === 'car' ? 'ROADKILL' : ''); if (p.cop) addHeat(40); else reportCrime(how === 'car' ? 20 : 22, 0); }
+  if (byPlayer) { P.kills++; addScore(how === 'car' ? 100 : 50, p.x, p.y, how === 'car' ? 'ROADKILL' : ''); if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); }
   alertPeds(p.x, p.y, 300);
 }
 function killOfficer(o, byPlayer) {
   if (o.dead) return; o.dead = true; o.deadT = 0; bloodFx(o.x, o.y, 16);
-  if (byPlayer) { P.kills++; addScore(200, o.x, o.y, 'COP DOWN'); addHeat(18); }
+  crewLost(o);
+  if (byPlayer) { P.kills++; addScore(200, o.x, o.y, 'COP DOWN'); addHeat(COP.crime.killCop); PS.armedT = gameT; }
 }
 function damagePlayer(d) {
   if (P.dead || state === 'over') return;
@@ -60,7 +43,7 @@ function killPlayer() {
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
   c.hp -= d; if (byPlayer) c.byPlayer = true;
-  if (byPlayer && c.type === 'police') reportCrime(Math.min(8, d * 0.25), 0);
+  if (byPlayer && c.type === 'police') reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
     if (c.driver === 'ai' || c.driver === 'cop') c.driver = null;
@@ -90,7 +73,7 @@ function explodeCar(c) {
   if (wasPlayer) exitCar(true);
   explosion(c.x, c.y, 130, c);
   if (wasPlayer) damagePlayer(45);
-  if (c.byPlayer && c.type === 'police') { addScore(300, c.x, c.y, 'COP CAR'); reportCrime(25, BLAST_HEAR); }
+  if (c.byPlayer && c.type === 'police') { addScore(300, c.x, c.y, 'COP CAR'); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
   else if (c.byPlayer) addScore(60, c.x, c.y, 'BOOM');
   c.vx *= 0.2; c.vy *= 0.2; c.driver = null;
 }
@@ -148,16 +131,16 @@ function fireWeapon(aim) {                                      // aim: a point 
   if (aim) P.ang = a;
   if (w.rocket) {                                                // a rocket: it flies on its own (js/12b) and blows up on whatever it hits
     launchRocket(aim || { x: P.x + Math.cos(a) * 400, y: P.y + Math.sin(a) * 400 }, w); Snd.rocket();
-    alertPeds(P.x, P.y, 500); reportCrime(w.heat, w.hear); cam.shake = Math.max(cam.shake, w.shake); return;
+    alertPeds(P.x, P.y, 500); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true); cam.shake = Math.max(cam.shake, w.shake); return;
   }
   const h = w.scope ? rifleRay(P.x, P.y, a, w) : raycast(P.x, P.y, a, w.range);
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
-  if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) addHeat(30); else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
-  else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); }
+  if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
+  else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); else { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } }
   else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * 0.55, true); }
   else if (h.type === 'wall') spark(h.x, h.y, 4);
-  Snd.shot(w.id); alertPeds(P.x, P.y, w.scope ? 600 : 380); reportCrime(w.heat, w.hear, h.x, h.y);
+  Snd.shot(w.id); alertPeds(P.x, P.y, w.scope ? 600 : 380); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true);
   cam.shake = Math.max(cam.shake, w.shake);
 }
 
@@ -178,9 +161,9 @@ function enterCar(c) {
     const cop = c.driver === 'cop' || c.type === 'police';
     const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30);
     ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
-    reportCrime(cop ? 35 : 20, 0); addScore(50, c.x, c.y, 'CARJACK');
-  } else if (c.type === 'police') reportCrime(25, 0);
-  else reportCrime(5, 0);
+    reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0); addScore(50, c.x, c.y, 'CARJACK');
+  } else if (c.type === 'police') reportCrime(COP.crime.stealCop, 0);
+  else reportCrime(COP.crime.steal, 0);
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
 }
 function letGo(c) {                                              // a carjacking given up or lost: you drop off beside the car

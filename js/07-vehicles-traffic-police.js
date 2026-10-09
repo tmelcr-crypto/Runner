@@ -152,7 +152,7 @@ function steerToward(c, tx, ty, speedTarget) {
   const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), tgt = speedTarget * (1 - 0.55 * Math.min(1, Math.abs(d) / 1.2));
   c.thr = vf < tgt ? 1 : (vf > tgt + 18 * KMH ? -0.6 : 0);
 }
-/* police route: the next point to drive to along the shortest road route toward the player (RD from roadFieldTo) */
+/* police route: the next point to drive to along the shortest road route to you, or to where you were last seen (RD from roadFieldTo) */
 let copFieldT = 0, copTarget = null;
 function copRoadTarget(c, out) {
   const rs = nearRoads(c.x, c.y, 170); if (!rs.length) return null;
@@ -178,28 +178,6 @@ function copRoadTarget(c, out) {
   }
   if (ne < 0) return edgeAt(best.e, best.dir > 0 ? E.len : 0, out);
   const F = RE[ne]; return edgeAt(ne, F.a === node ? Math.min(F.len, over) : Math.max(0, F.len - over), out);
-}
-function copDrive(c, dt) {
-  const tgt = P.car || P; let tx = tgt.x + (tgt.vx || 0) * 0.35, ty = tgt.y + (tgt.vy || 0) * 0.35;
-  const d = dist(c.x, c.y, tgt.x, tgt.y), spd = carSpeed(c);
-  if (P.stars === 1 && d < 70 + spd * 0.3) {          // one star: pull up about 70 units from the player, then two cops get out on foot
-    c.str = 0; c.thr = carSpeed(c) > 30 ? -1 : 0; c.hb = c.thr === 0;
-    if (spd < 30 && d < 120) copsExit(c);
-    return;
-  }
-  c.hb = false;
-  if (!(d < 650 && losClear(c.x, c.y, tgt.x, tgt.y) && !waterBetween(c.x, c.y, tgt.x, tgt.y))) {
-    const w = copRoadTarget(c, _cw); if (w) { tx = w.x; ty = w.y; }
-  }
-  if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = -clamp(angDiff(c.ang, Math.atan2(ty - c.y, tx - c.x)) * 2, -1, 1); return; }
-  if (spd < 22 && d > 70) { c.stuck += dt; if (c.stuck > 1.1) { c.rev = 0.9; c.stuck = 0; } } else c.stuck = 0;
-  steerToward(c, tx, ty, d < 130 ? 50 * KMH : Math.min(c.t.max * 0.92, 130 * KMH));   // cops chase at up to 130 km/h in town
-  if (d < 55 && spd < 60) c.thr = 0;
-}
-function copsExit(c) {
-  const fx = Math.cos(c.ang), fy = Math.sin(c.ang);
-  for (const sd of [-1, 1]) { const o = makeOfficer(c.x - fy * sd * 24, c.y + fx * sd * 24); o.ang = c.ang; officers.push(o); }
-  c.driver = null; c.thr = 0; c.str = 0; c.hb = true; Snd.tone(500, 400, 0.05, 0.1, 'square');
 }
 function aiDrive(c, dt) {
   if (c.e < 0 && !snapToRoad(c)) { c.thr = 0; c.str = 0; return; }
@@ -240,12 +218,8 @@ function wrestle(c, dt) {                                        // a carjacking
   c.wst = lerp(c.wst || 0, c.ws, Math.min(1, dt * 14)); c.str = c.wst; c.thr = c.wg; c.hb = false;
 }
 function updateCars(dt) {
-  if (gameT > copFieldT && cars.some(c => c.driver === 'cop')) { copFieldT = gameT + 0.5; const t = P.car || P; copTarget = roadFieldTo(t.x, t.y); }
+  if (gameT > copFieldT && cars.some(c => c.driver === 'cop')) { copFieldT = gameT + 0.5; copTarget = roadFieldTo(PS.lx, PS.ly); }   // police drive to what they know (js/08b)
   for (const c of cars) {
-    if (c.type === 'police') {
-      if (c.driver === 'ai' && P.stars > 0 && !c.dead) { c.driver = 'cop'; c.way = null; }
-      else if (c.driver === 'cop' && P.stars === 0) { c.driver = 'ai'; c.e = -1; }
-    }
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);

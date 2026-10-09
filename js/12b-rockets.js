@@ -28,7 +28,7 @@ function rocketHits(x, y) {             // anything solid at this point?
 }
 function rocketBoom(r, x, y) {
   r.dead = true; r.x = x; r.y = y;
-  explosion(x, y, RK_R, RK_SRC); alertPeds(x, y, 500); reportCrime(30, BLAST_HEAR, x, y);
+  explosion(x, y, RK_R, RK_SRC); alertPeds(x, y, 500); reportCrime(COP.crime.blast, COP.blastHear, x, y, true);
 }
 function wanderTurn(r, dt) {            // past the target: the heading swings in waves whose size and pace drift at random - never a sharp turn
   if (!r.wander) { r.wander = true; r.ph = Math.random() < 0.5 ? 0 : Math.PI; r.wa = 0; r.wA = rand(0.7, 1.5); r.wf = r.wF = rand(2, 3.4); r.wNext = rand(0.6, 1.2); }
