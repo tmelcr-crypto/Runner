@@ -15,7 +15,7 @@ function setWeather(k, now) {           // now: no blending (a new game, or a te
   SKY.kind = k; SKY.left = rand(SKYP.wxMin, Math.max(SKYP.wxMin, SKYP.wxMax));
   if (now) { const w = WX_KINDS[k]; SKY.cloud = w[0]; SKY.rain = w[1]; SKY.fog = w[2]; SKY.storm = w[3]; SKY.wet = w[1] > 0 ? 1 : 0; }
 }
-function resetSky() { SKY.hour = SKYP.startHour; setWeather('clear', true); SKY.flash = 0; SKY.thunderT = -1; }
+function resetSky() { SKY.hour = OPT.time; setWeather(OPT.weather === 'change' ? 'clear' : OPT.weather, true); SKY.flash = 0; SKY.thunderT = -1; }   // OPT: js/06
 function nextWeather() {
   const ch = [['clear', SKYP.pClear], ['cloudy', SKYP.pCloudy], ['rain', SKYP.pRain], ['storm', SKYP.pStorm], ['fog', SKYP.pFog]];
   let r = Math.random() * ch.reduce((a, c) => a + c[1], 0); for (const [k, p] of ch) if ((r -= p) <= 0) return k; return 'clear';
@@ -23,8 +23,8 @@ function nextWeather() {
 const smooth01 = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 function dayness(h) { return smooth01(SKYP.sunrise - 0.75, SKYP.sunrise + 0.75, h) * (1 - smooth01(SKYP.sunset - 0.75, SKYP.sunset + 0.75, h)); }
 function updateSky(dt) {
-  SKY.hour = (SKY.hour + dt * 24 / SKYP.dayMinutes) % 24;
-  if ((SKY.left -= dt) <= 0) setWeather(nextWeather());
+  SKY.hour = (SKY.hour + dt * 24 * OPT.clock / SKYP.dayMinutes) % 24;
+  if ((SKY.left -= dt) <= 0) setWeather(OPT.weather === 'change' ? nextWeather() : OPT.weather);
   const w = WX_KINDS[SKY.kind], st = dt / SKYP.blend, to = (v, t) => v < t ? Math.min(t, v + st) : Math.max(t, v - st);
   SKY.cloud = to(SKY.cloud, w[0]); SKY.rain = to(SKY.rain, w[1]); SKY.fog = to(SKY.fog, w[2]); SKY.storm = to(SKY.storm, w[3]);
   SKY.wet = clamp(SKY.rain > 0.05 ? SKY.wet + dt * SKY.rain * 3 / SKYP.dryTime : SKY.wet - dt / SKYP.dryTime, 0, 1);   // soaked in a third of the drying time

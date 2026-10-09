@@ -1,6 +1,10 @@
 'use strict';
 /* ---------- 6. GAMEPLAY: state, wanted level, combat, vehicles in/out ---------- */
-let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play | dying | over
+let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play | pause | dying | over (| preview, js/16)
+/* OPT: the choices on the New game screen (js/15b), saved with the game. time: the hour it starts; weather: 'change', or one kind for the
+   whole game; clock: how fast the day goes (1 = as in the sky table, 0 = stopped); police: more or less heat per crime, cars sent, time to
+   lose them (1 = as in the police table); crowd: traffic and people (1 = normal); start: 'usual', 'random' or a district name */
+const OPT_DEF = { time: SKYP.startHour, weather: 'change', clock: 1, police: 1, crowd: 1, start: 'usual' }, OPT = Object.assign({}, OPT_DEF);
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
 const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
   heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
@@ -9,7 +13,7 @@ let boomFlash = null;
 const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
 cv.addEventListener('mousemove', () => { if (!touchMode) P.mouseOn = true; });
 
-function addHeat(n) { P.heat = Math.min(9999, P.heat + n); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
+function addHeat(n) { P.heat = Math.min(9999, P.heat + n * OPT.police); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
 function updateStars() {
   let s = 0; for (let k = 1; k <= 5; k++) if (P.heat >= COP.lv.heat[k]) s = k;   // heat needed per level: the police table (js/01b)
   if (s > P.stars) { toast('WANTED LEVEL ' + s, true); policeAlert(P.stars, s); } else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');

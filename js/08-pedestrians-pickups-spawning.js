@@ -215,10 +215,11 @@ function manageSpawns(dt) {
     spawnT = 0.3; let traffic = 0, parked = 0, live = 0;
     for (const c of cars) { if (c.driver === 'ai') traffic++; else if (!c.driver && !c.dead && !c.lot && !c.keep) parked++; }   // kerb parking only
     for (const p of peds) if (!p.dead) live++;
-    if (traffic < 32) spawnTraffic(false); else if (parked < 16) spawnParked(false);
+    const crowd = OPT.crowd;                                        // quieter or busier streets (New game options)
+    if (traffic < 32 * crowd) spawnTraffic(false); else if (parked < 16 * crowd) spawnParked(false);
     fillLots(false);
     let fc = 0; for (const q of peds) if (q.cop && !q.dead) fc++;
-    if (fc < COP.footPatrols) spawnFootCop(false); else if (live < 56) { if (Math.random() > 0.35 * (1 - SKY.rain) || !spawnStroller(false)) spawnPedNear(false); }   // nobody strolls in the rain
+    if (fc < COP.footPatrols) spawnFootCop(false); else if (live < 56 * crowd) { if (Math.random() > 0.35 * (1 - SKY.rain) || !spawnStroller(false)) spawnPedNear(false); }   // nobody strolls in the rain
   }
 }
 function updateParticles(dt) {

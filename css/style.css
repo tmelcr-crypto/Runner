@@ -107,8 +107,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 .gbtn.down{filter:brightness(1.4)}
 
 /* Start / game over */
-#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow:auto;touch-action:pan-y;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 4px),radial-gradient(ellipse at 50% 30%,#1c2150 0,#0b0d18 70%)}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow:auto;touch-action:pan-y;z-index:30;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 4px),radial-gradient(ellipse at 50% 30%,rgba(28,33,80,.62) 0,rgba(7,3,15,.9) 72%)}
+#overlay.dim{background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 2px,transparent 2px 4px),rgba(7,3,15,.76)}   /* paused: the game stays in view */
+html.menus #touch{visibility:hidden}   /* no touch sticks and buttons under a menu */
 .card{width:min(720px,100%);margin:auto;text-align:center}
 h1{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,7vw,54px);line-height:1.25;margin:0;color:var(--yellow);text-shadow:4px 4px 0 var(--hot)}
 .tag{font-family:var(--f-display);font-size:9px;letter-spacing:2px;color:var(--cyan);margin:14px 0 20px}
@@ -208,3 +210,49 @@ html.pv #game{touch-action:none;cursor:grab}
   linear-gradient(currentColor,currentColor) 50% 64%/2px 7% no-repeat,linear-gradient(currentColor,currentColor) 50% 74%/12px 2px no-repeat,linear-gradient(currentColor,currentColor) 50% 82%/8px 2px no-repeat}
 #scope.rkt .xh::before{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid currentColor;transform:rotate(45deg)}
 #scope.rkt .xh::after{content:'';position:absolute;left:16%;right:16%;top:50%;height:2px;margin-top:-1px;background:linear-gradient(90deg,currentColor 0 38%,transparent 38% 62%,currentColor 62%)}
+
+/* ---- menus: title, new game, saves, pause, help (js/15b) ---- */
+h2{font-family:var(--f-display);font-weight:400;font-size:clamp(18px,4.6vw,30px);margin:0 0 18px;color:var(--yellow);text-shadow:0 0 10px var(--cyan),0 0 24px rgba(43,243,255,.5),3px 3px 0 #000}
+.menu{display:flex;flex-direction:column;align-items:stretch;gap:14px;width:min(340px,100%);margin:6px auto 0}
+.menu button.big{width:100%}
+button.big:focus{outline:3px solid var(--yellow);outline-offset:5px}
+button.big.alt:hover{background:rgba(43,243,255,.12)}
+button.big.minor{font-size:9px;padding:9px 12px;color:var(--dim);box-shadow:0 0 0 2px var(--line)}
+.sub{font-family:var(--f-display);font-size:8px;line-height:1.8;color:var(--dim);margin:-6px 0 2px;text-align:center}
+.keys{font-family:var(--f-display);font-size:7px;letter-spacing:1px;color:var(--dim);opacity:.75;margin:18px 0 0}
+.warn{font-family:var(--f-display);font-size:8px;line-height:1.7;color:var(--hot);text-shadow:0 0 8px rgba(255,43,214,.6);margin:-4px 0 0}
+.row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.opts{display:flex;flex-direction:column;gap:8px;width:min(580px,100%);margin:0 auto}
+button.opt{display:flex;justify-content:space-between;align-items:center;gap:10px;font:inherit;font-family:var(--f-display);font-size:9px;line-height:1.5;color:var(--dim);
+  background:rgba(16,6,36,.78);border:3px solid var(--line);padding:9px 8px 9px 12px;cursor:pointer;touch-action:manipulation;text-align:left}
+button.opt:focus,button.opt:hover{outline:0;border-color:var(--cyan);color:var(--paper);box-shadow:0 0 14px rgba(43,243,255,.45)}
+.opt .ov{display:flex;align-items:center;gap:4px;color:var(--yellow);text-align:right}
+.opt .ov b{font-weight:400}
+.opt i{font-style:normal;color:var(--cyan);padding:6px 8px;font-size:11px}
+.tip{min-height:2.5em;width:min(580px,100%);margin:14px auto 16px;color:var(--dim);font-size:19px;line-height:1.25;text-align:left}
+.slots{display:flex;flex-direction:column;gap:10px;width:min(580px,100%);margin:0 auto}
+.slotRow{display:flex;gap:8px;align-items:stretch}
+button.slot{flex:1;min-width:0;display:grid;grid-template-columns:128px 1fr;gap:14px;align-items:center;text-align:left;font:inherit;color:var(--paper);
+  background:rgba(16,6,36,.78);border:3px solid var(--line);padding:7px;cursor:pointer;touch-action:manipulation}
+button.slot:focus,button.slot:hover{outline:0;border-color:var(--cyan);box-shadow:0 0 14px rgba(43,243,255,.45)}
+button.slot.armed{border-color:var(--hot);box-shadow:0 0 14px rgba(255,43,214,.55)}
+button.slot:disabled{opacity:.5;cursor:default;box-shadow:none;border-color:var(--line)}
+.slot img,.slot .noimg{width:128px;height:80px;object-fit:cover;display:block;background:repeating-linear-gradient(45deg,#140a2a 0 6px,#0d0620 6px 12px);border:1px solid var(--line)}
+.slot .sn{display:block;font-family:var(--f-display);font-size:10px;color:var(--yellow);margin-bottom:7px}
+.slot .sd{display:block;font-size:18px;line-height:1.15;color:var(--dim)}
+.del{display:flex;align-items:center;box-sizing:border-box;font-family:var(--f-display);font-size:7px;color:var(--dim);background:transparent;border:2px solid var(--line);padding:0 9px;cursor:pointer;touch-action:manipulation}
+button.del:focus,button.del:hover{outline:0;color:var(--hot);border-color:var(--hot)}
+.tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 14px}
+.tabs button{font-family:var(--f-display);font-size:9px;color:var(--dim);background:rgba(16,6,36,.78);border:3px solid var(--line);padding:10px 11px;cursor:pointer;touch-action:manipulation}
+.tabs button:focus{outline:2px solid var(--yellow);outline-offset:2px}
+.tabs button.on{color:var(--ink);background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.ctl h3.gap{margin-top:12px}
+#helpCard .ctl li{margin:4px 0}
+#helpCard .page:not([data-tab=ctl]){grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.slotRow .ph{visibility:hidden}
+@media (max-width:520px){
+  button.slot{grid-template-columns:88px 1fr;gap:10px}
+  .slot img,.slot .noimg{width:88px;height:55px}
+  .slot .sd{font-size:16px}
+  button.opt{font-size:8px}
+}

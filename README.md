@@ -4,6 +4,20 @@ Top-down GTA 1 style crime sandbox in neon 3D. Vanilla JS + three.js r128 (loade
 
 Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8000`, or open `index.html` directly.
 
+## Menus and saved games
+
+- **Title**: *Continue* (the latest save, with when and where it was made), *New game*, *Load game*, *Help*, and *City file preview*. The arrow keys move between the buttons, Enter picks, Esc goes back; everything also works by mouse or touch.
+- **New game** choices, remembered for next time:
+  - *Time of day*: dawn, morning, noon, evening (17:30) or night.
+  - *Weather*: changing, or always clear, cloudy, rain, storm or fog.
+  - *Clock*: a 12, 24 or 48 minute day, or stopped.
+  - *Police*: relaxed, normal or tough - more or less heat for each crime, how many cars they send and how soon, and how long they search.
+  - *Streets*: quiet, busy or packed - how much traffic and how many people.
+  - *Start in*: the usual spot, a random street, or any of the 13 districts.
+- **Pause** with Esc, P or the MENU button (top); the game also pauses when you switch to another app or tab. From there: resume, save, load, new game, help, quit to the title.
+- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away or quit to the title), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. You cannot save while you are wanted. A save keeps where you are (and the car you are in), health, weapons and ammo, score and kills, the clock, the weather and the New game choices. Saves live in the browser (localStorage); *Download save file* and *Open save file* move a game to another device.
+- **Help**: four pages - controls (keyboard and touch), playing (points, cars, pickups, wasted and busted), the police, and the city (map, day and weather, services, saving).
+
 ## The city
 
 A made-up bay city on the outline of a reference map: two main islands, a few bay islands joined by straight bridges, a long ocean beach on the east side and an airfield in the south-west. Only the shape of the land, the beaches and the water come from the reference image; every street and building is generated.
@@ -71,7 +85,7 @@ Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, accelerati
 
 ## Day, night & weather
 
-A clock runs with the game, shown under the stars: a whole day lasts 24 real minutes and a new game starts at half past five in the afternoon. The clock stops while the game waits (city map, weapon wheel).
+A clock runs with the game, shown under the stars: a whole day lasts 24 real minutes and a new game starts at half past five in the afternoon (both can be changed on the New game screen, and the weather can be fixed there too). The clock stops while the game waits (city map, weapon wheel, pause menu).
 
 - **The hour**: a hazy blue day in which the buildings show their own colours, a pink dawn around 6:00, a purple dusk around 19:30 and the neon night. The sun crosses the sky from east to west, so the lit side of the buildings turns with the hours; by night a cold moonlight comes from the north-west.
 - **Lights**: lit windows glow faintly by day and fully at night; neon signs, trims and underglow are dimmer by day; street lights and headlights come on at dusk and go off at dawn.
@@ -142,13 +156,14 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/13-render-frame.js` | per-frame render |
 | `js/14-hud-minimap.js` | HUD, minimap and city map (with the search area), district name |
 | `js/14b-weapon-wheel-scope.js` | weapon wheel and button pictures, aiming through the sniper scope and the rocket sight (zoomed view, blurred or darkened surroundings) |
-| `js/15-game-flow-loop.js` | menu, play, dying, starting again or game over, main loop |
+| `js/15-game-flow-loop.js` | setting up a new or saved game, play, dying, starting again or game over, main loop |
+| `js/15b-menus-saves.js` | the title, New game choices (`OPT`), pause menu, help pages and keys in the menus; saved games: autosave, slots, save files |
 | `js/16-octagrid-map-preview.js` | loads an Octagrid export and shows it in 3D (look only) |
 | `js/main.js` | starts the game; must load last |
 
 ## Octagrid preview
 
-*Load city file* on the start card reads an `octagrid-city` JSON export from the Octagrid city builder and shows it with the full building detail. It is a preview only: the imported map is not playable yet.
+*City file preview* on the title menu reads an `octagrid-city` JSON export from the Octagrid city builder and shows it with the full building detail. It is a preview only: the imported map is not playable yet.
 Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps

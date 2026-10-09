@@ -46,7 +46,7 @@ function reportCrime(n, hear, ix, iy, armed) {
   return w;
 }
 function policeAlert(from, to) {         // a new wanted level: when the next car is sent
-  PS.dispT = from === 0 ? COP.lv.delay[to] : Math.min(PS.dispT, COP.lv.delay[to]);
+  const dl = COP.lv.delay[to] / OPT.police; PS.dispT = from === 0 ? dl : Math.min(PS.dispT, dl);   // tougher police (OPT) come sooner
   if (from === 0) { PS.lose = 0; PS.warned = false; PS.stopOn = false; PS.holdT = PS.ignT = 0; }
 }
 function clearWanted(msg) {              // they gave up, or you paid: the cars go back to patrolling and the crews back to their cars
@@ -68,7 +68,7 @@ function updatePolice(dt) {
   else {
     PS.seen = false; PS.r = Math.min(COP.lv.searchMax[lv], PS.r + COP.searchGrow * dt);
     PS.lose += dt * (dist(P.x, P.y, PS.lx, PS.ly) < PS.r ? COP.insideRate : 1);
-    if (PS.lose >= COP.lv.lose[lv]) { clearWanted('YOU LOST THEM'); return; }
+    if (PS.lose >= COP.lv.lose[lv] * OPT.police) { clearWanted('YOU LOST THEM'); return; }
   }
   if (COP.lv.stop[lv]) stopOrder(dt); else PS.stopOn = false;
   if (PS.grab) { PS.bustT += dt; if (PS.bustT >= COP.bustTime) { bustPlayer(); return; } }   // a cop has hold of you
@@ -101,7 +101,7 @@ function chasingCars() {
   let n = 0; for (const c of cars) if (c.t.cop && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;
 }
 function dispatch(dt) {
-  const lv = P.stars, cap = COP.lv.cars[lv]; let n = chasingCars();
+  const lv = P.stars, cap = lv ? Math.max(1, Math.round(COP.lv.cars[lv] * OPT.police)) : 0; let n = chasingCars();
   for (const c of cars) {                // patrol cars that see you, or are near where you were last seen, join first
     if (n >= cap) break;
     if (c.t.cop && c.t.chaseFrom <= lv && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
