@@ -250,17 +250,20 @@ function genWorld() {
     if (fill) {                                                   // street-front and block-interior buildings: drawn merged per chunk, kept low enough
       const g = fillStyle(cx, cy, w, h), a = ang * Math.PI / 180, fx = cx - Math.sin(a) * h / 2, fy = cy + Math.cos(a) * h / 2;   // that nobody on the sidewalk disappears behind them
       const H = GFH + Math.max(1, Math.round((g.H - GFH) / FLOOR)) * FLOOR, shop = !!nearestRoad(fx, fy, ROAD_HALF + SW_W + 24);   // a shop if its front is on a street
-      return makeSolid(cx, cy, w, h, a, { seed: cx * 7 + cy * 13 + 1, inner: 0, pad: true, bld: true, fill: true, shop, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel });
+      return makeSolid(cx, cy, w, h, a, { seed: cx * 7 + cy * 13 + 1, inner: 0, back: !!(inner & 16), pad: true, bld: true, fill: true, shop, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel });
     }
     const g = blocks[grp] || (blocks[grp] = blockStyle(cx, cy, Math.max(w, h) >= 90)), tiny = Math.min(w, h) < 45;
     let H = g.H * rand(0.8, 1.15); if (tiny) H = Math.min(H, 36); else if (Math.min(w, h) < 90) H = Math.min(H, 130);
     return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
   });
-  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang]) => ({ cx, cy, w, d, a: ang * Math.PI / 180 }));
+  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang, rows]) => ({ cx, cy, w, d, a: ang * Math.PI / 180, rows: rows || 1 }));
   PARK_SPOTS = [];
-  for (const L of LOTS) {                                         // one row of nose-in stalls along the back of each lot; the street side stays open
-    const ca = Math.cos(L.a), sa = Math.sin(L.a), n = Math.floor((L.w - 20) / 30), z = -L.d / 2 + 36;
-    for (let k = 0; k < n; k++) { const x = -L.w / 2 + 25 + k * 30; PARK_SPOTS.push({ x: L.cx + ca * x - sa * z, y: L.cy + sa * x + ca * z, ang: Math.atan2(-ca, sa) }); }
+  for (const L of LOTS) {                                         // nose-in stalls along the back of each lot (and along the front of a deep one); the aisle stays open
+    const ca = Math.cos(L.a), sa = Math.sin(L.a), n = Math.floor((L.w - 20) / 30);
+    for (const s of L.rows === 2 ? [-1, 1] : [-1]) {
+      const z = s * (L.d / 2 - 36), ang = s < 0 ? Math.atan2(-ca, sa) : Math.atan2(ca, -sa);
+      for (let k = 0; k < n; k++) { const x = -L.w / 2 + 25 + k * 30; PARK_SPOTS.push({ x: L.cx + ca * x - sa * z, y: L.cy + sa * x + ca * z, ang }); }
+    }
   }
   { // the hotel next to where the player starts gets its name in lights
     const se = RE[startSpot()], sp = edgeAt(se.i, se.len / 2, {});
@@ -274,6 +277,7 @@ function genWorld() {
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
   genLandmarks();
+  CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck
   const q = {};

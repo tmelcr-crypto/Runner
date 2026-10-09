@@ -10,12 +10,14 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 
 - **Streets**: every island has a ring road along its coast, built only from straight runs at 0, 45 and 90 degrees, so every turn is 45, 90 or 135 degrees. Inside the ring the land is cut again and again by straight streets into an irregular grid (new streets line up with old ones so crossings meet properly), with one 45 degree avenue in a few districts. No junction joins more than four streets and there are no dead ends: the only road that ends is a short driveway to a landmark gate.
 - **Streets as streets**: two traffic lanes, a parking lane on each side and a sidewalk for people. Parked cars only stand where they fit inside the parking lane, so they never block traffic or the sidewalk.
-- **Blocks**: rows of buildings along every street side with corners and the odd alley, courtyards, inner buildings, parking lots, gas stations, plazas with fountains, basketball courts, pocket parks and parks. Towers downtown and along the beach; warehouses, container yards and cranes at the docks; hangars and planes at the airfield.
+- **Blocks**: rows of buildings along every street side, turned to face their street, with corner buildings facing the side street. The rows of a block stand back to back, or back to back across a back alley, so their backs line up; whatever is left inside a block becomes parking lots, service yards, gardens, gas stations, plazas with fountains, basketball courts, pocket parks and parks. No ground is left over: leftover land is a yard, a promenade along the water, a quay or the airport apron. Towers downtown and along the beach; warehouses, container yards and cranes at the docks; hangars and planes at the airfield.
+- **Back alleys and yards**: dumpsters, trash bags, crates, pallets, bins, barrels, puddles, washing lines across the narrow alleys, lamps over the back doors. The backs of the buildings have back doors, drainpipes, window AC boxes, graffiti and iron fire escapes (a landing at every floor, stairs between them, a drop ladder and a ladder over the roof edge); warehouses get a roller door and a loading dock. Dumpsters, crate stacks and AC units are solid. Promenades get palms, benches and lamps, quays get bollards, the apron gets floodlights and baggage carts.
+- **Parking lots** face the street or alley they are entered from: nose-in stalls along the back kerb with the aisle open to the entrance, and a second row along the front of the deep ones.
 - **Landmarks**: Bayfront Park downtown (a lake with a boathouse, a pier, paddle boats, a fountain and a band shell), the Bay TV tower over Mercado, the Twist (a glass tower that turns a quarter turn as it rises), the Crown (a stepped deco tower with a gold sunburst crown and a spire), the Sail hotel and the Bay Wheel on the beach, the golf links as one big park with lakes, the Neon Bowl stadium, the Pearl Key estate, Bayside Mall, the lighthouse, Skyport terminal with its runways, control tower and hangars, Heron Studios, and the Colony Hotel at 736 Ocean Drive (white Streamline front, turquoise bands, the inverted-T sign in blue neon).
 - **Closed driveways**: traffic never turns into a driveway to a landmark, and a boom gate stops every car except a police car (people walk past it).
 - **Real-world speeds** at 12 world units to the metre: people stroll at about 1.4 m/s, run at 5 and sprint at 7; town traffic drives at 40-55 km/h; cars reach 130-260 km/h depending on type, accelerate and brake like real cars (a little quicker off the line), and the faster you go the wider you have to turn.
 - Traffic keeps to its lane, brakes in time for what is ahead and waits at a busy junction; police take the shortest route by road and only drive straight at you when nothing is in between. People walk the sidewalks.
-- The sea is everywhere outside the coast: you can wade a little; cars that leave the road sink. Bridges have rails.
+- The sea is everywhere outside the coast: you can wade a little; a car you drive off the shore sinks (traffic and police stop at the water and cannot be shoved in). Bridges have rails.
 - **TAB** (or the **MAP** button) opens the whole city map; the game waits while it is open. The district name shows when you enter a new one.
 - Only what is near the camera exists as meshes; the low buildings are merged per area into one mesh each. Buildings and landmarks between the camera and the player turn see-through.
 
@@ -27,7 +29,7 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 
 | File | Contents |
 |---|---|
-| `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, buildings, lots, landmarks, props, districts (generated) |
+| `js/00-map-data.js` | the map: land, grass and sand polygons, road graph, buildings, lots, alleys, yards, landmarks, props, districts (generated) |
 | `js/01-config.js` | constants, helpers, `$()` |
 | `js/02-audio.js` | synthesized Web Audio |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
@@ -39,7 +41,8 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
 | `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |
-| `js/10c-render-fill.js` | the low street-front buildings, merged per area, and the see-through hole over the player |
+| `js/10c-render-fill.js` | the low street-front buildings, merged per area, with their back doors and fire escapes, and the see-through hole over the player |
+| `js/10d-render-clutter.js` | back alleys, yards, promenades, quays and the apron, and everything lying about in them |
 | `js/11-render-dynamic-meshes.js` | cars, people, pickups |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/13-render-frame.js` | per-frame render |

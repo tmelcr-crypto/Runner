@@ -127,15 +127,19 @@ function buildCity() {
     const R = tk(roadT, n.x, n.y), seg = 20, disc = (r, h, col) => { for (let k = 0; k < seg; k++) { const a0 = k / seg * TAU, a1 = (k + 1) / seg * TAU; R.tri([n.x, n.y], [n.x + Math.cos(a0) * r, n.y + Math.sin(a0) * r], [n.x + Math.cos(a1) * r, n.y + Math.sin(a1) * r], h, col); } };
     disc(SWO, 0.45, walk); disc(ROAD_HALF, 0.6, asph);
   }
-  // parking lots: asphalt, a kerb along the back, stall lines
+  // parking lots: asphalt, a kerb along the back (and the front of a two-row lot), stall lines facing the aisle
   const lotC = C(COL.lot), stall = C(COL.stall), padC = C(COL.pad);
   for (const L of LOTS) {
     const R = tk(roadT, L.cx, L.cy), Mk = tk(markT, L.cx, L.cy), ca = Math.cos(L.a), sa = Math.sin(L.a), w = (x, z) => [L.cx + ca * x - sa * z, L.cy + sa * x + ca * z];
-    const box = (T, x0, z0, x1, z1, h, col) => T.quad(w(x0, z0), w(x1, z0), w(x1, z1), w(x0, z1), h, col);
-    box(R, -L.w / 2, -L.d / 2, L.w / 2, L.d / 2, 0.55, lotC); box(Mk, -L.w / 2, -L.d / 2, L.w / 2, -L.d / 2 + 4, 0.95, padC);
+    const box = (T, x0, z0, x1, z1, h, col) => T.quad(w(x0, Math.min(z0, z1)), w(x1, Math.min(z0, z1)), w(x1, Math.max(z0, z1)), w(x0, Math.max(z0, z1)), h, col);
+    box(R, -L.w / 2, -L.d / 2, L.w / 2, L.d / 2, 0.55, lotC);
     const n = Math.floor((L.w - 20) / 30);
-    for (let k = 0; k <= n; k++) { const x = -L.w / 2 + 10 + k * 30; box(Mk, x - 0.8, -L.d / 2 + 4, x + 0.8, -L.d / 2 + 66, 0.9, stall); }
-    box(Mk, -L.w / 2 + 10, -L.d / 2 + 65, -L.w / 2 + 10 + n * 30, -L.d / 2 + 66.6, 0.9, stall);
+    for (const s of L.rows === 2 ? [-1, 1] : [-1]) {
+      const e = s * L.d / 2;
+      box(Mk, -L.w / 2, e, L.w / 2, e - 4 * s, 0.95, padC);
+      for (let k = 0; k <= n; k++) { const x = -L.w / 2 + 10 + k * 30; box(Mk, x - 0.8, e - 4 * s, x + 0.8, e - 66 * s, 0.9, stall); }
+      box(Mk, -L.w / 2 + 10, e - 65 * s, -L.w / 2 + 10 + n * 30, e - 66.6 * s, 0.9, stall);
+    }
   }
   const roadMat = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   for (const t of roadT.values()) t.mesh(roadMat);
@@ -155,7 +159,7 @@ function buildCity() {
     pools.push({ x: ix, y: 1.5, z: iy, sx: 170, sy: 1, sz: 170, c: lc });
   }
   // street furniture along the sidewalks: palms at the kerb, benches, bins, hydrants, phone booths, newspaper boxes, bus shelters
-  const fb = [], fg = [], fc = [], trunks = [], crowns = [];
+  const fb = [], fg = [], fc = [], fs = [], fp = [], trunks = [], crowns = [];
   const PALMY = { 'CORAL SHORE': 0.45, 'SUNSTRIP': 0.4, 'SEAVIEW': 0.4, 'PEARL KEY': 0.5, 'HERON KEY': 0.4, 'FAIRWAY ISLES': 0.4, 'MERCADO': 0.2, 'PALM HEIGHTS': 0.22, 'DOCKSIDE': 0.06, 'SKYPORT': 0.15 };
   for (const E of RE) for (const sd of [-1, 1]) {
     let nextStop = rand(200, 600);
@@ -223,7 +227,9 @@ function buildCity() {
     const cs = solidCorners(r), ox = r.H * 0.38, oz = r.H * 0.5, hull = convexHull(cs.concat(cs.map(([x, y]) => [x + ox, y + oz])));
     for (let k = 1; k < hull.length - 1; k++) for (const v of [hull[0], hull[k], hull[k + 1]]) shadowTris.push(v[0], 1.2, v[1]);
   }
+  drawYards(); drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools);   // back alleys, yards and what lies about in them
   chunked(GB, M.instWhite, pads); chunked(GB, M.instWhite, slabs);
+  chunked(GSphLo, M.instWhite, fs); chunked(GCirc, M.instBasic, fp);
   chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instWhite, crowns);
   chunked(GCyl, M.instWhite, poles); chunked(GB, M.instBasic, heads);
   chunked(GB, M.instWhite, fb); chunked(GB, M.instBasic, fg); chunked(GCyl, M.instWhite, fc);

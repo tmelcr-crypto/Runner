@@ -132,6 +132,63 @@ function fillBuilding(B, r) {
     }
   }
 
+  /* the back, where it opens on an alley or a yard: a back door under a lamp, a drainpipe, AC boxes, a fire escape, graffiti */
+  if (r.back && 2 * hw >= 26) {
+    const zw = iz0, zb = zw - 0.3, used = [];                     // zw: the wall itself, inside the corner piers
+    const free = (a, b) => used.every(([u, v]) => b < u - 2 || a > v + 2) && (used.push([a, b]), true);
+    const back = (gb, xa, xb, ya, yb, col, uv) => wall(gb, Math.max(xa, xb), zb, Math.min(xa, xb), zb, ya, yb, col, uv);   // a flat panel on the back wall
+    if (kind === 'warehouse') {                                    // a roller door and a dock plate
+      const dw = Math.min(28, (ix1 - ix0) * 0.45), dx = rand(-1, 1) * ((ix1 - ix0) / 2 - dw / 2 - 4); free(dx - dw / 2, dx + dw / 2);
+      box(T, dx - dw / 2, y0, zw - 0.6, dx + dw / 2, y0 + 15, zw + 0.2, C(0x5c6170));
+      for (let y = y0 + 3; y < y0 + 15; y += 3) back(T, dx - dw / 2, dx + dw / 2, y, y + 0.6, C(0x41454f));
+      box(T, dx - dw / 2 - 2, y0, z0 - 8, dx + dw / 2 + 2, y0 + 4, zw, C(0x4a4e5c));
+      box(G, dx - 3, y0 + 16, zw - 2, dx + 3, y0 + 17.4, zw, C('#ffe9a8'));
+    } else {                                                       // a steel door with a step, and a caged lamp over it
+      const dx = rand(ix0 + 7, ix1 - 7); free(dx - 7, dx + 7);
+      box(T, dx - 4.5, y0, zw - 0.7, dx + 4.5, y0 + 13, zw + 0.2, C(pick([0x3a4a5c, 0x5c3a3a, 0x3a5c4a, 0x55586a])));
+      box(T, dx - 6, y0, z0 - 4, dx + 6, y0 + 1.2, zw, gfC.clone().multiplyScalar(0.8));
+      box(G, dx - 1.6, y0 + 15, zw - 2.2, dx + 1.6, y0 + 16.6, zw, C('#ffcf7a'));
+    }
+    const px = Math.random() < 0.5 ? x0 + 3 : x1 - 3;               // drainpipe down the back corner, with a shoe at the bottom
+    prism(px, z0 - 1.4, 0.9, y0, yT + 2, iron, 6); box(T, px - 1.6, y0, z0 - 3.6, px + 1.6, y0 + 1.6, z0, iron);
+    if (nF >= 2 && kind !== 'warehouse' && 2 * hw >= 40 && Math.random() < (kind === 'office' ? 0.35 : 0.8)) {
+      const fw = Math.min(42, 2 * hw - 18), fx = rand(x0 + 9 + fw / 2, x1 - 9 - fw / 2), fa = fx - fw / 2, fb = fx + fw / 2, zo = z0 - 8;
+      free(fa - 2, fb + 2);
+      for (let f = 1; f <= nF; f++) {                              // a landing at every upper floor: grating, toe board, rail and posts
+        const yl = yG + (f - 1) * FLOOR + 0.6;
+        box(T, fa, yl - 0.7, zo, fb, yl, zw, iron);
+        for (let gx = fa + 3; gx < fb - 1; gx += 3) flat(T, gx, zo + 0.6, gx + 0.8, zw - 0.6, yl + 0.05, C(0x4a4e5c));
+        box(T, fa, yl + 3.6, zo, fb, yl + 4.2, zo + 0.6, iron); box(T, fa, yl + 3.6, zo, fa + 0.6, yl + 4.2, zw, iron); box(T, fb - 0.6, yl + 3.6, zo, fb, yl + 4.2, zw, iron);
+        for (const tx of [fa, fx - 0.3, fb - 0.6]) box(T, tx, yl, zo, tx + 0.6, yl + 3.6, zo + 0.6, iron);
+        back(G, fx - 4, fx + 4, yl + 1, yl + 7.5, C(Math.random() < 0.5 ? 0x3a3550 : 0xffd98a));   // the window it serves, lit or dark
+        if (f < nF) {                                              // a stair flight up to the next landing, alternating sides
+          const up = f % 2 ? 1 : -1, xa = up > 0 ? fa + 2 : fb - 2, xb = up > 0 ? fb - 10 : fa + 10, ya = yl, yb = yl + FLOOR, za = zo + 0.8, zc = zo + 4.2;
+          const l = Math.hypot(xb - xa, yb - ya), nx = -(yb - ya) / l * up, ny = Math.abs(xb - xa) / l;
+          const lo = Math.min(xa, xb), hi = Math.max(xa, xb), ylo = up > 0 ? ya : yb, yhi = up > 0 ? yb : ya;
+          quad(T, [lo, ylo, zc], [hi, yhi, zc], [hi, yhi, za], [lo, ylo, za], nx, ny, 0, C(0x3a3d47));
+          for (let k = 1; k < 8; k++) { const t = k / 8, sx = lo + (hi - lo) * t, sy = ylo + (yhi - ylo) * t; flat(T, sx - 0.4, za, sx + 0.4, zc, sy + 0.15, C(0x5a5e6a)); }
+          quad(T, [hi, yhi + 3, za - 0.1], [lo, ylo + 3, za - 0.1], [lo, ylo + 3.6, za - 0.1], [hi, yhi + 3.6, za - 0.1], 0, 0, -1, iron);   // hand rail
+        }
+      }
+      const lx = Math.random() < 0.5 ? fa + 3 : fb - 7, yl = yG + 0.6;   // the drop ladder hangs from the lowest landing, short of the ground
+      for (const rx of [lx, lx + 4]) box(T, rx, y0 + 7, zo + 0.2, rx + 0.5, yl, zo + 0.7, iron);
+      for (let y = y0 + 8; y < yl; y += 2.2) box(T, lx, y, zo + 0.2, lx + 4.5, y + 0.4, zo + 0.7, iron);
+      const top = yG + (nF - 1) * FLOOR + 0.6, gx = fb - 4;          // and a gooseneck ladder from the top landing over the parapet
+      for (const rx of [gx, gx + 3]) box(T, rx, top, z0 - 1.2, rx + 0.5, yT + 6, z0 - 0.6, iron);
+    }
+    for (let f = 1; f <= nF; f++) for (let k = 0; k < 2; k++) if (Math.random() < 0.3) {   // window AC boxes, dripping on the alley
+      const ax = rand(ix0 + 6, ix1 - 6); if (!free(ax - 5, ax + 5)) continue;
+      const ay = yG + (f - 1) * FLOOR + 3; box(T, ax - 4.5, ay, zw - 5, ax + 4.5, ay + 5, zw, acC); back(T, ax - 3.5, ax + 3.5, ay + 0.8, ay + 4.2, fanC);
+    }
+    if (Math.random() < 0.55) {                                    // graffiti low on the wall: a few overlapping tags
+      const gw = Math.min(ix1 - ix0 - 4, rand(14, 34)), gx = rand(ix0 + 2 + gw / 2, ix1 - 2 - gw / 2);
+      if (free(gx - gw / 2, gx + gw / 2)) for (let k = 0; k < randi(2, 3); k++) {
+        const a = gx + rand(-gw / 2, gw / 4), b = Math.min(gx + gw / 2, a + rand(gw / 3, gw / 2 + 4)), ya = y0 + rand(3, 6);
+        wall(G, b, zb - 0.1 * k, a, zb - 0.1 * k, ya, ya + rand(4, 8), C(pick(GLOW)).multiplyScalar(0.75));
+      }
+    }
+  }
+
   /* roof kit */
   const taken = [];
   const spot = (w, d) => {

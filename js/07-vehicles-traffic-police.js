@@ -245,6 +245,10 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
+    if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead && !c.sunk) {   // and nobody shoves them in: the shore holds them like a kerb
+      const sd = shoreDist(c.x, c.y);
+      if (sd < 0) { const g = shoreGrad(c.x, c.y), vin = c.vx * g[0] + c.vy * g[1]; c.x -= g[0] * sd; c.y -= g[1] * sd; if (vin < 0) { c.vx -= vin * g[0]; c.vy -= vin * g[1]; } }
+    }
     if (!c.sunk && shoreDist(c.x, c.y) < -8) sinkCar(c);
     if (c.sunk && c.sinkT < 1.4 && Math.random() < 0.3) splashFx(c.x + rand(-14, 14), c.y + rand(-14, 14), 3);
     carHitsPeds(c);
