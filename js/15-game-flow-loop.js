@@ -59,7 +59,7 @@ function handleKeys() {
 }
 
 /* speed -> zoom: the faster you go the further the camera pulls back, so you can see what is coming */
-const ZOOM_BASE = 1.25, ZOOM_CAR_MIN = 0.6, ZOOM_FOOT_MIN = 0.93, ZOOM_CAR_TOP = 140 * KMH, ZOOM_FOOT_TOP = SPRINT, ZOOM_OUT_RATE = 1.3, ZOOM_IN_RATE = 2.2;
+const ZOOM_BASE = 1.25, ZOOM_CAR_MIN = 0.6, ZOOM_FOOT_MIN = 0.93, ZOOM_CAR_TOP = 140 * KMH, ZOOM_FOOT_TOP = SPRINT * FOOT, ZOOM_OUT_RATE = 1.3, ZOOM_IN_RATE = 2.2;
 function speedZoom(spd, inCar) {
   const f = clamp(spd / (inCar ? ZOOM_CAR_TOP : ZOOM_FOOT_TOP), 0, 1), e = f * f * (3 - 2 * f);      // smoothstep: gentle at low speed, full at the top
   return ZOOM_BASE * lerp(1, inCar ? ZOOM_CAR_MIN : ZOOM_FOOT_MIN, e);        // the whole range sits 25% closer

@@ -25,6 +25,7 @@ const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicke
   police: { name: 'POLICE', len: 54, wid: 26, max: 220 * KMH, acc: acc0to100(220, 5.5), brake: 10 * MPS,   turn: 2.9, grip: 5.0, hp: 130, mass: 1.1,  colors: ['#171a24'] }
 };
 const WALK = 1.4 * MPS, RUN = 5 * MPS, SPRINT = 7 * MPS;      // people: a stroll, a run, a flat-out sprint
+const FOOT = 1.15;                                              // the player is 15% quicker on foot than other people
 const WEAPONS = [
   { name: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, hear: 140 },
   { name: 'MACHINE GUN', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, hear: 200 }

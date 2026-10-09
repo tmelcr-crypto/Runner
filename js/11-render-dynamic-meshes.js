@@ -74,7 +74,7 @@ function syncCar(c, time, dt) {
   c.roll += (want - c.roll) * Math.min(1, dt * 8); c.tilt.rotation.x = c.roll;
   const f = c.hp / c.maxhp, m = c.m;
   m.ug.visible = !c.dead; m.hb.visible = !!c.driver && !c.dead;
-  m.drv.visible = !!c.driver && !c.dead && !(c.driver === 'player' && P.act && P.act.k === 'start');
+  m.drv.visible = !!c.driver && !c.dead;
   if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; }
   else if (!c.dead && Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.55); }
   const brake = !c.dead && c.driver && c.thr < 0; if (brake !== c.tailOn) { c.tailOn = brake; for (const l of m.tail) l.material = brake ? E.tailOn : E.tailOff; }

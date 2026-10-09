@@ -1,22 +1,26 @@
 'use strict';
 /* ---------- 6b. GAMEPLAY: vehicles, traffic & police AI ---------- */
+// the player's car handles arcade style: livelier pickup, harder brakes, tyres that stick unless you pull the handbrake, a tight turn at any speed.
+// Traffic and police keep the real-world numbers their driving is tuned to.
+const ARCADE = { acc: 1.7, brake: 1.5, grip: 2.2, hbGrip: 0.3, turn: 1.15, lat: 4.5 * G_ACC, full: 8 * KMH, steer: 16, coast: 0.35 };
+const REAL = { acc: 1, brake: 1, grip: 1, hbGrip: 0.28, turn: 1, lat: LAT_GRIP, full: 18 * KMH, steer: 10, coast: 0.12 };
 function stepCar(c, dt) {
-  const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx;
+  const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, H = c.driver === 'player' ? ARCADE : REAL;
   if (c.dead || c.burn > 0 && !c.driver) { c.thr = 0; c.str = 0; }
   let vf = c.vx * fx + c.vy * fy, vl = c.vx * rx + c.vy * ry;
   c.slip = Math.abs(vl);
   if (c.thr !== 0) {
     const braking = c.thr * vf < 0;
-    const a = braking ? t.brake : t.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : Math.min(t.max * 0.45, 35 * KMH))));
+    const a = braking ? t.brake * H.brake : t.acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : Math.min(t.max * 0.45, 35 * KMH))));
     vf += c.thr * a * dt;
   }
-  vf *= Math.exp(-(c.thr === 0 ? (c.driver ? 0.12 : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little
-  vl *= Math.exp(-(c.hb ? t.grip * 0.28 : t.grip) * dt);
+  vf *= Math.exp(-(c.thr === 0 ? (c.driver ? H.coast : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little
+  vl *= Math.exp(-(c.hb ? t.grip * H.hbGrip : t.grip * H.grip) * dt);
   if (c.hb) vf *= Math.exp(-0.9 * dt);
   c.vx = fx * vf + rx * vl; c.vy = fy * vf + ry * vl;            // velocity keeps its direction while the nose turns: that is the drift
-  const sp = Math.max(c.assist ? 0.5 : 0, Math.min(1, Math.abs(vf) / (18 * KMH))), sgn = c.fs || (vf >= 0 ? 1 : -1);
-  const yaw = Math.min(t.turn * sp, LAT_GRIP / Math.max(1, Math.abs(vf)));   // the faster you go, the wider you must turn
-  c.av = lerp(c.av, c.str * yaw * sgn * (c.hb ? 1.25 : 1), Math.min(1, dt * 10));
+  const sp = Math.max(c.assist ? 0.5 : 0, Math.min(1, Math.abs(vf) / H.full)), sgn = c.fs || (vf >= 0 ? 1 : -1);
+  const yaw = Math.min(t.turn * H.turn * sp, H.lat / Math.max(1, Math.abs(vf)));   // the faster you go, the wider you must turn
+  c.av = lerp(c.av, c.str * yaw * sgn * (c.hb ? 1.25 : 1), Math.min(1, dt * H.steer));
   c.ang += c.av * dt;
   c.x += c.vx * dt; c.y += c.vy * dt;
   // skid marks from the rear wheels
@@ -223,6 +227,14 @@ function aiDrive(c, dt) {
   if (spd < 10 && block > 150) { c.stuck += dt; if (c.stuck > 2) { c.rev = 1; c.stuck = 0; } } else c.stuck = 0;
 }
 
+function wrestle(c, dt) {                                        // a carjacking: the driver and you fight over the wheel, the car lurches and swerves
+  if ((c.wt = (c.wt || 0) - dt) <= 0) {
+    c.wt = rand(0.15, 0.4); c.ws = rand(0.55, 1) * (c.ws > 0 ? -1 : 1);
+    c.wg = Math.random() < 0.75 ? rand(0.4, 1) : -0.5;               // mostly the driver floors it to shake you off, now and then someone hits the brake
+    if (Math.random() < 0.5) Snd.thud(rand(60, 110));
+  }
+  c.wst = lerp(c.wst || 0, c.ws, Math.min(1, dt * 14)); c.str = c.wst; c.thr = c.wg; c.hb = false;
+}
 function updateCars(dt) {
   if (gameT > copFieldT && cars.some(c => c.driver === 'cop')) { copFieldT = gameT + 0.5; const t = P.car || P; copTarget = roadFieldTo(t.x, t.y); }
   for (const c of cars) {
@@ -234,6 +246,7 @@ function updateCars(dt) {
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = false; }
+    if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);
     if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
       const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;
       const ahead = (30 + spd * 0.5) * back, hx = c.x + fx * ahead, hy = c.y + fy * ahead;
