@@ -111,8 +111,10 @@ $('oLoadBtn').addEventListener('click', () => openSlots('load'));
 $('oMenuBtn').addEventListener('click', showTitle);
 
 /* help: one page per tab; the WEAPONS page comes from the weapon table (js/01f): its name and how to use it; the points from js/01i */
-$('helpPoints').textContent = 'Your score is your cash. Carjacking +' + ECO.carjack + ', running someone over +' + ECO.roadkill + ', taking someone down +' + ECO.takedown + ', a cop +' + ECO.copKill
-  + ', blowing up a car +' + ECO.carBoom + ', a police car +' + ECO.copCarBoom + ', cash +' + ECO.cash + '.';
+{ const rg = id => Array.isArray(ECO[id]) ? '$' + ECO[id][0] + '-' + ECO[id][1] : '$' + ECO[id];
+  $('helpPoints').textContent = 'Your score is your cash. Every car you steal or hijack has ' + rg('carCash') + ' inside. Killing pays nothing by itself: the dead drop a cash stack ('
+    + rg('pedCash') + ', police ' + rg('copCash') + ') and the weapon they carried - pick them up within ' + ECO.dropTime + ' s. ' + ECO.townN + ' cash stacks of ' + rg('townCash')
+    + ' lie around town (not on the maps). Destroying pays nothing.'; }
 for (const w of WEAPONS) { const d = document.createElement('div'), h = document.createElement('h3'), u = document.createElement('ul'), li = document.createElement('li'); h.textContent = w.name; li.textContent = w.howTo || ''; u.append(li); d.append(h, u); $('helpArms').append(d); }
 for (const t of document.querySelectorAll('#helpTabs button')) t.addEventListener('click', () => {
   for (const u of document.querySelectorAll('#helpTabs button')) u.classList.toggle('on', u === t);

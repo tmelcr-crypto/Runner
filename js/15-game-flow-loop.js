@@ -20,7 +20,7 @@ function resetGame(sv) {                     // a new game with the options in O
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
-  if (load && load.car) { const c = load.car; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
+  if (load && load.car) { const c = load.car; c.searched = true; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
   else if (!sv) {                                                  // starter cars in the parking lane on the player's side
     const kerb = PARK_OFF, kerbT = Object.keys(CAR_TYPES).filter(k => CAR_TYPES[k].parked > 0 && CAR_TYPES[k].wid <= KERB_W).sort((a, b) => CAR_TYPES[b].parked - CAR_TYPES[a].parked);
     for (const [ds, type, col] of [[-60, kerbT[0], '#d94f4f'], [50, kerbT[1] || kerbT[0], '#3fe0ff'], [160, kerbT[0], '#3d6fb0']])
@@ -32,7 +32,7 @@ function resetGame(sv) {                     // a new game with the options in O
   for (const L of LOTS) L.filled = false; fillLots(true);
   for (let k = 0; k < 50 * crowd; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
-  for (let k = 0; k < PICKUP_N; k++) spawnPickup();
+  for (let k = 0; k < ECO.townN; k++) spawnPickup();               // cash stacks around town (js/01i)
   CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
   placeStores();                                                   // the six stores and their markers (js/08e)

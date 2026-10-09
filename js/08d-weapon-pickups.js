@@ -76,6 +76,7 @@ function updateWeaponPicks(dt) {
   const px = P.car ? P.car.x : P.x, py = P.car ? P.car.y : P.y, reach = P.car ? WP_R + P.car.t.wid / 2 : WP_R;
   for (let k = WPICKS.length - 1; k >= 0; k--) {
     const p = WPICKS[k]; p.bob += dt * 3;
+    if (p.drop && gameT > p.until) { WPICKS.splice(k, 1); continue; }   // dropped by the dead (js/08g) and left lying too long
     if (P.dead || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
     if (RAMP.on && p.wi === RAMP.on.wi) continue;                     // the rampage's own weapon and ammo wait until it is over (js/08f)
     if (p.item) { if (!takeItem(p)) continue; }
@@ -91,12 +92,13 @@ function updateWeaponPicks(dt) {
       if (P.has[i] && P.ammo[i] >= w.maxAmmo) continue;
       const fresh = !P.has[i]; P.has[i] = true;
       if (fresh) P.mag[i] = Math.max(P.mag[i], w.mag);
-      P.ammo[i] = Math.min(Math.max(w.maxAmmo, P.ammo[i]), P.ammo[i] + w.ammo + (fresh ? 0 : w.mag));
+      P.ammo[i] = Math.min(Math.max(w.maxAmmo, P.ammo[i]), P.ammo[i] + (p.drop ? 0 : w.ammo) + (fresh ? 0 : w.mag));   // a dropped gun: just what was in it, one magazine
       popup(p.x, p.y - 12, '+' + w.name, col); if (fresh) toast(w.name + ': ' + w.howTo);
       if (fresh && !P.car && !RAMP.on && (isMelee(WEAPONS[P.weapon]) || P.mag[P.weapon] + P.ammo[P.weapon] <= 0)) P.weapon = i;   // a new gun goes into your hand
     } }
     Snd.pickup();
     if (p.fixed) continue;
+    if (p.drop) { WPICKS.splice(k, 1); continue; }                    // gone for good
     p.spot.used = null; WPICKS.splice(k, 1); wpQ.push({ t: gameT + WP_BACK, wi: p.wi, ammo: p.ammo, item: p.item, key: p.key });   // comes back elsewhere later
   }
   for (let k = wpQ.length - 1; k >= 0; k--) {
@@ -115,7 +117,7 @@ function syncWeaponPicks(time) {
   const R = visRadius() * 1.25;
   for (const p of WPICKS) {
     if (Math.abs(p.x - cam.x) > R || Math.abs(p.y - cam.y) > R) continue;   // far ones are dropped (js/11 sweepDynamic) and rebuilt when near
-    const w = p.item ? ITEM[p.item] : WEAPONS[p.wi], faint = !p.ammo && p.fixed && P.has[p.wi];
+    const w = p.item ? ITEM[p.item] : WEAPONS[p.wi], faint = !p.ammo && !p.item && (p.fixed || (p.drop && isMelee(w))) && P.has[p.wi];
     if (!p.mesh) {
       const g = new THREE.Group(), it = p.item ? itemModel(p.item) : p.ammo ? ammoModel(w.color) : weaponModel(w.id, w.color), spin = new THREE.Group(); spin.add(it);
       if (!p.ammo && !p.item) { const b = new THREE.Box3().setFromObject(it), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3()); it.position.sub(c); spin.scale.setScalar(Math.min(1.6, 18 / Math.max(5, s.x, s.y, s.z))); }   // centred, filling the bubble
@@ -128,7 +130,7 @@ function syncWeaponPicks(time) {
     track(p); const u = p.mesh.userData;
     if (u.faint !== faint) { u.faint = faint; u.bub.material = bubbleMat(w.color, faint); u.rim.visible = !faint; }   // a melee weapon you carry: faint, no rim
     if (p.item === 'bribe') { const c = Math.floor(time / 0.35) % 2 ? '#2f6bff' : w.color; u.bub.material = bubbleMat(c, false); u.rim.material = rimMat(c); }   // flashing like a light bar
-    p.mesh.position.set(p.x, groundH(p.x, p.y), p.y);
+    p.mesh.position.set(p.x, groundH(p.x, p.y), p.y); p.mesh.visible = !(p.drop && p.until - gameT < 10 && Math.floor(gameT * 6) % 2);   // blinking: about to go
     u.spin.position.y = 13 + Math.sin(p.bob) * 1.6; u.spin.rotation.y = time * 1.4; u.bub.scale.setScalar(11 + Math.sin(p.bob * 1.3) * 0.5);
   }
 }

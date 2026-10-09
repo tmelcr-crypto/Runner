@@ -3,7 +3,8 @@
   python3 tools/economy_sheet.py export economy.numbers            every price in the game in one table (or .xlsx)
   python3 tools/economy_sheet.py import economy.numbers [--dry-run] read an edited file back, check it, write each price to its table
 
-Column A is the action or the commodity, column B its price. Your score is your cash. The prices live with what they belong to, and
+Column A is the action or the commodity, column B its price - or, for a random amount, the least in B and the most in C ("Up to").
+Your score is your cash. The prices live with what they belong to, and
 an import writes each one back there (only the price, the rest of each table is left as it is):
   what deeds pay         js/01i-economy-data.js
   rampage rewards        js/01h-rampage-data.js   (also tools/rampage_sheet.py)
@@ -17,8 +18,9 @@ import json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); JSD = os.path.join(HERE, '..', 'js')
 FILES = {'eco': ('01i-economy-data.js', 'ECONOMY'), 'ramp': ('01h-rampage-data.js', 'RAMPAGE'), 'police': ('01b-police-data.js', 'POLICE'),
          'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON')}
-HEADS = ['Action or commodity', 'Price', 'Unit', 'Notes', 'Key (do not change)']
+HEADS = ['Action or commodity', 'Price (or from)', 'Up to', 'Unit', 'Notes', 'Key (do not change)']
 USD, PCT = '$', '% of your cash'
+LIMITS = {'$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
 
 
 def path(f): return os.path.join(JSD, FILES[f][0])
@@ -40,9 +42,11 @@ def rows():
     for s in shop['stores']:
         for i in s['sells']: sold.setdefault(i, []).append(s['name'])
     where = lambda i: 'Sold at ' + ', '.join(sold[i]) + '.' if i in sold else 'Not sold in any store (a store\'s list is in js/01g).'
-    out = [('#', 'EARNINGS', 'What a deed pays: added to your cash, shown as +$ where it happened.')]
+    out = [('#', 'EARNINGS', 'Where cash comes from. A range: a random amount from B to C each time. Killing pays only through the cash the dead drop.')]
     for r in eco['earn']:
-        out.append(dict(key='earn.' + r['id'], label=r['name'], value=r['v'], unit=USD, note=r.get('note', ''), file='eco', id=r['id'], field='v', lo=0, hi=1000000, empty_ok=False))
+        u = r.get('unit', USD); lo, hi = LIMITS.get(u, (0, 1000000)); ranged = r.get('min') is not None
+        out.append(dict(key='earn.' + r['id'], label=r['name'], value=r['min'] if ranged else r['v'], value2=r['max'] if ranged else None, ranged=ranged, unit=u, note=r.get('note', ''),
+                        file='eco', id=r['id'], field='min' if ranged else 'v', lo=lo, hi=hi, empty_ok=False))
     out.append(('#', 'RAMPAGE REWARDS', 'Paid the first time you pass a rampage (you also keep its weapon). A replay pays nothing.'))
     for n, r in enumerate(ramp['rampages'], start=1):
         w = nice(W.get(r['weapon'], {}).get('name', r['weapon'])); goal = ('kill %d people' if r['target'] == 'people' else 'wreck %d vehicles') % r['count']
@@ -67,10 +71,13 @@ def rows():
         lab = ('%s +%d' % (nice(w['name']) + 's', w['pickup'])) if w.get('use') == 'throw' else ('%ss +%d' % (nice(w['short']), w['pickup'])) if w.get('class') == 'launcher' \
             else '%s ammo +%d rounds' % (nice(w['name']), w['pickup'])
         out.append(dict(key='ammo.' + w['id'], label=lab, value=w.get('ammoPrice'), unit=USD, note=where(w['id']), file='weapon', id=w['id'], field='ammoPrice', lo=0, hi=1000000, empty_ok=True))
+    for r in out:
+        if isinstance(r, dict): r.setdefault('ranged', False); r.setdefault('value2', None)
     return out
 
 
 TIPS = [('Yellow cells', 'The prices: type a new one in column B. Dollars are whole numbers; the bail and the hospital bill are a share of your cash in %.', 'tap a cell and type'),
+        ('Random amounts', 'Rows with a value in C (Up to) are random each time, from B to C. Make B and C equal for a fixed amount. Rows without C take only B.', ''),
         ('Empty price', 'For store goods: never sold. Everything else needs a price (0 is allowed).', ''),
         ('What sells where', 'Which store sells what is in js/01g (each store\'s list). New weapons and rampages come from their own tables (weapon and rampage sheets).', ''),
         ('Keys', 'The grey last column tells the game which price a row is. Do not change it; rows may be moved or sorted.', ''),
@@ -89,7 +96,7 @@ def export_xlsx(dest):
     f_lab = PatternFill('solid', fgColor='E4E0F2'); f_key = PatternFill('solid', fgColor='EDEDED')
     thin = Side(style='thin', color='C9C9C9'); box = Border(left=thin, right=thin, top=thin, bottom=thin)
     wb = Workbook(); sh = wb.active; sh.title = 'Economy'
-    for col, wd in zip('ABCDE', (40, 14, 16, 70, 22)): sh.column_dimensions[col].width = wd
+    for col, wd in zip('ABCDEF', (40, 14, 10, 16, 70, 22)): sh.column_dimensions[col].width = wd
     for j, h in enumerate(HEADS, start=1):
         c = sh.cell(row=1, column=j, value=h); c.font = Font(name=F, size=10, bold=True, color='FFFFFF'); c.fill = f_head; c.border = box; c.alignment = Alignment(horizontal='center', vertical='center')
     usd = DataValidation(type='whole', operator='between', formula1='0', formula2='1000000', allow_blank=True, showErrorMessage=True, error='Dollars: a whole number from 0 to 1,000,000.')
@@ -98,15 +105,17 @@ def export_xlsx(dest):
     for i, r in enumerate(rows(), start=2):
         if isinstance(r, tuple):
             a = sh.cell(row=i, column=1, value=r[1]); a.font = Font(name=F, size=10, bold=True, color='FFFFFF'); a.fill = f_sec
-            for j in range(2, 6): c = sh.cell(row=i, column=j, value=r[2] if j == 4 else None); c.fill = f_sec; c.font = Font(name=F, size=9, italic=True, color='E4E0F2')
+            for j in range(2, 7): c = sh.cell(row=i, column=j, value=r[2] if j == 5 else None); c.fill = f_sec; c.font = Font(name=F, size=9, italic=True, color='E4E0F2')
             continue
-        vals = [r['label'], r['value'], r['unit'], r['note'], r['key']]
+        vals = [r['label'], r['value'], r['value2'], r['unit'], r['note'], r['key']]
         for j, v in enumerate(vals, start=1):
-            c = sh.cell(row=i, column=j, value=v); c.border = box; c.alignment = Alignment(vertical='center', wrap_text=j == 4, horizontal='center' if j in (2, 3) else 'left')
-            c.font = Font(name=F, size=10, bold=j == 1, color='0000FF' if j == 2 else '595959' if j == 5 else '000000')
-            c.fill = f_lab if j == 1 else f_in if j == 2 else f_key if j == 5 else PatternFill()
-            if j == 2: c.number_format = '#,##0' if r['unit'] == USD else '0.##'
-        (usd if r['unit'] == USD else pct).add('B%d' % i)
+            inp = j == 2 or (j == 3 and r['ranged'])
+            c = sh.cell(row=i, column=j, value=v); c.border = box; c.alignment = Alignment(vertical='center', wrap_text=j == 5, horizontal='center' if j in (2, 3, 4) else 'left')
+            c.font = Font(name=F, size=10, bold=j == 1, color='0000FF' if inp else '595959' if j == 6 else '000000')
+            c.fill = f_lab if j == 1 else f_in if inp else f_key if j == 6 else PatternFill()
+            if j in (2, 3): c.number_format = '#,##0' if r['unit'] == USD else '0.##'
+        (pct if r['unit'] == PCT else usd).add('B%d' % i)
+        if r['ranged']: usd.add('C%d' % i)
     sh.freeze_panes = 'B2'
     g = wb.create_sheet('How to fill'); g.column_dimensions['A'].width = 22; g.column_dimensions['B'].width = 80; g.column_dimensions['C'].width = 22
     for j, h in enumerate(['Item', 'What it means', 'How to fill'], start=1):
@@ -128,17 +137,18 @@ def export_numbers(dest):
     sec_n = style('BR section note', bg_color=RGB(91, 74, 138), font_color=RGB(228, 224, 242), italic=True, size=10.0)
     lab = style('BR label', bg_color=RGB(228, 224, 242), bold=True); val = style('BR value', bg_color=RGB(255, 247, 204), font_color=RGB(0, 0, 255), h='center')
     unit = style('BR unit', h='center', size=10.0); note = style('BR note', size=10.0); key = style('BR key', bg_color=RGB(237, 237, 237), font_color=RGB(89, 89, 89), size=10.0)
-    for j, w in enumerate((260, 90, 110, 420, 140)): tb.col_width(j, w)
+    for j, w in enumerate((260, 90, 70, 110, 420, 140)): tb.col_width(j, w)
     for j, h in enumerate(HEADS): tb.write(0, j, h, style=head)
     for i, r in enumerate(R, start=1):
         if isinstance(r, tuple):
-            tb.write(i, 0, r[1], style=sec); tb.write(i, 3, r[2], style=sec_n)
-            for j in (1, 2, 4): tb.set_cell_style(i, j, sec)
+            tb.write(i, 0, r[1], style=sec); tb.write(i, 4, r[2], style=sec_n)
+            for j in (1, 2, 3, 5): tb.set_cell_style(i, j, sec)
             tb.row_height(i, 24); continue
         tb.write(i, 0, r['label'], style=lab)
         if r['value'] is None: tb.set_cell_style(i, 1, val)
         else: tb.write(i, 1, r['value'], style=val)
-        tb.write(i, 2, r['unit'], style=unit); tb.write(i, 3, r['note'] or '', style=note); tb.write(i, 4, r['key'], style=key); tb.row_height(i, 30 if len(r['note'] or '') < 70 else 44)
+        if r['ranged']: tb.write(i, 2, r['value2'], style=val)
+        tb.write(i, 3, r['unit'], style=unit); tb.write(i, 4, r['note'] or '', style=note); tb.write(i, 5, r['key'], style=key); tb.row_height(i, 30 if len(r['note'] or '') < 70 else 44)
     doc.add_sheet('How to fill', 'How to fill', num_rows=len(TIPS) + 1, num_cols=3)
     g = doc.sheets[-1].tables[0]; g.num_header_rows = 1; g.num_header_cols = 1; g.col_width(0, 160); g.col_width(1, 480); g.col_width(2, 150)
     for j, h in enumerate(['Item', 'What it means', 'How to fill']): g.write(0, j, h, style=head)
@@ -158,11 +168,11 @@ def read_sheet(src):
     col = {}
     for j, h in enumerate(data[0]):
         h = str(h or '').strip().lower()
-        for k, start in (('label', 'action'), ('price', 'price'), ('key', 'key')):
+        for k, start in (('label', 'action'), ('price', 'price'), ('upto', 'up to'), ('key', 'key')):
             if h.startswith(start) and k not in col: col[k] = j
     if 'price' not in col or ('key' not in col and 'label' not in col): raise SystemExit('Needs a Price column and a Key column (first row headings).')
     cell = lambda row, k: row[col[k]] if k in col and col[k] < len(row) else None
-    return [{'label': cell(r, 'label'), 'price': cell(r, 'price'), 'key': cell(r, 'key')} for r in data[1:]]
+    return [{'label': cell(r, 'label'), 'price': cell(r, 'price'), 'upto': cell(r, 'upto'), 'key': cell(r, 'key')} for r in data[1:]]
 
 
 def num(v):
@@ -201,7 +211,14 @@ def do_import(src, dry):
             v = num(raw)
             if v is None or v == '': errors.append('%s: "%s" is not a number' % (where, raw)); continue
             if v < r['lo'] or v > r['hi']: errors.append('%s: %s is outside %s to %s' % (where, fmt(v), fmt(r['lo']), fmt(r['hi']))); continue
-            if r['unit'] == USD and not float(v).is_integer(): errors.append('%s: dollars must be a whole number' % where); continue
+            if r['unit'] != PCT and not float(v).is_integer(): errors.append('%s: must be a whole number' % where); continue
+        if r['ranged']:                                                # a random amount: B the least, C the most (C empty: B both)
+            raw2 = row.get('upto'); v2 = v if raw2 is None or (isinstance(raw2, str) and raw2.strip() == '') else num(raw2)
+            if v2 is None or v2 == '' or v2 < r['lo'] or v2 > r['hi'] or not float(v2).is_integer(): errors.append('%s: Up to "%s" must be a whole number from %s to %s' % (where, raw2, fmt(r['lo']), fmt(r['hi']))); continue
+            if v2 < v: errors.append('%s: Up to (%s) is less than the price from (%s)' % (where, fmt(v2), fmt(v))); continue
+            if v != r['value']: ch.append((r, v))
+            if v2 != r['value2']: ch.append((dict(r, field='max', value=r['value2'], label=r['label'] + ' (up to)'), v2))
+            continue
         if v != r['value']: ch.append((r, v))
     for x in notes: print('note: ' + x)
     if errors: print('Not imported - fix these first:'); [print('  ' + e) for e in errors]; sys.exit(1)

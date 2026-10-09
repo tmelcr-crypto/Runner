@@ -33,7 +33,6 @@ function drawMini(time) {
   }
   svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
-  for (const p of pickups) { if (p.type !== 'cash') continue; const x = mxp(p.x), y = myp(p.y); if (x < 0 || y < 0 || x > size || y > size) continue; mctx.fillStyle = '#58e08a'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
 }
@@ -70,7 +69,6 @@ function drawBigMap(time) {
     g.fillStyle = '#000'; g.fillText(name, x + 2 * pr, y + 2 * pr); g.fillStyle = '#f1ead2'; g.fillText(name, x, y);
   }
   const ph = Math.floor(time * 4) % 2 === 0;
-  for (const p of pickups) { if (p.type !== 'cash') continue; g.fillStyle = '#58e08a'; g.fillRect(X(p.x) - 2 * pr, Y(p.y) - 2 * pr, 4 * pr, 4 * pr); }
   svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }

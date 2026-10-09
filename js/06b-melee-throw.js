@@ -58,7 +58,7 @@ function hitPerson(p, w, officer) {
   bloodFx(p.x, p.y, w.dmg >= 30 ? 6 : 2, a); p.hp -= w.dmg;
   if (p.hp <= 0) { if (officer) killOfficer(p, true); else killPed(p, 'melee', true, a); }
   else if (officer || p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; }
-  else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; }
+  else if (!provoke(p)) { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; }   // armed: hits back (js/08g)
   if (fly) { p.kx0 = P.x; p.ky0 = P.y; knock(p, nx, ny, Math.min(1.25, w.push / (8 * MPS)), 7); }   // sent flying (js/12c)
   else if (w.push > 0) {                                            // a shove, in small steps so nobody ends up inside a wall
     const n = Math.ceil(w.push / 3), st = w.push / n;

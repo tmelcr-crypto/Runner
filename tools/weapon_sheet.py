@@ -56,6 +56,7 @@ ROWS = [
     ('pickup', 'Rounds per ammo pickup', 'int', (0, 999), 'What one of its ammo pickups gives (you take ammo even before you have found the weapon).', 'rounds'),
     ('onMap', 'Weapon pickups on the map', 'int', (0, 60), 'How many of the weapon itself lie hidden. Melee weapons: always in the same places, and never taken while you carry that weapon. Others: random places each game, and one comes back somewhere else a minute after you take it.', 'count'),
     ('ammoMap', 'Ammo pickups on the map', 'int', (0, 60), 'How many of its ammo pickups lie hidden, in its own colour bubble; random places, each comes back elsewhere a minute after you take it.', 'count'),
+    ('carry', 'Carried by people (%)', 'num', (0, 100), 'Share of passers-by who carry it. Attacked, or seeing you hurt someone close by, they use it on you (a melee weapon, or a gun that fires bullets on tap or hold); killed, they drop it. All together at most 100.', '%, empty = nobody'),
     ('reload', 'Reload time (s)', 'num', (0, 60), 'Time to put in a new magazine (thrown: to take the next one).', 'seconds'),
     ('start', 'Have it at the start: yes / no', 'yesno', None, 'yes: you always have it (like fists). no: you have to find it.', 'yes or no'),
     ('keep', 'Kept when busted: yes / no', 'yesno', None, 'When the police arrest you they take your weapons (police table) - except these.', 'yes or no'),
@@ -90,14 +91,14 @@ ROWS = [
 SETTINGS = [r for r in ROWS if r[0] != '#']
 ROW = {r[0]: r for r in SETTINGS}
 ORDER = ['id', 'name', 'short', 'status', 'class', 'use', 'fires', 'sound', 'color', 'howTo', 'mechanic', 'dmg', 'pellets', 'spread', 'range', 'rate', 'carDmg', 'pierce',
-         'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'reload', 'start', 'keep', 'price', 'ammoPrice', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
+         'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'carry', 'reload', 'start', 'keep', 'price', 'ammoPrice', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
          'blast', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'reach', 'arc', 'knock', 'push', 'notes']
 assert sorted(ORDER) == sorted(ROW)
 # a row label in a returned file is recognised by how it starts (lowercase), most specific first
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('status', 'status'), ('class', 'class'), ('use', 'how you use'), ('fires', 'what it fires'),
          ('sound', 'sound'), ('color', 'bubble colour'), ('howTo', 'how to use'), ('mechanic', 'how it works'), ('notes', 'look'), ('dmg', 'damage per'), ('pellets', 'bullets per'),
          ('spread', 'spread'), ('range', 'range'), ('rate', 'time between'), ('carDmg', 'damage to veh'), ('pierce', 'goes through'), ('mag', 'magazine'),
-         ('ammo', 'spare rounds'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per'), ('onMap', 'weapon pickups'), ('ammoMap', 'ammo pickups'), ('reload', 'reload'),
+         ('ammo', 'spare rounds'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per'), ('onMap', 'weapon pickups'), ('ammoMap', 'ammo pickups'), ('carry', 'carried by'), ('reload', 'reload'),
          ('start', 'have it'), ('keep', 'kept when'), ('price', 'price in'), ('ammoPrice', 'ammo price'), ('heat', 'heat'), ('hear', 'heard'), ('panic', 'people flee'), ('shake', 'screen shake'), ('zoom', 'zoom'),
          ('sight', 'sight:'), ('blur', 'blur'), ('los', 'needs clear'), ('hold', 'sight stays'), ('blast', 'blast'), ('speed', 'flight speed'), ('stray', 'dud chance'),
          ('strayDeg', 'dud goes'), ('fuse', 'fuse'), ('throw', 'throw range'), ('bounce', 'bounces'), ('reach', 'reach'), ('arc', 'swing arc'), ('knock', 'knockdown'),
@@ -347,6 +348,10 @@ def build(cols, present, old):
             warns.append('%s: starts with more spare rounds (%s) than it can carry (%s)' % (where, fmt(w['ammo']), fmt(w['maxAmmo'])))
         out.append({k: w.get(k) for k in ORDER})
     live = [w for w in out if w['status'] == 'in game']
+    for w in live:
+        if (w.get('carry') or 0) > 0 and not (w.get('use') == 'swing' or (w.get('fires') == 'bullet' and w.get('use') in ('tap', 'hold'))):
+            errors.append('Column %s: people can only carry melee weapons and guns that fire bullets on tap or hold' % w['id'])
+    if sum(w.get('carry') or 0 for w in live) > 100: errors.append('Carried by people adds up to more than 100 %')
     if not live: errors.append('At least one weapon needs Status in game')
     cols_ = {}
     for w in out:

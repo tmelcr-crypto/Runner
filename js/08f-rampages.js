@@ -116,7 +116,7 @@ function rampSpawn(dt) {                 // keep enough people or vehicles aroun
     for (const o of officers) if (!o.dead && Math.abs(o.x - P.x) < RAMP_NEAR && Math.abs(o.y - P.y) < RAMP_NEAR) n++;
     const want = RAMP_PEOPLE - n; RAMP.short = want > 0 ? RAMP.short + 0.25 : 0;
     for (let k = 0; k < Math.min(3, want); k++) {
-      for (let tr = 0; tr < 6; tr++) { const s = sidewalkSpot(150, RAMP_NEAR - 80, 8); if (!s || (!offScreen(s.x, s.y) && RAMP.short < 1.5)) continue; peds.push(makePed(s.x, s.y, s)); break; }
+      for (let tr = 0; tr < 6; tr++) { const s = sidewalkSpot(150, RAMP_NEAR - 80, 8); if (!s || (!offScreen(s.x, s.y) && RAMP.short < 1.5)) continue; const q = makePed(s.x, s.y, s); q.arm = -1; peds.push(q); break; }   // rampage crowds carry nothing
     }
   } else {
     for (const c of cars) if (!c.dead && c.hp > 0 && !c.sunk && Math.abs(c.x - P.x) < RAMP_NEAR + 100 && Math.abs(c.y - P.y) < RAMP_NEAR + 100) n++;
