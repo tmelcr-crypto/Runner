@@ -208,6 +208,7 @@ function updateOfficers(dt) {
     const o = officers[k];
     if (o.dead) { o.deadT += dt; if (o.deadT > bodyTime(o)) officers.splice(k, 1); continue; }
     if (o.knocked) continue;
+    if (o.stunT > 0) { o.stunT -= dt; continue; }                   // knocked down by a melee hit (js/06b)
     const c = o.car;
     if (c && (c.dead || c.sunk || c.driver || !cars.includes(c))) crewLost(o);      // their car is gone, or someone drove off in it
     const tgt = P.car || P, d = dist(o.x, o.y, tgt.x, tgt.y);
@@ -265,8 +266,8 @@ function respawn() {
     rel: 0, relW: -1, cool: 0, hurtT: 0, trig: false, dry: false, score: P.score - lose });
   if (P.knocked) { P.knocked = false; P.air = 0; P.kvx = P.kvy = P.kvz = 0; const i = KNOCK.indexOf(P); if (i >= 0) KNOCK.splice(i, 1); }
   if (strip) {                                                    // they take your weapons, except the ones the weapon table lets you keep
-    P.ammo = WEAPONS.map((w, i) => w.keep ? Math.max(P.ammo[i], w.ammo) : 0); P.mag = WEAPONS.map((w, i) => w.keep ? w.mag : 0);
-    P.weapon = Math.max(0, WEAPONS.findIndex(w => w.keep));
+    P.has = WEAPONS.map((w, i) => w.keep && P.has[i]); P.ammo = WEAPONS.map((w, i) => w.keep ? P.ammo[i] : 0); P.mag = WEAPONS.map((w, i) => w.keep ? P.mag[i] : 0);
+    P.weapon = Math.max(0, P.has.indexOf(true)); P.swing = null;
   }
   clearRockets(); officers = []; resetPolice();
   for (const c of cars) if (c.driver === 'cop' || c.crewOut) { c.driver = 'ai'; c.crewOut = c.crewIn = 0; c.e = -1; c.searching = false; }

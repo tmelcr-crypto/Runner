@@ -21,35 +21,54 @@ const WICON = {
     '<rect x="38" y="6" width="10" height="7" rx="1"/><rect x="41" y="4" width="4" height="3"/><path d="M28 23h7l-2 11h-7z"/><path d="M50 23h6l-1 8h-6z"/><rect x="60" y="12" width="2" height="12" fill="#0b0618" opacity=".55"/></svg>'
 };
 const pad = (n, k) => String(Math.max(0, n)).padStart(k, '0');
+Object.assign(WICON, {
+  smg: WICON.mg,
+  fists: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="30" y="7" width="36" height="26" rx="9"/><rect x="22" y="16" width="14" height="12" rx="5"/><path d="M42 8v24M51 8v24M60 9v22" stroke="#07030f" stroke-width="1.6"/></svg>',
+  bat: '<svg viewBox="0 0 96 40" fill="currentColor"><circle cx="8" cy="22" r="4"/><path d="M8 20.5l46-2.5c20-1 34-3 36 2s-16 3-36 2l-46 1z"/></svg>',
+  knife: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="10" y="16" width="26" height="9" rx="3"/><rect x="34" y="14" width="4" height="13"/><path d="M38 16h34c8 0 16 3 18 5H38z"/></svg>',
+  machete: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="4" y="17" width="20" height="8" rx="3"/><rect x="22" y="15" width="4" height="12"/><path d="M26 15h52c10 0 15 4 13 8-2 5-9 6-15 6H26z"/></svg>',
+  golf: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="4" y="18" width="16" height="6" rx="2"/><rect x="18" y="19.5" width="62" height="3"/><path d="M78 15h9l4 9-3 5h-10z"/></svg>',
+  revolver: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="40" y="10" width="46" height="6" rx="1"/><rect x="84" y="8" width="3" height="3"/><rect x="26" y="8" width="16" height="13" rx="4"/><path d="M26 17h10l-5 19H20z"/><path d="M38 21v4a5 5 0 0 1-5 5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>',
+  shotgun: '<svg viewBox="0 0 96 40" fill="currentColor"><path d="M2 20l24-5v10L2 30z"/><rect x="24" y="14" width="68" height="5" rx="1"/><rect x="24" y="19" width="42" height="4"/><rect x="48" y="22" width="18" height="6" rx="2"/></svg>',
+  lmg: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="20" y="9" width="40" height="13" rx="2"/><rect x="58" y="13" width="36" height="4"/><rect x="2" y="12" width="20" height="7" rx="1"/><rect x="30" y="22" width="15" height="12" rx="1"/><path d="M78 17l-6 17M79 17l6 17" stroke="currentColor" stroke-width="2.2"/></svg>',
+  grenade: '<svg viewBox="0 0 96 40" fill="currentColor"><ellipse cx="48" cy="25" rx="12" ry="13"/><rect x="43" y="7" width="10" height="7" rx="1"/><path d="M53 9h10l-3 13" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="39" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  pipebomb: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="24" y="12" width="48" height="16" rx="3"/><rect x="17" y="10" width="9" height="20" rx="2"/><rect x="70" y="10" width="9" height="20" rx="2"/><path d="M79 20q8-12 15-7" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+});
+const WICON_CLASS = { handgun: 'pistol', automatic: 'mg', shotgun: 'shotgun', rifle: 'sniper', launcher: 'rocket', melee: 'bat', thrown: 'grenade', other: 'pistol' };
+const wIcon = w => WICON[w.id] || WICON[WICON_CLASS[w.cls]] || WICON.pistol;   // a weapon's picture, or one for its class
+
 
 /* ---------- the wheel ---------- */
 let wheelOpen = false;
-(function buildWheel() {
-  const ring = $('wring'), n = WEAPONS.length;
+function buildWheel() {                  // only the weapons you have, each in its own colour; slots shrink as the collection grows
+  const ring = $('wring'), own = owned(), n = Math.max(1, own.length), size = n <= 4 ? 33 : n <= 6 ? 28 : n <= 8 ? 24 : n <= 10 ? 21 : 18, R = n <= 6 ? 31 : 35;
+  for (const b of [...ring.querySelectorAll('.wslot')]) b.remove();
   ring.style.background = 'repeating-conic-gradient(from ' + (-90 + 180 / n) + 'deg, rgba(122,60,255,.55) 0 0.7deg, transparent 0.7deg ' + (360 / n) + 'deg), ' +
     'radial-gradient(circle, rgba(16,6,36,.94) 0 62%, rgba(26,10,56,.9) 63%)';
-  WEAPONS.forEach((w, i) => {
-    const b = document.createElement('button'), a = (-90 + i * 360 / n) * Math.PI / 180;
+  own.forEach((i, k) => {
+    const w = WEAPONS[i], b = document.createElement('button'), a = (-90 + k * 360 / n) * Math.PI / 180;
     b.type = 'button'; b.className = 'wslot'; b.dataset.w = i;
-    b.style.left = (50 + Math.cos(a) * 31) + '%'; b.style.top = (50 + Math.sin(a) * 31) + '%';
-    b.innerHTML = '<span class="wico">' + (WICON[w.id] || WICON.pistol) + '</span><span class="wn">' + w.name + '</span><span class="wa"></span><span class="wk">' + (i + 1) + '</span>';
+    b.style.left = (50 + Math.cos(a) * R) + '%'; b.style.top = (50 + Math.sin(a) * R) + '%'; b.style.width = b.style.height = size + '%';
+    b.innerHTML = '<span class="wico">' + wIcon(w) + '</span><span class="wn"></span><span class="wa"></span><span class="wk">' + (k < 9 ? k + 1 : '') + '</span>';
+    b.querySelector('.wn').textContent = w.name; b.querySelector('.wico').style.color = w.color;
     b.addEventListener('click', e => { e.stopPropagation(); pickWeapon(i); });
     b.addEventListener('pointerenter', () => { $('wcName').textContent = w.name; $('wHow').textContent = w.howTo || ''; });   // pointing at a weapon: how it is used
     b.addEventListener('pointerleave', () => { $('wcName').textContent = WEAPONS[P.weapon].name; $('wHow').textContent = WEAPONS[P.weapon].howTo || ''; });
     ring.appendChild(b);
   });
-  ring.addEventListener('click', e => e.stopPropagation());
-  $('wcenter').addEventListener('click', e => { e.stopPropagation(); toggleWheel(false); });
-  $('wheel').addEventListener('click', () => toggleWheel(false));            // tap outside the wheel: back to the game, weapon unchanged
-})();
+}
+$('wring').addEventListener('click', e => e.stopPropagation());
+$('wcenter').addEventListener('click', e => { e.stopPropagation(); toggleWheel(false); });
+$('wheel').addEventListener('click', () => toggleWheel(false));            // tap outside the wheel: back to the game, weapon unchanged
 function toggleWheel(on) {
   wheelOpen = (on === undefined ? !wheelOpen : on) && state === 'play' && !P.dead;
   $('wheel').hidden = !wheelOpen;
   if (!wheelOpen) return;
-  SCOPE.on = false; if (bigOpen) toggleBigMap(false);
+  SCOPE.on = false; TA.on = false; if (bigOpen) toggleBigMap(false);
+  buildWheel();
   for (const b of document.querySelectorAll('.wslot')) {
-    const i = +b.dataset.w; b.classList.toggle('on', i === P.weapon); b.classList.toggle('empty', P.mag[i] + P.ammo[i] <= 0);
-    b.querySelector('.wa').textContent = pad(P.mag[i], 2) + ' / ' + pad(P.ammo[i], 3);
+    const i = +b.dataset.w, mel = isMelee(WEAPONS[i]); b.classList.toggle('on', i === P.weapon); b.classList.toggle('empty', !mel && P.mag[i] + P.ammo[i] <= 0);
+    b.querySelector('.wa').textContent = mel ? '' : pad(P.mag[i], 2) + ' / ' + pad(P.ammo[i], 3);
   }
   $('wcName').textContent = WEAPONS[P.weapon].name; $('wHow').textContent = WEAPONS[P.weapon].howTo || '';   // how to use it (weapon table)
   Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.tone(520, 760, 0.06, 0.1, 'square');

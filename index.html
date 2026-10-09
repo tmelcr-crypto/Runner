@@ -119,14 +119,14 @@
     <div class="tabs" id="helpTabs"><button type="button" class="on" data-tab="ctl">CONTROLS</button><button type="button" data-tab="play">PLAYING</button><button type="button" data-tab="arms">WEAPONS</button><button type="button" data-tab="cops">POLICE</button><button type="button" data-tab="city">CITY</button></div>
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
-        <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> pistol tap, MG hold</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 4</b> pick</li><li><b>E or F</b> enter / exit car</li></ul></div>
+        <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> punch, swing, shoot (hold for automatics)</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>GRENADES</b> hold CLICK and drag the opposite way, let go to throw (J: hold to wind up)</li><li><b>R</b> reload</li>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK</b> in the tank: rockets</li></ul>
         <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
-        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap pistol, hold MG; rifle and rockets: stand still, hold FIRE, drag to the target, let go</li>
+        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades: hold FIRE, drag the opposite way, let go</li>
         <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
@@ -139,10 +139,11 @@
         <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
-        <li>Lying on the sidewalks: <b>HEALTH</b> (+40, when you are hurt), ammo for each weapon, and <b>CASH</b>. They come back after a while.</li></ul></div>
+        <li>On the sidewalks: <b>HEALTH</b> (+40, when you are hurt) and <b>CASH</b>.</li>
+        <li><b>WEAPONS</b> you have to find: only your fists to start with. Each weapon and its ammo float in a bubble of the weapon's own colour, hidden in alleys, yards, parks, parking lots and on the beaches. Melee weapons are the most common and always lie in the same places.</li></ul></div>
       <div><h3>WASTED OR BUSTED</h3><ul>
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your score.</li>
-        <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep your weapons except the pistol.</li></ul></div>
+        <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep every weapon you found.</li></ul></div>
     </div>
     <div class="ctl page" data-tab="arms" id="helpArms" hidden></div>
     <div class="ctl page" data-tab="cops" hidden>
@@ -205,10 +206,12 @@
 <script src="js/04-world.js"></script>
 <script src="js/05-entities.js"></script>
 <script src="js/06-gameplay.js"></script>
+<script src="js/06b-melee-throw.js"></script>
 <script src="js/07-vehicles-traffic-police.js"></script>
 <script src="js/08-pedestrians-pickups-spawning.js"></script>
 <script src="js/08b-police.js"></script>
 <script src="js/08c-services.js"></script>
+<script src="js/08d-weapon-pickups.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -216,6 +219,7 @@
 <script src="js/10d-render-clutter.js"></script>
 <script src="js/10e-render-services.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
+<script src="js/11b-weapon-models.js"></script>
 <script src="js/12-render-effects.js"></script>
 <script src="js/12b-rockets.js"></script>
 <script src="js/12c-blast.js"></script>

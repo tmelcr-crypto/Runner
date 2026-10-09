@@ -6,7 +6,7 @@ let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play 
    lose them (1 = as in the police table); crowd: traffic and people (1 = normal); start: 'usual', 'random' or a district name */
 const OPT_DEF = { time: SKYP.startHour, weather: 'change', clock: 1, police: 1, crowd: 1, start: 'usual' }, OPT = Object.assign({}, OPT_DEF);
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
-const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: startAmmo(), mag: startMag(), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, has: startHas(), ammo: startAmmo(), mag: startMag(), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
   heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
 const cam = { x: MW / 2, y: MH / 2, zoom: 1, shake: 0 };
 let boomFlash = null;
@@ -129,7 +129,7 @@ function updateReload(dt) {
   } else if (!P.dead && P.mag[P.weapon] <= 0) startReload(P.weapon);
 }
 function fireWeapon(aim) {                                      // aim: a point on the map for the scoped rifle; otherwise you shoot the way you face
-  const w = WEAPONS[P.weapon]; if (P.cool > 0 || P.relW >= 0) return;
+  const w = WEAPONS[P.weapon]; if (P.cool > 0 || P.relW >= 0 || !P.has[P.weapon]) return;
   if (P.mag[P.weapon] <= 0) { if (!P.dry) { Snd.tone(120, 90, 0.06, 0.12, 'square'); P.dry = true; } P.cool = 0.3; return; }
   P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
   const a = aim ? Math.atan2(aim.y - P.y, aim.x - P.x) : P.ang + rand(-w.spread, w.spread);
@@ -223,6 +223,7 @@ function updatePlayer(dt, inp) {
     c.hb = inp.sprint;
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
     if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
+    else carDrop(c, inp);                                          // a bomb in hand: FIRE drops it out of the window (js/06b)
     return;
   }
   const orig = inp; if (SCOPE.on && SCOPE.by === 'key') inp = { ix: 0, iy: 0, mag: 0, sprint: false, fire: inp.fire, held: inp.held };   // J held: the arrow keys move the scope, not you
@@ -251,9 +252,12 @@ function updatePlayer(dt, inp) {
       }
     }
   }
-  updateReload(dt);
-  if (WEAPONS[P.weapon].scope) updateScope(orig, dt);                 // the rifle: aim in the scope while FIRE is held, shoot on letting go
-  else if (inp.fire && !P.dead && (WEAPONS[P.weapon].auto || !P.trig)) fireWeapon();
+  updateReload(dt); updateSwing(dt);
+  const w = WEAPONS[P.weapon]; if (!isThrown(w)) TA.on = TA.ok = false;   // switched away mid-aim
+  if (w.scope) updateScope(orig, dt);                              // the rifle: aim in the scope while FIRE is held, shoot on letting go
+  else if (isThrown(w)) updateThrowAim(orig, dt);                   // a bomb: drag back like a slingshot, let go to throw (js/06b)
+  else if (isMelee(w)) { if (inp.fire && !P.dead && P.cool <= 0 && !P.swing) swingWeapon(w); }   // held, it keeps swinging
+  else if (inp.fire && !P.dead && (w.auto || !P.trig)) fireWeapon();
   if (!inp.fire) P.dry = false; P.trig = inp.fire;
 }
 

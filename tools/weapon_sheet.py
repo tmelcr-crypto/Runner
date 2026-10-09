@@ -15,9 +15,9 @@ JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01f-w
 A, B = '/*WEAPON-JSON*/', '/*END-WEAPON-JSON*/'
 USES = ['tap', 'hold', 'scope', 'swing', 'throw', 'new']
 FIRES = ['bullet', 'rocket', 'grenade', 'melee', 'new']
-BUILT_USE, BUILT_FIRES = ['tap', 'hold', 'scope'], ['bullet', 'rocket']        # the mechanics the game has today
+BUILT_USE, BUILT_FIRES = ['tap', 'hold', 'scope', 'swing', 'throw'], ['bullet', 'rocket', 'melee', 'grenade']   # the mechanics the game has today
 CLASSES = ['handgun', 'automatic', 'shotgun', 'rifle', 'launcher', 'melee', 'thrown', 'other']
-SOUNDS = ['pistol', 'mg', 'sniper', 'rocket', 'new']
+SOUNDS = ['pistol', 'revolver', 'mg', 'lmg', 'shotgun', 'sniper', 'rocket', 'punch', 'swing', 'stab', 'throw', 'new']
 SIGHTS = ['none', 'round', 'rect']
 # a section row: ('#', title, what it is for);  a setting: (key, label, kind, choices or (min, max), what it means, unit / how to fill)
 # kinds: text, long (a paragraph), choice, num, int, yesno
@@ -31,11 +31,12 @@ ROWS = [
     ('class', 'Class', 'choice', CLASSES, 'What kind of weapon it is. Sorting and the look of its pickup; how it works is set by the next two rows.', 'pick from the list'),
     ('use', 'How you use it', 'choice', USES,
      'tap: one shot per tap of FIRE. hold: keeps firing while FIRE is held. scope: stand still, hold FIRE, aim in a scope or sight, let go to shoot. '
-     'swing (not built yet): a melee swing in front of you. throw (not built yet): hold to aim, let go to throw. new: a way that does not exist yet - describe it in How it works.', 'pick from the list'),
+     'swing: a melee swing at whoever is in front of you. throw: hold FIRE and drag the opposite way, let go to throw. new: a way that does not exist yet - describe it in How it works.', 'pick from the list'),
     ('fires', 'What it fires', 'choice', FIRES,
-     'bullet: hits at once along a line. rocket: a flying explosive. grenade (not built yet): thrown, bounces, blows up when the fuse runs out. '
-     'melee (not built yet): hits by contact in an arc. new: describe it in How it works.', 'pick from the list'),
+     'bullet: hits at once along a line. rocket: a flying explosive. grenade: thrown, (bounces,) blows up when the fuse runs out. '
+     'melee: hits by contact in an arc. new: describe it in How it works.', 'pick from the list'),
     ('sound', 'Sound', 'choice', SOUNDS, 'Which synthesized sound it makes. new: a sound still to be made - describe it in Look / sound / ideas.', 'pick from the list'),
+    ('color', 'Bubble colour (#hex)', 'colour', None, 'Its own colour: the bubble its pickups and its ammo float in. Every weapon needs a different one.', '#RRGGBB'),
     ('#', 'MECHANICS IN WORDS', 'For new mechanics: describe them here, and Claude builds them from this.'),
     ('howTo', 'How to use (shown in the game)', 'long', None, 'What the player does, in one or two short sentences. Shown under the weapon wheel and in Help.', 'e.g. "Tap FIRE to swing."'),
     ('mechanic', 'How it works', 'long', None, 'Everything about how it behaves: what happens on FIRE, what it hits and how, timing, effects, what the police and people do, special cases (in a car, in water...). The more precise, the better.', 'free text'),
@@ -48,14 +49,15 @@ ROWS = [
     ('rate', 'Time between shots (s)', 'num', (0.02, 10), 'Shortest time from one shot to the next (melee: one swing to the next; thrown: one throw to the next).', 'seconds'),
     ('carDmg', 'Damage to vehicles (%)', 'num', (0, 500), 'A vehicle hit takes this share of the damage.', '%'),
     ('pierce', 'Goes through cover: yes / no', 'yesno', None, 'yes: through props (dumpsters, bins) and one unarmoured car; a building, the first person or an armoured car stops it.', 'yes or no'),
-    ('#', 'AMMO', 'How much you carry and find.'),
+    ('#', 'AMMO AND FINDING IT', 'How much you carry, and how much of it lies hidden around the city (alleys, parks, parking lots, yards - never the main streets).'),
     ('mag', 'Magazine (rounds)', 'int', (0, 500), 'Rounds before a reload (thrown: 1, the one in your hand). 0 = needs no ammo (melee).', 'rounds'),
-    ('ammo', 'Spare rounds at start', 'int', (0, 9999), 'Rounds you start with besides the full magazine (only if you have it at the start).', 'rounds'),
+    ('ammo', 'Spare rounds when found', 'int', (0, 9999), 'Rounds you get besides the full magazine when you pick up the weapon itself.', 'rounds'),
     ('maxAmmo', 'Most spare rounds carried', 'int', (0, 9999), 'Pickups stop adding above this.', 'rounds'),
-    ('pickup', 'Rounds per pickup', 'int', (0, 999), 'What one of its pickups on the sidewalk gives. 0: no pickups for it.', 'rounds'),
-    ('pickW', 'Pickup weight', 'num', (0, 100), 'How often its pickups lie about, compared with health (1) and cash (2).', 'number, 0 or more'),
+    ('pickup', 'Rounds per ammo pickup', 'int', (0, 999), 'What one of its ammo pickups gives (you take ammo even before you have found the weapon).', 'rounds'),
+    ('onMap', 'Weapon pickups on the map', 'int', (0, 60), 'How many of the weapon itself lie hidden. Melee weapons: always in the same places, and never taken while you carry that weapon. Others: random places each game, and one comes back somewhere else a minute after you take it.', 'count'),
+    ('ammoMap', 'Ammo pickups on the map', 'int', (0, 60), 'How many of its ammo pickups lie hidden, in its own colour bubble; random places, each comes back elsewhere a minute after you take it.', 'count'),
     ('reload', 'Reload time (s)', 'num', (0, 60), 'Time to put in a new magazine (thrown: to take the next one).', 'seconds'),
-    ('start', 'Have it at the start: yes / no', 'yesno', None, 'yes: a new game starts with it loaded. no: it starts empty until you find its pickups.', 'yes or no'),
+    ('start', 'Have it at the start: yes / no', 'yesno', None, 'yes: you always have it (like fists). no: you have to find it.', 'yes or no'),
     ('keep', 'Kept when busted: yes / no', 'yesno', None, 'When the police arrest you they take your weapons (police table) - except these.', 'yes or no'),
     ('#', 'POLICE AND NOISE', 'Who notices.'),
     ('heat', 'Heat per shot', 'num', (0, 100), 'Wanted-level heat a shot adds when a cop sees or hears it (times the police table\'s Gunshot %). For scale: 1 star at 4 heat.', 'number'),
@@ -70,29 +72,29 @@ ROWS = [
     ('hold', 'Sight stays up between shots: yes / no', 'yesno', None, 'yes: the sight stays open while the next round is chambered.', 'yes or no'),
     ('#', 'EXPLOSIVES', 'For rockets and grenades.'),
     ('blast', 'Blast radius (m)', 'num', (0, 50), 'Everyone inside is thrown and killed; cars inside take heavy damage. A rocket: 10.8 m.', 'metres'),
-    ('speed', 'Flight speed (km/h)', 'num', (0, 2000), 'Top speed of a rocket; how fast a grenade leaves your hand.', 'km/h'),
+    ('speed', 'Flight speed (km/h)', 'num', (0, 2000), 'Top speed of a rocket; how fast a grenade leaves your hand (it needs about 60 km/h to reach 30 m).', 'km/h'),
     ('stray', 'Dud chance (%)', 'num', (0, 100), 'Share of shots that go off course.', '%'),
     ('strayDeg', 'Dud goes off by (degrees)', 'num', (0, 180), 'How far off course a dud flies.', 'degrees'),
-    ('fuse', 'Fuse (s)', 'num', (0, 30), 'Grenade (not built yet): time from the throw to the blast.', 'seconds'),
-    ('throw', 'Throw range (m)', 'num', (0, 200), 'Grenade (not built yet): the furthest you can throw it.', 'metres'),
-    ('bounce', 'Bounces: yes / no', 'yesno', None, 'Grenade (not built yet): yes - bounces off walls and cars and rolls; no - stops where it lands.', 'yes or no'),
-    ('#', 'MELEE', 'Not built yet: for How you use it: swing.'),
-    ('reach', 'Reach (m)', 'num', (0, 10), 'How far in front of you a swing hits.', 'metres'),
+    ('fuse', 'Fuse (s)', 'num', (0, 30), 'Grenade: time from the throw to the blast.', 'seconds'),
+    ('throw', 'Throw range (m)', 'num', (0, 200), 'Grenade: the furthest you can throw it (dragging all the way).', 'metres'),
+    ('bounce', 'Bounces: yes / no', 'yesno', None, 'Grenade: yes - bounces off walls and cars and rolls; no - stops where it lands.', 'yes or no'),
+    ('#', 'MELEE', 'For How you use it: swing.'),
+    ('reach', 'Reach (m)', 'num', (0, 10), 'How far beyond your body a swing hits.', 'metres'),
     ('arc', 'Swing arc (degrees)', 'num', (0, 360), 'How wide the swing sweeps: 90 = a quarter circle in front of you.', 'degrees'),
     ('knock', 'Knockdown (s)', 'num', (0, 30), 'How long someone hit stays down. 0 = not knocked down.', 'seconds'),
-    ('push', 'Push back (m)', 'num', (0, 20), 'How far a hit pushes someone away.', 'metres'),
+    ('push', 'Push back (m)', 'num', (0, 20), 'How far a hit pushes someone away. Above 3 m they are sent flying.', 'metres'),
 ]
 SETTINGS = [r for r in ROWS if r[0] != '#']
 ROW = {r[0]: r for r in SETTINGS}
-ORDER = ['id', 'name', 'short', 'status', 'class', 'use', 'fires', 'sound', 'howTo', 'mechanic', 'dmg', 'pellets', 'spread', 'range', 'rate', 'carDmg', 'pierce',
-         'mag', 'ammo', 'maxAmmo', 'pickup', 'pickW', 'reload', 'start', 'keep', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
+ORDER = ['id', 'name', 'short', 'status', 'class', 'use', 'fires', 'sound', 'color', 'howTo', 'mechanic', 'dmg', 'pellets', 'spread', 'range', 'rate', 'carDmg', 'pierce',
+         'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'reload', 'start', 'keep', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
          'blast', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'reach', 'arc', 'knock', 'push', 'notes']
 assert sorted(ORDER) == sorted(ROW)
 # a row label in a returned file is recognised by how it starts (lowercase), most specific first
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('status', 'status'), ('class', 'class'), ('use', 'how you use'), ('fires', 'what it fires'),
-         ('sound', 'sound'), ('howTo', 'how to use'), ('mechanic', 'how it works'), ('notes', 'look'), ('dmg', 'damage per'), ('pellets', 'bullets per'),
+         ('sound', 'sound'), ('color', 'bubble colour'), ('howTo', 'how to use'), ('mechanic', 'how it works'), ('notes', 'look'), ('dmg', 'damage per'), ('pellets', 'bullets per'),
          ('spread', 'spread'), ('range', 'range'), ('rate', 'time between'), ('carDmg', 'damage to veh'), ('pierce', 'goes through'), ('mag', 'magazine'),
-         ('ammo', 'spare rounds at'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per pickup'), ('pickW', 'pickup weight'), ('reload', 'reload'),
+         ('ammo', 'spare rounds'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per'), ('onMap', 'weapon pickups'), ('ammoMap', 'ammo pickups'), ('reload', 'reload'),
          ('start', 'have it'), ('keep', 'kept when'), ('heat', 'heat'), ('hear', 'heard'), ('panic', 'people flee'), ('shake', 'screen shake'), ('zoom', 'zoom'),
          ('sight', 'sight:'), ('blur', 'blur'), ('los', 'needs clear'), ('hold', 'sight stays'), ('blast', 'blast'), ('speed', 'flight speed'), ('stray', 'dud chance'),
          ('strayDeg', 'dud goes'), ('fuse', 'fuse'), ('throw', 'throw range'), ('bounce', 'bounces'), ('reach', 'reach'), ('arc', 'swing arc'), ('knock', 'knockdown'),
@@ -102,8 +104,8 @@ LONG = ('howTo', 'mechanic', 'notes')
 TIPS = [('Yellow cells', 'What you type in. Each column is one weapon, in the order of the weapon wheel (and the number keys). Lists to pick from: Status, Class, How you use it, What it fires, Sound, Sight, and the yes / no rows.', 'tap a cell and type'),
         ('Empty cells', 'A row that does not apply to a weapon stays empty: the melee rows for a gun, the scope rows for a pistol, and so on.', ''),
         ('New weapon', 'Use the next empty column: type its ID in the dark top row, then fill the yellow cells. If it works like an existing one (another pistol, a shotgun = Bullets per shot above 1, another rifle) it can go in game at once.', ''),
-        ('New mechanics', 'Melee (swing), grenades (throw) or anything new: set Status to draft, describe it in How to use and How it works (and Look / sound / ideas), fill the numbers you can. Claude builds the mechanics from your words, then it can go in game.', ''),
-        ('Examples', 'BASEBALL BAT and GRENADE are example drafts: change them freely or delete their columns.', ''),
+        ('New mechanics', 'Anything that works in a new way: set Status to draft, describe it in How to use and How it works (and Look / sound / ideas), fill the numbers you can. Claude builds the mechanics from your words, then it can go in game.', ''),
+        ('Finding weapons', 'Nothing but FISTS at the start: every other weapon lies hidden around the city in a bubble of its colour, with its ammo in the same colour. Melee weapons are the most common.', ''),
         ('Remove a weapon', 'Delete its column (or clear its ID).', ''),
         ('Sending it back', 'Upload the file in the chat as it is (.numbers or .xlsx). Every column with an ID becomes a weapon in the table.', '')]
 
@@ -157,6 +159,9 @@ def export_xlsx(path, t):
             c = sh.cell(row=i, column=C0 + n, value=val); c.border = box
             c.alignment = Alignment(horizontal='left' if kind == 'long' else 'center', vertical='top' if kind == 'long' else 'center', wrap_text=kind == 'long')
             if key == 'id': c.font = Font(name=F, size=10, bold=True, color='FFFFFF'); c.fill = f_head
+            elif kind == 'colour' and val:
+                hx = val.lstrip('#'); lum = 0.299 * int(hx[0:2], 16) + 0.587 * int(hx[2:4], 16) + 0.114 * int(hx[4:6], 16)
+                c.fill = PatternFill('solid', fgColor=hx.upper()); c.font = Font(name=F, size=10, color='000000' if lum > 140 else 'FFFFFF')
             else: c.font = Font(name=F, size=10, color='0000FF'); c.fill = f_draft if key == 'status' and val == 'draft' else f_in
         sh.row_dimensions[i].height = {'mechanic': 170, 'howTo': 60, 'notes': 80}.get(key, 30 if len(lab) > 30 else 18)
         span = '%s%d:%s%d' % (L(C0), i, L(C1), i); ch = choices(key)
@@ -169,7 +174,7 @@ def export_xlsx(path, t):
     for n in range(NW):
         X = L(C0 + n); r = lambda key: '%s%d' % (X, R[key])
         f = ('=IF({i}="","",IF(COUNTIF($B${ri}:${C1}${ri},{i})>1,"Duplicate ID",IF({nm}="","Name missing",IF({st}="draft","Draft - left out of the game",'
-             'IF(OR({u}="swing",{u}="throw",{u}="new",{f}="grenade",{f}="melee",{f}="new"),"Not built yet - keep it draft",IF({h}="","Add How to use","OK"))))))').format(
+             'IF(OR({u}="new",{f}="new"),"Not built yet - keep it draft",IF({h}="","Add How to use","OK"))))))').format(
             i=r('id'), ri=R['id'], C1=L(C1), nm=r('name'), st=r('status'), u=r('use'), f=r('fires'), h=r('howTo'))
         c = sh.cell(row=i, column=C0 + n, value=f); c.font = Font(name=F, size=10); c.fill = f_calc; c.border = box; c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
     sh.row_dimensions[i].height = 32; sh.freeze_panes = 'B2'
@@ -224,6 +229,9 @@ def export_numbers(path, t):
                 else: tb.set_cell_style(i, 1 + n, head)
                 continue
             st = longs if kind == 'long' else draft if key == 'status' and val == 'draft' else inp; ch = choices(key)
+            if kind == 'colour' and val:
+                hx = val.lstrip('#'); r, g, b = int(hx[0:2], 16), int(hx[2:4], 16), int(hx[4:6], 16); light = 0.299 * r + 0.587 * g + 0.114 * b > 140
+                tb.write(i, 1 + n, val, style=style('BR colour ' + hx, bg_color=RGB(r, g, b), font_color=RGB(0, 0, 0) if light else RGB(255, 255, 255), h='center')); continue
             if val is None or val == '':
                 if ch: tb.write(i, 1 + n, '', style=st)                 # a pop-up menu needs a (blank) text cell under it
                 else: tb.set_cell_style(i, 1 + n, st)
@@ -290,6 +298,9 @@ def build(cols, present, old):
             if isinstance(raw, str): raw = raw.strip()
             if kind in ('text', 'long'): w[key] = '' if raw is None else str(raw)
             elif raw in (None, ''): w[key] = None
+            elif kind == 'colour':
+                if re.fullmatch(r'#?[0-9a-fA-F]{6}', str(raw)): w[key] = '#' + str(raw).lstrip('#').lower()
+                else: errors.append('%s / %s: "%s" is not a colour like #ff2bd6' % (where, lab, raw))
             elif kind == 'yesno':
                 if isinstance(raw, bool): w[key] = raw
                 elif str(raw).lower() in ('yes', 'no', 'true', 'false'): w[key] = str(raw).lower() in ('yes', 'true')
@@ -317,20 +328,31 @@ def build(cols, present, old):
             for key in ('class', 'use', 'fires', 'sound'):
                 if not w.get(key): errors.append('%s: %s is missing' % (where, ROW[key][1]))
             if not w.get('howTo'): errors.append('%s: How to use is missing (it is shown in the game)' % where)
-            need = ['dmg', 'range', 'rate', 'mag', 'reload', 'heat', 'hear', 'panic', 'carDmg']
+            need = ['dmg', 'rate', 'heat', 'hear', 'panic', 'color']
+            if w.get('fires') in ('bullet', 'rocket'): need += ['range', 'mag', 'reload', 'carDmg']
             if w.get('use') == 'scope': need += ['zoom']
             if w.get('fires') == 'rocket': need += ['blast', 'speed']
+            if w.get('use') == 'swing': need += ['reach', 'arc']
+            if w.get('use') == 'throw': need += ['blast', 'speed', 'fuse', 'throw', 'mag']
             for key in need:
                 if w.get(key) is None: errors.append('%s: %s is needed for a weapon in the game' % (where, ROW[key][1]))
             if w.get('use') == 'scope' and w.get('sight') == 'none': errors.append('%s: a scope weapon needs a Sight (round or rect)' % where)
             if w.get('fires') in ('bullet', 'rocket') and not w.get('mag'): errors.append('%s: a gun needs a Magazine of 1 or more' % where)
-        if (w.get('pickup') or 0) > 0 and not (w.get('pickW') or 0): warns.append('%s: Rounds per pickup but Pickup weight 0 - its pickups never appear' % where)
+        if (w.get('pickup') or 0) > 0 and not (w.get('ammoMap') or 0): warns.append('%s: Rounds per ammo pickup, but no Ammo pickups on the map - ammo only comes with the weapon' % where)
+        if w['status'] == 'in game' and not w.get('start') and not (w.get('onMap') or 0): warns.append('%s: not had at the start and no Weapon pickups on the map - nobody can get it' % where)
         if isinstance(w.get('ammo'), (int, float)) and isinstance(w.get('maxAmmo'), (int, float)) and w['ammo'] > w['maxAmmo']:
             warns.append('%s: starts with more spare rounds (%s) than it can carry (%s)' % (where, fmt(w['ammo']), fmt(w['maxAmmo'])))
         out.append({k: w.get(k) for k in ORDER})
     live = [w for w in out if w['status'] == 'in game']
     if not live: errors.append('At least one weapon needs Status in game')
-    elif not any(w.get('start') for w in live): errors.append('At least one weapon in the game needs Have it at the start: yes')
+    cols_ = {}
+    for w in out:
+        if w.get('color'): cols_.setdefault(w['color'], []).append(w['id'])
+    for c, ids in cols_.items():
+        if len(ids) > 1: errors.append('Bubble colour %s is used by %s - every weapon needs its own' % (c, ' and '.join(ids)))
+    for w in live:
+        if w.get('fires') == 'grenade' and isinstance(w.get('speed'), (int, float)) and isinstance(w.get('throw'), (int, float)) and (w['speed'] / 3.6) ** 2 / 9.81 < w['throw'] * 0.8:
+            warns.append('Column %s: at %s km/h it only reaches about %.0f m, not the %s m throw range' % (w['id'], fmt(w['speed']), (w['speed'] / 3.6) ** 2 / 9.81, fmt(w['throw'])))
     gone = [k for k in olds if k not in seen]
     if gone: warns.append('Removed (their columns are gone): ' + ', '.join(gone))
     return out, errors, warns

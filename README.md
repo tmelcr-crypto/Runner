@@ -48,7 +48,7 @@ The police only know what they see or hear, and they come in small numbers.
 - **1 star, a stop order**: a cop near you shouts STOP. Stand still - on foot or in your car - for 3 s and you pay a fine of 250 and the stars go. Keep moving for 3 s while they can see you and it is 2 stars.
 - **2 stars, an arrest**: police cars follow you and pull up beside you when you stop; the crew gets out, and a cop who holds you for a second (on foot, or beside your car while it does under 12 km/h) arrests you. Drive away and the crew runs back to their car and carries on. No shooting unless you fired a gun where they could see or hear it, rammed a police car or hurt a cop.
 - **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire. From 3 stars an armoured APC may come too, at 5 stars a tank that drives straight at you, on foot or not.
-- **Busted or wasted** is not the end: you start again at the door of the nearest police station (bail: 10% of your score, and they keep your weapons except the pistol) or hospital (the bill: 10%); see Hospitals and police stations above.
+- **Busted or wasted** is not the end: you start again at the door of the nearest police station (bail: 10% of your score, and they keep every weapon you found - only your fists are left) or hospital (the bill: 10%); see Hospitals and police stations above.
 
 Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/settings_sheet.py` turns it into an Apple Numbers file or an Excel workbook and reads an edited copy (either kind) back (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
 
@@ -121,14 +121,34 @@ python3 tools/settings_sheet.py sky import sky.numbers [--dry-run]
 
 ## Weapons
 
-The **weapon button** at the top shows the weapon in hand and its ammo; tap it (or press **Q**) for the weapon wheel, which shows every weapon with its picture and ammo. The game waits until you tap one; tap outside the wheel to go back. **1 - 4** pick directly, the mouse wheel cycles.
+You start with nothing but your **fists**. Every other weapon has to be found: weapons and their ammunition lie hidden off the main streets - in back alleys, yards, parks, parking lots, on the beaches and promenades - each one turning inside a bubble of the weapon's own colour (the weapon itself, or a box of its ammo with a band of that colour). Walking or driving over one picks it up.
+- **Melee weapons** are the most common. They always lie in the same places and never go away; you do not pick one up while you carry that weapon (its bubble is faint then).
+- **Guns and bombs** lie in different places every game, fewer of each. One you take comes back somewhere else, out of sight, a minute later. A newly found gun goes straight into your hand.
+- **Ammo** is taken even before you have its gun, and kept for it.
+- **Busted**, the police take everything you found; **wasted**, you keep it.
 
-| Weapon | Magazine | Between shots | Reload | Range | How it fires |
+The **weapon button** at the top shows the weapon in hand (in its colour) and its ammo; tap it (or press **Q**) for the weapon wheel, which shows the weapons you have, each in its colour, with its ammo and how it is used. The game waits until you tap one; tap outside the wheel to go back. **1 - 9** pick directly, the mouse wheel cycles.
+
+| Weapon | Colour | Kind | Damage | How you use it | Hidden on the map |
 |---|---|---|---|---|---|
-| Pistol | 7 | 0.27 s | 5 s | 47 m | tap FIRE |
-| Machine gun | 30 | 0.085 s | 5 s | 50 m | hold FIRE |
-| Sniper rifle | 5 | 1.5 s | 10 s | the whole screen | stand still, hold FIRE and drag to the target, let go to shoot |
-| Rocket launcher | 1 | - | 5 s | up to 217 m | like the rifle: stand still, hold FIRE and drag, let go to fire |
+| Fists | peach | melee | 8 | tap FIRE to punch | always yours |
+| Baseball bat | amber | melee | 35, knocks down 1.5 s | tap FIRE to swing | 12 |
+| Knife | silver | melee | 100, short and narrow | tap FIRE to stab | 12 |
+| Machete | mint | melee | 55, wide arc | tap FIRE to slash | 8 |
+| Golf club | pink | melee | 22, sends people flying | tap FIRE for a full swing | 8 |
+| Pistol | cyan | handgun | 28 | tap FIRE | 6 + 8 ammo |
+| Revolver | blue | handgun | 60, 6 rounds | tap FIRE | 3 + 4 ammo |
+| SMG | purple | automatic | 13 | hold FIRE | 4 + 6 ammo |
+| Shotgun | orange | shotgun | 5 pellets x 70, 23 m | tap FIRE | 4 + 5 ammo |
+| Machine gun | magenta | automatic | 15, 100-round belt, 100 m | hold FIRE | 2 + 3 ammo |
+| Sniper rifle | yellow | rifle | 160 | stand still, hold FIRE and drag to the target, let go to shoot | 2 + 3 ammo |
+| Rocket launcher | red | launcher | blast 10.8 m | like the rifle: stand still, hold FIRE and drag, let go to fire | 2 + 3 ammo |
+| Grenade | green | thrown | blast 5 m, 2.5 s fuse, bounces | hold FIRE and drag the opposite way, let go to throw | 4 + 4 ammo |
+| Pipe bomb | lime | thrown | blast 9 m, 4 s fuse, stays put | like the grenade, a shorter throw | 2 + 2 ammo |
+
+**Melee.** FIRE swings what is in your hand (held, it keeps swinging). Partway through the swing it hits everyone in the arc in front of you, out to the weapon's reach: damage, a push and a knockdown - people lie on the ground for the knockdown time - or, pushed more than 3 m (the golf club), they fly through the air and bounce off walls and cars. Cars in the arc take damage; boxes, bags and crates burst, bins fly. Melee is silent; police who see it count it like a shot, and hitting a cop is hurting a cop.
+
+**Throwing.** Like a slingshot: hold FIRE and drag the opposite way to the throw. A row of dots in the weapon's colour shows the arc and a ring the size of the blast shows where it will land; the further you drag, the further it goes, up to the throw range. Let go to throw; a short drag throws nothing. With the keyboard: hold J to wind up (the longer, the further) and it goes the way you face. A grenade bounces off walls, cars and the ground and rolls; a pipe bomb stops where it lands. Both blink faster as the fuse runs down, then blow up like a rocket with their own blast radius; in deep water they fizzle out. In a car FIRE drops one out of the window behind you.
 
 **The weapon table.** Every weapon is one entry of `js/01f-weapon-data.js`, in everyday units, and `tools/weapon_sheet.py` exports it to Apple Numbers or Excel - one column per weapon, in the order of the weapon wheel - and reads an edited copy back, checking every value (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
 
@@ -138,16 +158,16 @@ python3 tools/weapon_sheet.py import weapons.numbers [--dry-run]
 ```
 
 The rows come in sections:
-- *Weapon*: name, short name, status, class, sound, and two lists that say which mechanics it needs - **how you use it** (tap, hold, scope; swing and throw not built yet; new) and **what it fires** (bullet, rocket; grenade and melee not built yet; new).
+- *Weapon*: name, short name, status, class, sound, **bubble colour** (each weapon its own), and two lists that say which mechanics it needs - **how you use it** (tap, hold, scope, swing, throw; new) and **what it fires** (bullet, rocket, melee, grenade; new).
 - *Mechanics in words*: **how to use** (one or two sentences, shown under the weapon wheel and on the Help page's WEAPONS tab), **how it works** (a full description of the behaviour) and look / sound / ideas.
 - *Hitting*: damage, bullets per shot (above 1 = a shotgun), spread, range, time between shots, damage to vehicles, goes through cover.
-- *Ammo*: magazine, spare rounds, most carried, rounds per pickup, pickup weight, reload, have it at the start, kept when busted.
+- *Ammo and finding it*: magazine, spare rounds when found, most carried, rounds per ammo pickup, how many weapon pickups and ammo pickups lie hidden on the map, reload, have it at the start (only fists), kept when busted.
 - *Police and noise*: heat per shot, heard within, people flee within, screen shake.
 - *Scope or sight*: zoom, sight shape, blur, line of sight, sight stays up.
 - *Explosives*: blast radius, flight speed, dud chance and angle, and for grenades fuse, throw range and bounce.
 - *Melee*: reach, swing arc, knockdown, push back.
 
-A weapon that works like an existing one (another pistol, a shotgun, another rifle or launcher) can go in the game straight from the table. One that needs a new mechanic - melee, grenades or anything else - is a **draft**: describe it in *how to use* and *how it works*, fill the numbers you can, and the game leaves it out until its mechanics are built. The table has two example drafts, a BASEBALL BAT and a GRENADE. Saved games keep ammo per weapon ID, so weapons can be added or reordered without breaking them.
+A weapon that works like an existing one - another pistol, a shotgun, another melee weapon or bomb - can go in the game straight from the table. One that needs a mechanic that does not exist yet is a **draft** (use or fires: new): describe it in *how to use* and *how it works*, fill the numbers you can, and the game leaves it out until it is built. Saved games keep each weapon by its ID (whether you have it, its magazine and spare rounds), so weapons can be added or reordered without breaking them.
 
 The sniper rifle aims through a scope that sits just above your finger (so the finger never covers it) and shows what is under it 4x bigger; everything outside the scope is blurred, and the game keeps running. The shot goes off when you lift your finger. The scope then stays where it was for the 1.5 s the bolt takes (it ignores the finger meanwhile) and disappears; then you can aim again. After the last round of a magazine it stays for the same 1.5 s, which already count toward the 10 s reload. The ring is yellow while it cannot fire yet (next round, reloading, or you are moving), cyan when ready and pink when the crosshair is on a person or a car. With a mouse the scope is on the pointer; holding J, the arrow keys move it. You can only shoot what you can see: with a building between you and the crosshair the scope says NO LINE OF SIGHT and letting go does not fire. One shot kills a person. The round goes through props (dumpsters, crates, AC units, pumps, fountains, cranes, containers, planes, sign posts) and through one car, damaging it, to hit what is behind; a building, a second car or an armoured vehicle stops it. Rifle ammo comes in long cases with a yellow stripe.
 
@@ -178,10 +198,12 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |
 | `js/05-entities.js` | entity and effect data |
 | `js/06-gameplay.js` | state, heat and wanted level, combat, enter/exit vehicles |
+| `js/06b-melee-throw.js` | melee swings (arc hits, knockdown, people sent flying), throwing bombs (the slingshot aim with its arc and ring, flight, bounces, fuse, blast), dropping them from a car |
 | `js/07-vehicles-traffic-police.js` | car physics, lane following traffic, road routing for the police |
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
 | `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
 | `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
+| `js/08d-weapon-pickups.js` | hidden weapons and ammo: the hiding places off the streets, melee in fixed places, guns and ammo at random and coming back elsewhere, picking up, the coloured bubbles |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
 | `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |
@@ -189,6 +211,7 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/10d-render-clutter.js` | back alleys, yards, promenades, quays and the apron, and everything lying about in them; box piles, bag heaps and wheelie bins (also used on the sidewalks) |
 | `js/10e-render-services.js` | hospitals and police stations: the roof cross and lettering, signs, lamps, checkered band, flag |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
+| `js/11b-weapon-models.js` | small 3D models of every weapon and an ammo box, for your hand and the pickups |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/12b-rockets.js` | rockets: flight, wandering after the target, hits, the glowing motor and the smoke trail |
 | `js/12c-blast.js` | explosions: fireball, flames, smoke, debris, and throwing cars, people, pickups and props |

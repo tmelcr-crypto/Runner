@@ -131,7 +131,7 @@ function saveBlock() {                               // why you cannot save now 
 function makeSave(thumb) {
   const c = P.car;
   return { v: SAVE_V, t: Date.now(), where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
-    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i]]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
+    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
@@ -154,10 +154,13 @@ function applySave(sv) {                             // called by resetGame (js/
   if (p.arms && typeof p.arms === 'object') {                     // by weapon id, so the weapon table can change between saves
     const a = id => Array.isArray(p.arms[id]) ? p.arms[id] : null;
     P.mag = WEAPONS.map((w, i) => a(w.id) ? Math.round(n(a(w.id)[0], 0, w.mag, 0)) : P.mag[i]); P.ammo = WEAPONS.map((w, i) => a(w.id) ? Math.round(n(a(w.id)[1], 0, 99999, 0)) : P.ammo[i]);
+    P.has = WEAPONS.map((w, i) => w.start || (a(w.id) ? (a(w.id)[2] === undefined ? a(w.id)[0] + a(w.id)[1] > 0 : !!a(w.id)[2]) : false));   // older saves: a weapon with ammo counts as yours
   } else {                                                          // older saves: by position
     if (Array.isArray(p.ammo)) P.ammo = WEAPONS.map((w, i) => Math.round(n(p.ammo[i], 0, 9999, w.ammo)));
     if (Array.isArray(p.mag)) P.mag = WEAPONS.map((w, i) => Math.round(n(p.mag[i], 0, w.mag, w.mag)));
   }
+  if (!(p.arms && typeof p.arms === 'object')) P.has = WEAPONS.map((w, i) => w.start || P.mag[i] + P.ammo[i] > 0);   // a save from before weapons had to be found
+  if (!P.has[P.weapon]) P.weapon = Math.max(0, P.has.indexOf(true));
   gameT = n(sv.gameT, 0, 1e9, 0);
   const s = sv.sky;
   if (s) {

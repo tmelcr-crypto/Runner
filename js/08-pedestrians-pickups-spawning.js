@@ -24,6 +24,7 @@ function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
     if (p.knocked) continue;                                       // flying through the air (js/12c)
+    if (p.stunT > 0) { p.stunT -= dt; p.vx = p.vy = 0; continue; }   // knocked down by a melee hit (js/06b)
     if (p.cop && copEngaged(p)) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }   // a foot patrol on the case (js/08b)
     if (p.combat) { p.combat = false; p.cv = null; if (!p.stroll) snapPed(p); }
     if (p.e < 0 && !p.stroll) snapPed(p);
@@ -126,8 +127,8 @@ function spawnPickup() {                      // anywhere on the map: a random s
     pickups.push({ x: q.x, y: q.y, type: pickupType(), bob: rand(0, 6) }); return;
   }
 }
-function pickupType() {                       // health 1, cash 2, and each weapon's ammo as often as its pickup weight (js/01f)
-  const ws = [['health', 1], ['cash', 2], ...WEAPONS.filter(w => w.pickup > 0).map(w => [w.id, w.pickW])];
+function pickupType() {                       // on the sidewalks only health (1) and cash (2); weapons and ammo are hidden off the streets (js/08d)
+  const ws = [['health', 1], ['cash', 2]];
   let r = Math.random() * ws.reduce((a, q) => a + q[1], 0); for (const [t, n] of ws) if ((r -= n) <= 0) return t; return 'health';
 }
 function updatePickups(dt) {

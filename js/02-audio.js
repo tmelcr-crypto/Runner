@@ -61,9 +61,18 @@ const Snd = {
     const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g); g.connect(this.out); o.start(t); o.stop(t + dur + 0.02);
   },
-  shot(id) {
+  shot(id) {                             // the weapon table's Sound (js/01f)
     if (id === 'sniper') { this.burst(0.5, 2200, 90, 0.8); this.tone(110, 34, 0.35, 0.4, 'sawtooth'); return; }   // a heavy crack and a long tail
+    if (id === 'shotgun') { this.burst(0.35, 1800, 120, 0.85); this.tone(90, 30, 0.25, 0.4, 'sawtooth'); return; }   // a blast with a boom under it
+    if (id === 'revolver') { this.burst(0.22, 2600, 160, 0.7); this.tone(120, 40, 0.18, 0.35, 'square'); return; }
+    if (id === 'lmg') { this.burst(0.1, 2200, 220, 0.42); this.tone(120, 45, 0.09, 0.3, 'square'); return; }
     const mg = id === 'mg'; this.burst(mg ? 0.09 : 0.14, mg ? 2600 : 3400, 300, mg ? 0.35 : 0.5); this.tone(mg ? 170 : 140, 50, 0.08, 0.25, 'square');
+  },
+  melee(id, hit) {                       // swings and throws (js/06b): a whoosh, and on a hit a thud (or a stab, a smack)
+    if (id === 'throw') { this.burst(0.2, 900, 2400, 0.18, 'bandpass'); return; }
+    if (!hit) { this.burst(id === 'punch' ? 0.1 : 0.18, id === 'stab' ? 3500 : 1600, id === 'stab' ? 5000 : 3200, 0.16, 'bandpass'); return; }
+    if (id === 'stab') { this.burst(0.08, 1800, 600, 0.3); return; }
+    this.burst(0.12, 700, 120, id === 'punch' ? 0.35 : 0.5); this.tone(id === 'punch' ? 140 : 110, 60, 0.08, 0.25, 'sine');
   },
   rocket() { this.burst(0.25, 900, 300, 0.6); this.burst(1.6, 500, 2600, 0.35, 'bandpass'); this.tone(70, 140, 1.2, 0.18, 'sawtooth'); },   // the kick, then the motor's roar
   bolt() { this.tone(900, 500, 0.05, 0.12, 'square'); setTimeout(() => this.tone(600, 1100, 0.06, 0.12, 'square'), 380); },

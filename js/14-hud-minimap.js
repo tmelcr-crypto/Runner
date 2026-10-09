@@ -86,8 +86,8 @@ function updateHud(time) {
   const hp = Math.ceil(clamp(P.hp, 0, 100) / 10);
   if (H.hp !== hp) { H.hp = hp; const segs = $('hpSegs'); [...segs.children].forEach((e, k) => e.classList.toggle('on', k < hp)); segs.classList.toggle('low', hp <= 3); }
   const w = WEAPONS[P.weapon], am = String(P.ammo[P.weapon]).padStart(3, '0');
-  setText('wname', 'wname', w.short); setText('ammo', 'ammo', String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);
-  $('ammo').classList.toggle('empty', P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
+  const mel = isMelee(w); setText('wname', 'wname', w.short); setText('ammo', 'ammo', mel ? '--' : String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);   // melee: no ammo
+  $('ammo').classList.toggle('empty', !mel && P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
   { const rl = $('reload'), a = P.act; let on = true, t = 0, dur = 1, lab = '', col = '';   // one bar: stealing, being arrested, the stop order, reloading
     if (a) { t = a.t; dur = a.dur; lab = a.occ ? 'CARJACKING ' : 'STEALING '; col = 'var(--cyan)'; }
     else if (PS.bustT > 0 && !P.dead) { t = PS.bustT; dur = COP.bustTime; lab = 'ARRESTING '; col = 'var(--hot)'; }
@@ -97,8 +97,8 @@ function updateHud(time) {
     if (H.rl !== on) { H.rl = on; rl.classList.toggle('on', on); }
     if (H.ra !== col) { H.ra = col; rl.firstElementChild.style.background = col; }
     if (on) { rl.firstElementChild.style.width = Math.min(100, t / dur * 100) + '%'; rl.lastElementChild.textContent = lab + Math.max(0, dur - t).toFixed(1) + 's'; } }
-  if (H.weapon !== P.weapon) { H.weapon = P.weapon; $('wIcon').innerHTML = WICON[w.id]; }      // the weapon button shows the weapon in hand
-  setText('wAmmo', 'wAmmo', pad(P.mag[P.weapon], 2) + '/' + pad(P.ammo[P.weapon], 3));
+  if (H.weapon !== P.weapon) { H.weapon = P.weapon; $('wIcon').innerHTML = wIcon(w); $('wIcon').style.color = w.color; }   // the weapon button shows the weapon in hand, in its colour
+  setText('wAmmo', 'wAmmo', isMelee(WEAPONS[P.weapon]) ? WEAPONS[P.weapon].short : pad(P.mag[P.weapon], 2) + '/' + pad(P.ammo[P.weapon], 3));
   if (H.stars !== P.stars) { H.stars = P.stars; [...$('stars').children].forEach((e, k) => e.classList.toggle('on', k < P.stars)); }
   const fade = P.stars > 0 && !PS.seen; if (H.fade !== fade) { H.fade = fade; $('stars').classList.toggle('fade', fade); }   // the stars blink while they search, stay lit while they see you
   setText('clock', 'clock', skyText());
@@ -115,8 +115,8 @@ function updateHud(time) {
   const inCar = !!c; if (H.inCar !== inCar) { H.inCar = inCar; $('radioBtn').hidden = !inCar; }   // the RADIO button, in a car only
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
-  const bf = $('bFire'), noFire = !!c && !c.t.weapon; if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets
-  const gunCar = !!c && !!c.t.weapon; if (H.gunCar !== gunCar) { H.gunCar = gunCar; document.documentElement.classList.toggle('gun-car', gunCar); }   // ...from beside the gear stick
+  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && !c.t.weapon && !drop; if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one
+  const gunCar = !!c && (!!c.t.weapon || drop); if (H.gunCar !== gunCar) { H.gunCar = gunCar; document.documentElement.classList.toggle('gun-car', gunCar); }   // ...from beside the gear stick
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }

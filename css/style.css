@@ -270,3 +270,7 @@ button.del:focus,button.del:hover{outline:0;color:var(--hot);border-color:var(--
 
 /* ---- in a vehicle with a gun (the tank) FIRE sits left of the gear stick, which takes its usual corner ---- */
 html.gun-car #bFire{right:calc(178px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom,0px))}
+
+/* ---- weapons in their own colours (js/01f color) ---- */
+.wslot .wico{filter:drop-shadow(0 0 6px currentColor)}
+#wIcon{filter:drop-shadow(0 0 4px currentColor)}
