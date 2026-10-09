@@ -8,6 +8,7 @@
 let BINS = [], CALLS = [], svcT = 0;                  // BINS: the street bins { x, y, t: when last emptied }, filled by js/10
 const svcSpawnT = { ambulance: 0, fire: 0 }, SVC_REACH = 2200;
 function callFor(kind, x, y, obj) {                  // a body for an ambulance, a blast or a burning wreck for a fire engine
+  if (!feat('services')) return;                                   // a mode without city services (js/01j)
   if (!Object.values(CAR_TYPES).some(t => t.job === kind)) return;
   if (CALLS.some(k => k.kind === kind && !k.done && dist(k.x, k.y, x, y) < (kind === 'fire' ? 300 : 40))) return;
   CALLS.push({ kind, x, y, obj, car: null, t: gameT, done: false });

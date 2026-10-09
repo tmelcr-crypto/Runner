@@ -4,10 +4,21 @@ Top-down GTA 1 style crime sandbox in neon 3D. Vanilla JS + three.js r128 (loade
 
 Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8000`, or open `index.html` directly.
 
+## Game modes
+
+**NEW GAME** first asks how you want to play: **FREE ROAM** - the city as it is, no story, everything below - or **STORY**, missions told as a story, which is built later and shows as *COMING SOON* until then. Free roam then goes on to its options. A saved game keeps its mode (the save list and the pause menu show it); saves from before the modes are free roam.
+
+Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
+
+```
+python3 tools/mode_sheet.py export modes.numbers      # or modes.xlsx
+python3 tools/mode_sheet.py import modes.numbers [--dry-run]
+```
+
 ## Menus and saved games
 
 - **Title**: *Continue* (the latest save, with when and where it was made), *New game*, *Load game*, *Help*, and *City file preview*. The arrow keys move between the buttons, Enter picks, Esc goes back; everything also works by mouse or touch.
-- **New game** choices, remembered for next time:
+- **New game**: first the mode (*Game modes* above), then the free roam choices, remembered for next time:
   - *Time of day*: dawn, morning, noon, evening (17:30) or night.
   - *Weather*: changing, or always clear, cloudy, rain, storm or fog.
   - *Clock*: a 12, 24 or 48 minute day, or stopped.
@@ -307,6 +318,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01g-shop-data.js` | the hidden items (health, body armor, heat reducer) and the six stores: what each sells |
 | `js/01h-rampage-data.js` | the twenty rampages: weapon, target, count, time, reward (edit by hand or with `tools/rampage_sheet.py`) |
 | `js/01i-economy-data.js` | where cash comes from (cars, the dead, stacks in town; amounts and ranges, drop time); every price in the game is in `tools/economy_sheet.py` |
+| `js/01j-mode-data.js` | the game modes (free roam, story) and which features each has; `feat(id)` |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |

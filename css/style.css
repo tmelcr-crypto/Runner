@@ -341,3 +341,8 @@ button.shopRow.ammo{margin-left:28px}
 #rampCard .stats{width:min(420px,100%);margin:0 auto 10px}
 .rampRules{max-width:460px;margin:6px auto 12px}
 @media (max-width:520px){ #rampHud{top:calc(254px + env(safe-area-inset-top,0px));gap:7px;padding:6px 9px} #rampIcoHud{width:40px} #rampCount,#rampClock{font-size:12px} }
+
+/* ---- game modes (js/01j): the New game choice ---- */
+#modeCard .modeBtn small{display:block;font-size:8px;margin-top:6px;letter-spacing:1px}
+#modeCard .modeBtn:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
+#modeCard .modeNote{margin:-6px 0 6px;max-width:340px}

@@ -13,7 +13,7 @@ let boomFlash = null;
 const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
 cv.addEventListener('mousemove', () => { if (!touchMode) P.mouseOn = true; });
 
-function addHeat(n) { if (RAMP.on) return; P.heat = Math.min(9999, P.heat + n * OPT.police); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
+function addHeat(n) { if (RAMP.on || !feat('police')) return; P.heat = Math.min(9999, P.heat + n * OPT.police); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars(); }   // the police know where it happened (js/08b)
 function updateStars() {
   let s = 0; for (let k = 1; k <= 5; k++) if (P.heat >= COP.lv.heat[k]) s = k;   // heat needed per level: the police table (js/01b)
   if (s > P.stars) { toast('WANTED LEVEL ' + s, true); policeAlert(P.stars, s); } else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');
@@ -184,7 +184,7 @@ function enterCar(c) {
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0);
   } else if (c.t.cop) reportCrime(COP.crime.stealCop, 0);
   else reportCrime(COP.crime.steal, 0);
-  if (!c.searched) { c.searched = true; addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
+  if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
 }
 function letGo(c) {                                              // a carjacking given up or lost: you drop off beside the car

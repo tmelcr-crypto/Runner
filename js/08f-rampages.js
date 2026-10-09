@@ -34,7 +34,7 @@ const rampTimeText = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s /
 
 /* ---------- finding them, the button by you, the screen before you start ---------- */
 function nearRamp() {                    // the rampage whose skull you stand at, on foot
-  if (RAMP.on || P.car || P.dead || P.act || state !== 'play') return null;
+  if (RAMP.on || P.car || P.dead || P.act || state !== 'play' || !feat('rampages')) return null;
   for (const r of RAMPAGES) if (r.placed && Math.abs(r.x - P.x) < RAMP_R && Math.abs(r.y - P.y) < RAMP_R && dist(r.x, r.y, P.x, P.y) < RAMP_R) return r;
   return null;
 }
@@ -92,6 +92,7 @@ function rampEnd(ok, why) {
   if (first && !saveBlock()) putSave('auto', makeSave(lastThumb));  // the reward is kept even if you close the game now
 }
 function rampTick(dt) {                  // every frame of play (js/15)
+  if (!feat('rampages')) return;                                   // a mode without rampages (js/01j)
   for (const r of RAMPAGES) if (r.placed && !rampFound.has(r.id) && Math.abs(r.x - P.x) < RAMP_SEE && Math.abs(r.y - P.y) < RAMP_SEE && dist(r.x, r.y, P.x, P.y) < RAMP_SEE) {
     rampFound.add(r.id); if (!RAMP.on) toast('RAMPAGE FOUND!');
   }
@@ -152,7 +153,7 @@ function skullModel(bone) {              // facing +z: a round cranium, cheekbon
   return g;
 }
 function syncRampages(time) {            // js/13: the skulls near the camera (far ones are dropped by js/11 sweepDynamic); none during a rampage
-  if (RAMP.on) return;
+  if (RAMP.on || !feat('rampages')) return;
   const R = visRadius() * 1.25, tilt = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180) * 0.75;
   for (const r of RAMPAGES) {
     if (!r.placed || Math.abs(r.x - cam.x) > R || Math.abs(r.y - cam.y) > R) continue;

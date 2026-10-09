@@ -47,6 +47,7 @@ function fightBack(p, dt) {              // js/08 updatePeds, every frame while 
 }
 const PISTOL = WEAPONS.findIndex(w => w.id === 'pistol');
 function dropLoot(p, cop) {              // a body: a cash stack and the weapon they carried, for ECO.dropTime seconds (js/01i)
+  if (!feat('loot')) return;                                       // a mode without loot (js/01j)
   const until = gameT + ECO.dropTime, a = rand(0, TAU), at = (r, s) => { const x = p.x + Math.cos(a) * r * s, y = p.y + Math.sin(a) * r * s; return pedBlocked(x, y) ? [p.x, p.y] : [x, y]; };
   const amt = ecoRoll(cop ? 'copCash' : 'pedCash');
   if (amt > 0) { const [x, y] = at(9, 1); pickups.push({ x, y, type: 'cash', amt, drop: true, until, bob: rand(0, 6) }); }

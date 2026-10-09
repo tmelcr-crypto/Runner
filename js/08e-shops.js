@@ -33,7 +33,7 @@ function pickStores() {                  // the shop buildings that become store
 }
 function placeStores() {                 // the first game: find the stores and put up their markers (they stay for every game after)
   $('shopBtn').hidden = true; shopAt = null;
-  if (shopGroup) return;
+  if (shopGroup) { shopGroup.visible = feat('stores'); return; }
   STORES = pickStores(); shopGroup = new THREE.Group(); scene.add(shopGroup);
   for (const s of STORES) {
     const g = new THREE.Group(); g.position.set(s.x, groundH(s.x, s.y), s.y);
@@ -49,6 +49,7 @@ function placeStores() {                 // the first game: find the stores and 
     const sign = signMesh(s.name, s.color, 96, 24); sign.position.set(0, 84, 0); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180); g.add(sign);   // turned to face the camera
     g.userData = { icon, ring }; s.g = g; shopGroup.add(g);
   }
+  shopGroup.visible = feat('stores');                               // a mode without stores (js/01j)
 }
 function dollarTex(col) {                // the $ painted in front of a store's door
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
@@ -61,7 +62,7 @@ function gfxStores(time) {
   for (const s of STORES) { if (!s.g) continue; s.g.userData.icon.rotation.y = time * 1.2; s.g.userData.ring.scale.setScalar(STORE_R - 4 + Math.sin(time * 3) * 1.5); }
 }
 function nearStore() {                   // the store whose door you stand at, on foot
-  if (!STORES || P.car || P.dead || P.act || RAMP.on || state !== 'play') return null;
+  if (!STORES || P.car || P.dead || P.act || RAMP.on || state !== 'play' || !feat('stores')) return null;
   for (const s of STORES) if (Math.abs(s.x - P.x) < STORE_R && Math.abs(s.y - P.y) < STORE_R && dist(s.x, s.y, P.x, P.y) < STORE_R) return s;
   return null;
 }

@@ -86,8 +86,20 @@
     <p class="keys">ARROWS MOVE · ENTER PICKS · ESC GOES BACK</p>
   </div>
 
-  <div class="card" id="newCard" hidden>
+  <div class="card" id="modeCard" hidden>
     <h2>NEW GAME</h2>
+    <p class="sub">HOW DO YOU WANT TO PLAY?</p>
+    <div class="menu">
+      <button id="freeBtn" class="big pri modeBtn" type="button" data-mode="free"></button>
+      <p class="sub modeNote" data-mode="free"></p>
+      <button id="storyBtn" class="big alt modeBtn" type="button" data-mode="story"></button>
+      <p class="sub modeNote" data-mode="story"></p>
+      <button class="big alt back" type="button">BACK</button>
+    </div>
+  </div>
+
+  <div class="card" id="newCard" hidden>
+    <h2 id="newTitle">NEW GAME</h2>
     <div id="optRows" class="opts"></div>
     <p class="tip" id="optTip"></p>
     <p class="warn" id="newWarn" hidden>THE GAME YOU ARE PLAYING ENDS - SAVE IT FIRST TO KEEP IT</p>
@@ -134,7 +146,7 @@
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
-        <li>No missions: the city is yours. Steal cars, cause trouble, collect cash and stay alive.</li>
+        <li><b>FREE ROAM</b>: no missions, the city is yours. Steal cars, cause trouble, collect cash and stay alive. <b>STORY</b> mode is coming later.</li>
         <li><b>POINTS</b> <span id="helpPoints"></span></li></ul></div>
       <div><h3>CARS</h3><ul>
         <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
@@ -239,6 +251,7 @@
 <script src="js/01g-shop-data.js"></script>
 <script src="js/01h-rampage-data.js"></script>
 <script src="js/01i-economy-data.js"></script>
+<script src="js/01j-mode-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>

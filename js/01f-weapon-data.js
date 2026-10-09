@@ -46,5 +46,5 @@ const WEAPONS = WEAPON_TABLE.weapons.filter(w => w.status === 'in game').map(w =
 const startAmmo = () => WEAPONS.map(w => w.start ? w.ammo : 0), startMag = () => WEAPONS.map(w => w.start ? w.mag : 0), startHas = () => WEAPONS.map(w => !!w.start);   // what a new game hands you
 const isMelee = w => w.use === 'swing', isThrown = w => w.use === 'throw';
 const CARRY = WEAPONS.map((w, i) => [i, w.carry]).filter(q => q[1] > 0);
-function pickCarry() { let r = Math.random(); for (const [i, c] of CARRY) if ((r -= c) < 0) return i; return -1; }   // what a passer-by carries (-1: nothing)
+function pickCarry() { if (!feat('armedPeople')) return -1; let r = Math.random(); for (const [i, c] of CARRY) if ((r -= c) < 0) return i; return -1; }   // what a passer-by carries (-1: nothing)
 const owned = () => WEAPONS.map((w, i) => i).filter(i => P.has[i]);   // the weapons you have, in wheel order (P: js/06)

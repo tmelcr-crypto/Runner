@@ -44,16 +44,16 @@ function freeSpot(rnd, away, key) {      // an unused hiding place, not too clos
 function placeWeapons() {                // a new game: melee in their fixed places, the rest at random
   if (!WSPOTS) { WSPOTS = withSeed(1979, buildSpots); pickRampages(); }   // the rampages take some of the hiding places (js/08f)
   for (const s of WSPOTS) s.used = null; WPICKS = []; wpQ = [];
-  withSeed(2024, () => {                                            // melee weapons: the same places every game
+  if (feat('hiddenWeapons')) withSeed(2024, () => {                // melee weapons: the same places every game (modes: js/01j)
     WEAPONS.forEach((w, wi) => { if (isMelee(w)) for (let k = 0; k < w.onMap; k++) putPick(freeSpot(Math.random, null, 'w' + wi), wi, false, true); });
   });
   const start = { x: P.x, y: P.y, r: 300 };
-  WEAPONS.forEach((w, wi) => {
+  if (feat('hiddenWeapons')) WEAPONS.forEach((w, wi) => {
     if (isMelee(w)) return;
     for (let k = 0; k < w.onMap; k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, false, false);
     for (let k = 0; k < w.ammoMap; k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, true, false);
   });
-  for (const it of ITEMS) for (let k = 0; k < (it.onMap || 0); k++) putPick(freeSpot(Math.random, start, 'i' + it.id), -1, false, false, it.id);   // health, armor, heat reducers
+  if (feat('hiddenItems')) for (const it of ITEMS) for (let k = 0; k < (it.onMap || 0); k++) putPick(freeSpot(Math.random, start, 'i' + it.id), -1, false, false, it.id);   // health, armor, heat reducers
 }
 function putPick(s, wi, ammo, fixed, item) {
   if (!s) return;

@@ -35,7 +35,7 @@ function unitSees(u, ex, ey, face) {     // a cop who has just seen you keeps wa
 function policeKnow(x, y) { PS.lx = x; PS.ly = y; PS.r = COP.searchStart; PS.lose = 0; PS.seenT = gameT; }
 /* a crime: it only counts when a cop sees it, hears it (hear: radius around you) or a bullet lands near one (ix, iy); armed: a gun or a blast */
 function reportCrime(n, hear, ix, iy, armed) {
-  if (RAMP.on) return;                                             // a rampage: the police look the other way (js/08f)
+  if (RAMP.on || !feat('police')) return;                         // a rampage: the police look the other way (js/08f); a mode without police (js/01j)
   let w = false;
   forCops((u, x, y, face) => {
     if (w) return;

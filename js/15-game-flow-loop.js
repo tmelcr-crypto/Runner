@@ -32,8 +32,8 @@ function resetGame(sv) {                     // a new game with the options in O
   for (const L of LOTS) L.filled = false; fillLots(true);
   for (let k = 0; k < 50 * crowd; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
-  for (let k = 0; k < ECO.townN; k++) spawnPickup();               // cash stacks around town (js/01i)
-  CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
+  if (feat('townCash')) for (let k = 0; k < ECO.townN; k++) spawnPickup();   // cash stacks around town (js/01i)
+  CALLS = []; if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
   placeStores();                                                   // the six stores and their markers (js/08e)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)

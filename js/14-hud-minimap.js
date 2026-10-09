@@ -42,9 +42,9 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
     g.fillStyle = '#ffffff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#e0364f'; g.fillRect(x - q * 0.75, y - q * 0.25, q * 1.5, q * 0.5); g.fillRect(x - q * 0.25, y - q * 0.75, q * 0.5, q * 1.5); }
   for (const s of SVC.police) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
     g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
-  for (const s of STORES || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
+  for (const s of (feat('stores') && STORES) || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
     g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('$', x, y + q * 0.08); }
-  for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
+  if (feat('rampages')) for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
