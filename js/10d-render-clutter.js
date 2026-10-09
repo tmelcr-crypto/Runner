@@ -139,8 +139,9 @@ function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
     else if (o.k === 'cart') { fb.push({ x: o.x, y: 4, z: o.y, sx: 16, sy: 5, sz: 10, ry, c: '#d6d2c4' }); fb.push({ x: o.x, y: 8.5, z: o.y, sx: 12, sy: 4, sz: 8, ry, c: pick(['#2a4aa8', '#7a3b2a', '#4a4e5c']) }); }
     if (mark) registerThrow(o.x, o.y, partsSince(lists, mark), o.solid || null, MASS[o.k]);
   }
-  for (const L of LOTS) {                                         // a light on the lot's front corner and a P sign
+  for (const L of LOTS) {                                         // a light on the lot's front corner and a P sign in the colour of the building it belongs to
+    const o = L.owner, pc = !o ? '#3f6bff' : o.special === 'hospital' ? '#e0364f' : o.special === 'police' ? '#3f6bff' : o.c;
     const ca = Math.cos(L.a), sa = Math.sin(L.a), x = L.cx + ca * (L.w / 2 - 6) - sa * (L.d / 2 - 6), y = L.cy + sa * (L.w / 2 - 6) + ca * (L.d / 2 - 6);
-    poles.push({ x, y: 15, z: y, sx: 1.2, sy: 30, sz: 1.2, c: '#14102a' }); fg.push({ x, y: 26, z: y, sx: 7, sy: 7, sz: 1, ry: -L.a, c: '#3f6bff' }); pools.push({ x: L.cx, y: 1.5, z: L.cy, sx: 140, sy: 1, sz: 140, c: '#9fc4ff' });
+    poles.push({ x, y: 15, z: y, sx: 1.2, sy: 30, sz: 1.2, c: '#14102a' }); fg.push({ x, y: 26, z: y, sx: 7, sy: 7, sz: 1, ry: -L.a, c: pc }); pools.push({ x: L.cx, y: 1.5, z: L.cy, sx: 140, sy: 1, sz: 140, c: '#9fc4ff' });
   }
 }

@@ -16,6 +16,8 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
   m.fillStyle = '#1e1640'; for (const p of MAP.props) if (p.t === 'runway') { const a = p.a * Math.PI / 180; box({ cx: p.x, cy: p.y, lw: p.w, lh: p.h, ca: Math.cos(a), sa: Math.sin(a) }); }   // runways
   m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate) box(r);       // landmarks and props
   m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
+  for (const s of SVC.hospital) { m.fillStyle = '#f4f4f6'; box(s.r); const k = Math.min(s.r.lw, s.r.lh) * 0.8; m.fillStyle = '#e0364f'; m.fillRect(s.r.cx - k / 2, s.r.cy - k / 6, k, k / 3); m.fillRect(s.r.cx - k / 6, s.r.cy - k / 2, k / 3, k); }   // a red cross
+  for (const s of SVC.police) { m.fillStyle = '#3f6bff'; box(s.r); if (s.lot) { m.fillStyle = '#2a3a8a'; box({ cx: s.lot.cx, cy: s.lot.cy, lw: s.lot.w, lh: s.lot.d, ca: Math.cos(s.lot.a), sa: Math.sin(s.lot.a) }); } }
 }
 function drawMini(time) {
   const size = miniCv.width, view = 1500, sc = size / view;
@@ -29,10 +31,18 @@ function drawMini(time) {
     if (c.t.cop && c.driver) { mctx.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; mctx.fillRect(x - 5, y - 5, 10, 10); }
     else { mctx.fillStyle = '#8b90b8'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   }
+  svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
   for (const p of pickups) { const x = mxp(p.x), y = myp(p.y); if (x < 0 || y < 0 || x > size || y > size) continue; mctx.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
+}
+function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; police stations: a white star on blue
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold ' + Math.round(q * 1.6) + 'px Arial';
+  for (const s of SVC.hospital) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
+    g.fillStyle = '#ffffff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#e0364f'; g.fillRect(x - q * 0.75, y - q * 0.25, q * 1.5, q * 0.5); g.fillRect(x - q * 0.25, y - q * 0.75, q * 0.5, q * 1.5); }
+  for (const s of SVC.police) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
+    g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
@@ -58,6 +68,7 @@ function drawBigMap(time) {
   }
   const ph = Math.floor(time * 4) % 2 === 0;
   for (const p of pickups) { g.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; g.fillRect(X(p.x) - 2 * pr, Y(p.y) - 2 * pr, 4 * pr, 4 * pr); }
+  svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
   g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);

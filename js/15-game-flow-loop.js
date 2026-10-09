@@ -18,7 +18,8 @@ function resetGame() {
     for (const dd of [0, 20, -20, 40, 60]) { const q = at(s0 + ds + dd, kerb * side); if (kerbFits(q.x, q.y, q.ang, type)) { cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); break; } }
   for (let k = 0; k < 32; k++) spawnTraffic(true);
   for (let k = 0; k < 14; k++) spawnParked(true);
-  for (let k = 0; k < 50; k++) spawnPedNear(true);
+  for (const L of LOTS) L.filled = false; fillLots(true);
+  for (let k = 0; k < 50; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
   for (let k = 0; k < PICKUP_N; k++) spawnPickup();
   CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
@@ -85,7 +86,7 @@ function update(dt, idle) {
   gameT += dt;
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
-  updatePeds(dt); updateOfficers(dt); updateBlast(dt);
+  updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt);
   if (!idle) updatePickups(dt);
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)

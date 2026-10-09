@@ -241,29 +241,37 @@ function fillStyle(cx, cy, w, h) {                               // style of one
   o.H = Math.min(o.H, cap); if (o.kind === 'condo' || o.kind === 'glass') o.kind = 'office';
   return o;
 }
-let LOTS = [], PARK_SPOTS = [], GATES = [];                                   // parking lots; stalls { x, y, ang }
+let LOTS = [], PARK_SPOTS = [], GATES = [];                                   // parking lots { ..., owner: the building it belongs to, stalls }; stalls { x, y, ang, lot }
+const SVC = { police: [], hospital: [] };                         // police stations and hospitals: { r: the building, lot: its parking lot or null }
 let worldReady = false;
 function genWorld() {
   if (worldReady) return;
   buildShoreField();
   const blocks = {}; colonySpot();                               // the Colony takes its real lot on Ocean Drive; map buildings there make way
-  BLD = MAP.bld.filter(b => !hitsColony(b[0], b[1], b[2], b[3], b[4])).map(([cx, cy, w, h, ang, grp, inner, fill]) => {
+  BLD = MAP.bld.map((b, i) => [b, i]).filter(([b]) => !hitsColony(b[0], b[1], b[2], b[3], b[4])).map(([[cx, cy, w, h, ang, grp, inner, fill], idx]) => {
     if (fill) {                                                   // street-front and block-interior buildings: drawn merged per chunk, kept low enough
       const g = fillStyle(cx, cy, w, h), a = ang * Math.PI / 180, fx = cx - Math.sin(a) * h / 2, fy = cy + Math.cos(a) * h / 2;   // that nobody on the sidewalk disappears behind them
       const H = GFH + Math.max(1, Math.round((g.H - GFH) / FLOOR)) * FLOOR, shop = !!nearestRoad(fx, fy, ROAD_HALF + SW_W + 24);   // a shop if its front is on a street
-      return makeSolid(cx, cy, w, h, a, { seed: cx * 7 + cy * 13 + 1, inner: 0, back: !!(inner & 16), pad: true, bld: true, fill: true, shop, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel });
+      return makeSolid(cx, cy, w, h, a, { idx, seed: cx * 7 + cy * 13 + 1, inner: 0, back: !!(inner & 16), pad: true, bld: true, fill: true, shop, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel });
     }
     const g = blocks[grp] || (blocks[grp] = blockStyle(cx, cy, Math.max(w, h) >= 90)), tiny = Math.min(w, h) < 45;
     let H = g.H * rand(0.8, 1.15); if (tiny) H = Math.min(H, 36); else if (Math.min(w, h) < 90) H = Math.min(H, 130);
-    return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
+    return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { idx, seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
   });
-  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang, rows]) => ({ cx, cy, w, d, a: ang * Math.PI / 180, rows: rows || 1 }));
+  const byIdx = new Map(BLD.map(r => [r.idx, r]));
+  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang, rows, owner]) => ({ cx, cy, w, d, a: ang * Math.PI / 180, rows: rows || 1, owner: byIdx.get(owner) || null, stalls: [] }));
+  SVC.police = []; SVC.hospital = [];
+  for (const k of ['police', 'hospital']) for (const [bi] of (MAP.services || {})[k] || []) {   // police stations: blue; hospitals: white (js/10e adds the signs and the cross)
+    const r = byIdx.get(bi); if (!r) continue;
+    r.special = k; r.kind = 'office'; r.pastel = false; r.c = k === 'hospital' ? '#eef1f5' : '#2f55c4'; r.H = GFH + (k === 'hospital' ? 2 : 1) * FLOOR;
+    SVC[k].push({ r, lot: LOTS.find(L => L.owner === r) || null });
+  }
   PARK_SPOTS = [];
   for (const L of LOTS) {                                         // nose-in stalls along the back of each lot (and along the front of a deep one); the aisle stays open
     const ca = Math.cos(L.a), sa = Math.sin(L.a), n = Math.floor((L.w - 20) / 30);
     for (const s of L.rows === 2 ? [-1, 1] : [-1]) {
       const z = s * (L.d / 2 - 36), ang = s < 0 ? Math.atan2(-ca, sa) : Math.atan2(ca, -sa);
-      for (let k = 0; k < n; k++) { const x = -L.w / 2 + 25 + k * 30; PARK_SPOTS.push({ x: L.cx + ca * x - sa * z, y: L.cy + sa * x + ca * z, ang }); }
+      for (let k = 0; k < n; k++) { const x = -L.w / 2 + 25 + k * 30, p = { x: L.cx + ca * x - sa * z, y: L.cy + sa * x + ca * z, ang, lot: L }; PARK_SPOTS.push(p); L.stalls.push(p); }
     }
   }
   { // the hotel next to where the player starts gets its name in lights
@@ -277,7 +285,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks();
+  genLandmarks(); serviceDecor();                                  // landmarks; the signs, the cross and the lamps of the hospitals and police stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

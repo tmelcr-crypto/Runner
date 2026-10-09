@@ -12,6 +12,7 @@ function callFor(kind, x, y, obj) {                  // a body for an ambulance,
   if (CALLS.some(k => k.kind === kind && !k.done && dist(k.x, k.y, x, y) < (kind === 'fire' ? 300 : 40))) return;
   CALLS.push({ kind, x, y, obj, car: null, t: gameT, done: false });
 }
+const bodyTime = p => CALLS.some(k => k.obj === p && !k.done) ? 120 : 25;   // a body waits for the ambulance that is coming for it
 function startCall(c, k) {
   const field = new Float64Array(RN.length), r = roadFieldTo(k.x, k.y, field); if (!r) return false;
   c.task = { k, field, r, on: false, work: 0, t: gameT }; k.car = c; c.nx = null; return true;
@@ -43,7 +44,7 @@ function serviceStop(c, dt) {                        // called by aiDrive for ve
   const hold = () => { const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang); c.thr = vf > 8 ? -1 : vf < -8 ? 1 : 0; c.str = 0; c.hb = Math.abs(vf) < 8; };
   if (c.task) {
     const T = c.task, k = T.k;
-    if (!T.on && dist(c.x, c.y, k.x, k.y) < (k.kind === 'fire' ? 150 : 90) + c.t.len / 2) T.on = true;   // at the scene
+    if (!T.on && dist(c.x, c.y, k.x, k.y) < (k.kind === 'fire' ? 170 : 160) + c.t.len / 2) T.on = true;   // at the scene (the body may lie on the far sidewalk)
     if (!T.on) return false;
     hold(); T.work += dt;
     if (k.kind === 'ambulance') { if (T.work > 3.5) { if (k.obj) k.obj.deadT = 1e9; k.done = true; endCall(c); } }   // the body is taken away
@@ -79,7 +80,7 @@ function douse(x, y) {                               // put out burning cars and
 
 /* ---------- vehicles at secret spots: always the same parking lots, the ones furthest from the start, one per lot ---------- */
 function placeHidden() {
-  const lots = LOTS.filter(L => L.w >= 130 && L.d >= (L.rows === 2 ? 180 : 110)).sort((a, b) => dist(b.cx, b.cy, MAP.start[0], MAP.start[1]) - dist(a.cx, a.cy, MAP.start[0], MAP.start[1]));
+  const lots = LOTS.filter(L => L.w >= 130 && L.d >= (L.rows === 2 ? 180 : 110) && !(L.owner && L.owner.special)).sort((a, b) => dist(b.cx, b.cy, MAP.start[0], MAP.start[1]) - dist(a.cx, a.cy, MAP.start[0], MAP.start[1]));
   const used = [];
   for (const id in CAR_TYPES) for (let n = 0; n < CAR_TYPES[id].hidden; n++) {
     const L = lots.find(o => !used.includes(o) && used.every(u => dist(u.cx, u.cy, o.cx, o.cy) > 3000)) || lots.find(o => !used.includes(o)); if (!L) return;
