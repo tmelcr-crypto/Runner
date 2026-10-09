@@ -267,3 +267,6 @@ button.del:focus,button.del:hover{outline:0;color:var(--hot);border-color:var(--
 /* ---- weapon wheel: how the weapon is used (js/01f howTo) ---- */
 #wheel{flex-direction:column;gap:14px}
 #wHow{margin:0;max-width:min(86vmin,460px);padding:0 12px;font-family:var(--f-display);font-size:9px;line-height:1.8;text-align:center;color:var(--paper);text-shadow:0 0 6px #000,2px 2px 0 #000}
+
+/* ---- in a vehicle with a gun (the tank) FIRE sits left of the gear stick, which takes its usual corner ---- */
+html.gun-car #bFire{right:calc(178px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom,0px))}

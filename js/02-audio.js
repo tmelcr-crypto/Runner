@@ -69,6 +69,13 @@ const Snd = {
   bolt() { this.tone(900, 500, 0.05, 0.12, 'square'); setTimeout(() => this.tone(600, 1100, 0.06, 0.12, 'square'), 380); },
   boom() { this.burst(1.3, 1400, 60, 0.9); this.tone(90, 28, 0.9, 0.7, 'sine'); },
   thud(v) { this.burst(0.12, 500, 120, Math.min(0.5, 0.1 + v * 0.002)); },
+  smash(k, v) {                          // a car through street junk (js/12e); v: 1 close by, 0 far away
+    if (k === 'box') { this.burst(0.14, 1400, 250, 0.32 * v); this.burst(0.08, 300, 90, 0.3 * v); }                 // cardboard: a dull crumple
+    else if (k === 'bag') { this.burst(0.2, 700, 140, 0.36 * v); this.burst(0.06, 2400, 900, 0.12 * v, 'bandpass'); } // a soft burst
+    else if (k === 'crate' || k === 'pallet') { this.burst(0.12, 3000, 700, 0.4 * v, 'bandpass'); this.tone(180, 90, 0.08, 0.14 * v, 'square'); }   // splintering wood
+    else if (k === 'hydrant') { this.tone(620, 380, 0.3, 0.2 * v, 'square'); this.burst(2.4, 5000, 3000, 0.16 * v, 'highpass'); }   // a clang, then the hiss of water
+    else { this.tone(460, 260, 0.22, 0.17 * v, 'square'); this.burst(0.1, 1800, 400, 0.25 * v); }                   // a bin: a hollow clang
+  },
   pickup() { this.tone(660, 990, 0.12, 0.15, 'square'); },
   hurt() { this.tone(220, 90, 0.16, 0.2, 'sawtooth'); },
   toggle() { this.muted = !this.muted; if (this.out) this.out.gain.value = this.muted ? 0 : 0.6; return this.muted; }

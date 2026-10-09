@@ -116,6 +116,7 @@ function updateHud(time) {
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
   const bf = $('bFire'), noFire = !!c && !c.t.weapon; if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets
+  const gunCar = !!c && !!c.t.weapon; if (H.gunCar !== gunCar) { H.gunCar = gunCar; document.documentElement.classList.toggle('gun-car', gunCar); }   // ...from beside the gear stick
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }
