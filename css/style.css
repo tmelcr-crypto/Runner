@@ -263,3 +263,7 @@ button.del:focus,button.del:hover{outline:0;color:var(--hot);border-color:var(--
   white-space:nowrap;text-shadow:0 0 10px currentColor,2px 2px 0 #000;opacity:0;transition:opacity .35s;pointer-events:none}
 #radioName.on{opacity:1}
 #radioName small{display:block;margin-top:7px;font-size:8px;letter-spacing:2px;color:var(--paper);opacity:.8}
+
+/* ---- weapon wheel: how the weapon is used (js/01f howTo) ---- */
+#wheel{flex-direction:column;gap:14px}
+#wHow{margin:0;max-width:min(86vmin,460px);padding:0 12px;font-family:var(--f-display);font-size:9px;line-height:1.8;text-align:center;color:var(--paper);text-shadow:0 0 6px #000,2px 2px 0 #000}

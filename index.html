@@ -37,7 +37,7 @@
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
-  <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div></div>
+  <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
   <div id="wasted">WASTED</div>
   <div id="bigmap" hidden><canvas id="bigCv"></canvas><span class="lbl">TAB OR TAP TO CLOSE</span></div>
 </div>
@@ -116,7 +116,7 @@
 
   <div class="card" id="helpCard" hidden>
     <h2>HELP</h2>
-    <div class="tabs" id="helpTabs"><button type="button" class="on" data-tab="ctl">CONTROLS</button><button type="button" data-tab="play">PLAYING</button><button type="button" data-tab="cops">POLICE</button><button type="button" data-tab="city">CITY</button></div>
+    <div class="tabs" id="helpTabs"><button type="button" class="on" data-tab="ctl">CONTROLS</button><button type="button" data-tab="play">PLAYING</button><button type="button" data-tab="arms">WEAPONS</button><button type="button" data-tab="cops">POLICE</button><button type="button" data-tab="city">CITY</button></div>
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> pistol tap, MG hold</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>R</b> reload</li>
@@ -144,6 +144,7 @@
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your score.</li>
         <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep your weapons except the pistol.</li></ul></div>
     </div>
+    <div class="ctl page" data-tab="arms" id="helpArms" hidden></div>
     <div class="ctl page" data-tab="cops" hidden>
       <div><h3>WHAT THEY KNOW</h3><ul>
         <li>The police only know what they see or hear: a crime counts when a cop sees it, or hears the gunfire or the blast.</li>
@@ -197,6 +198,7 @@
 <script src="js/01c-vehicle-data.js"></script>
 <script src="js/01d-sky-data.js"></script>
 <script src="js/01e-radio-data.js"></script>
+<script src="js/01f-weapon-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>

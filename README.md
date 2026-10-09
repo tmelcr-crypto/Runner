@@ -125,10 +125,29 @@ The **weapon button** at the top shows the weapon in hand and its ammo; tap it (
 
 | Weapon | Magazine | Between shots | Reload | Range | How it fires |
 |---|---|---|---|---|---|
-| Pistol | 7 | 0.27 s | 5 s | 560 | tap FIRE |
-| Machine gun | 30 | 0.085 s | 5 s | 600 | hold FIRE |
+| Pistol | 7 | 0.27 s | 5 s | 47 m | tap FIRE |
+| Machine gun | 30 | 0.085 s | 5 s | 50 m | hold FIRE |
 | Sniper rifle | 5 | 1.5 s | 10 s | the whole screen | stand still, hold FIRE and drag to the target, let go to shoot |
-| Rocket launcher | 1 | - | 5 s | up to 2,600 | like the rifle: stand still, hold FIRE and drag, let go to fire |
+| Rocket launcher | 1 | - | 5 s | up to 217 m | like the rifle: stand still, hold FIRE and drag, let go to fire |
+
+**The weapon table.** Every weapon is one entry of `js/01f-weapon-data.js`, in everyday units, and `tools/weapon_sheet.py` exports it to Apple Numbers or Excel - one column per weapon, in the order of the weapon wheel - and reads an edited copy back, checking every value (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
+
+```
+python3 tools/weapon_sheet.py export weapons.numbers      # or weapons.xlsx
+python3 tools/weapon_sheet.py import weapons.numbers [--dry-run]
+```
+
+The rows come in sections:
+- *Weapon*: name, short name, status, class, sound, and two lists that say which mechanics it needs - **how you use it** (tap, hold, scope; swing and throw not built yet; new) and **what it fires** (bullet, rocket; grenade and melee not built yet; new).
+- *Mechanics in words*: **how to use** (one or two sentences, shown under the weapon wheel and on the Help page's WEAPONS tab), **how it works** (a full description of the behaviour) and look / sound / ideas.
+- *Hitting*: damage, bullets per shot (above 1 = a shotgun), spread, range, time between shots, damage to vehicles, goes through cover.
+- *Ammo*: magazine, spare rounds, most carried, rounds per pickup, pickup weight, reload, have it at the start, kept when busted.
+- *Police and noise*: heat per shot, heard within, people flee within, screen shake.
+- *Scope or sight*: zoom, sight shape, blur, line of sight, sight stays up.
+- *Explosives*: blast radius, flight speed, dud chance and angle, and for grenades fuse, throw range and bounce.
+- *Melee*: reach, swing arc, knockdown, push back.
+
+A weapon that works like an existing one (another pistol, a shotgun, another rifle or launcher) can go in the game straight from the table. One that needs a new mechanic - melee, grenades or anything else - is a **draft**: describe it in *how to use* and *how it works*, fill the numbers you can, and the game leaves it out until its mechanics are built. The table has two example drafts, a BASEBALL BAT and a GRENADE. Saved games keep ammo per weapon ID, so weapons can be added or reordered without breaking them.
 
 The sniper rifle aims through a scope that sits just above your finger (so the finger never covers it) and shows what is under it 4x bigger; everything outside the scope is blurred, and the game keeps running. The shot goes off when you lift your finger. The scope then stays where it was for the 1.5 s the bolt takes (it ignores the finger meanwhile) and disappears; then you can aim again. After the last round of a magazine it stays for the same 1.5 s, which already count toward the 10 s reload. The ring is yellow while it cannot fire yet (next round, reloading, or you are moving), cyan when ready and pink when the crosshair is on a person or a car. With a mouse the scope is on the pointer; holding J, the arrow keys move it. You can only shoot what you can see: with a building between you and the crosshair the scope says NO LINE OF SIGHT and letting go does not fire. One shot kills a person. The round goes through props (dumpsters, crates, AC units, pumps, fountains, cranes, containers, planes, sign posts) and through one car, damaging it, to hit what is behind; a building, a second car or an armoured vehicle stops it. Rifle ammo comes in long cases with a yellow stripe.
 
@@ -150,6 +169,7 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/01c-vehicle-data.js` | the vehicle table in everyday units (edit by hand or with `tools/vehicle_sheet.py`), converted to `CAR_TYPES`; picking a vehicle type by weight |
 | `js/01d-sky-data.js` | the day, night and weather settings in everyday units (edit by hand or with `tools/settings_sheet.py sky`), converted to `SKYP` |
 | `js/01e-radio-data.js` | the car radio stations: name, frequency, style, colour, music file; radio volume |
+| `js/01f-weapon-data.js` | the weapon table in everyday units (edit by hand or with `tools/weapon_sheet.py`), converted to `WEAPONS`; drafts are left out |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |

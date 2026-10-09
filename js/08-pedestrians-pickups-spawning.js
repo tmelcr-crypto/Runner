@@ -123,19 +123,23 @@ function spawnPickup() {                      // anywhere on the map: a random s
     let r = Math.random() * total, e = 0; while (e < RE.length - 1 && r > RE[e].len) { r -= RE[e].len; e++; }
     const w = { e, fw: 1, s: r, side: Math.random() < 0.5 ? 1 : -1 }, q = sidewalkPoint(w, 0, {});
     if (shoreDist(q.x, q.y) < 12 || pedBlocked(q.x, q.y) || pickups.some(k => dist(k.x, k.y, q.x, q.y) < 200)) continue;
-    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'sniper', 'rocket', 'cash', 'cash']), bob: rand(0, 6) }); return;
+    pickups.push({ x: q.x, y: q.y, type: pickupType(), bob: rand(0, 6) }); return;
   }
+}
+function pickupType() {                       // health 1, cash 2, and each weapon's ammo as often as its pickup weight (js/01f)
+  const ws = [['health', 1], ['cash', 2], ...WEAPONS.filter(w => w.pickup > 0).map(w => [w.id, w.pickW])];
+  let r = Math.random() * ws.reduce((a, q) => a + q[1], 0); for (const [t, n] of ws) if ((r -= n) <= 0) return t; return 'health';
 }
 function updatePickups(dt) {
   for (let k = pickups.length - 1; k >= 0; k--) {
     const p = pickups[k]; p.bob += dt * 4;
     if (dist(P.x, P.y, p.x, p.y) > 26) continue;
     if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
-    else if (p.type === 'pistol') { P.ammo[0] = Math.min(250, P.ammo[0] + 24); popup(p.x, p.y - 12, '+24 PISTOL', '#3fe0ff'); }
-    else if (p.type === 'mg') { P.ammo[1] = Math.min(400, P.ammo[1] + 60); popup(p.x, p.y - 12, '+60 MG', '#3fe0ff'); }
-    else if (p.type === 'sniper') { P.ammo[2] = Math.min(60, P.ammo[2] + 10); popup(p.x, p.y - 12, '+10 SNIPER', '#3fe0ff'); }
-    else if (p.type === 'rocket') { P.ammo[3] = Math.min(12, P.ammo[3] + 2); popup(p.x, p.y - 12, '+2 ROCKETS', '#ff9d2b'); }
-    else addScore(500, p.x, p.y, 'CASH');
+    else if (p.type === 'cash') addScore(500, p.x, p.y, 'CASH');
+    else {                                                          // ammunition: as much as the weapon table says, up to what you can carry
+      const wi = WEAPONS.findIndex(w => w.id === p.type), w = WEAPONS[wi]; if (!w) { pickups.splice(k, 1); continue; }
+      P.ammo[wi] = Math.min(Math.max(w.maxAmmo, P.ammo[wi]), P.ammo[wi] + w.pickup); popup(p.x, p.y - 12, '+' + w.pickup + ' ' + w.short, w.blast ? '#ff9d2b' : '#3fe0ff');
+    }
     Snd.pickup(); pickups.splice(k, 1); pickupQ.push(gameT + PICKUP_BACK);
   }
   while (pickupQ.length && pickupQ[0] <= gameT) { pickupQ.shift(); spawnPickup(); }

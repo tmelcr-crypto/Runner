@@ -32,8 +32,10 @@ let wheelOpen = false;
     const b = document.createElement('button'), a = (-90 + i * 360 / n) * Math.PI / 180;
     b.type = 'button'; b.className = 'wslot'; b.dataset.w = i;
     b.style.left = (50 + Math.cos(a) * 31) + '%'; b.style.top = (50 + Math.sin(a) * 31) + '%';
-    b.innerHTML = '<span class="wico">' + WICON[w.id] + '</span><span class="wn">' + w.name + '</span><span class="wa"></span><span class="wk">' + (i + 1) + '</span>';
+    b.innerHTML = '<span class="wico">' + (WICON[w.id] || WICON.pistol) + '</span><span class="wn">' + w.name + '</span><span class="wa"></span><span class="wk">' + (i + 1) + '</span>';
     b.addEventListener('click', e => { e.stopPropagation(); pickWeapon(i); });
+    b.addEventListener('pointerenter', () => { $('wcName').textContent = w.name; $('wHow').textContent = w.howTo || ''; });   // pointing at a weapon: how it is used
+    b.addEventListener('pointerleave', () => { $('wcName').textContent = WEAPONS[P.weapon].name; $('wHow').textContent = WEAPONS[P.weapon].howTo || ''; });
     ring.appendChild(b);
   });
   ring.addEventListener('click', e => e.stopPropagation());
@@ -49,7 +51,7 @@ function toggleWheel(on) {
     const i = +b.dataset.w; b.classList.toggle('on', i === P.weapon); b.classList.toggle('empty', P.mag[i] + P.ammo[i] <= 0);
     b.querySelector('.wa').textContent = pad(P.mag[i], 2) + ' / ' + pad(P.ammo[i], 3);
   }
-  $('wcName').textContent = WEAPONS[P.weapon].name;
+  $('wcName').textContent = WEAPONS[P.weapon].name; $('wHow').textContent = WEAPONS[P.weapon].howTo || '';   // how to use it (weapon table)
   Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.tone(520, 760, 0.06, 0.1, 'square');
 }
 function pickWeapon(i) {
@@ -105,7 +107,7 @@ function updateScope(inp, dt) {         // called from updatePlayer while a scop
   SCOPE.ready = ready;
   if (ready && w.rocket && SCOPE.aim) {                          // the launcher's sight reads out the range, and warns when the blast would reach you
     const m = Math.round(dist(P.x, P.y, SCOPE.aim.x, SCOPE.aim.y) / MPS);
-    SCOPE.tag = (m * MPS < RK_R + 20 ? 'DANGER CLOSE ' : SCOPE.hit ? 'ON TARGET ' : 'RANGE ') + m + ' M';
+    SCOPE.tag = (m * MPS < (w.blast || RK_R) + 20 ? 'DANGER CLOSE ' : SCOPE.hit ? 'ON TARGET ' : 'RANGE ') + m + ' M';
   } else SCOPE.tag = ready && SCOPE.hit ? 'ON TARGET' : tag;
   if (!held) {                                                   // let go: the shot
     if (ready && SCOPE.aim) {

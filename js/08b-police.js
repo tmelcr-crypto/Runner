@@ -264,7 +264,10 @@ function respawn() {
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: 100, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
     rel: 0, relW: -1, cool: 0, hurtT: 0, trig: false, dry: false, score: P.score - lose });
   if (P.knocked) { P.knocked = false; P.air = 0; P.kvx = P.kvy = P.kvz = 0; const i = KNOCK.indexOf(P); if (i >= 0) KNOCK.splice(i, 1); }
-  if (strip) { P.ammo = WEAPONS.map((w, i) => i ? 0 : w.ammo); P.mag = WEAPONS.map((w, i) => i ? 0 : w.mag); P.weapon = 0; }
+  if (strip) {                                                    // they take your weapons, except the ones the weapon table lets you keep
+    P.ammo = WEAPONS.map((w, i) => w.keep ? Math.max(P.ammo[i], w.ammo) : 0); P.mag = WEAPONS.map((w, i) => w.keep ? w.mag : 0);
+    P.weapon = Math.max(0, WEAPONS.findIndex(w => w.keep));
+  }
   clearRockets(); officers = []; resetPolice();
   for (const c of cars) if (c.driver === 'cop' || c.crewOut) { c.driver = 'ai'; c.crewOut = c.crewIn = 0; c.e = -1; c.searching = false; }
   cars = cars.filter(c => c.keep || dist(c.x, c.y, P.x, P.y) < 2200); CALLS = []; peds = peds.filter(p => !p.dead && dist(p.x, p.y, P.x, P.y) < 1500);

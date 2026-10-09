@@ -9,13 +9,15 @@
    about five seconds to fade. */
 let rockets = [];
 const RK_V0 = 280, RK_V1 = 650, RK_ACC = 1100, RK_H0 = 12, RK_STEP = 5, RK_R = 130, RK_BURN = 3600, RK_SRC = { byPlayer: true };
+const RK_DEF = { stray: 0.05, strayDeg: 40, speed: RK_V1, blast: RK_R, heat: 10, hear: 420, shake: 5 };   // the tank's gun when the table has no rocket weapon
 const _rkb = [];
 function launchRocket(aim, w, car) {    // car: fired from a vehicle (the tank's gun): leaves from the muzzle and never hits that vehicle
   const ox = car ? car.x : P.x, oy = car ? car.y : P.y, off = car ? car.t.len / 2 + 18 : 22;
   let ang = car ? car.ang : Math.atan2(aim.y - oy, aim.x - ox);
   const stray = Math.random() < w.stray;
   if (stray) ang += (Math.random() < 0.5 ? -1 : 1) * w.strayDeg * Math.PI / 180;      // the dud
-  rockets.push({ x: ox + Math.cos(ang) * off, y: oy + Math.sin(ang) * off, ang, v: car ? RK_V1 * 0.8 : RK_V0, h: car ? 17 : RK_H0, vh: 0, s: off, D: Math.max(30, dist(ox, oy, aim.x, aim.y)),
+  const vmax = w.speed || RK_V1;                                  // top speed and blast size from the weapon table (js/01f)
+  rockets.push({ vmax, R: w.blast || RK_R, x: ox + Math.cos(ang) * off, y: oy + Math.sin(ang) * off, ang, v: car ? vmax * 0.8 : Math.min(RK_V0, vmax), h: car ? 17 : RK_H0, vh: 0, s: off, D: Math.max(30, dist(ox, oy, aim.x, aim.y)),
     stray, wander: false, wt: 0, wa: 0, wA: 0, wf: 0, wp: 0, wNext: 0, burnt: false, puff: 0, mesh: null, glow: null, dead: false, src: car || null });
   const bx = car ? ox + Math.cos(ang) * off : ox - Math.cos(ang) * 16, by = car ? oy + Math.sin(ang) * off : oy - Math.sin(ang) * 16, bk = car ? -0.3 : 1;   // back-blast, or the muzzle smoke
   for (let k = 0; k < 10; k++) addP({ x: bx + rand(-4, 4), y: by + rand(-4, 4), z: rand(10, 16), vz: rand(5, 20), grav: 0,
@@ -30,7 +32,7 @@ function rocketHits(x, y, src) {        // anything solid at this point? (never 
 }
 function rocketBoom(r, x, y) {
   r.dead = true; r.x = x; r.y = y;
-  explosion(x, y, RK_R, RK_SRC); alertPeds(x, y, 500); reportCrime(COP.crime.blast, COP.blastHear, x, y, true);
+  explosion(x, y, r.R, RK_SRC); alertPeds(x, y, 500); reportCrime(COP.crime.blast, COP.blastHear, x, y, true);
 }
 function wanderTurn(r, dt) {            // past the target: the heading swings in waves whose size and pace drift at random - never a sharp turn
   if (!r.wander) { r.wander = true; r.ph = Math.random() < 0.5 ? 0 : Math.PI; r.wa = 0; r.wA = rand(0.7, 1.5); r.wf = r.wF = rand(2, 3.4); r.wNext = rand(0.6, 1.2); }
@@ -41,7 +43,7 @@ function wanderTurn(r, dt) {            // past the target: the heading swings i
 function updateRockets(dt) {
   for (const r of rockets) {
     if (r.dead) continue;
-    if (!r.burnt) r.v = Math.min(RK_V1, r.v + RK_ACC * dt);
+    if (!r.burnt) r.v = Math.min(r.vmax, r.v + RK_ACC * dt);
     if (r.s >= r.D) wanderTurn(r, dt);                              // keeps swinging after burn-out too, so the path never kinks
     if (r.burnt) { r.vh -= 500 * dt; r.h += r.vh * dt; }          // motor out: it drops
     const dx = Math.cos(r.ang), dy = Math.sin(r.ang); let go = r.v * dt;

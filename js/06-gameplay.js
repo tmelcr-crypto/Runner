@@ -6,7 +6,7 @@ let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play 
    lose them (1 = as in the police table); crowd: traffic and people (1 = normal); start: 'usual', 'random' or a district name */
 const OPT_DEF = { time: SKYP.startHour, weather: 'change', clock: 1, police: 1, crowd: 1, start: 'usual' }, OPT = Object.assign({}, OPT_DEF);
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
-const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: WEAPONS.map(w => w.ammo), mag: WEAPONS.map(w => w.mag), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, ammo: startAmmo(), mag: startMag(), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
   heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
 const cam = { x: MW / 2, y: MH / 2, zoom: 1, shake: 0 };
 let boomFlash = null;
@@ -109,7 +109,7 @@ function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and 
   for (const h of hits) {
     const x = ox + dx * h.t, y = oy + dy * h.t;
     if (h.type === 'soft') { spark(x, y, 3); continue; }                                  // straight through the dumpster
-    if (h.type === 'car' && !h.obj.t.armored && through < 1) { through++; spark(x, y, 5); damageCar(h.obj, w.dmg * 0.55, true); continue; }   // and through one car
+    if (h.type === 'car' && !h.obj.t.armored && through < 1) { through++; spark(x, y, 5); damageCar(h.obj, w.dmg * w.carDmg, true); continue; }   // and through one car
     return { x, y, type: h.type, obj: h.obj, t: h.t, dx, dy };
   }
   return { x: ox + dx * R, y: oy + dy * R, type: null, obj: null, t: R, dx, dy };
@@ -136,17 +136,23 @@ function fireWeapon(aim) {                                      // aim: a point 
   if (aim) P.ang = a;
   if (w.rocket) {                                                // a rocket: it flies on its own (js/12b) and blows up on whatever it hits
     launchRocket(aim || { x: P.x + Math.cos(a) * 400, y: P.y + Math.sin(a) * 400 }, w); Snd.rocket();
-    alertPeds(P.x, P.y, 500); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true); cam.shake = Math.max(cam.shake, w.shake); return;
+    alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true); cam.shake = Math.max(cam.shake, w.shake); return;
   }
-  const h = w.scope ? rifleRay(P.x, P.y, a, w) : raycast(P.x, P.y, a, w.range);
+  let h = null;
+  for (let k = 0; k < w.pellets; k++) {                          // a shotgun fires several pellets at once, each with its own spread
+    const pa = k ? P.ang + rand(-w.spread, w.spread) : a;
+    h = w.pierce ? rifleRay(P.x, P.y, pa, w) : raycast(P.x, P.y, pa, w.range); bulletHit(h, w, pa);
+  }
+  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true);
+  cam.shake = Math.max(cam.shake, w.shake);
+}
+function bulletHit(h, w, a) {                                   // one bullet: the tracer, and what it hit
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
   if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } else { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
   else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); else { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } }
-  else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * 0.55, true); }
+  else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * w.carDmg, true); }
   else if (h.type === 'wall') spark(h.x, h.y, 4);
-  Snd.shot(w.id); alertPeds(P.x, P.y, w.scope ? 600 : 380); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true);
-  cam.shake = Math.max(cam.shake, w.shake);
 }
 
 function pedBlocked(x, y) {

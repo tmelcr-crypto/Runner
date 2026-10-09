@@ -19,19 +19,7 @@ const UNITS_PER_M = 12, MPS = UNITS_PER_M, KMH = UNITS_PER_M / 3.6, G_ACC = 9.81
 const LAT_GRIP = 2 * G_ACC;                                   // cornering limit: about twice a road car's grip, so driving stays fun
 const WALK = 1.4 * MPS, RUN = 5 * MPS, SPRINT = 7 * MPS;      // people: a stroll, a run, a flat-out sprint
 const FOOT = 1.15;                                              // the player is 15% quicker on foot than other people
-// rate: seconds between shots; reload: seconds to swap a magazine; ammo: rounds you start with besides the full magazine.
-// The sniper rifle only fires standing still: hold FIRE, drag to the target in a 4x scope, let go to shoot. Its range is the whole screen.
-const WEAPONS = [
-  { id: 'pistol', name: 'PISTOL', short: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, ammo: 60, reload: 5, hear: 140, shake: 3 },
-  { id: 'mg', name: 'MACHINE GUN', short: 'MG', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, ammo: 120, reload: 5, hear: 200, shake: 2.2 },
-  { id: 'sniper', name: 'SNIPER RIFLE', short: 'SNIPER', rate: 1.5, dmg: 160, spread: 0, range: 4000, heat: 6, auto: false, mag: 5, ammo: 15, reload: 10, hear: 320, shake: 6,
-    scope: { zoom: 4, shape: 'round', blur: true, los: true, hold: true } },
-  // the rocket launcher aims like the rifle (stand still, hold, drag, let go) through its own sight; one rocket per load
-  { id: 'rocket', name: 'ROCKET LAUNCHER', short: 'ROCKET', rate: 0.5, dmg: 0, spread: 0, range: 2600, heat: 10, auto: false, mag: 1, ammo: 4, reload: 5, hear: 420, shake: 5,
-    rocket: true, stray: 0.05, strayDeg: 40, scope: { zoom: 2, shape: 'rect', blur: false, los: false, hold: false } }
-];
-// scope: zoom, shape (round / rect), blur (the rest of the view blurred, else darkened), los (fires only with a clear line of sight),
-// hold (stays up after the shot while the next round is chambered)
+// the weapons: js/01f-weapon-data.js (WEAPONS)
 
 const $ = id => document.getElementById(id);
 const cv = $('game');

@@ -234,7 +234,7 @@ function syncPickup(p, time) {
     else if (p.type === 'rocket') { part(it, GB, mc(0x3d4528), 18, 8, 10, 0, 0, 0); part(it, GB, mBas(0xff9d2b), 18.4, 1.6, 10.4, 0, 1, 0); part(it, GB, mBas(0xff9d2b), 2, 1, 8, -5, 4.5, 0); part(it, GB, mBas(0xff9d2b), 2, 1, 8, 5, 4.5, 0); }   // a crate with orange bands
     else if (p.type === 'sniper') { part(it, GB, mc(0x2a2410), 18, 6, 7, 0, 0, 0); part(it, GB, mBas(0xffe14a), 14, 1, 1.4, 0, 3.4, 0); }   // a long case with a yellow stripe
     else { part(it, GB, mc(0x17304a), 11, 8, 9, 0, 0, 0); for (let k = 0; k < (p.type === 'mg' ? 3 : 1); k++) part(it, GB, mBas(0x3fe0ff), 1.8, 1, 5, (p.type === 'mg' ? (k - 1) * 3 : 0), 4.4, 0); }
-    part(g, GCyl, new THREE.MeshBasicMaterial({ color: PICK_COL[p.type], transparent: true, opacity: 0.2, depthWrite: false }), 2.6, 60, 2.6, 0, 30, 0);
+    part(g, GCyl, new THREE.MeshBasicMaterial({ color: PICK_COL[p.type] || 0x3fe0ff, transparent: true, opacity: 0.2, depthWrite: false }), 2.6, 60, 2.6, 0, 30, 0);
     g.userData.it = it; p.mesh = g; scene.add(g);
   }
   track(p); const it = p.mesh.userData.it;
