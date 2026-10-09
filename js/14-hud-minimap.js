@@ -71,7 +71,7 @@ function updateHud(time) {
   const w = WEAPONS[P.weapon], am = String(P.ammo[P.weapon]).padStart(3, '0');
   setText('wname', 'wname', w.name); setText('ammo', 'ammo', String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);
   $('ammo').classList.toggle('empty', P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
-  { const rl = $('reload'), a = P.act, on = !!a || P.relW >= 0, t = a ? a.t : P.rel, dur = a ? a.dur : RELOAD_T, lab = a ? (a.k === 'steal' ? 'STEALING ' : 'STARTING ') : 'RELOADING ';
+  { const rl = $('reload'), a = P.act, on = !!a || P.relW >= 0, t = a ? a.t : P.rel, dur = a ? a.dur : RELOAD_T, lab = a ? (a.occ ? 'CARJACKING ' : 'STEALING ') : 'RELOADING ';
     if (H.rl !== on) { H.rl = on; rl.classList.toggle('on', on); }
     if (H.ra !== !!a) { H.ra = !!a; rl.firstElementChild.style.background = a ? 'var(--cyan)' : ''; }
     if (on) { rl.firstElementChild.style.width = Math.min(100, t / dur * 100) + '%'; rl.lastElementChild.textContent = lab + Math.max(0, dur - t).toFixed(1) + 's'; } }
@@ -84,7 +84,8 @@ function updateHud(time) {
   if (c) {
     vname = c.t.name; vhp = Math.round(c.hp / c.maxhp * 100); vinfo = (touchMode ? P.gear + '  ' : '') + Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
-  } else { const n = nearestCar(); if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
+  } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
+  else { const n = nearestCar(); if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
   const bf = $('bFire'); if (bf.hidden !== !!c) bf.hidden = !!c;

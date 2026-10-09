@@ -157,22 +157,25 @@ function enterCar(c) {
   else reportCrime(5, 0);
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
 }
+function letGo(c) {                                              // a carjacking given up or lost: you drop off beside the car
+  const rx = -Math.sin(c.ang), ry = Math.cos(c.ang), s = c.t.wid / 2 + 14;
+  for (const sd of [1, -1]) { const x = c.x + rx * s * sd, y = c.y + ry * s * sd; if (!pedBlocked(x, y) && shoreDist(x, y) > 4) { P.x = x; P.y = y; break; } }
+  P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
+}
 function tryEnterExit() {
-  if (P.act) { const a = P.act; P.act = null; if (a.k === 'start' && P.car) exitCar(); return; }      // tap again to give up
+  if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
   if (P.car) { exitCar(); return; }
   const c = nearestCar(); if (!c) return;
   const occ = c.driver === 'ai' || c.driver === 'cop';
-  P.act = { k: 'steal', c, t: 0, dur: occ ? 5 : 3, occ }; P.vx = P.vy = 0;       // the driver stays put until the time is up
+  P.act = { k: 'steal', c, t: 0, dur: occ ? 3 : 1, occ }; P.vx = P.vy = 0;       // an empty car takes a second; pulling a driver out takes three
 }
-function updateAct(dt) {
+function updateAct(dt) {                                         // stealing: when the time is up you are in and can drive off at once
   const a = P.act, c = a.c;
-  if (P.dead || (a.k === 'steal' && (c.dead || c.sunk || P.car)) || (a.k === 'start' && P.car !== c)) { P.act = null; return; }
+  if (P.dead || c.dead || c.sunk || P.car) { P.act = null; if (a.occ && !P.dead && !P.car) letGo(c); return; }
   a.t += dt;
-  if (a.k === 'steal') {
-    if (a.occ) { P.x = c.x; P.y = c.y; P.vx = c.vx; P.vy = c.vy; }
-    else if (c.driver === 'ai' || c.driver === 'cop') { P.act = null; return; }
-    if (a.t >= a.dur) { enterCar(c); P.act = a.occ ? null : { k: 'start', c, t: 0, dur: 3, occ: false }; }
-  } else if (a.t >= a.dur) P.act = null;
+  if (a.occ) { P.x = c.x; P.y = c.y; P.vx = c.vx; P.vy = c.vy; cam.shake = Math.max(cam.shake, 1.5); }   // hanging on at the door, fighting for the wheel
+  else if (c.driver === 'ai' || c.driver === 'cop') { P.act = null; return; }
+  if (a.t >= a.dur) { P.act = null; enterCar(c); }
 }
 function nearestCar() {
   let best = null, bd = 1e9;
@@ -186,8 +189,7 @@ function nearestCar() {
 function updatePlayer(dt, inp) {
   P.cool -= dt; P.flash -= dt; P.hurtT -= dt; P.sinceCrime += dt;
   if (P.act) updateAct(dt);
-  if (P.act && P.act.k === 'start' && P.car) { const c = P.car; c.thr = 0; c.str = 0; c.hb = true; c.assist = false; c.fs = 0; P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; return; }
-  if (P.act && P.act.k === 'steal') { if (!P.act.occ) { P.vx = P.vy = 0; } P.cool = Math.max(P.cool, 0.1); return; }
+  if (P.act) { if (!P.act.occ) { P.vx = P.vy = 0; } P.cool = Math.max(P.cool, 0.1); return; }
   if (P.car) {
     const c = P.car, sm = Math.hypot(TS.mx, TS.my);
     if (touchMode && sm > 0.12) {          // joystick = where you want to go; gear D drives that way, gear R backs toward it
@@ -207,7 +209,7 @@ function updatePlayer(dt, inp) {
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
   // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
   const gait = mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(WALK, 2.4 * MPS, (mg - 0.4) / 0.4) : lerp(3.5 * MPS, RUN, (mg - 0.8) / 0.2);
-  const sp = (inp.sprint && mg > 0.4 ? SPRINT : gait) * wk, m = Math.hypot(inp.ix, inp.iy) || 1;
+  const sp = (inp.sprint && mg > 0.4 ? SPRINT : gait) * wk * FOOT, m = Math.hypot(inp.ix, inp.iy) || 1;
   const k = 1 - Math.exp(-14 * dt);
   P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
   P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;
