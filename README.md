@@ -35,14 +35,14 @@ The police only know what they see or hear, and they come in small numbers.
 - **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire.
 - **Busted or wasted** is not the end: you start again at the nearest district's police station (bail: 10% of your score, and they keep your weapons except the pistol) or hospital (the bill: 10%).
 
-Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/police_sheet.py` turns it into a spreadsheet for iOS Numbers or Excel and reads an edited copy back (needs openpyxl):
+Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/police_sheet.py` turns it into an Apple Numbers file or an Excel workbook and reads an edited copy (either kind) back (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
 
 ```
-python3 tools/police_sheet.py export police.xlsx
-python3 tools/police_sheet.py import police.xlsx [--dry-run]
+python3 tools/police_sheet.py export police.numbers      # or police.xlsx
+python3 tools/police_sheet.py import police.numbers [--dry-run]
 ```
 
-The workbook has a sheet per kind of setting - Wanted levels (one column per star), Settings, Crimes - and a How to fill sheet. Yellow cells are the values; grey Check cells say OK or what is wrong. The import checks every value against its allowed range, lists what changed and only then rewrites the table.
+Both have a sheet per kind of setting - Wanted levels (one column per star), Settings, Crimes - and a How to fill sheet. Yellow cells are the values and YES / NO cells are pop-up menus. The Excel workbook also has grey Check cells that say OK or what is wrong; a Numbers file is written without formulas. The import checks every value against its allowed range, lists what changed and only then rewrites the table.
 
 ## Weapons
 

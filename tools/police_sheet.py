@@ -1,11 +1,13 @@
-"""Police settings <-> spreadsheet (iOS Numbers or Excel).
+"""Police settings <-> spreadsheet (Apple Numbers or Excel).
 
-  python3 tools/police_sheet.py export police.xlsx            write the police table from js/01b-police-data.js to a workbook
-  python3 tools/police_sheet.py import police.xlsx [--dry-run] read an edited workbook back, check it and rewrite the table
+  python3 tools/police_sheet.py export police.numbers           write the police table from js/01b-police-data.js as a Numbers file
+  python3 tools/police_sheet.py export police.xlsx              ... or as an Excel workbook
+  python3 tools/police_sheet.py import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
-The workbook is made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments, only simple
-functions. Yellow cells are the values to edit; grey cells are calculated. Import matches rows by the ID column, so rows may be
-moved around, but IDs must stay as they are. Needs openpyxl (pip install openpyxl)."""
+Both are made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments. Yellow cells are the
+values to edit, YES / NO cells are pop-up menus. The Excel workbook also has grey Check cells (simple formulas); a Numbers file cannot
+be written with formulas, so there the checks happen on import. Import matches rows by the ID column, so rows may be moved around,
+but IDs must stay as they are. Needs openpyxl for .xlsx and numbers-parser for .numbers (pip install openpyxl numbers-parser)."""
 import json, os, re, sys
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -116,20 +118,9 @@ def export(path):
 
     # How to fill
     g = wb.create_sheet('How to fill'); header(g, ['Item', 'What it means'], [24, 80])
-    tips = [
-        ('Yellow cells', 'The values you change. Tap a cell and type. YES / NO cells offer a list.', f_in),
-        ('Grey cells', 'Calculated - leave them. Check says OK, or what is wrong in that row or column.', f_calc),
-        ('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
-        ('Units', 'Distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h or m/s, times in seconds, % as 0 to 100.', None),
-        ('Heat and stars', 'Each crime the police see or hear adds heat (Crimes sheet). Enough heat gives a wanted level (Wanted levels: Heat needed). Heat below 1 star fades away; stars only go when you lose the police or pay a fine.', None),
-        ('Seeing', 'A cop sees you within Sight range, inside the Field of view, with nothing in between. Whoever sees you tells the others by radio.', None),
-        ('Searching', 'When nobody sees you they search around the spot where you were last seen (the red circle on the map, the stars blink). Out of sight for the level\'s time and they give up; inside the circle the time runs slower.', None),
-        ('Stop order', 'Levels with Stop order and fine = YES: a cop near you orders you to stop. Stand still (on foot or in your car) for the fine; ignore it and you get the next level.', None),
-        ('Arrest', 'Other levels: cars pull up beside you (or ram you where Cars ram you = YES), the crew gets out and a cop who holds you long enough arrests you. Drive away and they run back to their car.', None),
-        ('Shooting', 'Only on levels with Shoot on sight = YES, or Shoot back if attacked = YES after you fired, rammed a police car or hurt a cop. They shout a warning first and never shoot with a passer-by in the way.', None),
-        ('Busted / wasted', 'With Carry on after busted or wasted = YES you start again at the nearest police station or hospital and lose a share of your score (and your weapons, if set).', None),
-        ('Sending it back', 'Share or export the file as Excel (.xlsx) and upload it in the chat. Every yellow value is read back into the game.', None),
-    ]
+    tips = [('Yellow cells', 'The values you change. Tap a cell and type. YES / NO cells offer a list.', f_in),
+            ('Grey cells', 'Calculated - leave them. Check says OK, or what is wrong in that row or column.', f_calc)] + TIPS + [
+            ('Sending it back', 'Share or export the file as Excel (.xlsx) and upload it in the chat. Every yellow value is read back into the game.', None)]
     for i, (a, b_, fill) in enumerate(tips, start=2):
         c = cell(g, i, 1, a, '', bold=True); cell(g, i, 2, b_, '', wrap=True)
         if fill: c.fill = fill
@@ -138,10 +129,78 @@ def export(path):
     wb.save(path); print('saved', path)
 
 
+TIPS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+        ('Units', 'Distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h or m/s, times in seconds, % as 0 to 100.', None),
+        ('Heat and stars', 'Each crime the police see or hear adds heat (Crimes sheet). Enough heat gives a wanted level (Wanted levels: Heat needed). Heat below 1 star fades away; stars only go when you lose the police or pay a fine.', None),
+        ('Seeing', 'A cop sees you within Sight range, inside the Field of view, with nothing in between. Whoever sees you tells the others by radio.', None),
+        ('Searching', 'When nobody sees you they search around the spot where you were last seen (the red circle on the map, the stars blink). Out of sight for the level\'s time and they give up; inside the circle the time runs slower.', None),
+        ('Stop order', 'Levels with Stop order and fine = YES: a cop near you orders you to stop. Stand still (on foot or in your car) for the fine; ignore it and you get the next level.', None),
+        ('Arrest', 'Other levels: cars pull up beside you (or ram you where Cars ram you = YES), the crew gets out and a cop who holds you long enough arrests you. Drive away and they run back to their car.', None),
+        ('Shooting', 'Only on levels with Shoot on sight = YES, or Shoot back if attacked = YES after you fired, rammed a police car or hurt a cop. They shout a warning first and never shoot with a passer-by in the way.', None),
+        ('Busted / wasted', 'With Carry on after busted or wasted = YES you start again at the nearest police station or hospital and lose a share of your score (and your weapons, if set).', None)]
+
+
+def exact_numbers():
+    """numbers-parser stores a number as decimal128 through a float division, so 53 is saved as 52.99999999999999.
+    Store the shortest decimal form of the value instead: 53 stays 53, 37.5 stays 37.5."""
+    from decimal import Decimal
+    import numbers_parser.cell as nc
+    def pack(value):
+        sign, digits, exp = (Decimal(value) if isinstance(value, int) else Decimal(repr(float(value)))).as_tuple()
+        m, e, buf = int(''.join(map(str, digits)) or 0), exp + nc.DECIMAL128_BIAS, bytearray(16)
+        buf[15] |= e >> 7; buf[14] |= (e & 0x7F) << 1
+        for k in range(14): buf[k] = m & 0xFF; m >>= 8
+        buf[14] |= m & 1
+        if sign: buf[15] |= 0x80
+        return buf
+    nc._pack_decimal128 = pack
+
+
+def export_numbers(path):                   # the same tables as a Numbers document: values, colours, pop-up menus (no formulas)
+    from numbers_parser import Alignment, Document, RGB
+    exact_numbers()
+    t = read_table()[3]; doc = None
+    def table(name, rows, cols, widths):
+        nonlocal doc
+        if doc is None: doc = Document(sheet_name=name, table_name=name, num_header_rows=1, num_header_cols=1, num_rows=rows, num_cols=cols)
+        else: doc.add_sheet(name, name, num_rows=rows, num_cols=cols)
+        tb = doc.sheets[-1].tables[0]; tb.num_header_rows = 1; tb.num_header_cols = 1
+        for k, w in enumerate(widths): tb.col_width(k, w)
+        return tb
+    def style(name, **kw): return doc.add_style(name=name, font_name='Helvetica Neue', font_size=kw.pop('size', 11.0), alignment=Alignment(kw.pop('h', 'left'), 'middle'), **kw)
+    tb = table(SHEETS['levels'], len(t['levels']) + 1, 10, [170, 58, 58, 58, 58, 58, 62, 80, 330, 80])
+    S = {'head': style('BR head', bg_color=RGB(43, 36, 66), font_color=RGB(255, 255, 255), bold=True), 'lab': style('BR label', bg_color=RGB(228, 224, 242), bold=True),
+         'in': style('BR value', bg_color=RGB(255, 247, 204), font_color=RGB(0, 0, 255), h='center'), 'txt': style('BR text'),
+         'id': style('BR id', font_color=RGB(138, 138, 138), size=9.0), 'grp': style('BR group', bg_color=RGB(243, 241, 250))}
+    def put(tb, r, c, v, k): tb.write(r, c, v, style=S[k])
+    def value(tb, r, c, row, v):
+        if row['unit'] == 'yes/no': put(tb, r, c, yn(v), 'in'); tb.set_cell_formatting(r, c, 'popup', popup_values=['YES', 'NO'], allow_none=False)
+        else: put(tb, r, c, v, 'in')
+    def head(tb, names): [put(tb, 0, k, n, 'head') for k, n in enumerate(names)]
+    head(tb, ['Setting'] + STARS + ['Unit', 'Allowed', 'What it does', 'ID'])
+    for i, r in enumerate(t['levels'], start=1):
+        put(tb, i, 0, r['name'], 'lab')
+        for k, v in enumerate(r['v']): value(tb, i, 1 + k, r, v)
+        put(tb, i, 6, r['unit'], 'txt'); put(tb, i, 7, allowed(r), 'txt'); put(tb, i, 8, r['note'], 'txt'); put(tb, i, 9, r['id'], 'id'); tb.row_height(i, 48)
+    for key, names, widths in (('settings', ['Setting', 'Value', 'Unit', 'Allowed', 'What it does', 'Group', 'ID'], [180, 62, 62, 80, 330, 110, 90]),
+                               ('crimes', ['Crime', 'Heat', 'Unit', 'Allowed', 'Note', 'ID'], [210, 58, 58, 74, 330, 80])):
+        tb = table(SHEETS[key], len(t[key]) + 1, len(names), widths); head(tb, names)
+        for i, r in enumerate(t[key], start=1):
+            put(tb, i, 0, r['name'], 'lab'); value(tb, i, 1, r, r['v']); put(tb, i, 2, r['unit'], 'txt'); put(tb, i, 3, allowed(r), 'txt'); put(tb, i, 4, r['note'], 'txt')
+            if 'group' in r: put(tb, i, 5, r['group'], 'grp')
+            put(tb, i, len(names) - 1, r['id'], 'id'); tb.row_height(i, 48 if len(r['note']) > 60 else 32)
+    tips = [('Yellow cells', 'The values you change. Tap a cell and type; YES / NO cells are pop-up menus. The Allowed column shows what each one takes.'),
+            ('Checks', 'This Numbers file has no formulas: every value is checked when the file comes back, and anything out of range is listed for you to fix.')] + \
+           [(a, b_) for a, b_, _ in TIPS] + [('Sending it back', 'Upload the .numbers file in the chat as it is (or export it as Excel). Every yellow value is read back into the game.')]
+    tb = table('How to fill', len(tips) + 1, 2, [150, 520]); head(tb, ['Item', 'What it means'])
+    for i, (a, b_) in enumerate(tips, start=1): put(tb, i, 0, a, 'lab'); put(tb, i, 1, b_, 'txt'); tb.row_height(i, 48)
+    doc.save(path); print('saved', path)
+
+
 # ---------- import ----------
 def num(v):
     if isinstance(v, bool): return None
-    if isinstance(v, (int, float)): return int(v) if float(v).is_integer() else round(float(v), 6)
+    if isinstance(v, (int, float)): v = round(float(v), 6); return int(v) if v.is_integer() else v   # Numbers can give 50.00000000000001
     if isinstance(v, str):
         try: return num(float(v.strip().replace(',', '.')))
         except ValueError: return None
@@ -155,16 +214,23 @@ def yesno(v):
     return None
 
 
-def find_sheet(wb, title):                  # Numbers may rename "Settings" to "Settings - Table 1" on export
-    for ws in wb.worksheets:
-        if ws.title == title or ws.title.startswith(title + ' ') or ws.title.startswith(title + '-'): return ws
+def read_sheets(path):                      # {sheet name: rows of values}, from a Numbers file or an Excel workbook
+    if path.lower().endswith('.numbers'):
+        from numbers_parser import Document
+        return {sh.name: [tuple(r) for tb in sh.tables for r in tb.rows(values_only=True)] for sh in Document(path).sheets}
+    return {ws.title: list(ws.iter_rows(values_only=True)) for ws in load_workbook(path, data_only=True).worksheets}
+
+
+def find_sheet(sheets, title):              # Numbers may rename "Settings" to "Settings - Table 1" on export to Excel
+    for name, rows in sheets.items():
+        if name == title or name.startswith(title + ' ') or name.startswith(title + '-'): return rows
     return None
 
 
-def sheet_rows(ws):
+def sheet_rows(rows_in):
     """header -> column map and {id: row values} for a sheet; the header is the first row that has an ID cell"""
     hdr, out = None, {}
-    for row in ws.iter_rows(values_only=True):
+    for row in rows_in:
         cells = [str(c).strip() if c is not None else '' for c in row]
         if hdr is None:
             if 'ID' in cells: hdr = {name.lower(): k for k, name in enumerate(cells) if name}
@@ -175,7 +241,7 @@ def sheet_rows(ws):
 
 
 def do_import(path, dry):
-    s, i, j, t = read_table(); wb = load_workbook(path, data_only=True); errors, changes = [], []
+    s, i, j, t = read_table(); wb = read_sheets(path); errors, changes = [], []
     def take(r, raw, where):
         if r['unit'] == 'yes/no':
             v = yesno(raw)
@@ -223,5 +289,5 @@ def do_import(path, dry):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3 or sys.argv[1] not in ('export', 'import'): print(__doc__); sys.exit(2)
-    if sys.argv[1] == 'export': export(sys.argv[2])
+    if sys.argv[1] == 'export': (export_numbers if sys.argv[2].lower().endswith('.numbers') else export)(sys.argv[2])
     else: do_import(sys.argv[2], '--dry-run' in sys.argv[3:])
