@@ -2,7 +2,7 @@
 /* ---------- 6c. PEDESTRIANS, OFFICERS, PICKUPS, SPAWNING ---------- */
 /* people walk the sidewalks: along a road edge, SIDEWALK units to one side of the centre line, picking a new edge at each junction */
 const _pw = {};
-function walkOffset(x, y) { return shoreDist(x, y) < 10 ? ROAD_HALF - 12 : SIDEWALK; }   // on bridges and at the water's edge, keep to the deck
+function walkOffset() { return SIDEWALK; }                        // every street has sidewalks, bridges too (inside the rails)
 function sidewalkPoint(p, ahead, out) {
   const E = RE[p.e], s = clamp(p.s + ahead, 0, E.len);
   lanePoint(p.e, p.fw, s, 0, out); const cx = out.x, cy = out.y, off = walkOffset(cx - out.ty * p.side * SIDEWALK, cy + out.tx * p.side * SIDEWALK) * p.side;
@@ -28,7 +28,7 @@ function updatePeds(dt) {
     if (p.e < 0) snapPed(p);
     let mx = 0, my = 0, sp = 0;
     if (p.state === 'flee') {
-      const m = Math.hypot(p.fx, p.fy) || 1; mx = p.fx / m; my = p.fy / m; sp = 150 * SPEED_K; p.fl -= dt;
+      const m = Math.hypot(p.fx, p.fy) || 1; mx = p.fx / m; my = p.fy / m; sp = 4.5 * MPS; p.fl -= dt;
       if (p.fl <= 0) { p.state = 'walk'; snapPed(p); }
     } else if (p.wait > 0) p.wait -= dt;
     else if (p.e >= 0) {
@@ -58,7 +58,7 @@ function copCombat(q, dt) {
   let mx = 0, my = 0, sp = 0; q.cool = (q.cool === undefined ? 0.5 : q.cool) - dt;
   if (P.stars >= 2) {
     q.cv = null;
-    if (d > 180 || !los) { mx = Math.cos(q.ang); my = Math.sin(q.ang); sp = 118 * SPEED_K; }
+    if (d > 180 || !los) { mx = Math.cos(q.ang); my = Math.sin(q.ang); sp = 5.5 * MPS; }
     if (los && d < COP_FIRE_RANGE && q.cool <= 0 && !P.dead) {
       q.cool = rand(0.6, 1.1);
       tracers.push({ x1: q.x + Math.cos(q.ang) * 14, y1: q.y + Math.sin(q.ang) * 14, x2: tgt.x + rand(-14, 14), y2: tgt.y + rand(-14, 14), life: 0.07 });
@@ -66,7 +66,7 @@ function copCombat(q, dt) {
       if (Math.random() < COP_ACCURACY) { if (P.car) damageCar(P.car, 5, false); else damagePlayer(6); }
     }
   } else if (P.stars === 1) {                         // one star: no shooting, they just want to catch you
-    q.cv = null; mx = Math.cos(q.ang); my = Math.sin(q.ang); sp = 118 * SPEED_K;
+    q.cv = null; mx = Math.cos(q.ang); my = Math.sin(q.ang); sp = 5.5 * MPS;
     const reach = P.car ? P.car.t.len / 2 + 16 : 19;
     if (!P.dead && d < reach && (!P.car || carSpeed(P.car) < 40)) bustPlayer();
     if (d < reach - 4) sp = 0;
@@ -125,13 +125,19 @@ function spawnPedNear(initial) {
   const s = initial ? sidewalkSpot(90, 1100, 30) : sidewalkSpot(visRadius() + 30, 1250, 25); if (!s) return;
   peds.push(makePed(s.x, s.y, s));
 }
-function laneSpot(minD, maxD, kerb) {         // a point on a lane (or at the kerb) between minD and maxD from the player
+function kerbFits(x, y, ang, type) {           // the whole car stands in the parking lane: on a bend it would poke into traffic or onto the sidewalk
+  const t = CAR_TYPES[type], o = t.len * 0.5 - (t.wid * 0.5 + 1), fx = Math.cos(ang), fy = Math.sin(ang);
+  for (const k of [-1, 0, 1]) { const r = nearestRoad(x + fx * o * k, y + fy * o * k, ROAD_HALF + 10); if (!r || Math.abs(r.d - PARK_OFF) > 2.5) return false; }
+  return true;
+}
+function laneSpot(minD, maxD, kerb) {         // a point on a lane (or, given a car type, in the parking lane) between minD and maxD from the player
   for (let tr = 0; tr < 40; tr++) {
     const a = rand(0, TAU), d0 = rand(minD, maxD), r = nearestRoad(P.x + Math.cos(a) * d0, P.y + Math.sin(a) * d0, 300); if (!r) continue;
-    const E = RE[r.e]; if (r.s < 60 || r.s > E.len - 60) continue;          // not in the middle of a junction
-    const fw = Math.random() < 0.5 ? 1 : -1, s = fw > 0 ? r.s : E.len - r.s, q = lanePoint(r.e, fw, s, kerb ? ROAD_HALF - 15 : LANE, {});
+    const E = RE[r.e], keep = kerb ? ROAD_HALF + SW_W + 60 : 60; if (E.nt || r.s < keep || r.s > E.len - keep) continue;   // not in a junction; parked cars stay clear of the corners
+    const fw = Math.random() < 0.5 ? 1 : -1, s = fw > 0 ? r.s : E.len - r.s, q = lanePoint(r.e, fw, s, kerb ? PARK_OFF : LANE, {});
     const d = dist(q.x, q.y, P.x, P.y); if (d < minD || d > maxD) continue;
     if (shoreDist(q.x, q.y) < (kerb ? 60 : 20) || cars.some(c => dist(c.x, c.y, q.x, q.y) < 90)) continue;
+    if (kerb && !kerbFits(q.x, q.y, Math.atan2(q.ty, q.tx), kerb)) continue;
     return { x: q.x, y: q.y, ang: Math.atan2(q.ty, q.tx), e: r.e, fw, s };
   }
   return null;
@@ -140,15 +146,23 @@ function spawnTraffic(initial) {
   const s = laneSpot(initial ? 140 : offDist(), initial ? 1100 : 1500); if (!s) return;
   const r = Math.random(), type = r < 0.5 ? 'sedan' : r < 0.7 ? 'sports' : r < 0.9 ? 'truck' : 'police';
   const c = makeCar(type, s.x, s.y, s.ang, 'ai'); c.e = s.e; c.fw = s.fw; c.s = s.s;
-  c.vx = Math.cos(c.ang) * 140 * SPEED_K; c.vy = Math.sin(c.ang) * 140 * SPEED_K; cars.push(c);
+  c.vx = Math.cos(c.ang) * 40 * KMH; c.vy = Math.sin(c.ang) * 40 * KMH; cars.push(c);
 }
-function spawnParked(initial) {
-  const s = laneSpot(initial ? 130 : offDist(), initial ? 1300 : 1500, true); if (!s) return;   // two wheels up on the kerb
-  cars.push(makeCar(pick(['sedan', 'sedan', 'sports', 'truck']), s.x, s.y, s.ang + rand(-0.05, 0.05), null));
+function spawnParked(initial) {                                    // in a parking lane at the kerb, or in a stall of a parking lot
+  const minD = initial ? 130 : offDist(), maxD = initial ? 1300 : 1500;
+  if (Math.random() < 0.45 && PARK_SPOTS.length) {
+    for (let tr = 0; tr < 6; tr++) {
+      const p = PARK_SPOTS[randi(0, PARK_SPOTS.length - 1)], d = dist(p.x, p.y, P.x, P.y);
+      if (d < minD || d > maxD || cars.some(c => dist(c.x, c.y, p.x, p.y) < 36)) continue;
+      cars.push(makeCar(pick(['sedan', 'sedan', 'sports']), p.x, p.y, p.ang + rand(-0.04, 0.04), null)); return;
+    }
+  }
+  const type = pick(['sedan', 'sedan', 'sports']), s = laneSpot(minD, maxD, type); if (!s) return;   // trucks are too wide for the parking lane
+  cars.push(makeCar(type, s.x, s.y, s.ang, null));
 }
 function spawnCop() {
   const s = laneSpot(offDist(), offDist() + 700); if (!s) return;
-  const c = makeCar('police', s.x, s.y, s.ang, 'cop'); c.vx = Math.cos(c.ang) * 200 * SPEED_K; c.vy = Math.sin(c.ang) * 200 * SPEED_K; cars.push(c);
+  const c = makeCar('police', s.x, s.y, s.ang, 'cop'); c.vx = Math.cos(c.ang) * 60 * KMH; c.vy = Math.sin(c.ang) * 60 * KMH; cars.push(c);
 }
 let spawnT = 0, copT = 0, offT = 0;
 function manageSpawns(dt) {

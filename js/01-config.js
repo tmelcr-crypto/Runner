@@ -1,8 +1,10 @@
 'use strict';
 /* ---------- 1. CONFIG & HELPERS ---------- */
 const MW = MAP.W, MH = MAP.H;                                          // world size (map from js/00-map-data.js)
-const ROAD_W = MAP.roadW, ROAD_HALF = ROAD_W / 2, LANE = 22;            // road width, lane centre offset from the centre line
-const SIDEWALK = ROAD_HALF + 8;                                         // where people walk, measured from the road centre line
+// a street, from the centre line out: traffic lane (centre at LANE), parking lane (cars park at PARK_OFF), kerb at ROAD_HALF, sidewalk SW_W wide.
+// With ROAD_W 132 a car parked at the kerb (only sedans and sports cars park there) stays clear of a truck passing in the lane.
+const ROAD_W = MAP.roadW, ROAD_HALF = ROAD_W / 2, LANE = 19, PARK_OFF = ROAD_HALF - 14, SW_W = MAP.sw || 16;
+const SIDEWALK = ROAD_HALF + SW_W / 2;                                  // people walk down the middle of the sidewalk
 const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const randi = (a, b) => Math.floor(rand(a, b + 1));
@@ -12,14 +14,17 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
 
-const SPEED_K = 0.75;      // one knob: every speed in the game (people, cops, cars) is scaled by this
-const CAR_TYPES = {
-  sedan:  { name: 'SEDAN',  len: 54, wid: 26, max: 430, acc: 420, turn: 2.7, grip: 5.5, hp: 100, mass: 1.0,  colors: ['#ff2bd6', '#2bf3ff', '#a259ff', '#ffe14a', '#3dffa6', '#6f86ff'] },
-  sports: { name: 'SPORTS', len: 52, wid: 24, max: 610, acc: 650, turn: 3.0, grip: 3.4, hp: 70,  mass: 0.85, colors: ['#ff2bd6', '#ffe14a', '#2bf3ff', '#ff4d4d'] },
-  truck:  { name: 'TRUCK',  len: 78, wid: 33, max: 330, acc: 250, turn: 1.9, grip: 6.5, hp: 220, mass: 2.4,  colors: ['#3d6fff', '#ff7a3d', '#3dffa6', '#b79cff'] },
-  police: { name: 'POLICE', len: 54, wid: 26, max: 570, acc: 570, turn: 2.9, grip: 5.0, hp: 130, mass: 1.1,  colors: ['#171a24'] }
+// real-world scale: 12 world units to the metre (a car is 54 units, 4.5 m long). Speeds are world units per second.
+const UNITS_PER_M = 12, MPS = UNITS_PER_M, KMH = UNITS_PER_M / 3.6, G_ACC = 9.81 * UNITS_PER_M;
+const LAT_GRIP = 2 * G_ACC;                                   // cornering limit: about twice a road car's grip, so driving stays fun
+const acc0to100 = (top, secs) => -top * KMH * Math.log(1 - 100 / top) / secs;   // throttle force that reaches 100 km/h in `secs`
+const CAR_TYPES = {  // top speed and 0-100 km/h as on the road (a little quicker off the line), braking about 1 g
+  sedan:  { name: 'SEDAN',  len: 54, wid: 26, max: 180 * KMH, acc: acc0to100(180, 7),   brake: 9.5 * MPS,  turn: 2.7, grip: 5.5, hp: 100, mass: 1.0,  colors: ['#ff2bd6', '#2bf3ff', '#a259ff', '#ffe14a', '#3dffa6', '#6f86ff'] },
+  sports: { name: 'SPORTS', len: 52, wid: 24, max: 260 * KMH, acc: acc0to100(260, 4),   brake: 10.5 * MPS, turn: 3.0, grip: 3.4, hp: 70,  mass: 0.85, colors: ['#ff2bd6', '#ffe14a', '#2bf3ff', '#ff4d4d'] },
+  truck:  { name: 'TRUCK',  len: 78, wid: 33, max: 130 * KMH, acc: acc0to100(130, 12),  brake: 7.5 * MPS,  turn: 1.9, grip: 6.5, hp: 220, mass: 2.4,  colors: ['#3d6fff', '#ff7a3d', '#3dffa6', '#b79cff'] },
+  police: { name: 'POLICE', len: 54, wid: 26, max: 220 * KMH, acc: acc0to100(220, 5.5), brake: 10 * MPS,   turn: 2.9, grip: 5.0, hp: 130, mass: 1.1,  colors: ['#171a24'] }
 };
-for (const k in CAR_TYPES) { CAR_TYPES[k].max *= SPEED_K; CAR_TYPES[k].acc *= SPEED_K; }
+const WALK = 1.4 * MPS, RUN = 5 * MPS, SPRINT = 7 * MPS;      // people: a stroll, a run, a flat-out sprint
 const WEAPONS = [
   { name: 'PISTOL', rate: 0.27, dmg: 28, spread: 0.03, range: 560, heat: 3.2, auto: false, mag: 7, hear: 140 },
   { name: 'MACHINE GUN', rate: 0.085, dmg: 13, spread: 0.09, range: 600, heat: 1.5, auto: true, mag: 30, hear: 200 }

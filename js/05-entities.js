@@ -15,12 +15,12 @@ function carCircles(c) {
 const carSpeed = c => Math.hypot(c.vx, c.vy);
 // w: a sidewalk spot { e, fw, s, side } from sidewalkSpot(); without one the person finds the nearest sidewalk on the next update
 function makePed(x, y, w) {
-  return { x, y, e: w ? w.e : -1, fw: w ? w.fw : 1, s: w ? w.s : 0, side: w ? w.side : 1, speed: rand(52, 78) * SPEED_K, hp: 30, state: 'walk', fl: 0, fx: 0, fy: 0, dead: false, deadT: 0, wait: 0,
+  return { x, y, e: w ? w.e : -1, fw: w ? w.fw : 1, s: w ? w.s : 0, side: w ? w.side : 1, speed: rand(1.15, 1.6) * MPS, hp: 30, state: 'walk', fl: 0, fx: 0, fy: 0, dead: false, deadT: 0, wait: 0,
     shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']),
     skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']), bob: rand(0, 6), vx: 0, vy: 0 };
 }
-function makeFootCop(x, y, w) { const p = makePed(x, y, w); p.cop = true; p.hp = 45; p.speed = rand(46, 60) * SPEED_K; p.hd = 0; p.ang = 0; return p; }
-function makeOfficer(x, y) { return { x, y, ang: 0, hp: 45, cool: rand(0.3, 1), speed: 118 * SPEED_K, dead: false, deadT: 0, bob: 0, vx: 0, vy: 0 }; }
+function makeFootCop(x, y, w) { const p = makePed(x, y, w); p.cop = true; p.hp = 45; p.speed = rand(1.2, 1.5) * MPS; p.hd = 0; p.ang = 0; return p; }
+function makeOfficer(x, y) { return { x, y, ang: 0, hp: 45, cool: rand(0.3, 1), speed: 5.5 * MPS, dead: false, deadT: 0, bob: 0, vx: 0, vy: 0 }; }
 
 function addP(p) { if (parts.length < 650) parts.push(p); }
 function spark(x, y, n, col) { for (let k = 0; k < n; k++) { const a = rand(0, TAU), s = rand(40, 200); addP({ x, y, z: rand(5, 14), vz: rand(10, 90), grav: 220, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.12, 0.3), max: 0.3, s0: 2.2, s1: 0.5, col: col || '#ffe27a', drag: 4 }); } }

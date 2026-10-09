@@ -164,8 +164,8 @@ function colonySpot() {
   const r = nearestRoad(L.x, L.y, 500); if (!r) return null;
   const q = edgeAt(r.e, r.s, {}); let nx = -q.ty, ny = q.tx; if (nx > 0) { nx = -nx; ny = -ny; }   // the side away from the beach
   let back = 260;                                                 // the lot runs back until the sidewalk of the next street
-  for (let t = ROAD_HALF + 40; t < 420; t += 6) { const o = nearestRoad(q.x + nx * t, q.y + ny * t, ROAD_HALF + 2); if (o && o.e !== r.e) { back = t - 18; break; } }
-  const fr = ROAD_HALF + 16 + COLONY_SIGN, D = clamp(back - fr, 70, 124), Wf = 156, off = fr + D / 2, a = Math.atan2(-ny, -nx);
+  for (let t = ROAD_HALF + 40; t < 420; t += 6) { const o = nearestRoad(q.x + nx * t, q.y + ny * t, ROAD_HALF + 2); if (o && o.e !== r.e) { back = t - 18 - SW_W; break; } }
+  const fr = ROAD_HALF + SW_W + 4 + COLONY_SIGN, D = clamp(back - fr, 70, 124), Wf = 156, off = fr + D / 2, a = Math.atan2(-ny, -nx);
   return (COLONY = { cx: q.x + nx * off, cy: q.y + ny * off, a, ca: Math.cos(a), sa: Math.sin(a), lw: D, lh: Wf });
 }
 function hitsColony(cx, cy, w, h, angDeg) {                      // does a map building overlap the Colony's lot?
@@ -257,6 +257,237 @@ function makePlane() {                                           // parked airli
   return lmMesh(T, G);
 }
 
+/* ---------- street-front props from the fill pass: gas stations, plazas, basketball courts. Local +z faces the street ---------- */
+function gasLayout(p) {                                          // shop at the back on one side, a canopy over two pump islands on the other
+  const w = p.w, h = p.h, sx0 = -w / 2 + 8, sw = w * 0.38, cx = (sx0 + sw + w / 2) / 2 + 2, chw = Math.min(52, (w / 2 - sx0 - sw) / 2 - 6), zc = h * 0.06, chd = Math.min(42, h * 0.27);
+  return { w, h, shop: [sx0, -h / 2 + 6, sx0 + sw, -h / 2 + 48], cx, chw, zc, chd, isl: [zc - chd * 0.5, zc + chd * 0.5] };
+}
+function makeGas(p) {
+  const T = new GeoBuilder(), G = new GeoBuilder(), L = gasLayout(p), { w, h } = L, [a0, b0, a1, b1] = L.shop;
+  const conc = _C('#3a3450'), white = _C('#eeeaf4'), neon = _C(pick(['#3dffa6', '#ff2bd6', '#2bf3ff', '#ffb02e'])), dark = _C('#22202e');
+  flat(T, -w / 2, -h / 2, w / 2, h / 2, 0.7, conc);
+  for (let x = -w / 2 + 6; x < w / 2 - 6; x += 22) flat(G, x, h / 2 - 3, x + 11, h / 2 - 1.5, 0.8, _C('#ffe14a'));   // painted edge at the driveway
+  box5(T, a0, 0, b0, a1, 22, b1, white); box5(T, a0 - 1, 22, b0 - 1, a1 + 1, 25, b1 + 1, _C('#d8d2ee'));        // the shop
+  face(G, [[a0 + 6, 3, b1 + 0.3], [a1 - 6, 3, b1 + 0.3], [a1 - 6, 15, b1 + 0.3], [a0 + 6, 15, b1 + 0.3]], [0, 0, 1], _C('#ffe9b0'));   // lit windows
+  box5(G, a0 - 1.2, 19, b1 + 0.6, a1 + 1.2, 21, b1 + 1.6, neon);
+  for (const ax of [a0 + 10, a1 - 22]) box5(T, ax, 25, b0 + 8, ax + 12, 31, b0 + 18, _C('#9aa0ab'));               // AC on the shop roof
+  const { cx, chw, zc, chd } = L;
+  for (const z of L.isl) {
+    box5(T, cx - 36, 0, z - 4, cx + 36, 1.6, z + 4, _C('#cfc8e8'));                                               // pump island
+    for (const px of [cx - 18, cx + 18]) { box5(T, px - 3, 1.6, z - 2.5, px + 3, 13, z + 2.5, white); box5(G, px - 3.2, 9, z - 2.7, px + 3.2, 11.5, z + 2.7, neon); }
+    for (const px of [cx - 34, cx + 34]) box5(T, px - 1.6, 1.6, z - 1.6, px + 1.6, 26, z + 1.6, dark);            // canopy posts
+  }
+  box5(T, cx - chw, 26, zc - chd, cx + chw, 30.5, zc + chd, white);                                                // canopy
+  for (const [x0, z0, x1, z1] of [[cx - chw - 0.6, zc + chd - 1.4, cx + chw + 0.6, zc + chd + 0.6], [cx - chw - 0.6, zc - chd - 0.6, cx + chw + 0.6, zc - chd + 1.4],
+    [cx - chw - 0.6, zc - chd, cx - chw + 1.4, zc + chd], [cx + chw - 1.4, zc - chd, cx + chw + 0.6, zc + chd]]) box5(G, x0, 27, z0, x1, 31.2, z1, neon);   // glowing fascia
+  for (let k = 0; k < 3; k++) flat(G, cx - chw + 6, zc - chd + 8 + k * 6, cx + chw - 6, zc - chd + 10 + k * 6, 30.6, neon);              // brand stripes on the roof
+  const px = w / 2 - 12, pz = h / 2 - 12;                                                                          // price pylon at the corner
+  box5(T, px - 1.5, 0, pz - 1.5, px + 1.5, 30, pz + 1.5, dark); box5(T, px - 10, 30, pz - 2, px + 10, 48, pz + 2, dark);
+  const m = lmMesh(T, G), sg = signMesh('FUEL', neon.getStyle(), 19, 7), sg2 = signMesh('GAS', neon.getStyle(), 2 * chw * 0.5, 4);
+  sg.position.set(px, 41, pz + 2.2); sg2.position.set(cx, 29, zc + chd + 0.7); m.add(sg); m.add(sg2); m.userData.own.push(sg.material, sg2.material);
+  const top = signMesh('FUEL', neon.getStyle(), chw * 1.3, chw * 0.33); top.rotation.x = -Math.PI / 2; top.position.set(cx, 30.7, zc + chd * 0.35); m.add(top); m.userData.own.push(top.material);   // name on the canopy roof
+  const pr = new THREE.Mesh(new THREE.PlaneGeometry(17, 6), new THREE.MeshBasicMaterial({ map: SIGNTEX })); pr.position.set(px, 33.5, pz + 2.2); m.add(pr); m.userData.own.push(pr.material);
+  return m;
+}
+function makePlaza(p) {                                          // tiled square with a fountain, benches, palms and planters
+  const T = new GeoBuilder(), G = new GeoBuilder(), w = p.w, h = p.h, t1 = _C('#5a4f86'), t2 = _C('#4a4174'), stone = _C('#e6e0f0'), wood = _C('#7a5a3a');
+  const n = Math.max(2, Math.round(w / 14)), m2 = Math.max(2, Math.round(h / 14)), tw = w / n, td = h / m2;
+  for (let i = 0; i < n; i++) for (let j = 0; j < m2; j++) flat(T, -w / 2 + i * tw, -h / 2 + j * td, -w / 2 + (i + 1) * tw, -h / 2 + (j + 1) * td, 0.8, (i + j) % 2 ? t1 : t2);
+  T.prism(0, 0, 17, 0.8, 4.5, stone, 16, 17, true); disc(G, 0, 0, 14.5, 4.7, _C('#3fe8ff'), 16);
+  T.prism(0, 0, 2.2, 4.5, 13, stone, 8); T.prism(0, 0, 6.5, 12, 13.4, stone, 12, 6.5, true); disc(G, 0, 0, 5.4, 13.5, _C('#3fe8ff'), 12);
+  T.prism(0, 0, 1.2, 13.4, 19, _C('#bff6ff'), 6, 0.2, true);
+  for (let k = 0; k < 4; k++) {                                                                  // benches facing the fountain
+    const a = k * Math.PI / 2 + Math.PI / 4, bx = Math.cos(a) * 32, bz = Math.sin(a) * 32, ux = -Math.sin(a), uz = Math.cos(a), P = (u, v, y) => [bx + ux * u + Math.cos(a) * v, y, bz + uz * u + Math.sin(a) * v];
+    face(T, [P(-8, -2.5, 4), P(8, -2.5, 4), P(8, 2.5, 4), P(-8, 2.5, 4)], [0, 1, 0], wood);
+    face(T, [P(-8, 2.5, 4), P(8, 2.5, 4), P(8, 2.5, 9), P(-8, 2.5, 9)], [Math.cos(a), 0, Math.sin(a)], wood);
+    face(T, [P(-8, 2.5, 9), P(8, 2.5, 9), P(8, 2.5, 4), P(-8, 2.5, 4)], [-Math.cos(a), 0, -Math.sin(a)], wood);
+  }
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const x = sx * (w / 2 - 14), z = sz * (h / 2 - 14); box5(T, x - 7, 0, z - 7, x + 7, 4, z + 7, stone); flat(T, x - 6, z - 6, x + 6, z + 6, 4.2, _C('#2f8f4e')); palm(T, x, z, 30);
+  }
+  for (const sx of [-1, 1]) { const x = sx * (w / 2 - 34); T.prism(x, 0, 0.9, 0, 26, _C('#14102a'), 6); box5(G, x - 2.5, 26, -2.5, x + 2.5, 29, 2.5, _C('#fff3b0')); }
+  return lmMesh(T, G);
+}
+function makeCourt() {                                           // outdoor basketball court with two hoops
+  const T = new GeoBuilder(), G = new GeoBuilder(), Lw = 150, Ld = 84, line = _C('#f4efe6'), blue = _C('#2a5fb0'), rim = _C('#ff7a3d');
+  flat(T, -Lw / 2 - 8, -Ld / 2 - 8, Lw / 2 + 8, Ld / 2 + 8, 0.5, _C('#b24a3a')); flat(T, -Lw / 2, -Ld / 2, Lw / 2, Ld / 2, 0.6, blue);
+  const ln = (x0, z0, x1, z1) => flat(G, x0, z0, x1, z1, 0.7, line);
+  ln(-Lw / 2, -Ld / 2, Lw / 2, -Ld / 2 + 1.4); ln(-Lw / 2, Ld / 2 - 1.4, Lw / 2, Ld / 2); ln(-Lw / 2, -Ld / 2, -Lw / 2 + 1.4, Ld / 2); ln(Lw / 2 - 1.4, -Ld / 2, Lw / 2, Ld / 2); ln(-0.7, -Ld / 2, 0.7, Ld / 2);
+  for (let k = 0; k < 20; k++) { const a0 = k / 20 * TAU, a1 = (k + 1) / 20 * TAU; face(G, [[Math.cos(a0) * 11, 0.7, Math.sin(a0) * 11], [Math.cos(a1) * 11, 0.7, Math.sin(a1) * 11], [Math.cos(a1) * 12.4, 0.7, Math.sin(a1) * 12.4], [Math.cos(a0) * 12.4, 0.7, Math.sin(a0) * 12.4]], [0, 1, 0], line); }
+  for (const s of [-1, 1]) {
+    const xe = s * Lw / 2, xk = xe - s * 30; flat(T, Math.min(xe, xk), -9, Math.max(xe, xk), 9, 0.65, _C('#c4553a'));   // the key
+    ln(Math.min(xk, xk + s * 1.4), -9, Math.max(xk, xk + s * 1.4), 9);
+    box5(T, xe + s * 2 - 1.5, 0, -1.5, xe + s * 2 + 1.5, 24, 1.5, _C('#2b2e38'));                                      // pole, backboard, rim
+    box5(T, xe - s * 1 - 0.6, 20, -7, xe - s * 1 + 0.6, 29, 7, line); box5(G, xe - s * 4 - 2.2, 21, -2.2, xe - s * 4 + 2.2, 21.6, 2.2, rim);
+  }
+  return lmMesh(T, G);
+}
+
+/* ---------- made-up landmarks, so the city has things to remember it by:
+   Bayfront Park, the Bay TV tower, the Twist, the Crown, the Sail hotel and the big wheel on the beach; and the runways ---------- */
+function nquad(gb, a, b, c, d, col, cx, cz) {                    // a quad facing away from the vertical axis through (cx, cz)
+  const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = d[0] - a[0], vy = d[1] - a[1], vz = d[2] - a[2];
+  let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const m = Math.hypot(nx, ny, nz) || 1; nx /= m; ny /= m; nz /= m;
+  if (nx * ((a[0] + c[0]) / 2 - cx) + nz * ((a[2] + c[2]) / 2 - cz) < 0) { nx = -nx; ny = -ny; nz = -nz; }
+  face(gb, [a, b, c, d], [nx, ny, nz], col);
+}
+function lid(gb, pts, col) {                                      // flat top over a convex outline
+  for (let i = 1; i < pts.length - 1; i++) {
+    let a = pts[0], b = pts[i], c = pts[i + 1];
+    if ((b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]) < 0) { const t = b; b = c; c = t; }
+    gb.tri(a, b, c, [0, 1, 0], col);
+  }
+}
+function loft(gb, rings, col, cx, cz) {                           // walls between horizontal outlines rings[k] = [[x, y, z], ...]
+  for (let k = 0; k < rings.length - 1; k++) {
+    const A = rings[k], B = rings[k + 1];
+    for (let i = 0; i < A.length; i++) { const j = (i + 1) % A.length; nquad(gb, A[i], A[j], B[j], B[i], typeof col === 'function' ? col(k, i) : col, cx, cz); }
+  }
+}
+function beam(gb, a, b, r, col) {                                 // a square strut from point a to point b
+  const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], L = Math.hypot(dx, dy, dz) || 1;
+  let px = -dz, pz = dx; const pm = Math.hypot(px, pz); if (pm < 1e-6) { px = 1; pz = 0; } else { px /= pm; pz /= pm; }
+  const qx = (dy * pz) / L, qy = (dz * px - dx * pz) / L, qz = (-dy * px) / L;   // second axis, perpendicular to both
+  const ring = (p, s) => [[p[0] + (px + qx) * s, p[1] + qy * s, p[2] + (pz + qz) * s], [p[0] + (px - qx) * s, p[1] - qy * s, p[2] + (pz - qz) * s],
+    [p[0] + (-px - qx) * s, p[1] - qy * s, p[2] + (-pz - qz) * s], [p[0] + (-px + qx) * s, p[1] + qy * s, p[2] + (-pz + qz) * s]];
+  const A = ring(a, r), B = ring(b, r), mx = (a[0] + b[0]) / 2, mz = (a[2] + b[2]) / 2;
+  for (let i = 0; i < 4; i++) { const j = (i + 1) % 4, n = [(A[i][0] + A[j][0]) / 2 - a[0], (A[i][1] + A[j][1]) / 2 - a[1], (A[i][2] + A[j][2]) / 2 - a[2]], m = Math.hypot(...n) || 1; face(gb, [A[i], A[j], B[j], B[i]], [n[0] / m, n[1] / m, n[2] / m], col); }
+}
+function makePark(L) {                                           // paths round the lake, a boathouse and pier, a fountain, a band shell, lamps, gates
+  const T = new GeoBuilder(), G = new GeoBuilder(), w = L.w, h = L.h, lk = L.lake, lx = lk[0] - L.x, lz = lk[1] - L.y, rx = lk[2] + 140, rz = lk[3] + 110;
+  const path = _C('#b9a37a'), stone = _C('#e6e0f0'), wood = _C('#7a5a3a'), white = _C('#f4f1ea'), red = _C('#c8464a'), lamp = _C('#fff3b0');
+  const seg = 48, P = (a, r) => [lx + Math.cos(a) * (rx + r), 0.7, lz + Math.sin(a) * (rz + r)];
+  for (let k = 0; k < seg; k++) { const a0 = k / seg * TAU, a1 = (k + 1) / seg * TAU; face(T, [P(a0, -9), P(a1, -9), P(a1, 9), P(a0, 9)], [0, 1, 0], path); }
+  flat(T, lx - 9, -h / 2, lx + 9, lz - rz, 0.7, path); flat(T, lx - 9, lz + rz, lx + 9, h / 2, 0.7, path);
+  flat(T, -w / 2, lz - 9, lx - rx, lz + 9, 0.7, path); flat(T, lx + rx, lz - 9, w / 2, lz + 9, 0.7, path);
+  for (let k = 0; k < 14; k++) {                                  // lamps along the loop
+    const a = k / 14 * TAU + 0.1, q = P(a, 14);
+    T.prism(q[0], q[2], 1, 0, 26, _C('#14102a'), 5); box5(G, q[0] - 2.5, 26, q[2] - 2.5, q[0] + 2.5, 30, q[2] + 2.5, lamp);
+    if (k % 2) { const b = P(a + 0.11, 14); box5(T, b[0] - 7, 3, b[2] - 2.5, b[0] + 7, 4.4, b[2] + 2.5, wood); }
+  }
+  const bz = lz + lk[3] + 34;                                     // the boathouse on the south shore, its pier out over the water
+  box5(T, lx - 46, 0, bz - 20, lx + 46, 20, bz + 22, white); box5(T, lx - 50, 20, bz - 24, lx + 50, 24, bz + 26, red); box5(T, lx - 34, 24, bz - 12, lx + 34, 32, bz + 14, red);
+  face(G, [[lx - 34, 5, bz + 22.3], [lx + 34, 5, bz + 22.3], [lx + 34, 15, bz + 22.3], [lx - 34, 15, bz + 22.3]], [0, 0, 1], _C('#ffd98a'));
+  box5(T, lx - 9, 0, bz - 110, lx + 9, 2.6, bz - 20, wood);
+  for (const [dx, dz, c] of [[-70, -40, '#ff2bd6'], [40, -80, '#ffe14a'], [-20, -140, '#2bf3ff'], [90, -30, '#3dffa6']]) {
+    const x = lx + dx, z = lz + lk[3] + dz; box5(T, x - 7, 0, z - 4, x + 7, 3.2, z + 4, _C(c)); box5(T, x - 3, 3.2, z - 3, x + 3, 6, z + 3, white);
+  }
+  T.prism(lx, lz, 12, -2, 2, stone, 14, 12, true); G.prism(lx, lz, 4, 2, 46, _C('#bff6ff'), 8, 0.6, true); G.prism(lx, lz, 9, 2, 10, _C('#3fe8ff'), 10, 2, true);   // fountain jet
+  const sz = lz - rz - 80;                                        // band shell to the north of the loop
+  T.prism(lx, sz, 52, 0, 4, stone, 18, 52, true); T.prism(lx, sz, 44, 4, 26, white, 18, 40); T.prism(lx, sz, 40, 26, 40, white, 18, 26); T.prism(lx, sz, 26, 40, 48, white, 18, 4, true);
+  G.prism(lx, sz, 44.5, 24, 26, _C('#ff2bd6'), 18);
+  const gates = [[lx, -h / 2 + 6, 0], [lx, h / 2 - 6, 0], [-w / 2 + 6, lz, 1], [w / 2 - 6, lz, 1]];
+  for (const [x, z, side] of gates) {                             // an arch over each entrance
+    const ox = side ? 0 : 1, oz = side ? 1 : 0;
+    for (const sg of [-1, 1]) box5(T, x + ox * sg * 30 - 6, 0, z + oz * sg * 30 - 6, x + ox * sg * 30 + 6, 40, z + oz * sg * 30 + 6, stone);
+    box5(T, x - (ox * 36 + oz * 6), 40, z - (oz * 36 + ox * 6), x + (ox * 36 + oz * 6), 48, z + (oz * 36 + ox * 6), stone);
+    box5(G, x - (ox * 34 + oz * 1), 48, z - (oz * 34 + ox * 1), x + (ox * 34 + oz * 1), 50, z + (oz * 34 + ox * 1), _C('#2bf3ff'));
+  }
+  const m = lmMesh(T, G), sg = signMesh('BAYFRONT PARK', '#3dffa6', 64, 13); sg.position.set(lx, 44, h / 2 - 6 + 6.5); m.add(sg); m.userData.own.push(sg.material);
+  return m;
+}
+function makeTV() {                                              // Bay TV: a concrete needle on three legs, a pod with a glass band, a striped mast
+  const T = new GeoBuilder(), G = new GeoBuilder(), conc = _C('#d9d4e6'), glass = _C('#1d2740'), neon = _C('#ff2bd6'), cyan = _C('#2bf3ff');
+  box5(T, -80, 0, -80, 80, 12, 80, _C('#8d86a8')); box5(T, -48, 12, -48, 48, 32, 48, conc);
+  face(G, [[-40, 15, 48.3], [40, 15, 48.3], [40, 28, 48.3], [-40, 28, 48.3]], [0, 0, 1], _C('#ffe9b0'));
+  for (let k = 0; k < 3; k++) { const a = k / 3 * TAU + Math.PI / 2; beam(T, [Math.cos(a) * 70, 0, Math.sin(a) * 70], [Math.cos(a) * 10, 150, Math.sin(a) * 10], 5, conc); }
+  T.prism(0, 0, 13, 32, 330, conc, 12, 9);
+  for (let y = 60; y < 240; y += 45) { const r = 13 - 4 * (y - 32) / 298 + 0.5; G.prism(0, 0, r, y, y + 2.5, neon, 12); }
+  T.prism(0, 0, 18, 246, 256, conc, 18, 50); T.prism(0, 0, 50, 256, 272, glass, 18); G.prism(0, 0, 50.6, 261, 266, cyan, 18);
+  G.prism(0, 0, 51, 255, 257, neon, 18); T.prism(0, 0, 50, 272, 280, conc, 18, 32); T.prism(0, 0, 32, 280, 287, conc, 18, 10, true);
+  T.prism(0, 0, 9, 326, 332, conc, 12, 18); T.prism(0, 0, 18, 332, 340, glass, 12); G.prism(0, 0, 18.5, 334, 337, neon, 12); T.prism(0, 0, 18, 340, 344, conc, 12, 5, true);
+  for (let k = 0; k < 6; k++) T.prism(0, 0, 3 - k * 0.3, 344 + k * 14, 358 + k * 14, k % 2 ? _C('#f1f1ee') : _C('#e0364f'), 6, 2.7 - k * 0.3);
+  const m = lmMesh(T, G), tip = new THREE.Mesh(GSph, mBas(0xff3b5c)); tip.scale.set(4, 4, 4); tip.position.set(0, 430, 0); m.add(tip); m.userData.own.push(tip.material);
+  const sg = signMesh('BAY TV', '#2bf3ff', 60, 14); sg.position.set(0, 40, 49); m.add(sg); m.userData.own.push(sg.material);
+  m.userData.anim = t => { tip.visible = (t % 1.4) < 0.7; };
+  return m;
+}
+function makeTwist() {                                           // the Twist: 26 glass floors, each turned a little further, a quarter turn in all
+  const T = new GeoBuilder(), G = new GeoBuilder(), N = 26, FH = 12, glassC = _C('#6f9be0'), plate = _C('#ffffff'), LIT = ['#2bf3ff', '#ff2bd6', '#ffe14a', '#a259ff'].map(_C);
+  box5(T, -100, 0, -100, 100, 8, 100, _C('#8d86a8'));
+  const sq = (r, y, s) => [0, 1, 2, 3].map(i => { const a = r + Math.PI / 4 + i * Math.PI / 2; return [Math.cos(a) * s * Math.SQRT2, y, Math.sin(a) * s * Math.SQRT2]; });
+  let top = 0, rTop = 0;
+  for (let k = 0; k < N; k++) {
+    const r = k * (Math.PI / 2) / N, y0 = 8 + k * FH, y1 = y0 + FH - 1.6, s = 74 - k * 0.6; top = y1 + 1.6; rTop = r;
+    loft(T, [sq(r, y0, s), sq(r, y1, s)], glassC, 0, 0); loft(T, [sq(r, y1, s + 2.5), sq(r, y1 + 1.6, s + 2.5)], plate, 0, 0);
+    for (let i = 0; i < 4; i++) if (Math.random() < 0.6) {       // a lit floor on this side
+      const A = sq(r, y0 + 3, s + 0.4), B = sq(r, y1 - 2, s + 0.4), j = (i + 1) % 4, f = Math.random() * 0.4;
+      const l = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1], p[2] + (q[2] - p[2]) * t];
+      nquad(G, l(A[i], A[j], f), l(A[i], A[j], f + 0.5), l(B[i], B[j], f + 0.5), l(B[i], B[j], f), pick(LIT), 0, 0);
+    }
+  }
+  lid(T, sq(rTop, top, 74 - N * 0.6 + 2.5), plate);
+  G.prism(0, 0, 40, top, top + 3, _C('#2bf3ff'), 4); T.prism(0, 0, 4, top, top + 70, _C('#c9ccd4'), 6, 0.6, true);
+  box5(G, -2, top + 70, -2, 2, top + 74, 2, _C('#ff3b5c'));
+  const m = lmMesh(T, G), sg = signMesh('THE TWIST', '#2bf3ff', 70, 14); sg.position.set(0, 20, 101); m.add(sg); m.userData.own.push(sg.material);
+  return m;
+}
+function makeCrown() {                                           // the Crown: a stepped deco tower, piers up every face, a sunburst crown and a spire
+  const T = new GeoBuilder(), G = new GeoBuilder(), cream = _C('#eadfc4'), pier = _C('#c7b48a'), gold = _C('#ffd23f'), LIT = ['#ffd98a', '#ffe14a', '#ff7a3d'].map(_C);
+  const tiers = [[108, 0, 150], [84, 150, 232], [62, 232, 292], [44, 292, 330]];
+  for (const [s, y0, y1] of tiers) {
+    box5(T, -s, y0, -s, s, y1, s, cream);
+    for (let x = -s + 9; x < s - 4; x += 15) { box5(T, x - 1.6, y0, s - 0.5, x + 1.6, y1, s + 1.2, pier); box5(T, x - 1.6, y0, -s - 1.2, x + 1.6, y1, -s + 0.5, pier); box5(T, s - 0.5, y0, x - 1.6, s + 1.2, y1, x + 1.6, pier); box5(T, -s - 1.2, y0, x - 1.6, -s + 0.5, y1, x + 1.6, pier); }
+    for (let y = y0 + 8; y < y1 - 8; y += 14) for (let x = -s + 10; x < s - 10; x += 15) if (Math.random() < 0.18) {
+      const c = pick(LIT); face(G, [[x, y, s + 0.3], [x + 11, y, s + 0.3], [x + 11, y + 8, s + 0.3], [x, y + 8, s + 0.3]], [0, 0, 1], c);
+      if (Math.random() < 0.5) face(G, [[s + 0.3, y, x], [s + 0.3, y, x + 11], [s + 0.3, y + 8, x + 11], [s + 0.3, y + 8, x]], [1, 0, 0], c);
+    }
+    for (const [a0, b0, a1, b1] of [[-s - 1.6, s - 1, s + 1.6, s + 1.6], [-s - 1.6, -s - 1.6, s + 1.6, -s + 1], [-s - 1.6, -s, -s + 1, s], [s - 1, -s, s + 1.6, s]]) box5(G, a0, y1 - 2, b0, a1, y1, b1, gold);
+  }
+  for (let j = 0; j < 5; j++) {                                   // the sunburst crown: shrinking stages, a gold chevron on every face
+    const s = 40 - j * 7, y = 330 + j * 15; box5(T, -s, y, -s, s, y + 13, s, cream);
+    for (const [n, P] of [[[0, 0, 1], (u, v) => [u, y + v, s + 0.4]], [[0, 0, -1], (u, v) => [u, y + v, -s - 0.4]], [[1, 0, 0], (u, v) => [s + 0.4, y + v, u]], [[-1, 0, 0], (u, v) => [-s - 0.4, y + v, u]]]) {
+      const a = P(-s * 0.8, 1), b = P(s * 0.8, 1), c = P(0, 12); let t = [a, b, c];
+      const cr = [(b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]), (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]), (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])];
+      if (cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] < 0) t = [a, c, b];
+      G.tri(t[0], t[1], t[2], n, gold);
+    }
+  }
+  T.prism(0, 0, 5, 405, 480, _C('#c9ccd4'), 6, 0.5, true); box5(G, -2, 476, -2, 2, 482, 2, _C('#ff3b5c'));
+  const m = lmMesh(T, G), sg = signMesh('THE CROWN', '#ffd23f', 80, 16); sg.position.set(0, 24, 110); m.add(sg); m.userData.own.push(sg.material);
+  return m;
+}
+function makeSail() {                                            // the Sail: a hotel shaped like a sail, its mast on the sea side, a helipad near the top
+  const T = new GeoBuilder(), G = new GeoBuilder(), white = _C('#f4f6fb'), glass = _C('#5d86c4'), H = 300, L = 220, B = 92, K = 16, NP = 9;
+  box5(T, -125, 0, -115, 125, 12, 115, _C('#d8c9a4')); flat(G, -60, 30, 40, 90, 12.3, _C('#3fe8ff'));   // podium with a pool
+  const rings = [];
+  for (let k = 0; k <= K; k++) {
+    const y = 12 + k / K * (H - 12), f = k / K, zb = -L / 2, zf = -L / 2 + L * (1 - Math.pow(f, 1.25)) + 6, b = B * (1 - Math.pow(f, 1.6)) + 4, ring = [];
+    for (let i = 0; i <= NP; i++) { const t = i / NP; ring.push([b * Math.pow(Math.sin(Math.PI * t), 0.7), y, zb + (zf - zb) * t]); }
+    for (let i = NP - 1; i > 0; i--) { const t = i / NP; ring.push([-b * Math.pow(Math.sin(Math.PI * t), 0.7), y, zb + (zf - zb) * t]); }
+    rings.push(ring);
+  }
+  loft(T, rings, (k, i) => i < NP ? white : glass, 0, -L * 0.1);
+  for (let k = 0; k < K; k++) { const a = rings[k][NP], b = rings[k + 1][NP]; nquad(G, [a[0] - 1.5, a[1], a[2] + 0.6], [a[0] + 1.5, a[1], a[2] + 0.6], [b[0] + 1.5, b[1], b[2] + 0.6], [b[0] - 1.5, b[1], b[2] + 0.6], _C('#ff2bd6'), 0, -L); }
+  T.prism(0, -L / 2, 7, 0, H + 70, white, 8, 3, true); box5(G, -2, H + 70, -L / 2 - 2, 2, H + 74, -L / 2 + 2, _C('#ff3b5c'));
+  const hy = H * 0.78; beam(T, [0, hy - 10, -L / 2], [0, hy, -L / 2 - 36], 3, white); T.prism(0, -L / 2 - 46, 26, hy, hy + 2, _C('#5a5f69'), 16, 26, true); G.prism(0, -L / 2 - 46, 26.4, hy + 1, hy + 2.4, _C('#3dffa6'), 16);
+  const m = lmMesh(T, G), sg = signMesh('THE SAIL', '#ff2bd6', 70, 15); sg.position.set(0, 26, 116); m.add(sg); m.userData.own.push(sg.material);
+  return m;
+}
+function makeWheel() {                                           // the big wheel on the beach: two A-frames, a neon rim, sixteen gondolas
+  const T = new GeoBuilder(), G = new GeoBuilder(), R = 118, HY = 150, steel = _C('#e8eaee'), N = 32, NC = ['#ff2bd6', '#2bf3ff', '#ffe14a', '#3dffa6'].map(_C);
+  for (const z of [-20, 20]) { beam(T, [-72, 0, z], [0, HY, z], 3.2, steel); beam(T, [72, 0, z], [0, HY, z], 3.2, steel); }
+  beam(T, [0, HY, -24], [0, HY, 24], 5, steel);
+  const P = (a, r, z) => [Math.cos(a) * r, HY + Math.sin(a) * r, z];
+  for (let k = 0; k < N; k++) {
+    const a0 = k / N * TAU, a1 = (k + 1) / N * TAU, c = NC[k % NC.length];
+    for (const z of [-14, 14]) { face(G, [P(a0, R - 2, z), P(a1, R - 2, z), P(a1, R + 2, z), P(a0, R + 2, z)], [0, 0, Math.sign(z)], c); face(G, [P(a0, R + 2, -z), P(a1, R + 2, -z), P(a1, R + 2, z), P(a0, R + 2, z)], [Math.cos((a0 + a1) / 2), Math.sin((a0 + a1) / 2), 0], c); }
+    if (k % 2 === 0) for (const z of [-14, 14]) beam(T, [0, HY, z], P(a0, R, z), 0.9, steel);
+    if (k % 2 === 0) { const g = P(a0, R, 0); box5(T, g[0] - 7, g[1] - 18, -9, g[0] + 7, g[1] - 5, 9, NC[(k / 2) % NC.length]); beam(T, [g[0], g[1] - 5, 0], [g[0], g[1], 0], 0.8, steel); }
+  }
+  box5(T, -30, 0, 26, 30, 14, 46, _C('#ff7a3d')); box5(G, -30, 14, 26, 30, 16, 46, _C('#ffe14a'));
+  const m = lmMesh(T, G), sg = signMesh('BAY WHEEL', '#ffe14a', 56, 12); sg.position.set(0, 22, 47); m.add(sg); m.userData.own.push(sg.material);
+  return m;
+}
+function makeRunway(p) {                                         // asphalt strip, dashed centre line, threshold bars, edge lights
+  const T = new GeoBuilder(), G = new GeoBuilder(), L = p.w, Wd = p.h, white = _C('#e8e6f0');
+  flat(T, -L / 2, -Wd / 2, L / 2, Wd / 2, 0.5, _C('#221d2e'));
+  for (let x = -L / 2 + 140; x < L / 2 - 140; x += 90) flat(T, x, -2, x + 50, 2, 0.65, white);
+  for (const s of [-1, 1]) for (let k = -5; k <= 5; k++) flat(T, s * (L / 2 - 70) - 26, k * 10 - 3, s * (L / 2 - 70) + 26, k * 10 + 3, 0.65, white);
+  for (let x = -L / 2; x <= L / 2; x += 110) for (const s of [-1, 1]) box5(G, x - 2, 0, s * (Wd / 2 + 4) - 2, x + 2, 3, s * (Wd / 2 + 4) + 2, s > 0 ? _C('#ffe14a') : _C('#3fe0ff'));
+  return lmMesh(T, G);
+}
+
 /* ---------- registration: collision boxes into the world, builders into LMS ---------- */
 function genLandmarks() {
   LMS = []; LM_CLEAR = [];
@@ -289,6 +520,17 @@ function genLandmarks() {
       solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_SIGN / 2, 0, COLONY_SIGN + 2, 22);                        // the sign pylon
       add(c.cx, c.cy, c.a, 120, makeColony, 90, 90);
     }
+    else if (L.t === 'park') {
+      const lk = L.lake, bz = lk[1] + lk[3] + 34; makeSolid(lk[0], bz, 100, 50, 0, {});              // boathouse
+      const rz = lk[3] + 110; makeSolid(lk[0], lk[1] - rz - 80, 100, 100, 0, {});                    // band shell
+      LM_CLEAR.push([lk[0], bz, 60, 40], [lk[0], lk[1] - rz - 80, 60, 60]);
+      LMS.push({ cx: L.x, cy: L.y, a: 0, rad: Math.hypot(L.w, L.h) / 2, make: () => makePark(L), mesh: null });
+    }
+    else if (L.t === 'tvtower') { makeSolid(L.x, L.y, 100, 100, 0, {}); add(L.x, L.y, 0, 700, makeTV, 90, 90); }
+    else if (L.t === 'twist') { makeSolid(L.x, L.y, 200, 200, 0, {}); add(L.x, L.y, 0, 600, makeTwist, 105, 105); }
+    else if (L.t === 'crown') { makeSolid(L.x, L.y, 220, 220, 0, {}); add(L.x, L.y, 0, 650, makeCrown, 115, 115); }
+    else if (L.t === 'sail') { const a = (L.a || 0) * Math.PI / 180; solid(L.x, L.y, a, 0, -10, 190, 230); add(L.x, L.y, a, 600, makeSail, 130, 130); }
+    else if (L.t === 'wheel') { const a = (L.a || 0) * Math.PI / 180; for (const sx of [-72, 72]) solid(L.x, L.y, a, sx, 0, 14, 50); solid(L.x, L.y, a, 0, 36, 60, 20); add(L.x, L.y, a, 400, makeWheel, 140, 50); }
     else if (L.t === 'studio') {
       for (const [a, b, c, d] of studioStages(L)) makeSolid(L.x + (a + c) / 2, L.y + (b + d) / 2, c - a, d - b, 0, {});
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeStudio(L), L.w / 2, L.h / 2);
@@ -299,6 +541,18 @@ function genLandmarks() {
     if (p.t === 'crane') { for (const [lx, lz] of CRANE_LEGS) solid(p.x, p.y, a, lx, lz, 7, 7); add(p.x, p.y, a, 180, makeCrane); }
     else if (p.t === 'containers') { solid(p.x, p.y, a, 0, 0, 190, 66); add(p.x, p.y, a, 110, makeContainers); }
     else if (p.t === 'plane') { solid(p.x, p.y, a, -5, 0, 236, 26); solid(p.x, p.y, a, 5, 0, 50, 200); add(p.x, p.y, a, 130, makePlane); }
+    else if (p.t === 'runway') { LMS.push({ cx: p.x, cy: p.y, a, rad: p.w / 2, make: () => makeRunway(p), mesh: null }); LM_CLEAR.push([p.x, p.y, Math.abs(Math.cos(a)) * p.w / 2 + Math.abs(Math.sin(a)) * p.h / 2 + 20, Math.abs(Math.sin(a)) * p.w / 2 + Math.abs(Math.cos(a)) * p.h / 2 + 20]); }
+    else if (p.t === 'gas' || p.t === 'plaza' || p.t === 'court') {
+      const w = p.w || 166, h = p.h || 100, ex = Math.abs(Math.cos(a)) * w / 2 + Math.abs(Math.sin(a)) * h / 2, ey = Math.abs(Math.sin(a)) * w / 2 + Math.abs(Math.cos(a)) * h / 2;
+      if (hitsColony(p.x, p.y, w, h, p.a)) continue;
+      if (p.t === 'gas') {
+        const L = gasLayout(p), [a0, b0, a1, b1] = L.shop; solid(p.x, p.y, a, (a0 + a1) / 2, (b0 + b1) / 2, a1 - a0, b1 - b0);
+        for (const z of L.isl) solid(p.x, p.y, a, L.cx, z, 72, 8);
+        solid(p.x, p.y, a, w / 2 - 12, h / 2 - 12, 4, 4);
+        add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makeGas(p), ex - 20, ey - 20);
+      } else if (p.t === 'plaza') { solid(p.x, p.y, a, 0, 0, 30, 30); add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makePlaza(p), ex - 20, ey - 20); }
+      else { for (const s of [-1, 1]) solid(p.x, p.y, a, s * 77, 0, 4, 4); add(p.x, p.y, a, 95, makeCourt, ex - 30, ey - 30); }
+    }
   }
   // props are random-looking but must come back the same after streaming out and in
   LMS.forEach((o, i) => { const mk = o.make; o.make = () => withSeed(9001 + i * 31, mk); });

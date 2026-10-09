@@ -60,7 +60,7 @@ function updateGearUi() {
 }
 function setGear(g) {                       // like the real dial: only shifts when you are nearly stopped
   if (P.gear === g || !P.car) return; const c = P.car;
-  if (Math.abs(c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang)) > 90 * SPEED_K) { toast('SLOW DOWN TO SHIFT', true); return; }
+  if (Math.abs(c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang)) > 20 * KMH) { toast('SLOW DOWN TO SHIFT', true); return; }
   P.gear = g; updateGearUi(); Snd.tone(320, 180, 0.06, 0.12, 'square');
 }
 bindBtn($('gR'), () => setGear('R')); bindBtn($('gD'), () => setGear('D'));
