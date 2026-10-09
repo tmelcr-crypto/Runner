@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 7c. EFFECTS: particles, rings, tracers, decals, skid marks, score pops ---------- */
-const MAXP = 700, pGeo = new THREE.BufferGeometry();
+const MAXP = 1200, pGeo = new THREE.BufferGeometry();
 const pPos = new Float32Array(MAXP * 3), pSize = new Float32Array(MAXP), pCol = new Float32Array(MAXP * 4);
 const aPos = new THREE.BufferAttribute(pPos, 3).setUsage(THREE.DynamicDrawUsage), aSize = new THREE.BufferAttribute(pSize, 1).setUsage(THREE.DynamicDrawUsage), aCol = new THREE.BufferAttribute(pCol, 4).setUsage(THREE.DynamicDrawUsage);
 pGeo.setAttribute('position', aPos); pGeo.setAttribute('size', aSize); pGeo.setAttribute('pcolor', aCol);

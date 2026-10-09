@@ -194,3 +194,15 @@ html.pv #game{touch-action:none;cursor:grab}
   linear-gradient(currentColor,currentColor) 50% 0/2px 40% no-repeat,linear-gradient(currentColor,currentColor) 50% 100%/2px 40% no-repeat,
   linear-gradient(currentColor,currentColor) 0 50%/40% 2px no-repeat,linear-gradient(currentColor,currentColor) 100% 50%/40% 2px no-repeat}
 #scopeTag{position:absolute;left:50%;top:100%;transform:translate(-50%,10px);font-family:var(--f-display);font-size:9px;white-space:nowrap;text-shadow:0 0 8px currentColor,2px 2px 0 #000}
+/* the rocket launcher's sight: a wide amber viewfinder with corner brackets, a diamond reticle and a split stadia line */
+#scope.rkt{border-radius:14px;border-width:2px;color:#ffb347;box-shadow:0 0 16px currentColor,inset 0 0 30px rgba(0,0,0,.5)}
+#scope.rkt.wait{color:var(--yellow)}
+#scope.rkt.hit{color:var(--hot)}
+#scope.rkt .xh{inset:0;background:
+  linear-gradient(currentColor,currentColor) left 10px top 10px/30px 3px no-repeat,linear-gradient(currentColor,currentColor) left 10px top 10px/3px 22px no-repeat,
+  linear-gradient(currentColor,currentColor) right 10px top 10px/30px 3px no-repeat,linear-gradient(currentColor,currentColor) right 10px top 10px/3px 22px no-repeat,
+  linear-gradient(currentColor,currentColor) left 10px bottom 10px/30px 3px no-repeat,linear-gradient(currentColor,currentColor) left 10px bottom 10px/3px 22px no-repeat,
+  linear-gradient(currentColor,currentColor) right 10px bottom 10px/30px 3px no-repeat,linear-gradient(currentColor,currentColor) right 10px bottom 10px/3px 22px no-repeat,
+  linear-gradient(currentColor,currentColor) 50% 64%/2px 7% no-repeat,linear-gradient(currentColor,currentColor) 50% 74%/12px 2px no-repeat,linear-gradient(currentColor,currentColor) 50% 82%/8px 2px no-repeat}
+#scope.rkt .xh::before{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid currentColor;transform:rotate(45deg)}
+#scope.rkt .xh::after{content:'';position:absolute;left:16%;right:16%;top:50%;height:2px;margin-top:-1px;background:linear-gradient(90deg,currentColor 0 38%,transparent 38% 62%,currentColor 62%)}

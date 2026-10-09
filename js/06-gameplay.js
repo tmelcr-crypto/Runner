@@ -145,6 +145,10 @@ function fireWeapon(aim) {                                      // aim: a point 
   P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
   const a = aim ? Math.atan2(aim.y - P.y, aim.x - P.x) : P.ang + rand(-w.spread, w.spread);
   if (aim) P.ang = a;
+  if (w.rocket) {                                                // a rocket: it flies on its own (js/12b) and blows up on whatever it hits
+    launchRocket(aim || { x: P.x + Math.cos(a) * 400, y: P.y + Math.sin(a) * 400 }, w); Snd.rocket();
+    alertPeds(P.x, P.y, 500); reportCrime(w.heat, w.hear); cam.shake = Math.max(cam.shake, w.shake); return;
+  }
   const h = w.scope ? rifleRay(P.x, P.y, a, w) : raycast(P.x, P.y, a, w.range);
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
