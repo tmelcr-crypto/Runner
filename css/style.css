@@ -274,3 +274,44 @@ html.gun-car #bFire{right:calc(178px + env(safe-area-inset-right));bottom:calc(4
 /* ---- weapons in their own colours (js/01f color) ---- */
 .wslot .wico{filter:drop-shadow(0 0 6px currentColor)}
 #wIcon{filter:drop-shadow(0 0 4px currentColor)}
+
+/* ---- body armor: a second bar, blue (js/01g) ---- */
+#armorRow{margin-top:6px}
+#armorRow[hidden]{display:none}
+#arSegs{display:flex;gap:2px;margin-top:4px}
+#arSegs i{width:12px;height:8px;background:#141c38}
+#arSegs i.on{background:#2f6bff;box-shadow:0 0 8px #2f6bff}
+
+/* ---- stores (js/08e): the SHOP button by you at a store's door, and the store's screen ---- */
+#shopBtn{--sc:var(--yellow);position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:5px;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;touch-action:manipulation;
+  font-family:var(--f-display);color:var(--sc);background:rgba(11,6,26,.88);border:3px solid var(--sc);box-shadow:0 0 16px var(--sc),inset 0 0 12px rgba(0,0,0,.6);padding:9px 12px 8px;animation:shopPulse 1.1s ease-in-out infinite}
+#shopBtn[hidden]{display:none}
+#shopBtn .si{width:30px;height:30px;filter:drop-shadow(0 0 6px var(--sc))}
+#shopBtn .si svg{width:100%;height:100%;display:block}
+#shopBtn b{font-weight:400;font-size:7px;color:var(--paper);white-space:nowrap}
+#shopBtn .go{font-size:11px;color:var(--ink);background:var(--sc);padding:4px 8px}
+#shopBtn:active{transform:translate(-50%,-50%) scale(.94)}
+@keyframes shopPulse{50%{box-shadow:0 0 28px var(--sc),inset 0 0 12px rgba(0,0,0,.6)}}
+#shopList{display:flex;flex-direction:column;gap:8px;width:min(620px,100%);margin:14px auto 14px}
+button.shopRow{display:grid;grid-template-columns:84px 1fr auto;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--paper);
+  background:rgba(16,6,36,.82);border:3px solid var(--line);padding:6px 12px 6px 6px;cursor:pointer;touch-action:manipulation}
+button.shopRow:focus,button.shopRow:hover{outline:0;border-color:var(--cyan);box-shadow:0 0 14px rgba(43,243,255,.45)}
+button.shopRow:disabled{opacity:.45;cursor:default;box-shadow:none;border-color:var(--line)}
+button.shopRow.ammo{margin-left:28px}
+.shopRow .ico{display:block;width:84px;height:35px;filter:drop-shadow(0 0 5px currentColor)}
+.shopRow .ico svg{width:100%;height:100%;display:block}
+.shopRow .nm b{display:block;font-weight:400;font-family:var(--f-display);font-size:10px;color:var(--yellow);margin-bottom:5px}
+.shopRow .nm small{display:block;font-size:17px;line-height:1.15;color:var(--dim)}
+.shopRow .pr{font-family:var(--f-display);font-size:11px;color:var(--good);white-space:nowrap}
+.shopRow .pr.poor{color:var(--hot)}
+#shopMsg{min-height:1.7em;margin:0 0 10px}
+@media (max-width:520px){
+  button.shopRow{grid-template-columns:56px 1fr auto;gap:8px}
+  .shopRow .ico{width:56px;height:24px}
+  .shopRow .nm b{font-size:8px}
+  .shopRow .nm small{font-size:15px}
+  .shopRow .pr{font-size:9px}
+  button.shopRow.ammo{margin-left:14px}
+  #shopBtn b{display:none}                                          /* the store's name shows in the box at the bottom */
+}
+#shopMsg.ok{color:var(--good);text-shadow:0 0 8px rgba(61,255,166,.6)}

@@ -33,16 +33,18 @@ function drawMini(time) {
   }
   svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
-  for (const p of pickups) { const x = mxp(p.x), y = myp(p.y); if (x < 0 || y < 0 || x > size || y > size) continue; mctx.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; mctx.fillRect(x - 2, y - 2, 4, 4); }
+  for (const p of pickups) { if (p.type !== 'cash') continue; const x = mxp(p.x), y = myp(p.y); if (x < 0 || y < 0 || x > size || y > size) continue; mctx.fillStyle = '#58e08a'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
 }
-function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; police stations: a white star on blue
+function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; police stations: a white star on blue; stores: a $
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold ' + Math.round(q * 1.6) + 'px Arial';
   for (const s of SVC.hospital) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
     g.fillStyle = '#ffffff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#e0364f'; g.fillRect(x - q * 0.75, y - q * 0.25, q * 1.5, q * 0.5); g.fillRect(x - q * 0.25, y - q * 0.75, q * 0.5, q * 1.5); }
   for (const s of SVC.police) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
     g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
+  for (const s of STORES || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
+    g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('$', x, y + q * 0.08); }
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
@@ -67,7 +69,7 @@ function drawBigMap(time) {
     g.fillStyle = '#000'; g.fillText(name, x + 2 * pr, y + 2 * pr); g.fillStyle = '#f1ead2'; g.fillText(name, x, y);
   }
   const ph = Math.floor(time * 4) % 2 === 0;
-  for (const p of pickups) { g.fillStyle = p.type === 'cash' ? '#58e08a' : p.type === 'health' ? '#ff6b86' : '#3fe0ff'; g.fillRect(X(p.x) - 2 * pr, Y(p.y) - 2 * pr, 4 * pr, 4 * pr); }
+  for (const p of pickups) { if (p.type !== 'cash') continue; g.fillStyle = '#58e08a'; g.fillRect(X(p.x) - 2 * pr, Y(p.y) - 2 * pr, 4 * pr, 4 * pr); }
   svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
@@ -77,7 +79,7 @@ function drawBigMap(time) {
 
 const H = { inCar: null, zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
 (function buildHud() {
-  $('hpSegs').innerHTML = '<i></i>'.repeat(10); $('stars').innerHTML = '<div class="star"></div>'.repeat(5);
+  $('hpSegs').innerHTML = '<i></i>'.repeat(10); $('arSegs').innerHTML = '<i></i>'.repeat(10); $('stars').innerHTML = '<div class="star"></div>'.repeat(5);
   for (const b of document.querySelectorAll('#weaponbar button')) b.addEventListener('click', () => b.blur());
 })();
 function setText(id, key, v) { if (H[key] !== v) { H[key] = v; $(id).textContent = v; } }
@@ -85,6 +87,8 @@ function updateHud(time) {
   setText('score', 'score', String(P.score).padStart(8, '0'));
   const hp = Math.ceil(clamp(P.hp, 0, 100) / 10);
   if (H.hp !== hp) { H.hp = hp; const segs = $('hpSegs'); [...segs.children].forEach((e, k) => e.classList.toggle('on', k < hp)); segs.classList.toggle('low', hp <= 3); }
+  const ar = Math.ceil(clamp(P.armor, 0, 100) / 10);                // body armor: a blue bar under the health, only while you wear some
+  if (H.ar !== ar) { H.ar = ar; $('armorRow').hidden = ar <= 0; [...$('arSegs').children].forEach((e, k) => e.classList.toggle('on', k < ar)); }
   const w = WEAPONS[P.weapon], am = String(P.ammo[P.weapon]).padStart(3, '0');
   const mel = isMelee(w); setText('wname', 'wname', w.short); setText('ammo', 'ammo', mel ? '--' : String(P.mag[P.weapon]).padStart(2, '0') + ' / ' + am);   // melee: no ammo
   $('ammo').classList.toggle('empty', !mel && P.mag[P.weapon] <= 0 && P.ammo[P.weapon] <= 0);
@@ -110,7 +114,8 @@ function updateHud(time) {
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
     else if (c.t.weapon) hint = touchMode ? 'FIRE: ROCKETS' : 'CLICK OR J: ROCKETS';
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
-  else { const n = nearestCar(); if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
+  else { const n = nearestCar(), s = shopKey(); if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
+  storeUi();                                                        // the SHOP button by you at a store door (js/08e)
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
   const inCar = !!c; if (H.inCar !== inCar) { H.inCar = inCar; $('radioBtn').hidden = !inCar; }   // the RADIO button, in a car only
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);

@@ -127,8 +127,8 @@ function spawnPickup() {                      // anywhere on the map: a random s
     pickups.push({ x: q.x, y: q.y, type: pickupType(), bob: rand(0, 6) }); return;
   }
 }
-function pickupType() {                       // on the sidewalks only health (1) and cash (2); weapons and ammo are hidden off the streets (js/08d)
-  const ws = [['health', 1], ['cash', 2]];
+function pickupType() {                       // on the sidewalks only cash; weapons, ammo, health and armor are hidden off the streets (js/08d)
+  const ws = [['cash', 1]];
   let r = Math.random() * ws.reduce((a, q) => a + q[1], 0); for (const [t, n] of ws) if ((r -= n) <= 0) return t; return 'health';
 }
 function updatePickups(dt) {

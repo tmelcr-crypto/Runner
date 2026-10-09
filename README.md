@@ -15,8 +15,8 @@ Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8
   - *Streets*: quiet, busy or packed - how much traffic and how many people.
   - *Start in*: the usual spot, a random street, or any of the 13 districts.
 - **Pause** with Esc, P or the MENU button (top); the game also pauses when you switch to another app or tab. From there: resume, save, load, new game, help, quit to the title.
-- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away or quit to the title), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. You cannot save while you are wanted. A save keeps where you are (and the car you are in), health, weapons and ammo, score and kills, the clock, the weather and the New game choices. Saves live in the browser (localStorage); *Download save file* and *Open save file* move a game to another device.
-- **Help**: four pages - controls (keyboard and touch), playing (points, cars, pickups, wasted and busted), the police, and the city (map, day and weather, services, saving).
+- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away or quit to the title), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. You cannot save while you are wanted. A save keeps where you are (and the car you are in), health and body armor, weapons and ammo, score and kills, the clock, the weather and the New game choices. Saves live in the browser (localStorage); *Download save file* and *Open save file* move a game to another device.
+- **Help**: five pages - controls (keyboard and touch), playing (points, cars, pickups, stores, wasted and busted), the weapons (from the weapon table), the police, and the city (map, day and weather, services, saving).
 
 ## The city
 
@@ -161,6 +161,7 @@ The rows come in sections:
 - *Weapon*: name, short name, status, class, sound, **bubble colour** (each weapon its own), and two lists that say which mechanics it needs - **how you use it** (tap, hold, scope, swing, throw; new) and **what it fires** (bullet, rocket, melee, grenade; new).
 - *Mechanics in words*: **how to use** (one or two sentences, shown under the weapon wheel and on the Help page's WEAPONS tab), **how it works** (a full description of the behaviour) and look / sound / ideas.
 - *Hitting*: damage, bullets per shot (above 1 = a shotgun), spread, range, time between shots, damage to vehicles, goes through cover.
+- *Shops*: price of the weapon and of one ammo pickup in the stores (empty: not sold).
 - *Ammo and finding it*: magazine, spare rounds when found, most carried, rounds per ammo pickup, how many weapon pickups and ammo pickups lie hidden on the map, reload, have it at the start (only fists), kept when busted.
 - *Police and noise*: heat per shot, heard within, people flee within, screen shake.
 - *Scope or sight*: zoom, sight shape, blur, line of sight, sight stays up.
@@ -177,6 +178,41 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 
 **Street junk.** Shops put out piles of cardboard boxes, heaps of garbage bags and wheelie bins along the backs of the sidewalks, and the back alleys are full of boxes, bags, bins, barrels, crates and pallets. Drive into them (from about 12 km/h) and cardboard boxes, garbage bags, single crates and pallets burst: bits fly the way you were going and a patch of mess stays on the road. Bins, barrels and newspaper boxes are knocked flying and spill their trash; a hydrant is knocked off and a fountain of water shoots up for a few seconds. Each hit slows the car a little (a bus or the tank hardly notices). A blast throws all of it and shreds the light things near its middle. What was smashed or knocked away is put back after a minute and a half, once you are far enough away not to see it.
 
+## Items and stores
+
+**Hidden items.** Health, body armor and the heat reducer lie hidden like the guns - off the main streets, each turning in a bubble of its own colour, coming back somewhere else out of sight a minute after you take one. Only cash lies on the sidewalks now, and nothing but cash shows on the minimap and the city map.
+
+| Item | Bubble | What it does | Hidden | In stores |
+|---|---|---|---|---|
+| Health | white, a white box with a red cross | +50 health, taken only when you are hurt | 10 | $150 |
+| Body armor | blue, a blue vest | +50 armor, up to 100: a blue bar under the health bar that takes the damage before your health does | 6 | $250 |
+| Heat reducer | flashing red and blue, a police star with an arrow down | one star less, taken only while you are wanted | 4 | not sold |
+
+**Stores.** Six stores stand on shopping streets spread over the city - always the same buildings, each with a front the camera can see. Each is a **$** in its own colour on the minimap and the city map, and at its door a ring of light with a $, the store's first weapon turning above it and the store's name floating higher. Walk up to the door on foot and a **SHOP** button appears next to you: tap it, click it or press **E** (a car standing closer than the door gets E instead). The game waits while you shop; **LEAVE**, **Esc** or **E** goes back out, and what you bought is saved by the autosave. Your score is your cash.
+
+| Store | Colour | Sells |
+|---|---|---|
+| Bat Cave Sports | amber | baseball bat, golf club, knife, health |
+| Lucky Pawn | lime | pistol, revolver, machete, knife, body armor |
+| Bullseye Guns | cyan | pistol, SMG, shotgun, health, body armor |
+| Army Surplus | green | machine gun, grenades, machete, body armor |
+| Trophy Hunt & Fish | yellow | sniper rifle, shotgun, revolver, health |
+| Back Room Deals | magenta | rocket launcher, pipe bombs, grenades, machine gun, body armor |
+
+Each gun or bomb a store sells comes with a row for its ammo (one ammo pickup's worth). A weapon you have shows OWNED; ammo, health and armor show FULL when you cannot carry more; a price you cannot pay is red.
+
+| Weapon | Price | Ammo | | Weapon | Price | Ammo |
+|---|---|---|---|---|---|---|
+| Baseball bat | $150 | - | | Shotgun | $1,000 | $120 (7) |
+| Knife | $120 | - | | Machine gun | $3,500 | $400 (100) |
+| Machete | $250 | - | | Sniper rifle | $2,500 | $300 (10) |
+| Golf club | $200 | - | | Rocket launcher | $5,000 | $800 (2) |
+| Pistol | $400 | $60 (24) | | Grenade | $600 | $450 (3) |
+| Revolver | $700 | $80 (12) | | Pipe bomb | $900 | $600 (2) |
+| SMG | $1,200 | $150 (60) | | | | |
+
+The items and the stores are `js/01g-shop-data.js` (what each item gives, its colour, how many are hidden, its price; each store's name, colour and what it sells - weapon ids from the weapon table and item ids). Weapon and ammo prices are two rows of the weapon table (*Shops* section of `tools/weapon_sheet.py`); an empty price means it is never sold.
+
 `js/00-map-data.js` is generated by `tools/build_city.py` from a reference map image: `python tools/build_city.py <map image> js/00-map-data.js [preview.png]` (needs numpy, opencv-python-headless, scikit-image, shapely 2, pillow). Landmark places, bridges, runways, district names and the start point are set in the script; the random seed is fixed, so the same image always gives the same city. After laying out the blocks it checks every parking lot: a lot that does not open onto a street is turned to face the one it touches, or becomes a garden or a service yard if it touches none, and each lot is tied to the building next to it (`lots[6]`). It then picks the four police stations (buildings with a lot of their own) and the four hospitals, spread over the city (`services`).
 
 ## Layout
@@ -192,6 +228,7 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/01d-sky-data.js` | the day, night and weather settings in everyday units (edit by hand or with `tools/settings_sheet.py sky`), converted to `SKYP` |
 | `js/01e-radio-data.js` | the car radio stations: name, frequency, style, colour, music file; radio volume |
 | `js/01f-weapon-data.js` | the weapon table in everyday units (edit by hand or with `tools/weapon_sheet.py`), converted to `WEAPONS`; drafts are left out |
+| `js/01g-shop-data.js` | the hidden items (health, body armor, heat reducer) and the six stores: what each sells |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
@@ -203,7 +240,8 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
 | `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
 | `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
-| `js/08d-weapon-pickups.js` | hidden weapons and ammo: the hiding places off the streets, melee in fixed places, guns and ammo at random and coming back elsewhere, picking up, the coloured bubbles |
+| `js/08d-weapon-pickups.js` | hidden weapons, ammo and items: the hiding places off the streets, melee in fixed places, guns, ammo and items at random and coming back elsewhere, picking up, the coloured bubbles |
+| `js/08e-shops.js` | the six stores: which buildings, the markers at their doors, the SHOP button, the store screen and buying |
 | `js/09-render-core-buildings.js` | three.js setup, facade atlases, building meshes |
 | `js/10-render-city-map.js` | sea, coast, roads, sidewalks and markings, parking lots, bridges, parks, beaches, street lights and furniture, traffic lights, gates, streaming, see-through fade |
 | `js/10b-render-landmarks.js` | landmarks and props (Colony Hotel, Bayfront Park, TV tower, Twist, Crown, Sail, Bay Wheel, stadium, estate, mall, lighthouse, airport and runways, studio, cranes, containers, planes, gas stations, plazas, courts) and their collision boxes |
@@ -211,7 +249,7 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 | `js/10d-render-clutter.js` | back alleys, yards, promenades, quays and the apron, and everything lying about in them; box piles, bag heaps and wheelie bins (also used on the sidewalks) |
 | `js/10e-render-services.js` | hospitals and police stations: the roof cross and lettering, signs, lamps, checkered band, flag |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
-| `js/11b-weapon-models.js` | small 3D models of every weapon and an ammo box, for your hand and the pickups |
+| `js/11b-weapon-models.js` | small 3D models of every weapon, an ammo box and the items (health, armor, heat reducer), for your hand, the pickups and the stores |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/12b-rockets.js` | rockets: flight, wandering after the target, hits, the glowing motor and the smoke trail |
 | `js/12c-blast.js` | explosions: fireball, flames, smoke, debris, and throwing cars, people, pickups and props |

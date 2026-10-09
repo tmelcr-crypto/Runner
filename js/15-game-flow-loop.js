@@ -17,7 +17,7 @@ function resetGame(sv) {                     // a new game with the options in O
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
   const side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1, load = sv ? saveSpot(sv) : null;   // a saved game puts you back where you were
   if (load) sp = load;
-  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   if (load && load.car) { const c = load.car; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
@@ -35,6 +35,7 @@ function resetGame(sv) {                     // a new game with the options in O
   for (let k = 0; k < PICKUP_N; k++) spawnPickup();
   CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
+  placeStores();                                                   // the six stores and their markers (js/08e)
   if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
   spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
   if (sv) applySave(sv);                                        // score, weapons, health, the clock and the weather (js/15b)
@@ -60,6 +61,7 @@ function showOver() {
 
 function handleKeys() {
   if (state === 'over') { if (pressed.KeyR) startGame(); }         // menus: Enter, the arrows and Esc are handled in js/15b
+  else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) closeShop(); }   // E leaves the store again
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
     if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
@@ -72,7 +74,7 @@ function handleKeys() {
       if (pressed.wheel) { const k = own.indexOf(P.weapon); P.weapon = own[(Math.max(0, k) + pressed.wheel + own.length) % own.length]; }
       if (pressed.KeyQ && !bigOpen) toggleWheel(true);
       if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
-      if ((pressed.KeyE || pressed.KeyF) && !bigOpen) tryEnterExit();
+      if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(); if (s) openShop(s); else tryEnterExit(); }   // at a store's door E goes in (js/08e)
     }
   }
   if (pressed.KeyM) Snd.toggle();
@@ -121,7 +123,7 @@ function frame(ts) {
   if (state === 'preview') { pvFrame(); return; }
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else if (state !== 'pause') update(rdt, true);                  // paused: the picture stands still behind the menu
+  else if (state !== 'pause' && state !== 'shop') update(rdt, true);   // paused or in a store: the picture stands still behind the menu
   Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);

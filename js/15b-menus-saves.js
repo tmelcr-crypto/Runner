@@ -47,7 +47,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); }
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -55,6 +55,7 @@ function showCard(id, fresh) {                       // fresh: start a new stack
 function back() {
   const id = curCard();
   if (id === 'pauseCard') resumeGame();
+  else if (id === 'shopCard') closeShop();
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
 function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim'); document.documentElement.classList.remove('menus'); }
@@ -100,6 +101,7 @@ $('pHelpBtn').addEventListener('click', () => showCard('helpCard'));
 $('quitBtn').addEventListener('click', quitToTitle);
 document.addEventListener('visibilitychange', () => {           // switching to another app or tab: pause, and keep the game safe
   if (document.hidden && state === 'play') { if (!saveBlock()) putSave('auto', makeSave(lastThumb)); pauseGame(); }
+  else if (document.hidden && state === 'shop' && shopBought && !saveBlock()) putSave('auto', makeSave(lastThumb));   // in a store: keep what you bought
 });
 
 /* game over (only when starting again at a hospital or police station is switched off in the police table) */
@@ -131,7 +133,7 @@ function saveBlock() {                               // why you cannot save now 
 function makeSave(thumb) {
   const c = P.car;
   return { v: SAVE_V, t: Date.now(), where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
-    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
+    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
@@ -148,7 +150,7 @@ function saveSpot(sv) {                              // where a saved game puts 
 }
 function applySave(sv) {                             // called by resetGame (js/15) once the city is set up again
   const p = sv.P, n = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? clamp(v, lo, hi) : d;
-  P.hp = n(p.hp, 1, 100, 100); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
+  P.hp = n(p.hp, 1, 100, 100); P.armor = n(p.armor, 0, 100, 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
   const wi = typeof p.weapon === 'string' ? WEAPONS.findIndex(w => w.id === p.weapon) : Math.round(n(p.weapon, 0, WEAPONS.length - 1, 0));
   P.weapon = Math.max(0, wi);
   if (p.arms && typeof p.arms === 'object') {                     // by weapon id, so the weapon table can change between saves

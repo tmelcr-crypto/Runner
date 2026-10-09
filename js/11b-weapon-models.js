@@ -35,3 +35,14 @@ function ammoModel(color) {              // a box of ammunition with a band of t
   wbox(g, '#22262e', 7, 4.4, 5, 0, 0, 0); wbox(g, color, 7.2, 1.2, 5.2, 0, 0.6, 0, true); wbox(g, '#d9b04a', 1, 1.4, 1, -2, 2.8, 0); wbox(g, '#d9b04a', 1, 1.4, 1, 0, 2.8, 0); wbox(g, '#d9b04a', 1, 1.4, 1, 2, 2.8, 0);
   return g;
 }
+function itemModel(id) {                 // health, body armor, heat reducer (js/01g)
+  const g = new THREE.Group();
+  if (id === 'health') { wbox(g, '#f4f4f4', 8, 8, 8, 0, 0, 0); for (const [sx, sz] of [[6, 2], [2, 6]]) wbox(g, '#e0364f', sx, 0.6, sz, 0, 4.2, 0, true); wbox(g, '#e0364f', 6, 2, 0.6, 0, 0, 4.2, true); wbox(g, '#e0364f', 2, 6, 0.6, 0, 0, 4.2, true); }
+  else if (id === 'armor') { wbox(g, '#1d2c6e', 9, 10, 4, 0, 0, 0); wbox(g, '#4f7bff', 7, 7, 4.4, 0, -0.5, 0); for (const s of [-1, 1]) wbox(g, '#1d2c6e', 2, 3, 3.6, s * 3, 6, 0); }
+  else if (id === 'bribe') {
+    const d = part(g, GCyl, wmat('#ffd23f'), 7, 1.2, 7, 0, 0, 0); d.rotation.x = Math.PI / 2;
+    for (let k = 0; k < 5; k++) { const a = k / 5 * TAU, p = wbox(g, '#ffd23f', 2.2, 4, 1, Math.sin(a) * 4.6, Math.cos(a) * 4.6, 0); p.rotation.z = -a; }   // the star's points
+    const ar = part(g, GCone, wmat('#e0364f', true), 2.6, 3.4, 1, 0, -0.6, 1); ar.rotation.z = Math.PI; wbox(g, '#e0364f', 1.4, 3, 1, 0, 2, 1, true);   // an arrow pointing down
+  }
+  return g;
+}

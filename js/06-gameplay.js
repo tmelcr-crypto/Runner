@@ -6,7 +6,7 @@ let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play 
    lose them (1 = as in the police table); crowd: traffic and people (1 = normal); start: 'usual', 'random' or a district name */
 const OPT_DEF = { time: SKYP.startHour, weather: 'change', clock: 1, police: 1, crowd: 1, start: 'usual' }, OPT = Object.assign({}, OPT_DEF);
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
-const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, car: null, weapon: 0, has: startHas(), ammo: startAmmo(), mag: startMag(), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
+const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: 0, has: startHas(), ammo: startAmmo(), mag: startMag(), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
   heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
 const cam = { x: MW / 2, y: MH / 2, zoom: 1, shake: 0 };
 let boomFlash = null;
@@ -36,6 +36,7 @@ function killOfficer(o, byPlayer) {
 }
 function damagePlayer(d) {
   if (P.dead || state === 'over') return;
+  const a = Math.min(P.armor, d); P.armor -= a; d -= a;              // body armor takes it first (js/01g)
   P.hp -= d; P.hurtT = 0.25; Snd.hurt(); cam.shake = Math.max(cam.shake, 4);
   if (P.hp <= 0) killPlayer();
 }

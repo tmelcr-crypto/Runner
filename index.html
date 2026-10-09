@@ -17,7 +17,7 @@
   <div id="popLayer"></div>
   <div class="hud-tl">
     <div class="box"><span class="lbl">SCORE</span><span id="score">00000000</span></div>
-    <div class="box"><span class="lbl">HEALTH</span><div id="hpSegs"></div></div>
+    <div class="box"><span class="lbl">HEALTH</span><div id="hpSegs"></div><div id="armorRow" hidden><span class="lbl">ARMOR</span><div id="arSegs"></div></div></div>
     <div class="box"><div class="ammoRow"><span class="lbl" id="wname">PISTOL</span><span id="ammo">07 / 060</span></div><div id="reload"><i></i><span></span></div></div>
   </div>
   <div class="hud-tr">
@@ -36,6 +36,7 @@
   <div id="radioName"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
+  <button id="shopBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
   <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
   <div id="wasted">WASTED</div>
@@ -120,14 +121,14 @@
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> punch, swing, shoot (hold for automatics)</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>GRENADES</b> hold CLICK and drag the opposite way, let go to throw (J: hold to wind up)</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car</li></ul></div>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in (E or ESC leaves)</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK</b> in the tank: rockets</li></ul>
         <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>D / R STICK</b> forward / reverse</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades: hold FIRE, drag the opposite way, let go</li>
-        <li><b>ENTER/EXIT</b> button</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
+        <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> button: shows by you at a store's door</li><li><b>DASH/BRAKE</b> button</li><li><b>WEAPON</b> button (top) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map, tap again to close</li><li><b>RADIO</b> (in a car), <b>SND</b>, <b>MENU</b> buttons (top)</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
@@ -139,8 +140,13 @@
         <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
-        <li>On the sidewalks: <b>HEALTH</b> (+40, when you are hurt) and <b>CASH</b>.</li>
-        <li><b>WEAPONS</b> you have to find: only your fists to start with. Each weapon and its ammo float in a bubble of the weapon's own colour, hidden in alleys, yards, parks, parking lots and on the beaches. Melee weapons are the most common and always lie in the same places.</li></ul></div>
+        <li>On the sidewalks: <b>CASH</b>.</li>
+        <li><b>WEAPONS</b> you have to find: only your fists to start with. Each weapon and its ammo float in a bubble of the weapon's own colour, hidden in alleys, yards, parks, parking lots and on the beaches. Melee weapons are the most common and always lie in the same places.</li>
+        <li>Hidden the same way, each in its own bubble: <b>HEALTH</b> (white, +50 when you are hurt), <b>BODY ARMOR</b> (blue, +50) and the <b>HEAT REDUCER</b> (flashing red and blue: one star less while you are wanted). None of it shows on the maps.</li>
+        <li><b>BODY ARMOR</b> is the blue bar under your health: it takes the damage first.</li></ul></div>
+      <div><h3>STORES</h3><ul>
+        <li>Six stores, each with a <b>$</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
+        <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
       <div><h3>WASTED OR BUSTED</h3><ul>
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your score.</li>
         <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep every weapon you found.</li></ul></div>
@@ -160,7 +166,7 @@
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue) and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($) and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>DAY, NIGHT, WEATHER</h3><ul>
         <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
@@ -172,6 +178,15 @@
         <li>In the pause menu: three save slots, and a save file to download - open it on another device to carry on there.</li></ul></div>
     </div>
     <div class="row"><button class="big alt back pri" type="button">BACK</button></div>
+  </div>
+
+  <div class="card" id="shopCard" hidden>
+    <h2 id="shopName">STORE</h2>
+    <p class="sub" id="shopCash"></p>
+    <div id="shopList"></div>
+    <p class="warn" id="shopMsg"></p>
+    <div class="menu"><button id="shopLeave" class="big alt back pri" type="button">LEAVE</button></div>
+    <p class="keys">ESC OR E LEAVES</p>
   </div>
 
   <div class="card" id="overCard" hidden>
@@ -200,6 +215,7 @@
 <script src="js/01d-sky-data.js"></script>
 <script src="js/01e-radio-data.js"></script>
 <script src="js/01f-weapon-data.js"></script>
+<script src="js/01g-shop-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -212,6 +228,7 @@
 <script src="js/08b-police.js"></script>
 <script src="js/08c-services.js"></script>
 <script src="js/08d-weapon-pickups.js"></script>
+<script src="js/08e-shops.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

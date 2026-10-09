@@ -262,7 +262,7 @@ function respawn() {
   const busted = P.busted, lose = Math.round(P.score * (busted ? COP.bustedCash : COP.wastedCash));
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const sp = serviceDoor(busted ? 'police' : 'hospital', P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;
-  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: 100, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
+  Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: 100, armor: 0, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
     rel: 0, relW: -1, cool: 0, hurtT: 0, trig: false, dry: false, score: P.score - lose });
   if (P.knocked) { P.knocked = false; P.air = 0; P.kvx = P.kvy = P.kvz = 0; const i = KNOCK.indexOf(P); if (i >= 0) KNOCK.splice(i, 1); }
   if (strip) {                                                    // they take your weapons, except the ones the weapon table lets you keep
