@@ -22,7 +22,7 @@ function makePed(x, y, w) {
 function makeFootCop(x, y, w) { const p = makePed(x, y, w); p.cop = true; p.hp = 45; p.speed = rand(1.2, 1.5) * MPS; p.hd = 0; p.ang = 0; return p; }
 function makeOfficer(x, y) { return { x, y, ang: 0, hp: 45, cool: rand(0.3, 1), speed: 5.5 * MPS, dead: false, deadT: 0, bob: 0, vx: 0, vy: 0 }; }
 
-function addP(p) { if (parts.length < 650) parts.push(p); }
+function addP(p) { if (parts.length < 2000) parts.push(p); }
 function spark(x, y, n, col) { for (let k = 0; k < n; k++) { const a = rand(0, TAU), s = rand(40, 200); addP({ x, y, z: rand(5, 14), vz: rand(10, 90), grav: 220, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.12, 0.3), max: 0.3, s0: 2.2, s1: 0.5, col: col || '#ffe27a', drag: 4 }); } }
 function bloodFx(x, y, n, ang) {
   for (let k = 0; k < n; k++) { const a = (ang === undefined ? rand(0, TAU) : ang + rand(-0.7, 0.7)), s = rand(30, 170); addP({ x, y, z: rand(8, 16), vz: rand(10, 70), grav: 260, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.25, 0.6), max: 0.6, s0: 3, s1: 1, col: '#b3122a', drag: 5 }); }

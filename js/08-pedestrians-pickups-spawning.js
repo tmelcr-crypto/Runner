@@ -23,6 +23,7 @@ function snapPed(p) {                         // after fleeing or fighting: rejo
 function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
+    if (p.knocked) continue;                                       // flying through the air (js/12c)
     if (p.cop && P.stars > 0 && !P.dead && dist(p.x, p.y, P.x, P.y) < 700) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }
     if (p.combat) { p.combat = false; p.cv = null; snapPed(p); }
     if (p.e < 0) snapPed(p);
@@ -79,6 +80,7 @@ function updateOfficers(dt) {
   for (let k = officers.length - 1; k >= 0; k--) {
     const o = officers[k];
     if (o.dead) { o.deadT += dt; if (o.deadT > 20) officers.splice(k, 1); continue; }
+    if (o.knocked) continue;
     const tgt = P.car || P, d = dist(o.x, o.y, tgt.x, tgt.y), los = losClear(o.x, o.y, tgt.x, tgt.y);
     o.away = (P.stars === 0 || d > 1500 || (!los && d > 400)) ? (o.away || 0) + dt : 0;
     if (o.away > 8 || d > 1700) { officers.splice(k, 1); continue; }
@@ -93,7 +95,7 @@ function spawnPickup() {                      // anywhere on the map: a random s
     let r = Math.random() * total, e = 0; while (e < RE.length - 1 && r > RE[e].len) { r -= RE[e].len; e++; }
     const w = { e, fw: 1, s: r, side: Math.random() < 0.5 ? 1 : -1 }, q = sidewalkPoint(w, 0, {});
     if (shoreDist(q.x, q.y) < 12 || pedBlocked(q.x, q.y) || pickups.some(k => dist(k.x, k.y, q.x, q.y) < 200)) continue;
-    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'sniper', 'cash', 'cash']), bob: rand(0, 6) }); return;
+    pickups.push({ x: q.x, y: q.y, type: pick(['health', 'pistol', 'mg', 'mg', 'sniper', 'rocket', 'cash', 'cash']), bob: rand(0, 6) }); return;
   }
 }
 function updatePickups(dt) {
@@ -104,6 +106,7 @@ function updatePickups(dt) {
     else if (p.type === 'pistol') { P.ammo[0] = Math.min(250, P.ammo[0] + 24); popup(p.x, p.y - 12, '+24 PISTOL', '#3fe0ff'); }
     else if (p.type === 'mg') { P.ammo[1] = Math.min(400, P.ammo[1] + 60); popup(p.x, p.y - 12, '+60 MG', '#3fe0ff'); }
     else if (p.type === 'sniper') { P.ammo[2] = Math.min(60, P.ammo[2] + 10); popup(p.x, p.y - 12, '+10 SNIPER', '#3fe0ff'); }
+    else if (p.type === 'rocket') { P.ammo[3] = Math.min(12, P.ammo[3] + 2); popup(p.x, p.y - 12, '+2 ROCKETS', '#ff9d2b'); }
     else addScore(500, p.x, p.y, 'CASH');
     Snd.pickup(); pickups.splice(k, 1); pickupQ.push(gameT + PICKUP_BACK);
   }

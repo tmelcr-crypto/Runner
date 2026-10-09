@@ -189,7 +189,7 @@ let cityGroup = null;
 function instanced(geo, mat, items) {
   const m = new THREE.InstancedMesh(geo, mat, Math.max(1, items.length)), d = new THREE.Object3D(), col = new THREE.Color();
   items.forEach((it, k) => {
-    d.position.set(it.x, it.y, it.z); d.scale.set(it.sx, it.sy, it.sz); d.rotation.set(0, it.ry || 0, 0); d.updateMatrix();
+    d.position.set(it.x, it.y, it.z); d.scale.set(it.sx, it.sy, it.sz); d.rotation.set(0, it.ry || 0, 0); d.updateMatrix(); it._m = m; it._k = k;   // so a blast can lift it out
     m.setMatrixAt(k, d.matrix); col.set(it.c); m.setColorAt(k, col);
   });
   m.count = items.length; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;

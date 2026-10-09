@@ -11,7 +11,7 @@ function render(time) {
   if (waterTex) { waterTex.offset.x = time * 0.012; waterTex.offset.y = Math.sin(time * 0.4) * 0.03; } if (foamMat) foamMat.opacity = 0.45 + 0.25 * Math.sin(time * 1.6);
   streamCity(false); for (const o of LMS) if (o.mesh && o.mesh.userData.anim) o.mesh.userData.anim(time);
   sweepDynamic(); syncPlayer(time, dt); fadeBuildings();
-  gfxParticles(); gfxTracers(); gfxDecals(); gfxSkids(); gfxPops();
+  gfxRockets(time); gfxBlast(dt); gfxParticles(); gfxTracers(); gfxDecals(); gfxSkids(); gfxPops();
   if (boomFlash) { boomFlash.t -= dt; boomLight.position.set(boomFlash.x, 50, boomFlash.y); boomLight.intensity = Math.max(0, boomFlash.t / 0.5) * 3.2; if (boomFlash.t <= 0) boomFlash = null; } else boomLight.intensity = 0;
   $('hurt').style.opacity = P.hurtT > 0 ? Math.min(0.5, P.hurtT * 1.6) : 0;
   if (scopeLive()) renderWithScope(); else { SCOPE.on = SCOPE.hold = false; renderer.render(scene, camera); }   // aiming the rifle: blurred view and the zoomed scope

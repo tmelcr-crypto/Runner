@@ -69,8 +69,8 @@ function syncCar(c, time, dt) {
   if (!c.mesh) buildCar(c); track(c);
   const gy = groundH(c.x, c.y); c.gy = c.gy === undefined ? gy : c.gy + (gy - c.gy) * Math.min(1, dt * 14);
   if (c.sunk) { c.mesh.visible = c.sinkT < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, c.sinkT * c.sinkT * 9 + c.sinkT * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, c.sinkT * 0.3); return; }
-  c.mesh.position.set(c.x, c.gy, c.y); c.mesh.rotation.y = -c.ang;
-  const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), want = -clamp(c.av * vf / 450, -0.12, 0.12);
+  c.mesh.position.set(c.x, c.gy + (c.air || 0), c.y); c.mesh.rotation.y = -c.ang;
+  const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), want = c.air > 0 ? clamp(c.av * 0.07, -0.6, 0.6) : -clamp(c.av * vf / 450, -0.12, 0.12);   // rolls over a little in the air
   c.roll += (want - c.roll) * Math.min(1, dt * 8); c.tilt.rotation.x = c.roll;
   const f = c.hp / c.maxhp, m = c.m;
   m.ug.visible = !c.dead; m.hb.visible = !!c.driver && !c.dead;
@@ -100,7 +100,7 @@ function syncPerson(p, kind, time, dt) {
   if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; }
   track(p); const o = p.pm, g = p.mesh;
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
-  g.position.set(p.x, p.gy, p.y);
+  g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
   if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;
   g.rotation.y = -p.h3;
@@ -124,27 +124,28 @@ function syncPlayer(time, dt) {
   }
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over'; P3.mesh.visible = vis; if (!vis) return;
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
-  P3.mesh.position.set(P.x, P3.gy - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
+  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8;
   o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
   o.torso.material = P.hurtT > 0 ? P3.red : P3.yel;
   if (P.busted) { o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; } else o.tilt.rotation.z = 0;      // knocked flat
-  const gl = [10, 18, 28][P.weapon] || 10; o.gun.scale.x = gl; o.gun.position.x = 3 + gl / 2;   // pistol, machine gun, rifle
+  const gl = [10, 18, 28, 26][P.weapon] || 10, gt = P.weapon === 3 ? 4.6 : 2.4; o.gun.scale.set(gl, gt, gt); o.gun.position.x = 3 + gl / 2;   // pistol, machine gun, rifle, rocket tube
   P3.flash.visible = P.flash > 0; P3.flash.position.set(6 + gl, 14, 3.6);
   flashLight.intensity = P.flash > 0 ? 1.6 : 0; flashLight.position.set(P.x + Math.cos(P.ang) * 20, P3.gy + 16, P.y + Math.sin(P.ang) * 20);
 }
-const PICK_COL = { health: 0xff6b86, pistol: 0x3fe0ff, mg: 0x3fe0ff, sniper: 0xffe14a, cash: 0x58e08a };
+const PICK_COL = { health: 0xff6b86, pistol: 0x3fe0ff, mg: 0x3fe0ff, sniper: 0xffe14a, rocket: 0xff9d2b, cash: 0x58e08a };
 function syncPickup(p, time) {
   if (!p.mesh) {
     const g = new THREE.Group(), it = new THREE.Group(); g.add(it);
     if (p.type === 'health') { part(it, GB, E.white, 10, 10, 10, 0, 0, 0); part(it, GB, mBas(0xe0364f), 6.5, 1.2, 2.2, 0, 5.4, 0); part(it, GB, mBas(0xe0364f), 2.2, 1.2, 6.5, 0, 5.4, 0); }
     else if (p.type === 'cash') { part(it, GB, mc(0x58b36b), 13, 3.5, 8, 0, 0, 0); part(it, GB, mc(0xd6f5dc), 9, 0.6, 5, 0, 1.9, 0); }
+    else if (p.type === 'rocket') { part(it, GB, mc(0x3d4528), 18, 8, 10, 0, 0, 0); part(it, GB, mBas(0xff9d2b), 18.4, 1.6, 10.4, 0, 1, 0); part(it, GB, mBas(0xff9d2b), 2, 1, 8, -5, 4.5, 0); part(it, GB, mBas(0xff9d2b), 2, 1, 8, 5, 4.5, 0); }   // a crate with orange bands
     else if (p.type === 'sniper') { part(it, GB, mc(0x2a2410), 18, 6, 7, 0, 0, 0); part(it, GB, mBas(0xffe14a), 14, 1, 1.4, 0, 3.4, 0); }   // a long case with a yellow stripe
     else { part(it, GB, mc(0x17304a), 11, 8, 9, 0, 0, 0); for (let k = 0; k < (p.type === 'mg' ? 3 : 1); k++) part(it, GB, mBas(0x3fe0ff), 1.8, 1, 5, (p.type === 'mg' ? (k - 1) * 3 : 0), 4.4, 0); }
     part(g, GCyl, new THREE.MeshBasicMaterial({ color: PICK_COL[p.type], transparent: true, opacity: 0.2, depthWrite: false }), 2.6, 60, 2.6, 0, 30, 0);
     g.userData.it = it; p.mesh = g; scene.add(g);
   }
   track(p); const it = p.mesh.userData.it;
-  p.mesh.position.set(p.x, SIDE_H, p.y); it.position.y = 11 + Math.sin(p.bob) * 2; it.rotation.y = time * 1.6;
+  p.mesh.position.set(p.x, SIDE_H + (p.air || 0), p.y); it.position.y = 11 + Math.sin(p.bob) * 2; it.rotation.y = time * 1.6;
 }
 

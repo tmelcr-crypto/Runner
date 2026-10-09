@@ -67,21 +67,22 @@ function damageCar(c, d, byPlayer) {
   }
 }
 function explosion(x, y, R, src) {
-  boomFlash = { x, y, t: 0.5 };
+  boomFlash = { x, y, t: 0.6 };
   Snd.boom(); cam.shake = Math.max(cam.shake, 16 * (1 - Math.min(1, dist(x, y, cam.x, cam.y) / 900)));
-  ringFx(x, y, R);
-  for (let k = 0; k < 22; k++) fireFx(x + rand(-14, 14), y + rand(-14, 14));
-  for (let k = 0; k < 14; k++) smokeFx(x, y, true);
-  spark(x, y, 18, '#ffb347');
-  if (decals.length < 120) decals.push({ x, y, r: R * 0.45, life: 70, scorch: true });
+  boomFx(x, y, R);                                               // fireball, flames, smoke column, debris, embers (js/12c)
+  if (decals.length < 110 && shoreDist(x, y) > 0) {             // a ragged scorch mark: a few overlapping blotches, not one disc
+    decals.push({ x, y, r: R * 0.24, life: 70, scorch: true });
+    for (let k = 0; k < 5; k++) { const a = rand(0, TAU), d = rand(0.1, 0.24) * R; decals.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, r: rand(0.09, 0.16) * R, life: 70, scorch: true }); }
+  }
   const byP = src && src.byPlayer;
   for (const p of peds) if (!p.dead && dist(p.x, p.y, x, y) < R) killPed(p, 'blast', byP);
   for (const o of officers) if (!o.dead && dist(o.x, o.y, x, y) < R) killOfficer(o, byP);
   for (const c of cars) {
     if (c === src || c.dead) continue; const d = dist(c.x, c.y, x, y);
-    if (d < R + 20) { damageCar(c, 110 * (1 - d / (R + 20)), byP); const m = Math.max(1, d); c.vx += (c.x - x) / m * 220; c.vy += (c.y - y) / m * 220; }
+    if (d < R + 20) damageCar(c, 110 * (1 - d / (R + 20)), byP);
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
+  blastPush(x, y, R, src);                                       // and throws everything still in one piece
 }
 function explodeCar(c) {
   c.burn = 0; c.dead = true; c.deadT = 0; c.hp = 0;
@@ -145,6 +146,10 @@ function fireWeapon(aim) {                                      // aim: a point 
   P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
   const a = aim ? Math.atan2(aim.y - P.y, aim.x - P.x) : P.ang + rand(-w.spread, w.spread);
   if (aim) P.ang = a;
+  if (w.rocket) {                                                // a rocket: it flies on its own (js/12b) and blows up on whatever it hits
+    launchRocket(aim || { x: P.x + Math.cos(a) * 400, y: P.y + Math.sin(a) * 400 }, w); Snd.rocket();
+    alertPeds(P.x, P.y, 500); reportCrime(w.heat, w.hear); cam.shake = Math.max(cam.shake, w.shake); return;
+  }
   const h = w.scope ? rifleRay(P.x, P.y, a, w) : raycast(P.x, P.y, a, w.range);
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
@@ -226,6 +231,7 @@ function updatePlayer(dt, inp) {
     return;
   }
   const orig = inp; if (SCOPE.on && SCOPE.by === 'key') inp = { ix: 0, iy: 0, mag: 0, sprint: false, fire: inp.fire, held: inp.held };   // J held: the arrow keys move the scope, not you
+  if (P.knocked) { updateReload(dt); P.trig = inp.fire; return; }   // thrown by a blast: no control until you land
   const mg = inp.mag === undefined ? Math.min(1, Math.hypot(inp.ix, inp.iy)) : inp.mag;
   if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);

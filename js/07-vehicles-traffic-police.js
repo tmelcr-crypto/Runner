@@ -6,6 +6,10 @@ const ARCADE = { acc: 1.7, brake: 1.5, grip: 2.2, hbGrip: 0.3, turn: 1.15, lat: 
 const REAL = { acc: 1, brake: 1, grip: 1, hbGrip: 0.28, turn: 1, lat: LAT_GRIP, full: 18 * KMH, steer: 10, coast: 0.12 };
 function stepCar(c, dt) {
   const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, H = c.driver === 'player' ? ARCADE : REAL;
+  if (c.air > 0 || c.vz > 0) {                                    // thrown by a blast: no grip in the air - it flies, spins and comes down (with a small bounce)
+    c.vz -= 900 * dt; c.air = Math.max(0, (c.air || 0) + c.vz * dt); if (c.air === 0) c.vz = c.vz < -200 ? -c.vz * 0.25 : 0;
+    c.x += c.vx * dt; c.y += c.vy * dt; c.ang += c.av * dt; c.av *= Math.exp(-0.4 * dt); if (c.hitCd > 0) c.hitCd -= dt; return;
+  }
   if (c.dead || c.burn > 0 && !c.driver) { c.thr = 0; c.str = 0; }
   let vf = c.vx * fx + c.vy * fy, vl = c.vx * rx + c.vy * ry;
   c.slip = Math.abs(vl);

@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 7c. EFFECTS: particles, rings, tracers, decals, skid marks, score pops ---------- */
-const MAXP = 700, pGeo = new THREE.BufferGeometry();
+const MAXP = 2100, pGeo = new THREE.BufferGeometry();
 const pPos = new Float32Array(MAXP * 3), pSize = new Float32Array(MAXP), pCol = new Float32Array(MAXP * 4);
 const aPos = new THREE.BufferAttribute(pPos, 3).setUsage(THREE.DynamicDrawUsage), aSize = new THREE.BufferAttribute(pSize, 1).setUsage(THREE.DynamicDrawUsage), aCol = new THREE.BufferAttribute(pCol, 4).setUsage(THREE.DynamicDrawUsage);
 pGeo.setAttribute('position', aPos); pGeo.setAttribute('size', aSize); pGeo.setAttribute('pcolor', aCol);
@@ -39,7 +39,7 @@ function gfxDecals() {
   for (const d of decals) {
     if (n >= MAXD) break; const sc = d.r * clamp(d.life / 6, 0.05, 1);
     _dm.position.set(d.x, 3.5, d.y); _dm.scale.set(sc, 1, sc); _dm.updateMatrix(); decalMesh.setMatrixAt(n, _dm.matrix);
-    _dc.set(d.scorch ? 0x000000 : 0x7d0c1e); decalMesh.setColorAt(n, _dc); n++;
+    _dc.set(d.scorch ? 0x1c1619 : 0x7d0c1e); decalMesh.setColorAt(n, _dc); n++;
   }
   decalMesh.count = n; decalMesh.instanceMatrix.needsUpdate = true; if (decalMesh.instanceColor) decalMesh.instanceColor.needsUpdate = true;
 }
