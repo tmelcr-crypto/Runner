@@ -117,7 +117,7 @@ function dispatch(dt) {
 /* ---------- police cars ---------- */
 function copDrive(c, dt) {
   const tgt = P.car || P, lv = P.stars, d = dist(c.x, c.y, tgt.x, tgt.y), spd = carSpeed(c);
-  const vmax = Math.min(c.t.max * 0.92, COP.lv.speed[lv] || 50 * KMH);
+  const vmax = copCareful(c, Math.min(c.t.max * 0.92, COP.lv.speed[lv] || 50 * KMH));   // slower over a junction against the lights (js/07b)
   c.hb = false;
   if (!PS.seen && dist(c.x, c.y, PS.lx, PS.ly) < PS.r * 0.8 + 60) {     // nobody sees you and this car is at the search area: cruise its streets
     if (!c.searching) { c.searching = true; c.e = -1; c.cruise = COP.searchSpeed; }

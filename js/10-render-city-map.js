@@ -150,7 +150,7 @@ function buildCity() {
   if (RAILS.length) rails.mesh(new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
   // street lights at the kerb, alternating sides
   const poles = [], heads = [], pools = [], nearLot = (x, y) => LOTS.some(L => Math.abs(x - L.cx) < L.w / 2 + L.d / 2 && Math.abs(y - L.cy) < L.w / 2 + L.d / 2);
-  for (const E of RE) for (let s = SWO + 30; s < E.len - SWO - 30; s += 300) {
+  for (const E of RE) for (let s = SWO + 60; s < E.len - SWO - 60; s += 300) {      // clear of the traffic lights by the crossings
     const sd = Math.round(s / 300) % 2 ? 1 : -1, c = edgeAt(E.i, s, q), off = (ROAD_HALF + 5) * sd, px = c.x - c.ty * off, py = c.y + c.tx * off;
     if (inLandmark(px, py)) continue;
     const lc = (E.i + Math.round(s / 300)) % 2 ? '#ff2bd6' : '#2bf3ff', ix = c.x - c.ty * off * 0.55, iy = c.y + c.tx * off * 0.55;
@@ -185,18 +185,7 @@ function buildCity() {
       if (thr) registerThrow(thr[0], thr[1], partsSince(furn, mark), null, thr[2], thr[3]);
     }
   }
-  // traffic lights on the near right corner of every approach to a junction
-  RN.forEach((n, ni) => {
-    if (n.e.length < 3) return;
-    n.e.forEach((ei, k) => {
-      const F = RE[ei], fromA = F.a === ni, c = edgeAt(ei, fromA ? SWO + 8 : F.len - SWO - 8, {}), tx = fromA ? c.tx : -c.tx, ty = fromA ? c.ty : -c.ty;
-      const rx = ty, ry = -tx, px = c.x + rx * (ROAD_HALF + 5), py = c.y + ry * (ROAD_HALF + 5), yaw = -Math.atan2(ry, rx);
-      if (inLandmark(px, py) || shoreDist(px, py) < 10) return;
-      poles.push({ x: px, y: 26, z: py, sx: 1.6, sy: 52, sz: 1.6, c: '#14102a' });
-      fb.push({ x: px - rx * 17, y: 51, z: py - ry * 17, sx: 34, sy: 1.6, sz: 1.6, ry: yaw, c: '#14102a' }); fb.push({ x: px - rx * 32, y: 45, z: py - ry * 32, sx: 4, sy: 12, sz: 4, ry: yaw, c: '#14102a' });
-      fg.push({ x: px - rx * 32 + tx * 2.1, y: k % 2 ? 49 : 41, z: py - ry * 32 + ty * 2.1, sx: 3, sy: 3, sz: 1, ry: yaw, c: k % 2 ? '#ff3b5c' : '#3dffa6' });
-    });
-  });
+  drawSignals(fb, poles);                                          // traffic lights on the near right corner of every approach to a junction (js/07b)
   // boom gates across the driveways to landmarks: posts at the kerbs, a striped boom, a POLICE ONLY board
   for (const g of GATES) {
     const rx = -g.sa, ry = g.ca, yaw = -g.a, n = 10, seg = (ROAD_W - 8) / n;

@@ -10,8 +10,13 @@
    that weapon (its bubble is faint then). Guns, bombs and ammo lie in different places every game; one you take comes back somewhere
    else, out of sight, a minute later. Ammo is taken even before you have its gun, and kept for it. Only on foot (js/01j footPickups).
    How many lie out depends on the mode too (js/01j settings, pickups: story has 30% of free roam's).
+   Heat reducers besides (streets table, js/01m): from 3 stars up one lies in the middle of a street ahead of you, just out of sight -
+   a new one comes 30 s after it was taken or left far behind, and it goes when you drop below 3 stars; ten more wait in fixed back
+   alleys, always showing but taken only while you are wanted, each back in its spot 2 minutes after it was taken. Every heat reducer
+   is taken from inside a car too (js/01j roadHeat, alleyHeat, carHeat).
    Cash still lies on the sidewalks (js/08). */
 let WPICKS = [], WSPOTS = null, wpQ = [];
+const HEAT = { road: null, t: 0 };                                  // the heat reducer on the road, and when the next one may come
 const WP_BACK = 60, WP_R = 22, WP_GAP = 160;
 function hiddenOk(x, y) {               // off the streets and sidewalks, on open ground, not in a wall or the water
   return !nearestRoad(x, y, ROAD_HALF + SW_W + 14) && !pedBlocked(x, y) && shoreDist(x, y) > 14 && !inLandmark(x, y) && groundH(x, y) === 0;
@@ -49,6 +54,12 @@ function placeWeapons() {                // a new game: melee in their fixed pla
   if (feat('hiddenWeapons')) withSeed(2024, () => {                // melee weapons: the same places every game (modes: js/01j)
     WEAPONS.forEach((w, wi) => { if (isMelee(w)) for (let k = 0; k < cnt(w.onMap); k++) putPick(freeSpot(Math.random, null, 'w' + wi), wi, false, true); });
   });
+  if (feat('alleyHeat') && ITEM.bribe) withSeed(3141, () => {       // the back-alley heat reducers: always the same alleys
+    const n = cnt(STR.alleyCount), al = WSPOTS.filter(s => s.k === 'alley' && !s.ramp), got = [];
+    for (let gap = 2400; got.length < n && gap >= 300; gap *= 0.7)
+      for (let tr = 0; tr < 400 && got.length < n; tr++) { const s = al[Math.floor(Math.random() * al.length)]; if (s && !s.used && !got.some(q => dist(q.x, q.y, s.x, s.y) < gap)) { s.used = 'ialley'; got.push(s); } }
+    for (const s of got) { putPick(s, -1, false, false, 'bribe'); WPICKS[WPICKS.length - 1].alley = true; }
+  });
   const start = { x: P.x, y: P.y, r: 300 };
   if (feat('hiddenWeapons')) WEAPONS.forEach((w, wi) => {
     if (isMelee(w)) return;
@@ -56,6 +67,7 @@ function placeWeapons() {                // a new game: melee in their fixed pla
     for (let k = 0; k < cnt(w.ammoMap); k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, true, false);
   });
   if (feat('hiddenItems')) for (const it of ITEMS) for (let k = 0; k < cnt(it.onMap); k++) putPick(freeSpot(Math.random, start, 'i' + it.id), -1, false, false, it.id);   // health, armor, heat reducers
+  HEAT.road = null; HEAT.t = 0;
 }
 function putPick(s, wi, ammo, fixed, item) {
   if (!s) return;
@@ -74,12 +86,29 @@ function lowerWanted(n) {                // the heat reducer: n stars less, as i
   if (s === 0) { clearWanted('HEAT GONE'); return; }
   P.heat = COP.lv.heat[s]; P.stars = s; P.sinceCrime = 0; toast('WANTED LEVEL ' + s);
 }
+function roadHeat() {                    // the heat reducer on the road while you are wanted enough: one at a time, ahead of you, out of sight
+  const on = feat('roadHeat') && ITEM.bribe && P.stars >= STR.roadStars && !P.dead, px = P.car ? P.car.x : P.x, py = P.car ? P.car.y : P.y, R = HEAT.road;
+  if (R && (!on || dist(R.x, R.y, px, py) > Math.max(STR.roadLeave, offDist() + 300))) {   // below the level: gone; left far behind: the next one later
+    const k = WPICKS.indexOf(R); if (k >= 0) WPICKS.splice(k, 1); HEAT.road = null; HEAT.t = on ? gameT + STR.roadBack : 0; return;
+  }
+  if (!on || R || gameT < HEAT.t) return;
+  const v = P.car ? Math.hypot(P.car.vx, P.car.vy) : 0, head = P.car ? (v > 40 ? Math.atan2(P.car.vy, P.car.vx) : P.car.ang) : P.ang, D = Math.max(STR.roadAhead, offDist() + 60);
+  for (let tr = 0; tr < 24; tr++) {
+    const a = head + rand(-0.5, 0.5) * (1 + tr / 12), r = nearestRoad(px + Math.cos(a) * D, py + Math.sin(a) * D, 320); if (!r) continue;
+    const E = RE[r.e]; if (E.nt || r.s < SW_OUT + 50 || r.s > E.len - SW_OUT - 50) continue;   // on a street, not in a junction
+    if (dist(r.x, r.y, px, py) < offDist() || inLandmark(r.x, r.y) || shoreDist(r.x, r.y) < 20) continue;
+    HEAT.road = { x: r.x, y: r.y, wi: -1, ammo: false, item: 'bribe', key: 'iroad', fixed: false, road: true, spot: null, bob: Math.random() * 6, mesh: null };
+    WPICKS.push(HEAT.road); return;
+  }
+  HEAT.t = gameT + 1;                                                // nowhere fit just now: try again in a moment
+}
 function updateWeaponPicks(dt) {
+  roadHeat();
   const px = P.car ? P.car.x : P.x, py = P.car ? P.car.y : P.y, reach = P.car ? WP_R + P.car.t.wid / 2 : WP_R, inCar = !!P.car && feat('footPickups');   // on foot only (js/01j)
   for (let k = WPICKS.length - 1; k >= 0; k--) {
     const p = WPICKS[k]; p.bob += dt * 3;
     if (p.drop && gameT > p.until) { WPICKS.splice(k, 1); continue; }   // dropped by the dead (js/08g) and left lying too long
-    if (P.dead || inCar || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
+    if (P.dead || (inCar && !(p.item === 'bribe' && feat('carHeat'))) || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
     if (RAMP.on && p.wi === RAMP.on.wi) continue;                     // the rampage's own weapon and ammo wait until it is over (js/08f)
     if (p.item) { if (!takeItem(p)) continue; }
     else { const w = WEAPONS[p.wi], i = p.wi, col = w.color;
@@ -102,11 +131,15 @@ function updateWeaponPicks(dt) {
     if (p.fixed) continue;
     if (p.base) { baseTaken(p); WPICKS.splice(k, 1); continue; }       // from the base's armoury: restocked later (js/08j)
     if (p.drop) { WPICKS.splice(k, 1); continue; }                    // gone for good
+    if (p.road) { WPICKS.splice(k, 1); HEAT.road = null; HEAT.t = gameT + STR.roadBack; continue; }   // the next one on the road later
+    if (p.alley) { WPICKS.splice(k, 1); wpQ.push({ t: gameT + STR.alleyBack, alley: p.spot }); continue; }   // back in the same alley later
     p.spot.used = null; WPICKS.splice(k, 1); wpQ.push({ t: gameT + WP_BACK, wi: p.wi, ammo: p.ammo, item: p.item, key: p.key });   // comes back elsewhere later
   }
   for (let k = wpQ.length - 1; k >= 0; k--) {
     if (wpQ[k].t > gameT) continue;
-    const q = wpQ[k], s = freeSpot(Math.random, { x: P.x, y: P.y, r: offDist() + 200 }, q.key);   // out of sight
+    const q = wpQ[k];
+    if (q.alley) { putPick(q.alley, -1, false, false, 'bribe'); WPICKS[WPICKS.length - 1].alley = true; wpQ.splice(k, 1); continue; }
+    const s = freeSpot(Math.random, { x: P.x, y: P.y, r: offDist() + 200 }, q.key);   // out of sight
     if (s) { putPick(s, q.wi, q.ammo, false, q.item); wpQ.splice(k, 1); } else q.t = gameT + 5;
   }
 }

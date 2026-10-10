@@ -147,9 +147,9 @@ function routeEdge(c) {                      // a vehicle on a call (js/08c): at
 const nextFor = c => c.task ? routeEdge(c) : nextEdge(c.e, c.fw);
 function laneAhead(c, ahead, out) {          // point on the car's lane `ahead` units further on, running into the next edge if needed
   const E = RE[c.e], s = c.s + ahead;
-  if (s <= E.len) return lanePoint(c.e, c.fw, s, LANE, out);
+  if (s <= E.len) return lanePoint(c.e, c.fw, s, c.lo || LANE, out);
   if (!c.nx) c.nx = nextFor(c);
-  return lanePoint(c.nx.e, c.nx.fw, Math.min(RE[c.nx.e].len, s - E.len), LANE, out);
+  return lanePoint(c.nx.e, c.nx.fw, Math.min(RE[c.nx.e].len, s - E.len), c.lo || LANE, out);
 }
 function snapToRoad(c) {                     // (re)join the nearest road, heading the way the car already points
   const r = nearestRoad(c.x, c.y, 500); if (!r) return false;
@@ -200,22 +200,23 @@ function aiDrive(c, dt) {
   }
   if (c.t.job && serviceStop(c, dt)) return;                        // at the scene of a call, or stopped at a bin (js/08c)
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, spd = carSpeed(c), F = Math.max(0, c.t.len / 2 - 27);   // F: how much further a long vehicle's nose is
+  const sir = feat('sirens') && isSiren(c), pulled = feat('sirens') && pullOver(c);   // lights and siren: down the middle; a siren near: keep right (js/07b)
+  c.lo = lerp(c.lo || LANE, pulled ? LANE + STR.pullSide : sir ? 4 : LANE, 1 - Math.exp(-2.5 * dt));
   const far = laneAhead(c, 120 + Math.max(0, vf) * 0.6, _cw), dfar = Math.abs(angDiff(c.ang, Math.atan2(far.y - c.y, far.x - c.x)));
   const near = laneAhead(c, (40 + Math.max(0, vf) * 0.3) * (1 - 0.45 * Math.min(1, dfar / 1.2)), _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));   // aim closer in a bend, so the corner is not cut into the other lane
   c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
   if (!c.cruise) c.cruise = Math.min(c.t.max * 0.9, rand(40, 55) * KMH);   // town traffic: 40-55 km/h
   let tgt = (c.task ? Math.min(c.t.max * 0.9, 65 * KMH) : c.cruise) * (1 - SKYP.aiSlow * SKY.wet) * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
   const stop = vf > 0 ? vf * vf / (2 * c.t.brake * (0.55 + 0.45 * SKY.grip)) : 0, reach = 70 + stop * 1.6 + Math.max(0, vf) * 0.4;   // look far enough ahead to stop in time
-  const look = (ox, oy, lw, back) => { const rx = ox - c.x, ry = oy - c.y, al = rx * fx + ry * fy - F - (back || 0), lat = Math.abs(-rx * fy + ry * fx); if (al > 18 && al < reach && lat < lw && al < block) block = al; };
+  const look = (ox, oy, lw, back) => { const rx = ox - c.x, ry = oy - c.y, ah = rx * fx + ry * fy, al = ah - F - (back || 0), lat = Math.abs(-rx * fy + ry * fx); if (ah > 18 && al < reach && lat < lw && al < block) block = al; };
   const R = reach + 30 + F;
-  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R + o.t.len / 2 && Math.abs(o.y - c.y) < R + o.t.len / 2) look(o.x, o.y, 24, Math.max(0, o.t.len / 2 - 27));   // a bus ahead ends further back   // cars in the parking lane (33 to the side) are not in the way
+  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R + o.t.len / 2 && Math.abs(o.y - c.y) < R + o.t.len / 2) look(o.x, o.y, sir && o.pullT > gameT ? 14 : 24, Math.max(0, o.t.len / 2 - 27) + 14);   // a bus ahead ends further back; stop a little short of its bumper   // cars in the parking lane (33 to the side) are not in the way
   if (!P.car) look(P.x, P.y, 24);
   for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < R && Math.abs(p.y - c.y) < R) look(p.x, p.y, 20);
-  { const Ec = RE[c.e], toEnd = Ec.len - c.s - F, node = RN[c.fw > 0 ? Ec.b : Ec.a], box = ROAD_HALF + SW_W + 20;   // give way: wait at the junction while it is busy
-    if (node.e.length >= 3 && toEnd > box && toEnd < box + stop + 60)
-      for (const o of cars) if (o !== c && o.driver && !o.dead && Math.abs(o.x - node.x) < box && Math.abs(o.y - node.y) < box && o.e !== c.e && carSpeed(o) > 5) { block = Math.min(block, toEnd - box + 48); break; } }
+  block = Math.min(block, roadRules(c, vf, stop, F)); tgt = Math.min(tgt, _tr.cap);   // traffic lights, giving way, people crossing (js/07b)
+  if (pulled) tgt = Math.min(tgt, Math.max(c.cruise * STR.pullSlow, _tr.cap < 1e9 ? 12 * KMH : 0));   // slow down for the siren (rolling over a red light: at a crawl)
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = 0; return; }
-  if (block < 48 + stop) { c.thr = vf > 8 ? -1 : 0; }                                   // too close to stop gently: full brake
+  if (block < 48 + stop) { c.thr = vf > 8 ? -1 : 0; if (vf <= 8) { const k = Math.exp(-6 * dt); c.vx *= k; c.vy *= k; } }   // too close to stop gently: full brake, and hold it once stopped
   else { if (block < reach) tgt = Math.min(tgt, Math.max(0, (block - 48) * 1.1)); c.thr = vf < tgt ? 0.8 : (vf > tgt + 15 * KMH ? -0.6 : 0); }
   if (spd < 10 && block > 150) { c.stuck += dt; if (c.stuck > 2) { c.rev = 1; c.stuck = 0; } } else c.stuck = 0;
 }
@@ -229,6 +230,7 @@ function wrestle(c, dt) {                                        // a carjacking
   c.wst = lerp(c.wst || 0, c.ws, Math.min(1, dt * 14)); c.str = c.wst; c.thr = c.wg; c.hb = false;
 }
 function updateCars(dt) {
+  trafficTick();                                                   // sirens about, people on the crossings (js/07b)
   if (gameT > copFieldT && cars.some(c => c.driver === 'cop')) { copFieldT = gameT + 0.5; copTarget = roadFieldTo(PS.lx, PS.ly); }   // police drive to what they know (js/08b)
   for (const c of cars) {
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }

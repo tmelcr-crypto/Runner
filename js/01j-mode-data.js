@@ -25,14 +25,18 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "medics", "name": "Paramedics carry the dead to hospital", "free": true, "story": true, "note": "Two get out with a stretcher, take up to two bodies, drive them to the nearest hospital with lights and siren. Off: the body just goes."},
   {"id": "gibs", "name": "Blasts tear people apart", "free": true, "story": true, "note": "No body left: pieces fly and fade, a large blood mark stays."},
   {"id": "bloodShapes", "name": "Irregular blood marks", "free": true, "story": true, "note": "Every mark its own shape. Off: round marks."},
-  {"id": "footPickups", "name": "Pickups only on foot", "free": true, "story": true, "note": "Weapons, ammo, health, armor, heat reducers, cash and loot are not taken from inside a car. Off: driving over them works."},
+  {"id": "footPickups", "name": "Pickups only on foot", "free": true, "story": true, "note": "Weapons, ammo, health, armor, cash and loot are not taken from inside a car (heat reducers are: carHeat). Off: driving over them works."},
   {"id": "planes", "name": "Planes landing, taxiing and taking off", "free": true, "story": true, "note": "About one movement a minute at the airport; deadly, and a rocket or enough gunfire blows one up. Off: planes only stand at the gates."},
   {"id": "airportGates", "name": "Airport gate barriers and police guards", "free": true, "story": true, "note": "Stop at the barrier and it lifts; crash through and you are wanted. Off: the booms stay up and nobody guards them."},
   {"id": "base", "name": "Military base: warning, alarm, soldiers, armoury", "free": true, "story": true, "note": "5 s warning inside the fence, then 4 stars and soldiers firing; heavy weapons, ammo, tanks, APCs, a helicopter. Off: an empty base."},
   {"id": "ships", "name": "Cargo ships coming and going, cranes at work", "free": true, "story": true, "note": "A movement about every two minutes at the port. Off: the ships stay moored and the cranes still."},
   {"id": "lunapark", "name": "Lunapark rides running", "free": true, "story": true, "note": "The wheel, coasters, flume, tower, swings, carousel, pirate ship, sky ride and train. Off: they stand still."},
-  {"id": "spaceGuards", "name": "Space center gate guards", "free": true, "story": true, "note": "Two guards at the shut gate. The way in (permission or certain clothes) comes with the story (docs/STORY.md)."}
-],
+  {"id": "spaceGuards", "name": "Space center gate guards", "free": true, "story": true, "note": "Two guards at the shut gate. The way in (permission or certain clothes) comes with the story (docs/STORY.md)."},
+  {"id": "trafficLights", "name": "Traffic lights and the rules of the road", "free": true, "story": true, "note": "Lights at every junction: cars stop on red, give way when turning across traffic and to people crossing; people cross on the walk signal. Off: dark lights, cars just give way at busy junctions."},
+  {"id": "sirens", "name": "Sirens go through red, traffic pulls over", "free": true, "story": true, "note": "Ambulances and fire engines on a call and police after you cross red lights slowly; cars ahead move right and slow down. Off: they wait at red like everyone."},
+  {"id": "roadHeat", "name": "A heat reducer on the road at 3 stars and up", "free": true, "story": true, "note": "One at a time in the middle of a street ahead of you, out of sight, not on the maps (streets table)."},
+  {"id": "alleyHeat", "name": "Heat reducers in back alleys", "free": true, "story": true, "note": "Ten in fixed alleys, always showing, taken only while wanted, back two minutes after (streets table; story has its pickups share)."},
+  {"id": "carHeat", "name": "Heat reducers taken from inside a car", "free": true, "story": true, "note": "Drive through one to lose a star. Everything else stays on foot only (footPickups)."}],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}
 ]

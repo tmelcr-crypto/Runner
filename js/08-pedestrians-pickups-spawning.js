@@ -8,7 +8,7 @@ function sidewalkPoint(p, ahead, out) {
   lanePoint(p.e, p.fw, s, 0, out); const cx = out.x, cy = out.y, off = walkOffset(cx - out.ty * p.side * SIDEWALK, cy + out.tx * p.side * SIDEWALK) * p.side;
   out.x = cx - out.ty * off; out.y = cy + out.tx * off; return out;
 }
-function pedNext(p) {                         // reached the end of the edge: choose the next one, sometimes cross the road
+function pedNext(p) {                         // at a bend or a dead end: on along the next edge, or back (junctions: js/07b pedPlan)
   const E = RE[p.e], node = p.fw > 0 ? E.b : E.a, opts = RN[node].e.filter(ei => ei !== p.e);
   const ne = opts.length ? pick(opts) : p.e, F = RE[ne];
   if (ne === p.e) { p.fw = -p.fw; p.side = -p.side; }
@@ -18,7 +18,7 @@ function pedNext(p) {                         // reached the end of the edge: ch
 function snapPed(p) {                         // after fleeing or fighting: rejoin the nearest sidewalk, keeping to the side the person is on
   const r = nearestRoad(p.x, p.y, 700); if (!r) { p.e = -1; return; }
   const t = edgeAt(r.e, r.s, _pw), side = (p.x - r.x) * -t.ty + (p.y - r.y) * t.tx >= 0 ? 1 : -1, fw = Math.random() < 0.5 ? 1 : -1;
-  p.e = r.e; p.fw = fw; p.s = fw > 0 ? r.s : RE[r.e].len - r.s; p.side = side * fw;
+  p.e = r.e; p.fw = fw; p.s = fw > 0 ? r.s : RE[r.e].len - r.s; p.side = side * fw; p.jw = p.jn = p.xing = null;
 }
 function updatePeds(dt) {
   for (const p of peds) {
@@ -40,10 +40,11 @@ function updatePeds(dt) {
       if (d < 8 || (p.tt -= dt) <= 0) { strollTarget(p); if (Math.random() < 0.4) p.wait = rand(1, 5); }
       else { mx = dx / d; my = dy / d; sp = p.speed * 0.85; }
     }
+    else if (p.jw) { const m = pedJunction(p, dt); mx = m.x; my = m.y; sp = m.s; }   // round a junction, over the crossings on the walk signal (js/07b)
     else if (p.e >= 0) {
       const c = sidewalkPoint(p, 14, _pw), dx = c.x - p.x, dy = c.y - p.y, d = Math.hypot(dx, dy);
       if (d < 26) p.s += p.speed * (1 + 0.3 * SKY.rain) * dt;        // keep the carrot just ahead; it only moves on once we are close to it
-      if (p.s >= RE[p.e].len) pedNext(p);
+      if (p.s >= pedEnd(p)) { const E = RE[p.e]; if (JN[p.fw > 0 ? E.b : E.a]) pedPlan(p); else pedNext(p); }
       if (d > 2) { mx = dx / d; my = dy / d; sp = p.speed * (1 + 0.3 * SKY.rain); }   // hurrying in the rain
     }
     p.vx = lerp(p.vx, mx * sp, 1 - Math.exp(-10 * dt)); p.vy = lerp(p.vy, my * sp, 1 - Math.exp(-10 * dt));

@@ -16,6 +16,18 @@ cv.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY
 cv.addEventListener('mousedown', e => { if (e.button === 0 && !touchMode) { mouse.down = true; mouse.x = e.clientX; mouse.y = e.clientY; } });
 addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; });
 cv.addEventListener('contextmenu', e => e.preventDefault());
+/* the browser's own touch gestures stay out of the game: pinch to zoom (Safari's gesture events, any move with two fingers or more),
+   double-tap to zoom, the long-press menu. Buttons keep their taps: touch-action: manipulation already stops a double-tap zoom there */
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = e.timeStamp || Date.now(), tapTarget = e.target.closest && e.target.closest('button, a, input, select, textarea, label');
+  if (now - lastTouchEnd < 350 && !tapTarget && e.cancelable) e.preventDefault();   // a second tap this soon would zoom the page
+  lastTouchEnd = now;
+}, { passive: false });
+document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
+addEventListener('contextmenu', e => { if (touchMode) e.preventDefault(); });
 cv.addEventListener('wheel', e => { pressed.wheel = e.deltaY > 0 ? 1 : -1; e.preventDefault(); }, { passive: false });
 
 function enableTouch() { if (touchMode) return; touchMode = true; document.documentElement.classList.add('touch-on'); }
