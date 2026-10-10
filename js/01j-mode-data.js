@@ -37,7 +37,10 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "roadHeat", "name": "A heat reducer on the road at 3 stars and up", "free": true, "story": true, "note": "One at a time in the middle of a street ahead of you, out of sight, not on the maps (streets table)."},
   {"id": "alleyHeat", "name": "Heat reducers in back alleys", "free": true, "story": true, "note": "Ten in fixed alleys, always showing, taken only while wanted, back two minutes after (streets table; story has its pickups share)."},
   {"id": "carHeat", "name": "Heat reducers taken from inside a car", "free": true, "story": true, "note": "Drive through one to lose a star. Everything else stays on foot only (footPickups)."},
-  {"id": "driveBy", "name": "Drive-by: guns fire from a car", "free": true, "story": true, "note": "With a gun that can (weapon table: Fires from a car) FIRE shoots out of the car at the nearest target ahead. Off: only the tank's rockets and dropped bombs."}
+  {"id": "driveBy", "name": "Drive-by: guns fire from a car", "free": true, "story": true, "note": "With a gun that can (weapon table: Fires from a car) FIRE shoots out of the car at the nearest target ahead. Off: only the tank's rockets and dropped bombs."},
+  {"id": "carGrenades", "name": "Grenades into your hand in a car", "free": true, "story": true, "note": "Getting into a car without its own weapon: grenades (or pipe bombs) to drop out of the window, unless you hold a drive-by gun; back to your weapon when you get out."},
+  {"id": "waterCannon", "name": "The fire engine's water cannon", "free": true, "story": true, "note": "Driving the fire engine, FIRE sprays a jet: people knocked down and pushed, cars pushed, fires put out (streets table). Off: FIRE does nothing in it."},
+  {"id": "clothes", "name": "Ten clothes shops", "free": true, "story": true, "note": "Try on and buy hats, glasses, tops, bottoms and shoes; your wardrobe at every shop; new clothes lose the police up to 3 stars when unseen (clothes table). Off: no shops, you keep your clothes."}
 ],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}

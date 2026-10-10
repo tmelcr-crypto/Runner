@@ -66,21 +66,21 @@ function nearStore() {                   // the store whose door you stand at, o
   for (const s of STORES) if (Math.abs(s.x - P.x) < STORE_R && Math.abs(s.y - P.y) < STORE_R && dist(s.x, s.y, P.x, P.y) < STORE_R) return s;
   return null;
 }
-function shopKey() {                    // E at a store's door: the store, unless a car stands closer to you than the door
-  const s = nearStore(); if (!s) return null;
+function shopKey() {                    // E at a store's door (or a clothes shop's, js/08l): the shop, unless a car stands closer to you than the door
+  const s = nearStore() || nearClothes(); if (!s) return null;
   const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(s.x, s.y, P.x, P.y) ? null : s;
 }
-function storeUi() {                     // every frame (js/14): the SHOP button next to you at a store door
-  const s = nearStore(), b = $('shopBtn');
+function storeUi() {                     // every frame (js/14): the SHOP button next to you at a store door, or a clothes shop's
+  const s = nearStore() || nearClothes(), b = $('shopBtn');
   if (!s) { if (!b.hidden) b.hidden = true; return; }
-  if (b.hidden) { b.hidden = false; b.style.setProperty('--sc', s.color); b.querySelector('b').textContent = s.name; }
+  if (b.hidden || b.dataset.s !== s.name) { b.hidden = false; b.dataset.s = s.name; b.style.setProperty('--sc', s.color); b.querySelector('b').textContent = s.name; }
   doorBtnAt(b);
 }
 function doorBtnAt(b) {                  // a button by you (SHOP, RAMPAGE): up and to the right, clear of the signs and of the touch buttons
   const q = worldToScreen(P.x, P.y), hw = b.offsetWidth / 2 + 6, hh = b.offsetHeight / 2 + 6;
   b.style.left = Math.round(clamp(q.x + 95, hw, VW - hw)) + 'px'; b.style.top = Math.round(clamp(q.y - 110, hh, VH - hh)) + 'px';
 }
-$('shopBtn').addEventListener('click', e => { e.stopPropagation(); const s = nearStore(); if (s) openShop(s); });
+$('shopBtn').addEventListener('click', e => { e.stopPropagation(); const s = nearStore() || nearClothes(); if (s) openShop(s); });
 
 /* ---------- the store's screen ---------- */
 const ITEM_ICON = {
@@ -89,6 +89,7 @@ const ITEM_ICON = {
   bribe: '<svg viewBox="0 0 96 40" fill="currentColor"><path d="M48 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z"/></svg>',
 };
 function openShop(s) {
+  if (s.clothes) { openClothes(s); return; }                         // a clothes shop (js/08l)
   shopAt = s; shopBought = false; state = 'shop'; toggleBigMap(false); toggleWheel(false); hush(); $('shopBtn').hidden = true;
   $('shopName').textContent = s.name; $('shopName').style.color = s.color; shopSay('');
   paintShop(); showCard('shopCard', true);

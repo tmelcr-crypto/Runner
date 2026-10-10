@@ -21,6 +21,10 @@ const STREETS_TABLE = /*STREETS-JSON*/{
   {"id": "roadBack", "group": "Heat reducers", "name": "The next one comes after", "unit": "s", "min": 5, "max": 600, "v": 30, "note": "After the last one was taken or left far behind."},
   {"id": "roadLeave", "group": "Heat reducers", "name": "Left behind once you are this far from it", "unit": "m", "min": 50, "max": 500, "v": 170, "note": "Then it goes and the next one comes after the wait above."},
   {"id": "alleyCount", "group": "Heat reducers", "name": "Heat reducers in back alleys", "unit": "count", "min": 0, "max": 30, "v": 10, "note": "Always in the same alleys and always showing, but only taken while you are wanted. Story mode has its share of them (modes table, pickups)."},
+  {"id": "waterRange", "group": "Water cannon", "name": "The fire engine's water cannon reaches", "unit": "m", "min": 5, "max": 60, "v": 25, "note": "When you drive the fire engine FIRE sprays a jet straight ahead, this far."},
+  {"id": "waterKnock", "group": "Water cannon", "name": "Someone hit by the jet stays down for", "unit": "s", "min": 0, "max": 10, "v": 2.5, "note": "People and cops are knocked down; no damage. Spraying people counts like a punch for the police."},
+  {"id": "waterPush", "group": "Water cannon", "name": "The jet pushes people away at", "unit": "m", "min": 0, "max": 15, "v": 4, "note": "Metres per second while they are in the jet."},
+  {"id": "waterCarPush", "group": "Water cannon", "name": "The jet pushes a car of 1.4 t at", "unit": "m", "min": 0, "max": 20, "v": 3, "note": "Metres per second per second; heavier vehicles move less. Burning cars are put out (they stay wrecks)."},
   {"id": "alleyBack", "group": "Heat reducers", "name": "An alley heat reducer comes back after", "unit": "min", "min": 0.5, "max": 30, "v": 2, "note": "In the same spot. Every heat reducer is taken from inside a car too."}
 ]
 }/*END-STREETS-JSON*/;

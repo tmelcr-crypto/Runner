@@ -8,7 +8,7 @@ Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8
 
 **NEW GAME** first asks how you want to play: **FREE ROAM** - the city as it is, no story, everything below - or **STORY**, missions told as a story, which is built later and shows as *COMING SOON* until then. Free roam then goes on to its options. A saved game keeps its mode (the save list and the pause menu show it); saves from before the modes are free roam.
 
-Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines, paramedics with stretchers, blasts tearing people apart, irregular blood marks, pickups only on foot, planes landing and taking off, the airport gate barriers and guards, the military base, cargo ships and cranes, the lunapark rides, the space center guards, traffic lights and the rules of the road, sirens going through red, the heat reducer on the road, the heat reducers in back alleys, heat reducers taken from a car, the drive-by - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. A second sheet holds numbers that differ by mode: story mode hides 30% as many weapons, ammo and items around the city as free roam (`pickups`). What is kept for story mode - like the way into the space center - is written down in `docs/STORY.md`. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
+Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines, paramedics with stretchers, blasts tearing people apart, irregular blood marks, pickups only on foot, planes landing and taking off, the airport gate barriers and guards, the military base, cargo ships and cranes, the lunapark rides, the space center guards, traffic lights and the rules of the road, sirens going through red, the heat reducer on the road, the heat reducers in back alleys, heat reducers taken from a car, the drive-by, grenades in a car, the water cannon, the clothes shops - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. A second sheet holds numbers that differ by mode: story mode hides 30% as many weapons, ammo and items around the city as free roam (`pickups`). What is kept for story mode - like the way into the space center - is written down in `docs/STORY.md`. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
 
 ```
 python3 tools/mode_sheet.py export modes.numbers      # or modes.xlsx
@@ -45,6 +45,7 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 - **Closed driveways**: traffic never turns into a driveway to a landmark, and a boom gate stops every car except a police car (people walk past it).
 - **Real-world speeds** at 12 world units to the metre: people stroll at about 1.4 m/s, run at 5 and sprint at 7 (you are 15% quicker than everyone else); town traffic drives at 40-55 km/h; cars reach 130-260 km/h depending on type, and traffic accelerates, brakes and corners like real cars.
 - **Damage you can see**: there is no car health bar (anywhere) - a damaged vehicle shows it. Thin white wisps from the bonnet, then thick grey smoke and sparks, then black smoke, flames from the bonnet and the paint throbbing dull red; once it catches fire it burns all over, flickering orange, until it blows. The paint scorches darker the more damage it takes.
+- **Weapons in a car**: getting into an ordinary car puts grenades in your hand (or pipe bombs), to drop out of the window - unless you hold a gun that fires from a car; getting out, you have your weapon back. The tank fires its rockets and the fire engine its **water cannon** instead - no bombs from those. The water cannon sprays a jet 25 m straight ahead: people and cops in it are knocked down and pushed away (no damage, but it counts like a punch for the police), cars are pushed, and burning cars are put out before they blow (streets table, *Water cannon*). Modes: `carGrenades`, `waterCannon`.
 - **Drive-by**: with a pistol, revolver, SMG or machine gun in hand (weapon table: *fires from a car*), FIRE in a car shoots out of the window at the nearest target ahead - a person, a cop, a vehicle - within the gun's range and in sight; with nobody there, straight ahead. A little less accurate than on foot; it uses ammo, reloads, and counts as gunfire for the police. Other guns stay on foot; a grenade or pipe bomb is dropped out of the window. Modes: `driveBy`.
 - **Your car drives arcade style**: it picks up about twice as fast as the real car, brakes harder, keeps its grip unless you pull the handbrake to drift, and turns tightly at any speed.
 - **Stealing cars**: an empty car is yours after a second and drives off at once. Carjacking takes three seconds of fighting the driver for the wheel while the car lurches and swerves; let go (E again) and you drop off beside it.
@@ -287,6 +288,23 @@ Each gun or bomb a store sells comes with a row for its ammo (one ammo pickup's 
 
 The items and the stores are `js/01g-shop-data.js` (what each item gives, its colour, how many are hidden, its price; each store's name, colour and what it sells - weapon ids from the weapon table and item ids). Weapon and ammo prices are two rows of the weapon table (*Shops* section of `tools/weapon_sheet.py`); an empty price means it is never sold.
 
+## Clothes shops
+
+Ten clothes shops, each with its own range, take shop buildings spread over the city (always the same ones, clear of the six weapon stores). Each is a coat hanger in its colour on the minimap and the city map; at the door a ring of light, a turning shirt and the shop's name. Walk up on foot and tap **SHOP** (or press **E**).
+
+- **Five pieces**: hat, glasses, top, bottoms, shoes - each bought and worn on its own, mixed as you like. You start in a yellow T-shirt, dark jeans and old sneakers, no hat, no glasses.
+- **Trying on**: inside, your figure turns slowly next to the list. Tap a piece and the figure tries it on (*TAP AGAIN TO BUY*); tap it again to buy it, and you wear it at once. Not enough cash: it says how much you are short.
+- **Your wardrobe**: what you have bought is yours. The **WARDROBE** tab at any clothes shop lists it, with NO HAT and NO GLASSES; putting something on is free (tap, tap again). Clothes are only changed at the shops. They are saved with the game and kept when you are wasted or busted.
+- **New clothes lose the police**: change at least one piece while no cop saw you go in and the police lose you - up to 3 stars; at 4 or 5 the level drops to 3. Seen going in, it does nothing.
+- **The shops**: SUNSET SURF (beachwear), NEON THREADS (80s pastel suits, aviators), BLOCK KINGS (streetwear), VELVET & GOLD (luxury suits, fedoras), IRON & INK (biker leather), LONE STAR (western), FLEX ATHLETICS (sportswear), HARD HAT (workwear), ARMY & NAVY (surplus), MIDNIGHT (punk and club wear) - 87 pieces from €20 to €1,500. The space center's clothes are not sold: they come with the story.
+
+Everything is in `js/01n-clothes-data.js`: the shops (name, colour, what they sell), every piece (name, shop, slot, style - the shape it is drawn with -, two colours, price) and the two police settings. `tools/clothes_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back, checking every value (a style must fit its slot; new rows are new pieces or shops); the prices are also in the economy sheet.
+
+```
+python3 tools/clothes_sheet.py export clothes.numbers      # or clothes.xlsx
+python3 tools/clothes_sheet.py import clothes.numbers [--dry-run]
+```
+
 ## Rampages
 
 Twenty rampages are hidden around the city, in alleys, yards, parks and parking lots near a street: a white skull facing you over a red ring, with the rampage's weapon circling it. The first is close to where you start; the others are spread as far apart as they can be. Come near one and it is **found**: from then on it is a skull on the minimap and the city map (green once you have passed it).
@@ -383,6 +401,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01k-airport-data.js` | the airport settings in everyday units (edit by hand or with `tools/settings_sheet.py airport`), converted to `AIRP` |
 | `js/01l-places-data.js` | the airport gates, the military base, the port, the lunapark and the space center in everyday units (`tools/settings_sheet.py places`), converted to `PLC` |
 | `js/01m-streets-data.js` | traffic lights, drivers, pedestrians, sirens and the heat reducers on the road and in the alleys, in everyday units (`tools/settings_sheet.py streets`), converted to `STR` |
+| `js/01n-clothes-data.js` | the ten clothes shops, every piece of clothing (slot, style, colours, price) and the clothes' police settings (`tools/clothes_sheet.py`) |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
@@ -392,6 +411,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/06b-melee-throw.js` | melee swings (arc hits, knockdown, people sent flying), throwing bombs (the slingshot aim with its arc and ring, flight, bounces, fuse, blast), dropping them from a car |
 | `js/07-vehicles-traffic-police.js` | car physics, lane following traffic, road routing for the police |
 | `js/07b-traffic-lights.js` | traffic lights: the junctions, light groups and timing, the rules for drivers (stop line, amber, giving way, people crossing), sirens and pulling over, people round the corners and over the crossings, the signal heads |
+| `js/08l-clothes-shops.js` | the clothes shops: placement, door markers, the shop screen with the turning figure, trying on, buying, the wardrobe, losing the police |
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
 | `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
 | `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
@@ -414,6 +434,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending) |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
 | `js/11b-weapon-models.js` | small 3D models of every weapon, an ammo box and the items (health, armor, heat reducer), for your hand, the pickups and the stores |
+| `js/11c-clothes-models.js` | the clothes drawn on the figure: hats, glasses, tops, bottoms and shoes in their styles and colours |
 | `js/12-render-effects.js` | particles, tracers, decals, skid marks, score pops |
 | `js/12b-rockets.js` | rockets: flight, wandering after the target, hits, the glowing motor and the smoke trail |
 | `js/12c-blast.js` | explosions: fireball, flames, smoke, debris, and throwing cars, people, pickups and props |
@@ -437,4 +458,13 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
 3. Convert the scripts to ES modules once the globals are untangled.
-4. Police, later: roadblocks, spike strips and a helicopter at 4-5 stars; a respray shop and changing cars to shake them off.
+4. Police, later: roadblocks, spike strips and a helicopter at 4-5 stars.
+5. **New places, agreed with the owner, to build next** (each will be asked about in detail first):
+   - *Spray garages*: drive in for a respray and repair; unseen, the police lose you. A few around the city.
+   - *Car showroom and your garage*: buy cars; tune them - spoilers, wheel colours, paint colours you do not see on the road; a garage near the start keeps the cars you park in it, saved with the game.
+   - *Prison island*: busted, you walk out of its gate; walls, towers, guards; breakouts for the story.
+   - *Speedway*: an oval with stands and a drag strip; time trials with records.
+   - *Construction site*: a half-built tower with cranes, ramps and scaffolding for stunt jumps.
+   - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
+   - *Marina with boats*: yachts and speedboats to steal and drive on the water (a new vehicle type).
+   - *Junkyard and car crusher*: stacks of wrecks; drop a car in the crusher for cash.

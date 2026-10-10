@@ -81,6 +81,36 @@ function hose(c, x, y) {                             // water from the fire engi
   }
   if (Math.random() < 0.3) addP({ x: x + rand(-30, 30), y: y + rand(-30, 30), z: 6, vz: rand(15, 35), grav: 0, vx: rand(-10, 10), vy: rand(-10, 10), life: rand(1.2, 2), max: 2, s0: 10, s1: 28, col: '#e6ecf2', drag: 1, alpha: 0.5 });   // steam
 }
+/* the fire engine's water cannon, when you drive it (js/01m Water cannon): FIRE sprays a jet straight ahead. People and cops in it are
+   knocked down and pushed away (no damage - but it counts like a punch for the police), cars are pushed, fires and burning cars put out */
+function waterCannon(c, inp, dt) {
+  if (!inp.fire) { c.jetT = 0; return; }
+  const a = c.ang, ux = Math.cos(a), uy = Math.sin(a), R = STR.waterRange, ox = c.x + ux * c.t.len * 0.25, oy = c.y + uy * c.t.len * 0.25;
+  for (let k = 0; k < 3; k++) {                                    // the jet: drops arcing out from the roof
+    const s = rand(0.9, 1.1) * R / 0.75, aa = a + rand(-0.05, 0.05);
+    addP({ x: ox, y: oy, z: 30, vz: rand(40, 70), grav: 200, vx: Math.cos(aa) * s + c.vx, vy: Math.sin(aa) * s + c.vy, life: 0.75, max: 0.75, s0: 3, s1: 8, col: pick(['#cfeeff', '#9fd4ff', '#ffffff']), drag: 0.3, alpha: 0.8 });
+  }
+  if (Math.random() < 0.15) Snd.thud(40);
+  const inJet = (x, y) => { const rx = x - ox, ry = y - oy, al = rx * ux + ry * uy; return al > 0 && al < R && Math.abs(-rx * uy + ry * ux) < 12 + al * 0.12 ? al : -1; };
+  let hitPeople = false;
+  const wet = (p, officer) => {
+    if (p.dead || p.knocked || inJet(p.x, p.y) < 0) return;
+    if (!(p.stunT > 0)) { hitPeople = true; if (officer || p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } else if (!provoke(p)) { p.state = 'flee'; p.fl = 5; p.fx = ux; p.fy = uy; } }
+    p.stunT = Math.max(p.stunT || 0, STR.waterKnock);
+    const st = STR.waterPush * dt, x = p.x + ux * st, y = p.y + uy * st; if (!pedBlocked(x, y)) { p.x = x; p.y = y; }
+  };
+  for (const p of peds) wet(p, false);
+  for (const o of officers) wet(o, true);
+  for (const o of cars) {
+    if (o === c || o.sunk || inJet(o.x, o.y) < 0) continue;
+    const k = STR.waterCarPush * dt / Math.max(0.3, o.t.mass); o.vx += ux * k; o.vy += uy * k;
+    if (o.burn > 0) { o.burn = 0; o.dead = true; o.deadT = 0; o.driver = null; }   // put out before it blows: a wreck
+    if (o.dead) o.doused = true;
+  }
+  if (hitPeople && (c.jetT = (c.jetT || 0) - dt) <= 0) {             // like a punch, every half second someone is in the jet
+    c.jetT = 0.5; const f = WEAPONS.find(w => w.id === 'fists'); if (f) reportCrime(f.heat * COP.crime.gunfire, f.hear, P.x, P.y, false);
+  }
+}
 function douse(x, y) {                               // put out burning cars and smoking wrecks around (x, y)
   for (const c of cars) {
     if (dist(c.x, c.y, x, y) > 220) continue;
@@ -100,9 +130,10 @@ function placeHidden() {
   }
 }
 
-/* ---------- vehicle weapons: rockets from the tank, straight ahead, one every 1.5 s, no ammo needed ---------- */
+/* ---------- vehicle weapons: rockets from the tank, straight ahead, one every 1.5 s, no ammo needed; the fire engine's water cannon ---------- */
 function vehicleGun(c, inp, dt) {
   c.gunT = (c.gunT || 0) - dt;
+  if (c.t.weapon === 'water') { if (feat('waterCannon')) waterCannon(c, inp, dt); return; }
   if (!inp.fire || c.gunT > 0 || c.t.weapon !== 'rockets') return;
   const w = WEAPONS.find(q => q.rocket) || RK_DEF, a = c.ang; c.gunT = 1.5;
   launchRocket({ x: c.x + Math.cos(a) * 900, y: c.y + Math.sin(a) * 900 }, w, c); Snd.rocket();

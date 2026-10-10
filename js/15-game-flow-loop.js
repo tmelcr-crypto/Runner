@@ -18,7 +18,8 @@ function resetGame(sv) {                     // a new game with the options in O
   const side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1, load = sv ? saveSpot(sv) : null;   // a saved game puts you back where you were
   if (load) sp = load;
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
-    heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
+    heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false, carSwap: null,
+    outfit: CL_START(), wardrobe: CLOTHES_TABLE.items.filter(i => !i.shop).map(i => i.id) }); updateGearUi();   // the clothes you start in (js/01n)
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   if (load && load.car) { const c = load.car; c.searched = true; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
   else if (!sv) {                                                  // starter cars in the parking lane on the player's side
@@ -35,7 +36,7 @@ function resetGame(sv) {                     // a new game with the options in O
   if (feat('townCash')) for (let k = 0; k < ECO.townN; k++) spawnPickup();   // cash stacks around town (js/01i)
   CALLS = []; clearTeams(); if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
-  placeStores();                                                   // the six stores and their markers (js/08e)
+  placeStores(); placeClothes();                                                   // the six stores and their markers (js/08e)
   resetFence(); resetPlanes();                                     // the airport fence whole again, planes at the gates (js/10f, js/08i)
   resetPlaces(); resetShips();                                     // guards, barriers, the base and its armoury, ships at their berths (js/08j, js/08k)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
@@ -64,7 +65,7 @@ function showOver() {
 
 function handleKeys() {
   if (state === 'over') { if (pressed.KeyR) startGame(); }         // menus: Enter, the arrows and Esc are handled in js/15b
-  else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) closeShop(); }   // E leaves the store again
+  else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) { if (CLS.at) closeClothes(); else closeShop(); } }   // E leaves the store (or the clothes shop) again
   else if (state === 'ramp') { if (pressed.KeyE || pressed.KeyF) closeRamp(); }   // and the rampage's screen
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);

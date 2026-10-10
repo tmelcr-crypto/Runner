@@ -141,7 +141,7 @@
         <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves)</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
-        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK / J</b> with a pistol, revolver, SMG or machine gun: a drive-by at the nearest target ahead; in the tank: rockets; a grenade or pipe bomb: dropped out of the window</li></ul>
+        <li><b>SPACE</b> handbrake, drift</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK / J</b> with a pistol, revolver, SMG or machine gun: a drive-by at the nearest target ahead; otherwise grenades go into your hand and drop out of the window; in the tank: rockets; in the fire engine: the water cannon</li></ul>
         <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>GEAR LEVER</b> (in a car, above FIRE) up: reverse, down: drive - each vehicle has its own</li><li><b>IN A CAR</b> steer with the left thumb; <b>BRAKE</b> and <b>FIRE</b> sit side by side for the right thumb</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades: hold FIRE, drag the opposite way, let go</li>
@@ -155,7 +155,8 @@
         <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
         <li>Fast cars slide, heavy ones push through. Wet roads are slippery.</li>
         <li>A damaged car shows it: white wisps, then thick grey smoke, then black smoke and flames from the bonnet. On fire all over, bail out - it blows.</li>
-        <li><b>DRIVE-BY</b>: with a pistol, revolver, SMG or machine gun in hand, FIRE in a car shoots at the nearest target ahead.</li>
+        <li><b>DRIVE-BY</b>: with a pistol, revolver, SMG or machine gun in hand, FIRE in a car shoots at the nearest target ahead. Otherwise you get in with grenades in hand, to drop out of the window.</li>
+        <li><b>FIRE ENGINE</b>: FIRE sprays the water cannon - it knocks people down and puts out burning cars.</li>
         <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
@@ -166,6 +167,10 @@
         <li>More <b>HEAT REDUCERS</b>: from 3 stars one lies in the middle of a street ahead of you, and ten wait in back alleys - always there, taken only while you are wanted, back two minutes after.</li>
         <li><b>BODY ARMOR</b> is the blue bar under your health: it takes the damage first.</li>
         <li>All of it is picked up <b>ON FOOT</b> only - except heat reducers: drive through them.</li></ul></div>
+      <div><h3>CLOTHES</h3><ul>
+        <li>Ten clothes shops (a coat hanger on the maps), each with its own range: hats, glasses, tops, bottoms, shoes.</li>
+        <li>Tap a piece and your figure tries it on; tap it again to buy it. <b>WARDROBE</b>: what you own, free to put on at any clothes shop.</li>
+        <li>New clothes while no cop saw you go in: the police lose you (up to 3 stars; above that it drops to 3).</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>€</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
@@ -234,6 +239,21 @@
     <p class="keys">ESC OR E LEAVES</p>
   </div>
 
+  <div class="card" id="clothesCard" hidden>
+    <h2 id="clName">CLOTHES</h2>
+    <p class="sub" id="clCash"></p>
+    <div id="clBody">
+      <canvas id="clFig"></canvas>
+      <div id="clSide">
+        <div class="tabs" id="clTabs"><button type="button" class="on" data-t="shop">SHOP</button><button type="button" data-t="ward">WARDROBE</button></div>
+        <div id="clList"></div>
+      </div>
+    </div>
+    <p class="warn" id="clMsg"></p>
+    <div class="menu"><button id="clLeave" class="big alt back pri" type="button">LEAVE</button></div>
+    <p class="keys">TAP TO TRY IT ON, AGAIN TO BUY · ESC OR E LEAVES</p>
+  </div>
+
   <div class="card" id="rampCard" hidden>
     <p class="tag">RAMPAGE!</p>
     <h2 id="rampName">RAMPAGE</h2>
@@ -280,6 +300,7 @@
 <script src="js/01k-airport-data.js"></script>
 <script src="js/01l-places-data.js"></script>
 <script src="js/01m-streets-data.js"></script>
+<script src="js/01n-clothes-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -300,6 +321,7 @@
 <script src="js/08i-planes.js"></script>
 <script src="js/08j-places.js"></script>
 <script src="js/08k-ships.js"></script>
+<script src="js/08l-clothes-shops.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -311,6 +333,7 @@
 <script src="js/10h-lunapark.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
+<script src="js/11c-clothes-models.js"></script>
 <script src="js/12-render-effects.js"></script>
 <script src="js/12b-rockets.js"></script>
 <script src="js/12c-blast.js"></script>

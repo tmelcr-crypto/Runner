@@ -54,6 +54,10 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
     g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
   for (const s of (feat('stores') && STORES) || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
     g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('€', x, y + q * 0.08); }
+  for (const s of (feat('clothes') && CSHOPS) || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // clothes shops (js/08l): a coat hanger on the shop's colour
+    g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q);
+    g.strokeStyle = '#0b0614'; g.lineWidth = Math.max(1.2, q * 0.22); g.beginPath(); g.moveTo(x, y - q * 0.25); g.lineTo(x - q * 0.7, y + q * 0.5); g.lineTo(x + q * 0.7, y + q * 0.5); g.closePath();
+    g.moveTo(x, y - q * 0.25); g.lineTo(x, y - q * 0.45); g.arc(x, y - q * 0.62, q * 0.17, Math.PI / 2, -Math.PI * 0.9, true); g.stroke(); }
   if (feat('rampages')) for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
@@ -124,7 +128,7 @@ function updateHud(time) {
   if (c) {
     vname = c.t.name; vinfo = (touchMode ? P.gear + '  ' : '') + Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
-    else if (c.t.weapon) hint = touchMode ? 'FIRE: ROCKETS' : 'CLICK OR J: ROCKETS';
+    else if (c.t.weapon) hint = (touchMode ? 'FIRE: ' : 'CLICK OR J: ') + (c.t.weapon === 'water' ? 'WATER CANNON' : 'ROCKETS');
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
   else if (RAMP.on) hint = RAMP.on.name + ': ' + goalText(RAMP.on) + (RAMP.on.target === 'cars' ? ' - THEY COUNT WHEN THEY CATCH FIRE' : '');
   else { const n = nearestCar(), s = shopKey(), r = rampKey(); if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }

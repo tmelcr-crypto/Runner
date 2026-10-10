@@ -209,6 +209,8 @@ function exitCar(forced) {
   for (const o of spots) { if (!pedBlocked(c.x + o[0], c.y + o[1]) && shoreDist(c.x + o[0], c.y + o[1]) > 4) { sp = o; break; } }
   P.x = clamp(c.x + sp[0], BX0 + 10, BX1 - 10); P.y = clamp(c.y + sp[1], BY0 + 10, BY1 - 10); P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
   c.driver = null; c.thr = 0; c.str = 0; c.hb = false; P.car = null;
+  if (P.carSwap && P.weapon === P.carSwap.to && P.has[P.carSwap.from]) P.weapon = P.carSwap.from;   // the weapon you had before you got in
+  P.carSwap = null;
 }
 function enterCar(c) {
   if (c.driver === 'ai' || c.driver === 'cop') {
@@ -222,6 +224,14 @@ function enterCar(c) {
   else reportCrime(COP.crime.steal, 0);
   if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
+  carWeapon(c);
+}
+/* getting into an ordinary car (no weapon of its own): grenades into your hand - or pipe bombs - to drop out of the window, unless you
+   hold a gun that fires from a car (the drive-by); getting out, back to the weapon you had (js/01j carGrenades) */
+function carWeapon(c) {
+  P.carSwap = null; if (c.t.weapon || !feat('carGrenades') || canDriveBy()) return;
+  const i = WEAPONS.findIndex((w, k) => isThrown(w) && P.has[k] && P.mag[k] + P.ammo[k] > 0);
+  if (i >= 0 && i !== P.weapon) { P.carSwap = { from: P.weapon, to: i }; P.weapon = i; P.relW = -1; }
 }
 function letGo(c) {                                              // a carjacking given up or lost: you drop off beside the car
   const rx = -Math.sin(c.ang), ry = Math.cos(c.ang), s = c.t.wid / 2 + 14;
