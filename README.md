@@ -523,3 +523,9 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
    - *Houses to buy*: 10 across the city, each one unique; a garage keeps your cars safe and a wardrobe holds every piece of clothing you bought.
    - *Stats and a 100% screen*: everything found and done, with a completion percentage.
 7. **Building interiors, later** (agreed with the owner; each kind will be asked about in detail first): two kinds - in the current top-down view for storages, hangars, warehouses and the like; and a 2D side-on view (like a platform game) with hallways and elevators up to the higher floors.
+8. **Flying, later** (agreed with the owner; will be asked about in detail first - which aircraft, free roam or story, how hard to fly): a new vehicle type that leaves the ground, seen from above with its shadow on the ground and the camera pulling back as it climbs. Ideas to choose from:
+   - *Helicopters*: the military helicopter on the base's helipad made flyable; a police or news helicopter on a rooftop pad; hovering, landing on roofs and pads.
+   - *Planes*: steal one of the airliners at the gates or a small plane from a hangar, take off from the runway, land again on it (or crash).
+   - *Seaplane*: at the marina, taking off from and landing on the water.
+   - *Smaller ones*: a parachute to jump out with, a jetpack or a hang glider from the tall towers.
+   - Open points: the police chasing you in the air (their own helicopter, at 4-5 stars), what you can do from up there (shoot, drop bombs), running out of fuel, and the airport's own plane movements around you.
