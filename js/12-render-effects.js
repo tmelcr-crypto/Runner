@@ -13,12 +13,12 @@ const _cc = {}, rgb = css => _cc[css] || (_cc[css] = (() => { const c = new THRE
 function gfxParticles() {
   let n = 0, rn = 0;
   for (const p of parts) {
-    const u = p.life / p.max, s = lerp(p.s1, p.s0, u);
+    const u = p.life / p.max, s = p.hold ? p.s0 : lerp(p.s1, p.s0, u);   // hold: a piece that lies there at full size, fading only at the end
     if (p.ring) { if (rn < RINGS.length) { const m = RINGS[rn++]; m.visible = true; m.position.set(p.x, 4, p.y); m.scale.set(s, 1, s); m.material.opacity = u * 0.9; } continue; }
     if (n >= MAXP) break;
     const c = rgb(p.col);
     pPos[n * 3] = p.x; pPos[n * 3 + 1] = p.z === undefined ? 6 : p.z; pPos[n * 3 + 2] = p.y; pSize[n] = s * (p.alpha ? 1.5 : 1.3) + 1;
-    pCol[n * 4] = c[0]; pCol[n * 4 + 1] = c[1]; pCol[n * 4 + 2] = c[2]; pCol[n * 4 + 3] = u * (p.alpha || 1); n++;
+    pCol[n * 4] = c[0]; pCol[n * 4 + 1] = c[1]; pCol[n * 4 + 2] = c[2]; pCol[n * 4 + 3] = (p.hold ? Math.min(1, p.life / 1.5) : u) * (p.alpha || 1); n++;
   }
   for (let k = rn; k < RINGS.length; k++) RINGS[k].visible = false;
   pGeo.setDrawRange(0, n); aPos.needsUpdate = aSize.needsUpdate = aCol.needsUpdate = true;
@@ -34,14 +34,48 @@ const MAXD = 170, decalMesh = new THREE.InstancedMesh(GCirc, new THREE.MeshBasic
 { const c = new THREE.Color(0); for (let k = 0; k < MAXD; k++) decalMesh.setColorAt(k, c); }
 decalMesh.frustumCulled = false; decalMesh.count = 0; scene.add(decalMesh);
 const _dm = new THREE.Object3D(), _dc = new THREE.Color();
+/* blood marks (js/01j bloodShapes): every mark one of SPLAT_N splash shapes drawn at load - a ragged pool, blobs at its edge, droplets
+   and streaks flung out - turned, stretched and sized at random, so no two look alike */
+const SPLAT_N = 14, SPLAT_MAX = 70;
+function splatTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), R = 30, h = [];
+  for (let k = 2; k <= 7; k++) h.push([k, rand(0.03, 0.16) / Math.sqrt(k - 1), rand(0, TAU)]);
+  g.fillStyle = '#fff'; g.beginPath();
+  for (let i = 0; i <= 64; i++) { const a = i / 64 * TAU; let r = R; for (const [k, amp, ph] of h) r += R * amp * Math.sin(k * a + ph); const x = 64 + Math.cos(a) * r, y = 64 + Math.sin(a) * r; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+  g.fill();
+  const dot = (x, y, r) => { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); };
+  for (let k = 0, n = 2 + Math.floor(rand(0, 5)); k < n; k++) { const a = rand(0, TAU), d = R * rand(0.75, 1.15); dot(64 + Math.cos(a) * d, 64 + Math.sin(a) * d, R * rand(0.12, 0.3)); }   // blobs at the edge
+  for (let k = 0, n = 5 + Math.floor(rand(0, 12)); k < n; k++) { const a = rand(0, TAU), d = R * rand(1.15, 1.95); dot(64 + Math.cos(a) * d, 64 + Math.sin(a) * d, rand(1, 3.4)); }   // droplets
+  for (let k = 0, n = Math.floor(rand(0, 4)); k < n; k++) {                                                                   // streaks flung out
+    const a = rand(0, TAU), d0 = R * 0.7, d1 = R * rand(1.3, 1.9), w = rand(2, 4.5);
+    g.beginPath(); g.moveTo(64 + Math.cos(a + 0.12) * d0, 64 + Math.sin(a + 0.12) * d0); g.lineTo(64 + Math.cos(a) * d1, 64 + Math.sin(a) * d1); g.lineTo(64 + Math.cos(a - 0.12) * d0, 64 + Math.sin(a - 0.12) * d0); g.fill(); dot(64 + Math.cos(a) * d1, 64 + Math.sin(a) * d1, w * 0.6);
+  }
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+}
+const SPLAT = [...Array(SPLAT_N)].map(() => {
+  const m = new THREE.InstancedMesh(GP, new THREE.MeshBasicMaterial({ map: splatTex(), color: 0xffffff, transparent: true, opacity: 0.86, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }), SPLAT_MAX);
+  const c0 = new THREE.Color(0); for (let k = 0; k < SPLAT_MAX; k++) m.setColorAt(k, c0);
+  m.frustumCulled = false; m.count = 0; scene.add(m); return m;
+});
+const BLOODS = ['#7d0c1e', '#6a0918', '#8e1124', '#5c0714'];
+function bloodMark(x, y, r, life) {      // a blood mark on the ground: its own irregular shape (or a round one with bloodShapes off)
+  if (decals.length >= 150) return;
+  decals.push(feat('bloodShapes') ? { x, y, r, life, blood: true, v: Math.floor(rand(0, SPLAT_N)), rot: rand(0, TAU), ax: rand(0.75, 1.3), col: pick(BLOODS) } : { x, y, r, life, blood: true });
+}
 function gfxDecals() {
-  let n = 0;
+  let n = 0; const sn = SPLAT.map(() => 0);
   for (const d of decals) {
+    if (d.v !== undefined) {                                         // an irregular blood mark: the splash shape it was given, turned and stretched
+      const m = SPLAT[d.v], k = sn[d.v]; if (k >= SPLAT_MAX) continue; const sc = d.r * 4 * clamp(d.life / 6, 0.05, 1);
+      _dm.position.set(d.x, 3.5, d.y); _dm.rotation.set(0, d.rot, 0); _dm.scale.set(sc * d.ax, 1, sc / d.ax); _dm.updateMatrix(); m.setMatrixAt(k, _dm.matrix);
+      _dc.set(d.col); m.setColorAt(k, _dc); sn[d.v]++; continue;
+    }
     if (n >= MAXD) break; const sc = d.r * clamp(d.life / 6, 0.05, 1);
-    _dm.position.set(d.x, 3.5, d.y); _dm.scale.set(sc, 1, sc); _dm.updateMatrix(); decalMesh.setMatrixAt(n, _dm.matrix);
+    _dm.position.set(d.x, 3.5, d.y); _dm.rotation.set(0, 0, 0); _dm.scale.set(sc, 1, sc); _dm.updateMatrix(); decalMesh.setMatrixAt(n, _dm.matrix);
     _dc.set(d.col || (d.scorch ? 0x1c1619 : 0x7d0c1e)); decalMesh.setColorAt(n, _dc); n++;
   }
   decalMesh.count = n; decalMesh.instanceMatrix.needsUpdate = true; if (decalMesh.instanceColor) decalMesh.instanceColor.needsUpdate = true;
+  SPLAT.forEach((m, i) => { m.count = sn[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
 }
 const MAXS = 420, sGeo = new THREE.BufferGeometry(), sPos = new Float32Array(MAXS * 18), sCol = new Float32Array(MAXS * 18);
 sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3).setUsage(THREE.DynamicDrawUsage)); sGeo.setAttribute('color', new THREE.BufferAttribute(sCol, 3).setUsage(THREE.DynamicDrawUsage));

@@ -28,7 +28,7 @@ function addP(p) { if (parts.length < 2000) parts.push(p); }
 function spark(x, y, n, col) { for (let k = 0; k < n; k++) { const a = rand(0, TAU), s = rand(40, 200); addP({ x, y, z: rand(5, 14), vz: rand(10, 90), grav: 220, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.12, 0.3), max: 0.3, s0: 2.2, s1: 0.5, col: col || '#ffe27a', drag: 4 }); } }
 function bloodFx(x, y, n, ang) {
   for (let k = 0; k < n; k++) { const a = (ang === undefined ? rand(0, TAU) : ang + rand(-0.7, 0.7)), s = rand(30, 170); addP({ x, y, z: rand(8, 16), vz: rand(10, 70), grav: 260, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.25, 0.6), max: 0.6, s0: 3, s1: 1, col: '#b3122a', drag: 5 }); }
-  if (decals.length < 120 && Math.random() < 0.6) decals.push({ x: x + rand(-5, 5), y: y + rand(-5, 5), r: rand(3, 7), life: 40, blood: true });
+  if (decals.length < 120 && Math.random() < 0.6) bloodMark(x + rand(-5, 5), y + rand(-5, 5), rand(3, 7), 40);   // its own shape (js/12)
 }
 function smokeFx(x, y, dark) { addP({ x: x + rand(-4, 4), y: y + rand(-4, 4), z: rand(8, 16), vz: rand(20, 45), grav: 0, vx: rand(-14, 14), vy: rand(-14, 14), life: rand(0.8, 1.4), max: 1.4, s0: 5, s1: 15, col: dark ? '#22232b' : '#8d8f9c', drag: 1, alpha: 0.55 }); }
 function fireFx(x, y) { addP({ x: x + rand(-6, 6), y: y + rand(-6, 6), z: rand(6, 14), vz: rand(25, 60), grav: 0, vx: rand(-20, 20), vy: rand(-20, 20), life: rand(0.25, 0.55), max: 0.55, s0: 8, s1: 2, col: pick(['#ff9d2b', '#ffd23f', '#ff5a1f']), drag: 2, alpha: 0.9 }); }

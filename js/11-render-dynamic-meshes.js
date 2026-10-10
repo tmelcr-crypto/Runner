@@ -162,7 +162,7 @@ function syncCar(c, time, dt) {
   else if (!c.dead && Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.55); }
   const brake = !c.dead && c.driver && c.thr < 0; if (brake !== c.tailOn) { c.tailOn = brake; for (const l of m.tail) l.material = brake ? E.tailOn : E.tailOff; }
   if (m.bar.length) {                       // light bars: police while crewed, ambulance and fire engine on a call, the trash truck's beacon at a bin
-    const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;
+    const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task || !!c.medics), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;
     m.bar[0].material = on && ph ? M[0] : M[1]; m.bar[1].material = on && !ph ? M[2] : M[3];
   }
 }
@@ -188,6 +188,7 @@ function buildPerson(kind, shirt, skin) {
   return o;
 }
 function syncPerson(p, kind, time, dt) {
+  if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
   if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; }
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }

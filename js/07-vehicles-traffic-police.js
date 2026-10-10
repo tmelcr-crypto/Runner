@@ -234,7 +234,7 @@ function updateCars(dt) {
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);
-    else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = false; }
+    else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
     if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);
     if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
       const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;

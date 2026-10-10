@@ -13,15 +13,15 @@ function callFor(kind, x, y, obj) {                  // a body for an ambulance,
   if (CALLS.some(k => k.kind === kind && !k.done && dist(k.x, k.y, x, y) < (kind === 'fire' ? 300 : 40))) return;
   CALLS.push({ kind, x, y, obj, car: null, t: gameT, done: false });
 }
-const bodyTime = p => CALLS.some(k => k.obj === p && !k.done) ? 120 : 25;   // a body waits for the ambulance that is coming for it
+const bodyTime = p => p.gibbed ? 0 : p.medicHold ? 1e9 : CALLS.some(k => k.obj === p && !k.done) ? 120 : 25;   // a body waits for the ambulance coming for it, or the paramedics who have it (js/08h)
 function startCall(c, k) {
   const field = new Float64Array(RN.length), r = roadFieldTo(k.x, k.y, field); if (!r) return false;
   c.task = { k, field, r, on: false, work: 0, t: gameT }; k.car = c; c.nx = null; return true;
 }
-function endCall(c) { if (!c.task) return; c.task.k.car = null; c.task = null; c.nx = null; c.stopT = 0; }
+function endCall(c) { if (!c.task) return; if (c.task.k) c.task.k.car = null; c.task = null; c.nx = null; c.stopT = 0; }
 function updateServices(dt) {
   if ((svcT -= dt) > 0) return; svcT = 0.5;
-  for (const c of cars) if (c.task && (c.dead || c.driver !== 'ai' || gameT - c.task.t > 90)) endCall(c);   // stolen, wrecked or hopelessly stuck
+  for (const c of cars) if (c.task && (c.dead || c.driver !== 'ai' || gameT - c.task.t > (c.task.hosp ? 150 : 90))) endCall(c);   // stolen, wrecked or hopelessly stuck
   for (let i = CALLS.length - 1; i >= 0; i--) {
     const k = CALLS[i], body = k.kind === 'ambulance';
     if (k.done || gameT - k.t > 120 || dist(k.x, k.y, P.x, P.y) > SVC_REACH || (body && !(peds.includes(k.obj) || officers.includes(k.obj)))) {
@@ -43,12 +43,22 @@ function updateServices(dt) {
 }
 function serviceStop(c, dt) {                        // called by aiDrive for vehicles with a job: true while it stands still for the job
   const hold = () => { const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang); c.thr = vf > 8 ? -1 : vf < -8 ? 1 : 0; c.str = 0; c.hb = Math.abs(vf) < 8; };
+  if (c.task && c.task.hosp) {                                    // taking the dead to hospital (js/08h): stop near its door, then out they get
+    const T = c.task, d = T.hosp.door;
+    if (!T.on && dist(c.x, c.y, d.x, d.y) < 170 + c.t.len / 2) T.on = true;
+    if (!T.on) return false;
+    hold(); if (Math.abs(c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang)) < 8) atHospital(c);
+    return true;
+  }
   if (c.task) {
     const T = c.task, k = T.k;
     if (!T.on && dist(c.x, c.y, k.x, k.y) < (k.kind === 'fire' ? 170 : 160) + c.t.len / 2) T.on = true;   // at the scene (the body may lie on the far sidewalk)
     if (!T.on) return false;
     hold(); T.work += dt;
-    if (k.kind === 'ambulance') { if (T.work > 3.5) { if (k.obj) k.obj.deadT = 1e9; k.done = true; endCall(c); } }   // the body is taken away
+    if (k.kind === 'ambulance') {
+      if (feat('medics')) { if (T.work > 0.6 && Math.abs(c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang)) < 8) startTeam(c, k); }   // stopped: out come the paramedics (js/08h)
+      else if (T.work > 3.5) { if (k.obj) k.obj.deadT = 1e9; k.done = true; endCall(c); }   // the body is taken away
+    }
     else { hose(c, k.x, k.y); if (T.work > 6) { douse(k.x, k.y); k.done = true; endCall(c); } }
     return true;
   }

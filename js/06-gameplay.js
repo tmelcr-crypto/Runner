@@ -27,17 +27,26 @@ function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away
   }
 }
 function killPed(p, how, byPlayer, ang) {
-  if (p.dead) return; p.dead = true; p.deadT = 0; bloodFx(p.x, p.y, 14, ang);
-  if (decals.length < 120) decals.push({ x: p.x, y: p.y, r: rand(8, 13), life: 50, blood: true });
+  if (p.dead) return; p.dead = true; p.deadT = 0;
+  if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
   if (byPlayer) { P.kills++; if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
-  alertPeds(p.x, p.y, 300, !byPlayer, 160); callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
+  alertPeds(p.x, p.y, 300, !byPlayer, 160); if (!p.gibbed) callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
 }
-function killOfficer(o, byPlayer) {
-  if (o.dead) return; o.dead = true; o.deadT = 0; bloodFx(o.x, o.y, 16);
-  crewLost(o); callFor('ambulance', o.x, o.y, o);
+function killOfficer(o, byPlayer, how, ang) {
+  if (o.dead) return; o.dead = true; o.deadT = 0;
+  if (how === 'blast' && feat('gibs')) gibPerson(o, ang); else bloodFx(o.x, o.y, 16);
+  crewLost(o); if (!o.gibbed) callFor('ambulance', o.x, o.y, o);
   dropLoot(o, true);                                               // cash and the officer's pistol (js/08g)
   if (byPlayer) { P.kills++; popup(o.x, o.y - 14, 'COP DOWN', '#3f6bff'); addHeat(COP.crime.killCop); PS.armedT = gameT; rampHit('people', o.x, o.y); }
+}
+function gibPerson(p, ang) {             // torn apart by a blast (js/01j gibs): no body - a burst of blood, pieces flung out that lie a while and fade, a big mark
+  p.gibbed = true; if (ang === undefined) ang = rand(0, TAU);
+  const cols = [p.shirt || '#2a4aa8', p.skin || '#f2c6a0', '#7d0c1e', '#5c0714', '#2a2d3a'];
+  for (let k = 0; k < 46; k++) { const a = ang + rand(-1.3, 1.3), s = rand(80, 340); addP({ x: p.x, y: p.y, z: rand(8, 20), vz: rand(30, 160), grav: 300, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.35, 0.9), max: 0.9, s0: rand(2.5, 4.5), s1: 1, col: pick(['#b3122a', '#8e1124', '#d0213c']), drag: 4 }); }
+  for (let k = 0; k < 12; k++) { const a = ang + rand(-1, 1), s = rand(110, 300), l = rand(4, 6.5); addP({ x: p.x, y: p.y, z: rand(10, 22), vz: rand(120, 260), grav: 560, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: l, max: l, s0: rand(2.8, 4.6), s1: 2, col: pick(cols), drag: 1.6, hold: true }); }
+  bloodMark(p.x + Math.cos(ang) * 6, p.y + Math.sin(ang) * 6, rand(11, 16), 60);
+  for (let k = 0, n = 2 + Math.floor(rand(0, 3)); k < n; k++) { const a = ang + rand(-0.9, 0.9), d = rand(20, 55); bloodMark(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, rand(3, 7), 55); }
 }
 function damagePlayer(d) {
   if (P.dead || state === 'over') return;
@@ -69,8 +78,8 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
     for (let k = 0; k < 5; k++) { const a = rand(0, TAU), d = rand(0.1, 0.24) * R; decals.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, r: rand(0.09, 0.16) * R, life: 70, scorch: true }); }
   }
   const byP = src && src.byPlayer;
-  for (const p of peds) if (!p.dead && dist(p.x, p.y, x, y) < R) killPed(p, 'blast', byP);
-  for (const o of officers) if (!o.dead && dist(o.x, o.y, x, y) < R) killOfficer(o, byP);
+  for (const p of peds) if (!p.dead && dist(p.x, p.y, x, y) < R) killPed(p, 'blast', byP, Math.atan2(p.y - y, p.x - x));
+  for (const o of officers) if (!o.dead && dist(o.x, o.y, x, y) < R) killOfficer(o, byP, 'blast', Math.atan2(o.y - y, o.x - x));
   for (const c of cars) {
     if (c === src || c.dead) continue; const d = dist(c.x, c.y, x, y);
     if (d < R + 20) damageCar(c, 110 * (1 - d / (R + 20)), byP);

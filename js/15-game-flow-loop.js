@@ -33,7 +33,7 @@ function resetGame(sv) {                     // a new game with the options in O
   for (let k = 0; k < 50 * crowd; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
   if (feat('townCash')) for (let k = 0; k < ECO.townN; k++) spawnPickup();   // cash stacks around town (js/01i)
-  CALLS = []; if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
+  CALLS = []; clearTeams(); if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
   placeStores();                                                   // the six stores and their markers (js/08e)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
@@ -105,15 +105,16 @@ function update(dt, idle) {
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
-  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // rampages: found, the clock, people and cars brought in (js/08f)              // an autosave every minute while no police are after you (js/15b)
+  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
+  updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }
     else { Snd.setEngine(false, 0, 0); Snd.setScreech(0); }
-    let nd = 1e9; for (const o of cars) if (o.driver === 'cop' && !o.dead) nd = Math.min(nd, dist(o.x, o.y, P.x, P.y));
-    Snd.setSiren(P.stars > 0 && nd < 1000 ? 1 - nd / 1000 : 0, gameT);
+    let nd = 1e9, na = 1e9; for (const o of cars) if (!o.dead) { if (o.driver === 'cop') nd = Math.min(nd, dist(o.x, o.y, P.x, P.y)); else if (o.task && o.t.job === 'ambulance' && o.driver === 'ai' && feat('medics')) na = Math.min(na, dist(o.x, o.y, P.x, P.y)); }
+    Snd.setSiren(Math.max(P.stars > 0 && nd < 1000 ? 1 - nd / 1000 : 0, na < 900 ? 1 - na / 900 : 0), gameT);   // police after you; an ambulance on a call (js/08h)
   }
   updateCam(dt, idle);
 }

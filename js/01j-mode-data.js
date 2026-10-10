@@ -20,7 +20,10 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "loot", "name": "The dead drop cash and their weapon", "free": true, "story": true, "note": "Off: bodies leave nothing."},
   {"id": "armedPeople", "name": "Armed passers-by who fight back", "free": true, "story": true, "note": "Off: nobody on the street carries a weapon."},
   {"id": "hiddenCars", "name": "Hidden vehicles (the tank)", "free": true, "story": true, "note": "Vehicles waiting in far-away parking lots (vehicle table: hidden)."},
-  {"id": "services", "name": "Ambulances and fire engines", "free": true, "story": true, "note": "Sent to bodies, blasts and burning wrecks."}
+  {"id": "services", "name": "Ambulances and fire engines", "free": true, "story": true, "note": "Sent to bodies, blasts and burning wrecks."},
+  {"id": "medics", "name": "Paramedics carry the dead to hospital", "free": true, "story": true, "note": "Two get out with a stretcher, take up to two bodies, drive them to the nearest hospital with lights and siren. Off: the body just goes."},
+  {"id": "gibs", "name": "Blasts tear people apart", "free": true, "story": true, "note": "No body left: pieces fly and fade, a large blood mark stays."},
+  {"id": "bloodShapes", "name": "Irregular blood marks", "free": true, "story": true, "note": "Every mark its own shape. Off: round marks."}
 ]
 }/*END-MODE-JSON*/;
 const MODE = Object.fromEntries(MODE_TABLE.modes.map(m => [m.id, m])), FEAT = Object.fromEntries(MODE_TABLE.features.map(f => [f.id, f]));

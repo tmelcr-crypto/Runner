@@ -23,7 +23,7 @@ function snapPed(p) {                         // after fleeing or fighting: rejo
 function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
-    if (p.knocked) continue;                                       // flying through the air (js/12c)
+    if (p.knocked || p.medic) continue;                            // flying through the air (js/12c); a paramedic at work is moved by the team (js/08h)
     if (p.stunT > 0) { p.stunT -= dt; p.vx = p.vy = 0; continue; }   // knocked down by a melee hit (js/06b)
     if (p.hostile && fightBack(p, dt)) continue;                    // armed and provoked: after you (js/08g)
     if (p.cop && copEngaged(p)) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }   // a foot patrol on the case (js/08b)
@@ -88,7 +88,7 @@ function spawnStroller(initial) {
 const _pp = [];
 function separatePeople() {
   _pp.length = 0;
-  for (const p of peds) if (!p.dead && !p.knocked) _pp.push(p);
+  for (const p of peds) if (!p.dead && !p.knocked && !p.medic) _pp.push(p);
   for (const o of officers) if (!o.dead && !o.knocked) _pp.push(o);
   if (!P.car && !P.dead && !P.knocked && !P.act) _pp.push(P);
   const n = _pp.length, D = 14;
