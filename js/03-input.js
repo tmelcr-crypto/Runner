@@ -30,7 +30,10 @@ document.addEventListener('dblclick', e => e.preventDefault(), { passive: false 
 addEventListener('contextmenu', e => { if (touchMode) e.preventDefault(); });
 cv.addEventListener('wheel', e => { pressed.wheel = e.deltaY > 0 ? 1 : -1; e.preventDefault(); }, { passive: false });
 
-function enableTouch() { if (touchMode) return; touchMode = true; document.documentElement.classList.add('touch-on'); }
+function enableTouch() {                    // a touch screen: the compact HUD - the weapon button and the action bar move under the cash (css: touch-on)
+  if (touchMode) return; touchMode = true; document.documentElement.classList.add('touch-on');
+  const ht = document.getElementById('hudTouch'); if (ht) ht.append(document.getElementById('weaponbar'), document.getElementById('reload'));
+}
 if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enableTouch();
 addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouch(); }, true);
 
@@ -77,7 +80,7 @@ $('radioBtn').addEventListener('click', () => { pressed.radio = true; });
 $('bigmap').addEventListener('click', () => { pressed.Tab = true; });
 function updateGearUi() {
   $('gD').classList.toggle('on', P.gear === 'D'); $('gR').classList.toggle('on', P.gear === 'R');
-  $('lever').style.top = P.gear === 'R' ? '0px' : 'calc(100% - 60px)';
+  $('shifter').dataset.g = P.gear;                                // no letters: the lever's place (up R, down D) and its glow (css)
 }
 function setGear(g) {                       // like the real dial: only shifts when you are nearly stopped
   if (P.gear === g || !P.car) return; const c = P.car;

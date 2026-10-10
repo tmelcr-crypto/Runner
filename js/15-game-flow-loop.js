@@ -54,7 +54,7 @@ function showOver() {
   state = 'over'; toggleBigMap(false); toggleWheel(false);
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const s = Math.floor(gameT), mm = Math.floor(s / 60), ss = String(s % 60).padStart(2, '0');
-  $('oScore').textContent = P.score; $('oBest').textContent = best; $('oKills').textContent = P.kills;
+  $('oScore').textContent = money(P.score); $('oBest').textContent = money(best); $('oKills').textContent = P.kills;
   $('oStars').textContent = P.maxStars; $('oTime').textContent = mm + ':' + ss;
   Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0);
   $('overCard').querySelector('h1').textContent = P.busted ? 'BUSTED' : 'WASTED';

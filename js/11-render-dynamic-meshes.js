@@ -159,7 +159,12 @@ function syncCar(c, time, dt) {
   if (m.drv) m.drv.visible = !!c.driver && !c.dead;
   if (m.rider) m.rider.material = c.driver === 'player' ? PLAYER_SHIRT : m.riderM;   // you on the bike: in your yellow
   if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; }
-  else if (!c.dead && Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.55); }
+  else if (!c.dead) {                      // there is no health bar: the damage shows - the paint scorches darker, nearly done for it throbs dull red, on fire it flickers orange
+    if (Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.8); }
+    const glow = c.burn > 0 ? 0.5 + 0.3 * Math.sin(time * 31) * Math.sin(time * 17) : f < 0.3 ? 0.16 + 0.16 * Math.sin(time * 9) : -1;
+    if (glow >= 0) { m.body.emissive.setRGB(glow, glow * (c.burn > 0 ? 0.38 : 0.06), 0); c.glowing = true; }
+    else if (c.glowing) { c.glowing = false; m.body.emissive.copy(c.baseCol).multiplyScalar(0.22); }
+  }
   const brake = !c.dead && c.driver && c.thr < 0; if (brake !== c.tailOn) { c.tailOn = brake; for (const l of m.tail) l.material = brake ? E.tailOn : E.tailOff; }
   if (m.bar.length) {                       // light bars: police while crewed, ambulance and fire engine on a call, the trash truck's beacon at a bin
     const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task || !!c.medics), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;

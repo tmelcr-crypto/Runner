@@ -60,9 +60,10 @@ ROWS = [
     ('reload', 'Reload time (s)', 'num', (0, 60), 'Time to put in a new magazine (thrown: to take the next one).', 'seconds'),
     ('start', 'Have it at the start: yes / no', 'yesno', None, 'yes: you always have it (like fists). no: you have to find it.', 'yes or no'),
     ('keep', 'Kept when busted: yes / no', 'yesno', None, 'When the police arrest you they take your weapons (police table) - except these.', 'yes or no'),
+    ('driveBy', 'Fires from a car: yes / no', 'yesno', None, 'yes: in a car FIRE shoots it out of the window at the nearest target ahead - people, vehicles - within its range (a drive-by). Bombs are dropped out of the window anyway.', 'yes or no'),
     ('#', 'SHOPS', 'What it costs in the stores that sell it (js/01g); your score is your cash.'),
-    ('price', 'Price in shops ($)', 'int', (0, 1000000), 'What the weapon costs in a store that sells it. Empty: never sold.', 'dollars'),
-    ('ammoPrice', 'Ammo price ($)', 'int', (0, 1000000), 'What one ammo pack (Rounds per ammo pickup) costs there.', 'dollars'),
+    ('price', 'Price in shops (€)', 'int', (0, 1000000), 'What the weapon costs in a store that sells it. Empty: never sold.', 'euros'),
+    ('ammoPrice', 'Ammo price (€)', 'int', (0, 1000000), 'What one ammo pack (Rounds per ammo pickup) costs there.', 'euros'),
     ('#', 'POLICE AND NOISE', 'Who notices.'),
     ('heat', 'Heat per shot', 'num', (0, 100), 'Wanted-level heat a shot adds when a cop sees or hears it (times the police table\'s Gunshot %). For scale: 1 star at 4 heat.', 'number'),
     ('hear', 'Heard by police within (m)', 'num', (0, 200), 'A cop this close hears the shot even without seeing you. 0 = silent.', 'metres'),
@@ -92,7 +93,7 @@ ROWS = [
 SETTINGS = [r for r in ROWS if r[0] != '#']
 ROW = {r[0]: r for r in SETTINGS}
 ORDER = ['id', 'name', 'short', 'status', 'class', 'use', 'fires', 'sound', 'color', 'howTo', 'mechanic', 'dmg', 'pellets', 'spread', 'range', 'rate', 'carDmg', 'pierce',
-         'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'carry', 'reload', 'start', 'keep', 'price', 'ammoPrice', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
+         'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'carry', 'reload', 'start', 'keep', 'driveBy', 'price', 'ammoPrice', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
          'blast', 'blastThrow', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'reach', 'arc', 'knock', 'push', 'notes']
 assert sorted(ORDER) == sorted(ROW)
 # a row label in a returned file is recognised by how it starts (lowercase), most specific first
@@ -100,7 +101,7 @@ MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('st
          ('sound', 'sound'), ('color', 'bubble colour'), ('howTo', 'how to use'), ('mechanic', 'how it works'), ('notes', 'look'), ('dmg', 'damage per'), ('pellets', 'bullets per'),
          ('spread', 'spread'), ('range', 'range'), ('rate', 'time between'), ('carDmg', 'damage to veh'), ('pierce', 'goes through'), ('mag', 'magazine'),
          ('ammo', 'spare rounds'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per'), ('onMap', 'weapon pickups'), ('ammoMap', 'ammo pickups'), ('carry', 'carried by'), ('reload', 'reload'),
-         ('start', 'have it'), ('keep', 'kept when'), ('price', 'price in'), ('ammoPrice', 'ammo price'), ('heat', 'heat'), ('hear', 'heard'), ('panic', 'people flee'), ('shake', 'screen shake'), ('zoom', 'zoom'),
+         ('start', 'have it'), ('keep', 'kept when'), ('driveBy', 'fires from a car'), ('price', 'price in'), ('ammoPrice', 'ammo price'), ('heat', 'heat'), ('hear', 'heard'), ('panic', 'people flee'), ('shake', 'screen shake'), ('zoom', 'zoom'),
          ('sight', 'sight:'), ('blur', 'blur'), ('los', 'needs clear'), ('hold', 'sight stays'), ('blastThrow', 'blast throw'), ('blast', 'blast'), ('speed', 'flight speed'), ('stray', 'dud chance'),
          ('strayDeg', 'dud goes'), ('fuse', 'fuse'), ('throw', 'throw range'), ('bounce', 'bounces'), ('reach', 'reach'), ('arc', 'swing arc'), ('knock', 'knockdown'),
          ('push', 'push')]

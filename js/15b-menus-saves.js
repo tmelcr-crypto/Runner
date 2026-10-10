@@ -78,7 +78,7 @@ function paintTitle() {
   const d = latestSave();
   $('contBtn').hidden = !d; $('contInfo').hidden = !d; if (d) $('contInfo').textContent = saveLine(d);
   $('newBtn').classList.toggle('alt', !!d);                       // with a save to continue, CONTINUE is the main button
-  $('bestLine').textContent = best > 0 ? 'BEST SCORE ' + best.toLocaleString('en-US') : 'Steal a car, make trouble, outrun the police.';
+  $('bestLine').textContent = best > 0 ? 'MOST CASH ' + money(best) : 'Steal a car, make trouble, outrun the police.';
 }
 function showTitle() { state = 'menu'; $('hud').hidden = true; $('shifter').hidden = true; hush(); showCard('startCard', true); }
 $('contBtn').addEventListener('click', () => { const d = latestSave(); if (d) loadGame(d); });
@@ -96,7 +96,7 @@ function pauseGame() {
 }
 function resumeGame() { if (state !== 'pause') return; state = 'play'; closeMenus(); }
 function paintPause() {
-  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + P.score.toLocaleString('en-US') + ' PTS' + (feat('rampages') ? '  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length : '');
+  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length : '');
   const why = saveBlock(); $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why;
 }
 function quitToTitle() {
@@ -105,6 +105,7 @@ function quitToTitle() {
   showTitle();
 }
 $('menuBtn').addEventListener('click', () => { if (state === 'play') pauseGame(); });
+$('mapMenu').addEventListener('click', e => { e.stopPropagation(); if (state !== 'play') return; toggleBigMap(false); pauseGame(); });   // the city map's MENU (on a touch screen the only one)
 $('resumeBtn').addEventListener('click', resumeGame);
 $('saveBtn').addEventListener('click', () => openSlots('save'));
 $('pLoadBtn').addEventListener('click', () => openSlots('load'));
@@ -122,7 +123,7 @@ $('oLoadBtn').addEventListener('click', () => openSlots('load'));
 $('oMenuBtn').addEventListener('click', showTitle);
 
 /* help: one page per tab; the WEAPONS page comes from the weapon table (js/01f): its name and how to use it; the points from js/01i */
-{ const rg = id => Array.isArray(ECO[id]) ? '$' + ECO[id][0] + '-' + ECO[id][1] : '$' + ECO[id];
+{ const rg = id => Array.isArray(ECO[id]) ? money(ECO[id][0]) + '-' + ECO[id][1] : money(ECO[id]);
   $('helpPoints').textContent = 'Your score is your cash. Every car you steal or hijack has ' + rg('carCash') + ' inside. Killing pays nothing by itself: the dead drop a cash stack ('
     + rg('pedCash') + ', police ' + rg('copCash') + ') and the weapon they carried - pick them up within ' + ECO.dropTime + ' s. ' + ECO.townN + ' cash stacks of ' + rg('townCash')
     + ' lie around town (not on the maps). Destroying pays nothing.'; }
@@ -208,7 +209,7 @@ let slotMode = 'load';
 const SLOT_NAME = { auto: 'AUTOSAVE', 1: 'SLOT 1', 2: 'SLOT 2', 3: 'SLOT 3' };
 function saveLine(d) {
   const wx = d.sky ? hhmm(d.sky.hour) + (d.sky.kind !== 'clear' ? ' ' + (WX_NAME[d.sky.kind] || '') : '') : '';
-  return [MODE[modeOf(d)].name, wx, d.where, (d.P.score || 0).toLocaleString('en-US') + ' PTS', ago(d.t)].filter(Boolean).join('  ·  ');
+  return [MODE[modeOf(d)].name, wx, d.where, money(d.P.score || 0), ago(d.t)].filter(Boolean).join('  ·  ');
 }
 function ago(t) {
   const s = (Date.now() - t) / 1000;

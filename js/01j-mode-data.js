@@ -36,7 +36,9 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "sirens", "name": "Sirens go through red, traffic pulls over", "free": true, "story": true, "note": "Ambulances and fire engines on a call and police after you cross red lights slowly; cars ahead move right and slow down. Off: they wait at red like everyone."},
   {"id": "roadHeat", "name": "A heat reducer on the road at 3 stars and up", "free": true, "story": true, "note": "One at a time in the middle of a street ahead of you, out of sight, not on the maps (streets table)."},
   {"id": "alleyHeat", "name": "Heat reducers in back alleys", "free": true, "story": true, "note": "Ten in fixed alleys, always showing, taken only while wanted, back two minutes after (streets table; story has its pickups share)."},
-  {"id": "carHeat", "name": "Heat reducers taken from inside a car", "free": true, "story": true, "note": "Drive through one to lose a star. Everything else stays on foot only (footPickups)."}],
+  {"id": "carHeat", "name": "Heat reducers taken from inside a car", "free": true, "story": true, "note": "Drive through one to lose a star. Everything else stays on foot only (footPickups)."},
+  {"id": "driveBy", "name": "Drive-by: guns fire from a car", "free": true, "story": true, "note": "With a gun that can (weapon table: Fires from a car) FIRE shoots out of the car at the nearest target ahead. Off: only the tank's rockets and dropped bombs."}
+],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}
 ]

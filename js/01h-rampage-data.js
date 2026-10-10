@@ -3,7 +3,7 @@
    Twenty rampages hidden around the city (js/08f), each marked by a turning skull with its weapon circling it. Walk up to one and
    START it: for "time" seconds you have "weapon" in hand with endless spare ammo (reloading still takes its time), you stay on foot,
    and the police look the other way. Kill "count" people, or wreck "count" vehicles ("target"), with that weapon before the time runs
-   out. The first time you pass one you get "reward" dollars and keep the weapon with its basic load (a full magazine and its spare
+   out. The first time you pass one you get "reward" euros and keep the weapon with its basic load (a full magazine and its spare
    rounds when found); after that you can play it again for fun, without the reward. They cannot be started while you are wanted.
    target: people (anyone on foot, police included) or cars (any vehicle; it counts when it catches fire). The places are picked by
    the game: hiding places near a street, spread over the city, the first in the table nearest to where you start.

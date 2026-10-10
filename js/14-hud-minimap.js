@@ -53,7 +53,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   for (const s of SVC.police) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
     g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
   for (const s of (feat('stores') && STORES) || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
-    g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('$', x, y + q * 0.08); }
+    g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('€', x, y + q * 0.08); }
   if (feat('rampages')) for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
@@ -86,14 +86,17 @@ function drawBigMap(time) {
   g.fillStyle = '#ffd23f'; g.strokeStyle = '#000'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(11, 0); g.lineTo(-8, -7); g.lineTo(-4, 0); g.lineTo(-8, 7); g.closePath(); g.stroke(); g.fill(); g.restore();
 }
 
-const H = { inCar: null, zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vhp: -1, vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
+const H = { car: undefined, zone: '', score: '', hp: -1, ammo: '', wname: '', stars: -1, fade: null, vname: '', vinfo: '', hint: '', weapon: -1, hot: null, mute: null };
 (function buildHud() {
   $('hpSegs').innerHTML = '<i></i>'.repeat(10); $('arSegs').innerHTML = '<i></i>'.repeat(10); $('stars').innerHTML = '<div class="star"></div>'.repeat(5);
   for (const b of document.querySelectorAll('#weaponbar button')) b.addEventListener('click', () => b.blur());
 })();
 function setText(id, key, v) { if (H[key] !== v) { H[key] = v; $(id).textContent = v; } }
 function updateHud(time) {
-  setText('score', 'score', String(P.score).padStart(8, '0'));
+  const cash = money(P.score); setText('score', 'score', cash); setText('cash', 'cash', cash);   // your score is your cash
+  { const hn = Math.ceil(clamp(P.hp, 0, 100)), an = Math.ceil(clamp(P.armor, 0, 100));   // a touch screen: health and armor as numbers
+    if (H.hn !== hn) { H.hn = hn; const e = $('hpNum'); e.textContent = hn; e.classList.toggle('low', hn <= 30); }
+    if (H.an !== an) { H.an = an; const e = $('arNum'); e.textContent = an; e.hidden = an <= 0; } }
   const hp = Math.ceil(clamp(P.hp, 0, 100) / 10);
   if (H.hp !== hp) { H.hp = hp; const segs = $('hpSegs'); [...segs.children].forEach((e, k) => e.classList.toggle('on', k < hp)); segs.classList.toggle('low', hp <= 3); }
   const ar = Math.ceil(clamp(P.armor, 0, 100) / 10);                // body armor: a blue bar under the health, only while you wear some
@@ -111,15 +114,15 @@ function updateHud(time) {
     if (H.ra !== col) { H.ra = col; rl.firstElementChild.style.background = col; }
     if (on) { rl.firstElementChild.style.width = Math.min(100, t / dur * 100) + '%'; rl.lastElementChild.textContent = lab + Math.max(0, dur - t).toFixed(1) + 's'; } }
   if (H.weapon !== P.weapon) { H.weapon = P.weapon; $('wIcon').innerHTML = wIcon(w); $('wIcon').style.color = w.color; }   // the weapon button shows the weapon in hand, in its colour
-  setText('wAmmo', 'wAmmo', isMelee(WEAPONS[P.weapon]) ? WEAPONS[P.weapon].short : pad(P.mag[P.weapon], 2) + '/' + (inf ? '\u221e' : pad(P.ammo[P.weapon], 3)));
+  setText('wAmmo', 'wAmmo', isMelee(WEAPONS[P.weapon]) ? (touchMode ? '' : WEAPONS[P.weapon].short) : pad(P.mag[P.weapon], 2) + '/' + (inf ? '\u221e' : pad(P.ammo[P.weapon], 3)));
   if (H.stars !== P.stars) { H.stars = P.stars; [...$('stars').children].forEach((e, k) => e.classList.toggle('on', k < P.stars)); }
   const fade = P.stars > 0 && !PS.seen; if (H.fade !== fade) { H.fade = fade; $('stars').classList.toggle('fade', fade); }   // the stars blink while they search, stay lit while they see you
   setText('clock', 'clock', skyText());
   const hot = P.stars > 0; if (H.hot !== hot) { H.hot = hot; miniCv.classList.toggle('hot', hot); }
   if (Snd.muted !== H.mute) { H.mute = Snd.muted; $('mute').textContent = Snd.muted ? 'MUTED' : 'SND'; }
-  const c = P.car; let vname = 'ON FOOT', vinfo = '', vhp = 0, hint = '';
+  const c = P.car; let vname = 'ON FOOT', vinfo = '', hint = '';
   if (c) {
-    vname = c.t.name; vhp = Math.round(c.hp / c.maxhp * 100); vinfo = (touchMode ? P.gear + '  ' : '') + Math.round(carSpeed(c) / KMH) + ' KM/H';
+    vname = c.t.name; vinfo = (touchMode ? P.gear + '  ' : '') + Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
     else if (c.t.weapon) hint = touchMode ? 'FIRE: ROCKETS' : 'CLICK OR J: ROCKETS';
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
@@ -127,11 +130,12 @@ function updateHud(time) {
   else { const n = nearestCar(), s = shopKey(), r = rampKey(); if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
   storeUi(); rampUi(); rampHudUpdate();                             // the SHOP and RAMPAGE buttons by you (js/08e, js/08f), the rampage's count and clock
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
-  const inCar = !!c; if (H.inCar !== inCar) { H.inCar = inCar; $('radioBtn').hidden = !inCar; }   // the RADIO button, in a car only
+  const inCar = !!c; if (H.car !== c) {                            // getting in or out: the RADIO button, the touch layout, DASH or BRAKE, the car's name for a moment
+    H.car = c; $('radioBtn').hidden = !inCar; document.documentElement.classList.toggle('in-car', inCar); $('bDash').innerHTML = inCar ? 'BRAKE' : 'DASH';
+    if (inCar) { $('shifter').dataset.k = c.t.shifter; const n = $('carName'); n.textContent = c.t.name; n.className = ''; void n.offsetWidth; n.className = 'show'; }
+  }
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
-  if (H.vhp !== vhp) { H.vhp = vhp; const bar = $('vbar'); bar.style.visibility = c ? 'visible' : 'hidden'; const i = bar.firstElementChild; i.style.width = vhp + '%'; i.style.background = vhp > 50 ? 'var(--good)' : vhp > 25 ? 'var(--yellow)' : 'var(--hot)'; }
-  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && !c.t.weapon && !drop; if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one
-  const gunCar = !!c && (!!c.t.weapon || drop); if (H.gunCar !== gunCar) { H.gunCar = gunCar; document.documentElement.classList.toggle('gun-car', gunCar); }   // ...from beside the gear stick
+  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && !c.t.weapon && !drop && !canDriveBy(); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }

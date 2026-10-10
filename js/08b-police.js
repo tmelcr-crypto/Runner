@@ -89,7 +89,7 @@ function stopOrder(dt) {
 }
 function payFine() {
   const f = Math.min(P.score, Math.round(COP.fine)); P.score -= f;
-  if (f > 0) popup(P.x, P.y - 14, '-' + f + ' FINE', '#ff3b5c');
+  if (f > 0) popup(P.x, P.y - 14, '-' + money(f) + ' FINE', '#ff3b5c');
   clearWanted(f > 0 ? 'FINED ' + f + '. ON YOUR WAY' : 'LET OFF WITH A WARNING');
 }
 function resist() {
@@ -283,5 +283,5 @@ function respawn() {
   for (; foot < COP.footPatrols; foot++) spawnFootCop(true);
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; streamCity(true);
   state = 'play'; deadTimer = 0; $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED'; updateGearUi();
-  toast((busted ? 'OUT ON BAIL' : 'OUT OF HOSPITAL') + (lose > 0 ? ' -' + lose : ''));
+  toast((busted ? 'OUT ON BAIL' : 'OUT OF HOSPITAL') + (lose > 0 ? ' -' + money(lose) : ''));
 }

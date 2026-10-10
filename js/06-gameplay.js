@@ -19,7 +19,7 @@ function updateStars() {
   if (s > P.stars) { toast('WANTED LEVEL ' + s, true); policeAlert(P.stars, s); } else if (s === 0 && P.stars > 0) toast('WANTED LEVEL CLEARED');
   P.stars = s; P.maxStars = Math.max(P.maxStars, s);
 }
-function addScore(n, x, y, label) { if (!(n > 0)) return; P.score += n; if (x !== undefined) popup(x, y - 14, '+' + n + (label ? ' ' + label : '')); }   // n: what the deed pays (js/01i)
+function addScore(n, x, y, label) { if (!(n > 0)) return; P.score += n; if (x !== undefined) popup(x, y - 14, '+' + money(n) + (label ? ' ' + label : '')); }   // n: what the deed pays (js/01i)
 function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away; armed ones who saw you hurt someone close to them (within provokeR) fight back (js/08g)
   for (const p of peds) if (!p.dead && !p.cop && dist(p.x, p.y, x, y) < r) {
     if (!notMe && provokeR && dist(p.x, p.y, x, y) < provokeR && dist(p.x, p.y, P.x, P.y) < 450 && provoke(p)) continue;
@@ -168,6 +168,24 @@ function fireWeapon(aim) {                                      // aim: a point 
   Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true); baseHurt(P.x, P.y);   // shooting inside the base sets off the alarm (js/08j)
   cam.shake = Math.max(cam.shake, w.shake);
 }
+/* the drive-by (js/01j driveBy): in a car, a gun the weapon table lets fire from a car shoots out of the window at the nearest target
+   ahead - a person, a cop, a vehicle - within its range and in sight; nobody there, straight ahead. A little wilder than on foot. */
+const canDriveBy = () => !!P.car && !P.car.t.weapon && WEAPONS[P.weapon].driveBy && P.has[P.weapon] && feat('driveBy');
+function driveBy(c, inp) {
+  const w = WEAPONS[P.weapon], fresh = inp.fire && !P.ctrig;      // P.ctrig: FIRE was already down last frame (set by updatePlayer)
+  if (!inp.fire || !(w.auto || fresh) || P.dead) { if (!inp.fire) P.dry = false; return; }
+  const R = w.range, fx = Math.cos(c.ang), fy = Math.sin(c.ang); let best = null, bs = Infinity;
+  const consider = (o, x, y) => {
+    const dx = x - c.x, dy = y - c.y, d = Math.hypot(dx, dy); if (d < 20 || d > R) return;
+    const cos = (dx * fx + dy * fy) / d; if (cos < 0.45) return;                 // ahead: within about 63 degrees of the bonnet
+    const sc = d * (2.2 - cos); if (sc < bs && losClear(c.x, c.y, x, y)) { bs = sc; best = { x, y }; }
+  };
+  for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < R && Math.abs(p.y - c.y) < R) consider(p, p.x, p.y);
+  for (const o of officers) if (!o.dead && Math.abs(o.x - c.x) < R && Math.abs(o.y - c.y) < R) consider(o, o.x, o.y);
+  for (const o of cars) if (o !== c && !o.dead && !o.sunk && Math.abs(o.x - c.x) < R && Math.abs(o.y - c.y) < R) consider(o, o.x, o.y);
+  const a = (best ? Math.atan2(best.y - c.y, best.x - c.x) : c.ang) + rand(-1.5, 1.5) * w.spread;
+  fireWeapon({ x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R });
+}
 function bulletHit(h, w, a) {                                   // one bullet: the tracer, and what it hit
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
@@ -251,8 +269,9 @@ function updatePlayer(dt, inp) {
     c.hb = inp.sprint;
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
     if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
+    else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
     else carDrop(c, inp);                                          // a bomb in hand: FIRE drops it out of the window (js/06b)
-    return;
+    P.ctrig = inp.fire; return;
   }
   const orig = inp; if (SCOPE.on && SCOPE.by === 'key') inp = { ix: 0, iy: 0, mag: 0, sprint: false, fire: inp.fire, held: inp.held };   // J held: the arrow keys move the scope, not you
   if (P.knocked) { updateReload(dt); P.trig = inp.fire; return; }   // thrown by a blast: no control until you land

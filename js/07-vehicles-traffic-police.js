@@ -256,9 +256,16 @@ function updateCars(dt) {
     if (!c.sunk && shoreDist(c.x, c.y) < -8) sinkCar(c);
     if (c.sunk && c.sinkT < 1.4 && Math.random() < 0.3) splashFx(c.x + rand(-14, 14), c.y + rand(-14, 14), 3);
     carHitsPeds(c);
-    // damage effects
+    // damage you can see (there is no health bar): thin white wisps from the bonnet, then thick grey smoke and sparks, then black smoke
+    // and flames; on fire it burns all over until it blows (js/11 scorches and lights up the paint)
     const f = c.hp / c.maxhp; c.smokeT -= dt;
-    if (!c.dead && c.smokeT <= 0 && (f < 0.4 || c.burn > 0)) { c.smokeT = f < 0.2 || c.burn > 0 ? 0.05 : 0.14; smokeFx(c.x, c.y, f < 0.2); if (f < 0.2 || c.burn > 0) fireFx(c.x + Math.cos(c.ang) * 12, c.y + Math.sin(c.ang) * 12); }
+    if (!c.dead && c.smokeT <= 0 && (f < 0.75 || c.burn > 0)) {
+      const ca = Math.cos(c.ang), sa = Math.sin(c.ang), bx = c.x + ca * c.t.len * 0.3, by = c.y + sa * c.t.len * 0.3;
+      if (c.burn > 0) { c.smokeT = 0.035; smokeFx(c.x, c.y, true, 1.7); for (let k = 0; k < 3; k++) { const o = rand(-0.45, 0.45) * c.t.len; fireFx(c.x + ca * o, c.y + sa * o, 1.6); } }
+      else if (f < 0.3) { c.smokeT = 0.05; smokeFx(bx, by, true, 1.3); fireFx(bx, by); if (Math.random() < 0.25) spark(bx, by, 2); }
+      else if (f < 0.5) { c.smokeT = 0.09; smokeFx(bx, by, false, 1.2); if (Math.random() < 0.12) spark(bx, by, 2); }
+      else { c.smokeT = 0.22; smokeFx(bx, by, false, 0.8, true); }
+    }
     if (c.dead && !c.sunk && !c.doused && c.deadT < 25 && c.smokeT <= 0) { c.smokeT = 0.18; smokeFx(c.x, c.y, true); if (Math.random() < 0.4) fireFx(c.x, c.y); }
     if (c.burn > 0 && !c.dead) { c.burn -= dt; if (c.burn <= 0) explodeCar(c); }
   }

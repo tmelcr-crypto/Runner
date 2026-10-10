@@ -19,8 +19,8 @@ HERE = os.path.dirname(os.path.abspath(__file__)); JSD = os.path.join(HERE, '..'
 FILES = {'eco': ('01i-economy-data.js', 'ECONOMY'), 'ramp': ('01h-rampage-data.js', 'RAMPAGE'), 'police': ('01b-police-data.js', 'POLICE'),
          'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON')}
 HEADS = ['Action or commodity', 'Price (or from)', 'Up to', 'Unit', 'Notes', 'Key (do not change)']
-USD, PCT = '$', '% of your cash'
-LIMITS = {'$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
+USD, PCT = '€', '% of your cash'
+LIMITS = {'€': (0, 1000000), '$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
 
 
 def path(f): return os.path.join(JSD, FILES[f][0])
@@ -178,7 +178,7 @@ def read_sheet(src):
 def num(v):
     if isinstance(v, bool) or v is None: return None
     if isinstance(v, str):
-        v = v.strip().replace(',', '').replace('$', '').replace('%', '')
+        v = v.strip().replace(',', '').replace('$', '').replace('€', '').replace('%', '')
         if v == '': return ''
         try: v = float(v)
         except ValueError: return None

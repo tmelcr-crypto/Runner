@@ -8,7 +8,7 @@ Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8
 
 **NEW GAME** first asks how you want to play: **FREE ROAM** - the city as it is, no story, everything below - or **STORY**, missions told as a story, which is built later and shows as *COMING SOON* until then. Free roam then goes on to its options. A saved game keeps its mode (the save list and the pause menu show it); saves from before the modes are free roam.
 
-Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines, paramedics with stretchers, blasts tearing people apart, irregular blood marks, pickups only on foot, planes landing and taking off, the airport gate barriers and guards, the military base, cargo ships and cranes, the lunapark rides, the space center guards, traffic lights and the rules of the road, sirens going through red, the heat reducer on the road, the heat reducers in back alleys, heat reducers taken from a car - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. A second sheet holds numbers that differ by mode: story mode hides 30% as many weapons, ammo and items around the city as free roam (`pickups`). What is kept for story mode - like the way into the space center - is written down in `docs/STORY.md`. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
+Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines, paramedics with stretchers, blasts tearing people apart, irregular blood marks, pickups only on foot, planes landing and taking off, the airport gate barriers and guards, the military base, cargo ships and cranes, the lunapark rides, the space center guards, traffic lights and the rules of the road, sirens going through red, the heat reducer on the road, the heat reducers in back alleys, heat reducers taken from a car, the drive-by - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. A second sheet holds numbers that differ by mode: story mode hides 30% as many weapons, ammo and items around the city as free roam (`pickups`). What is kept for story mode - like the way into the space center - is written down in `docs/STORY.md`. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
 
 ```
 python3 tools/mode_sheet.py export modes.numbers      # or modes.xlsx
@@ -18,6 +18,7 @@ python3 tools/mode_sheet.py import modes.numbers [--dry-run]
 ## Menus and saved games
 
 - **Title**: *Continue* (the latest save, with when and where it was made), *New game*, *Load game*, *Help*, and *City file preview*. The arrow keys move between the buttons, Enter picks, Esc goes back; everything also works by mouse or touch.
+- **Touch screens (phone and tablet)** get a compact HUD: top left your cash (**€12,345**), health and armor as two numbers (pink and blue; armor only while you wear some), and the weapon as an icon with its ammo under it (tap it for the weapon wheel); in a car a radio icon beside it. Stars and the clock sit small under the minimap; getting into a car its name shows there for a moment. There is no car health bar and no ON FOOT box, no sound button (the device's volume) and no MENU on screen: tap the minimap and MENU is in the corner of the city map. In a car you steer with the left thumb; BRAKE and FIRE sit side by side in the right corner for the other thumb, the gear lever above them - no letters: up is reverse (it glows red), down is drive (green), and each vehicle kind has its own lever (a T-handle, a sports knob, a tall truck lever, a military throttle, a handlebar switch; vehicle table). Desktop keeps the full HUD.
 - **Touch screens**: the browser's own gestures are switched off - pinch to zoom, double-tap to zoom, the long-press menu, text selection - so the page never zooms in or out or shrinks under your fingers (Safari on iPad and iPhone included). Buttons still take quick taps.
 - **New game**: first the mode (*Game modes* above), then the free roam choices, remembered for next time:
   - *Time of day*: dawn, morning, noon, evening (17:30) or night.
@@ -43,6 +44,8 @@ A made-up bay city on the outline of a reference map: two main islands, a few ba
 - **Landmarks**: Bayfront Park downtown (a lake with a boathouse, a pier, paddle boats, a fountain and a band shell), the Bay TV tower over Mercado, the Twist (a glass tower that turns a quarter turn as it rises), the Crown (a stepped deco tower with a gold sunburst crown and a spire), the Sail hotel and the Bay Wheel on the beach, the golf links as one big park with lakes, the Neon Bowl stadium, the Pearl Key estate, Bayside Mall in a park that covers its whole peninsula (lawns, trees, paths with benches and lamps round a pond, a paved walk round the mall and its driveway), the lighthouse, the Skyport airport, the port, the lunapark, the military base and the space center (below), and the Colony Hotel at 736 Ocean Drive (white Streamline front, turquoise bands, the inverted-T sign in blue neon).
 - **Closed driveways**: traffic never turns into a driveway to a landmark, and a boom gate stops every car except a police car (people walk past it).
 - **Real-world speeds** at 12 world units to the metre: people stroll at about 1.4 m/s, run at 5 and sprint at 7 (you are 15% quicker than everyone else); town traffic drives at 40-55 km/h; cars reach 130-260 km/h depending on type, and traffic accelerates, brakes and corners like real cars.
+- **Damage you can see**: there is no car health bar (anywhere) - a damaged vehicle shows it. Thin white wisps from the bonnet, then thick grey smoke and sparks, then black smoke, flames from the bonnet and the paint throbbing dull red; once it catches fire it burns all over, flickering orange, until it blows. The paint scorches darker the more damage it takes.
+- **Drive-by**: with a pistol, revolver, SMG or machine gun in hand (weapon table: *fires from a car*), FIRE in a car shoots out of the window at the nearest target ahead - a person, a cop, a vehicle - within the gun's range and in sight; with nobody there, straight ahead. A little less accurate than on foot; it uses ammo, reloads, and counts as gunfire for the police. Other guns stay on foot; a grenade or pipe bomb is dropped out of the window. Modes: `driveBy`.
 - **Your car drives arcade style**: it picks up about twice as fast as the real car, brakes harder, keeps its grip unless you pull the handbrake to drift, and turns tightly at any speed.
 - **Stealing cars**: an empty car is yours after a second and drives off at once. Carjacking takes three seconds of fighting the driver for the wheel while the car lurches and swerves; let go (E again) and you drop off beside it.
 - Traffic keeps to its lane, brakes in time for what is ahead and keeps to the traffic lights (below); police take the shortest route by road and only drive straight at you when nothing is in between. People walk the sidewalks and cross at the zebras on the walk signal, and some stroll about the back alleys, the parks, the beaches and the promenades. Nobody walks through anybody: people push each other aside and step round cars, parked or not, and never into a wall.
@@ -150,7 +153,7 @@ Ambulances and fire engines on a call take the shortest way by road at up to 65 
 
 **Paramedics.** An ambulance at a body stops with its lights flashing and two paramedics get out with a stretcher. They walk it to the body, lift it on (under a white sheet), carry it back and load it - and then one more body lying within 30 m, two at most per trip; an ambulance already on its way to that one turns back. Aboard, they drive to the nearest hospital with lights and siren, carry each body to the door, where it is taken in, walk back and drive on as ordinary traffic until the next call. While both are out the ambulance stands empty with the handbrake on. They are ordinary people: kill one, or drive off with their ambulance while they are out, and they drop the stretcher and run - the bodies stay and another ambulance comes for them. If they cannot get to the body or back, they give up after 45 seconds and drive on; a team far behind you finishes unseen. Drivers sit inside under the roof behind tinted glass. Long vehicles keep their distance in traffic from their front bumper, not their middle, and use more collision circles along their length.
 
-Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, acceleration, braking, steering, grip, health, weight, armour, how often it drives in traffic, parks or is sent by the police (and from which wanted level), how many are hidden, its job, its weapon, its colours. Acceleration given to a speed at or above the top speed counts as the time to reach top speed. `tools/vehicle_sheet.py` exports it to Apple Numbers or Excel and imports an edited copy (`export vehicles.numbers`, `import vehicles.numbers [--dry-run]`): one column per vehicle, rows found by their label, every value checked; a new column becomes a new vehicle (body `new` until its model is built).
+Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, acceleration, braking, steering, grip, health, weight, armour, how often it drives in traffic, parks or is sent by the police (and from which wanted level), how many are hidden, its job, its weapon, its gear selector (the lever's look on a touch screen), its colours. Acceleration given to a speed at or above the top speed counts as the time to reach top speed. `tools/vehicle_sheet.py` exports it to Apple Numbers or Excel and imports an edited copy (`export vehicles.numbers`, `import vehicles.numbers [--dry-run]`): one column per vehicle, rows found by their label, every value checked; a new column becomes a new vehicle (body `new` until its model is built).
 
 ## Car radio
 
@@ -231,7 +234,7 @@ The rows come in sections:
 - *Mechanics in words*: **how to use** (one or two sentences, shown under the weapon wheel and on the Help page's WEAPONS tab), **how it works** (a full description of the behaviour) and look / sound / ideas.
 - *Hitting*: damage, bullets per shot (above 1 = a shotgun), spread, range, time between shots, damage to vehicles, goes through cover.
 - *Shops*: price of the weapon and of one ammo pickup in the stores (empty: not sold).
-- *Ammo and finding it*: magazine, spare rounds when found, most carried, rounds per ammo pickup, how many weapon pickups and ammo pickups lie hidden on the map, the share of people carrying it, reload, have it at the start (only fists), kept when busted.
+- *Ammo and finding it*: magazine, spare rounds when found, most carried, rounds per ammo pickup, how many weapon pickups and ammo pickups lie hidden on the map, the share of people carrying it, reload, have it at the start (only fists), kept when busted, fires from a car (the drive-by).
 - *Police and noise*: heat per shot, heard within, people flee within, screen shake.
 - *Scope or sight*: zoom, sight shape, blur, line of sight, sight stays up.
 - *Explosives*: blast radius, how hard the blast throws things (*Blast throw*, %), flight speed, dud chance and angle, and for grenades fuse, throw range and bounce.
@@ -253,13 +256,13 @@ The **rocket launcher** aims the same way (and also fires only while you stand s
 
 | Item | Bubble | What it does | Hidden | In stores |
 |---|---|---|---|---|
-| Health | white, a white box with a red cross | +50 health, taken only when you are hurt | 10 | $150 |
-| Body armor | blue, a blue vest | +50 armor, up to 100: a blue bar under the health bar that takes the damage before your health does | 6 | $250 |
+| Health | white, a white box with a red cross | +50 health, taken only when you are hurt | 10 | €150 |
+| Body armor | blue, a blue vest | +50 armor, up to 100: a blue bar under the health bar that takes the damage before your health does | 6 | €250 |
 | Heat reducer | flashing red and blue, a police star with an arrow down | one star less, taken only while you are wanted - from inside a car too | 4, 10 in back alleys, 1 on the road from 3 stars | not sold |
 
 **Heat reducers.** Besides the four hidden ones: from 3 stars up one lies in the middle of a street ahead of you, just out of sight (about 70 m, never on the maps); a new one comes 30 s after it was taken or left far behind (170 m), and it goes when you drop below 3 stars. Ten more stand in fixed back alleys - always showing, but taken only while you are wanted, each back in its alley 2 minutes after you took it (story mode has 3, its share of the hidden pickups). Every heat reducer is taken from inside a car too - drive through it; everything else is taken on foot only. The numbers are in the streets table, `js/01m-streets-data.js`.
 
-**Stores.** Six stores stand on shopping streets spread over the city - always the same buildings, each with a front the camera can see. Each is a **$** in its own colour on the minimap and the city map, and at its door a ring of light with a $, the store's first weapon turning above it and the store's name floating higher. Walk up to the door on foot and a **SHOP** button appears next to you: tap it, click it or press **E** (a car standing closer than the door gets E instead). The game waits while you shop; **LEAVE**, **Esc** or **E** goes back out, and what you bought is saved by the autosave. Your score is your cash.
+**Stores.** Six stores stand on shopping streets spread over the city - always the same buildings, each with a front the camera can see. Each is a **€** in its own colour on the minimap and the city map, and at its door a ring of light with a $, the store's first weapon turning above it and the store's name floating higher. Walk up to the door on foot and a **SHOP** button appears next to you: tap it, click it or press **E** (a car standing closer than the door gets E instead). The game waits while you shop; **LEAVE**, **Esc** or **E** goes back out, and what you bought is saved by the autosave. Your score is your cash.
 
 | Store | Colour | Sells |
 |---|---|---|
@@ -274,13 +277,13 @@ Each gun or bomb a store sells comes with a row for its ammo (one ammo pickup's 
 
 | Weapon | Price | Ammo | | Weapon | Price | Ammo |
 |---|---|---|---|---|---|---|
-| Baseball bat | $150 | - | | Shotgun | $1,000 | $120 (7) |
-| Knife | $120 | - | | Machine gun | $3,500 | $400 (100) |
-| Machete | $250 | - | | Sniper rifle | $2,500 | $300 (10) |
-| Golf club | $200 | - | | Rocket launcher | $5,000 | $800 (2) |
-| Pistol | $400 | $60 (24) | | Grenade | $600 | $450 (3) |
-| Revolver | $700 | $80 (12) | | Pipe bomb | $900 | $600 (2) |
-| SMG | $1,200 | $150 (60) | | | | |
+| Baseball bat | €150 | - | | Shotgun | €1,000 | €120 (7) |
+| Knife | €120 | - | | Machine gun | €3,500 | €400 (100) |
+| Machete | €250 | - | | Sniper rifle | €2,500 | €300 (10) |
+| Golf club | €200 | - | | Rocket launcher | €5,000 | €800 (2) |
+| Pistol | €400 | €60 (24) | | Grenade | €600 | €450 (3) |
+| Revolver | €700 | €80 (12) | | Pipe bomb | €900 | €600 (2) |
+| SMG | €1,200 | €150 (60) | | | | |
 
 The items and the stores are `js/01g-shop-data.js` (what each item gives, its colour, how many are hidden, its price; each store's name, colour and what it sells - weapon ids from the weapon table and item ids). Weapon and ammo prices are two rows of the weapon table (*Shops* section of `tools/weapon_sheet.py`); an empty price means it is never sold.
 
@@ -301,26 +304,26 @@ Reach the count in time and the rampage is **passed**: the first time you get th
 
 | # | Rampage | Weapon | Goal | Time | Reward |
 |---|---|---|---|---|---|
-| 1 | Knuckle Sandwich | Fists | kill 8 people | 2:00 | $1,000 |
-| 2 | Batter Up | Baseball bat | kill 15 people | 1:30 | $1,500 |
-| 3 | Pistol Whip | Pistol | kill 12 people | 2:00 | $1,500 |
-| 4 | Sharp Practice | Knife | kill 12 people | 1:30 | $1,500 |
-| 5 | Fore! | Golf club | kill 10 people | 2:00 | $1,500 |
-| 6 | Chop Shop | Machete | kill 15 people | 2:00 | $2,000 |
-| 7 | Six Feet Under | Revolver | kill 18 people | 2:00 | $2,000 |
-| 8 | Hubcap Hunter | Pistol | wreck 4 vehicles | 2:30 | $2,000 |
-| 9 | Spray And Pray | SMG | kill 20 people | 2:00 | $2,500 |
-| 10 | Scrap Metal | SMG | wreck 6 vehicles | 2:30 | $2,500 |
-| 11 | Buckshot Boulevard | Shotgun | kill 16 people | 2:00 | $2,500 |
-| 12 | Body Shop | Shotgun | wreck 8 vehicles | 2:00 | $3,000 |
-| 13 | Long Shot | Sniper rifle | kill 12 people | 2:00 | $3,000 |
-| 14 | Belt Fed | Machine gun | kill 30 people | 2:00 | $4,000 |
-| 15 | Rush Hour | Machine gun | wreck 10 vehicles | 2:00 | $4,000 |
-| 16 | Pineapple Party | Grenade | kill 12 people | 2:00 | $3,500 |
-| 17 | Traffic Calming | Revolver | wreck 6 vehicles | 2:30 | $3,500 |
-| 18 | Demolition Derby | Pipe bomb | wreck 6 vehicles | 2:30 | $4,000 |
-| 19 | Fireworks | Rocket launcher | kill 22 people | 2:00 | $5,000 |
-| 20 | Wrecking Crew | Rocket launcher | wreck 10 vehicles | 2:30 | $6,000 |
+| 1 | Knuckle Sandwich | Fists | kill 8 people | 2:00 | €1,000 |
+| 2 | Batter Up | Baseball bat | kill 15 people | 1:30 | €1,500 |
+| 3 | Pistol Whip | Pistol | kill 12 people | 2:00 | €1,500 |
+| 4 | Sharp Practice | Knife | kill 12 people | 1:30 | €1,500 |
+| 5 | Fore! | Golf club | kill 10 people | 2:00 | €1,500 |
+| 6 | Chop Shop | Machete | kill 15 people | 2:00 | €2,000 |
+| 7 | Six Feet Under | Revolver | kill 18 people | 2:00 | €2,000 |
+| 8 | Hubcap Hunter | Pistol | wreck 4 vehicles | 2:30 | €2,000 |
+| 9 | Spray And Pray | SMG | kill 20 people | 2:00 | €2,500 |
+| 10 | Scrap Metal | SMG | wreck 6 vehicles | 2:30 | €2,500 |
+| 11 | Buckshot Boulevard | Shotgun | kill 16 people | 2:00 | €2,500 |
+| 12 | Body Shop | Shotgun | wreck 8 vehicles | 2:00 | €3,000 |
+| 13 | Long Shot | Sniper rifle | kill 12 people | 2:00 | €3,000 |
+| 14 | Belt Fed | Machine gun | kill 30 people | 2:00 | €4,000 |
+| 15 | Rush Hour | Machine gun | wreck 10 vehicles | 2:00 | €4,000 |
+| 16 | Pineapple Party | Grenade | kill 12 people | 2:00 | €3,500 |
+| 17 | Traffic Calming | Revolver | wreck 6 vehicles | 2:30 | €3,500 |
+| 18 | Demolition Derby | Pipe bomb | wreck 6 vehicles | 2:30 | €4,000 |
+| 19 | Fireworks | Rocket launcher | kill 22 people | 2:00 | €5,000 |
+| 20 | Wrecking Crew | Rocket launcher | wreck 10 vehicles | 2:30 | €6,000 |
 
 A bot that aims perfectly but walks badly played every rampage in a headless browser while they were tuned; it passed them using roughly a fifth to two thirds of the time. Grenades are not used against vehicles: a grenade thrown at a car bounces off it and goes off too far away to do much damage.
 
@@ -336,12 +339,12 @@ The first row is the rampage nearest to where you start, so make it an easy one.
 ## Economy
 
 Your score is your cash. Killing and destroying pay nothing by themselves - money is something you pick up:
-- **Cars**: every car you steal or hijack has **$4-120** inside, found when you get in (once per car).
-- **The dead** drop a cash stack by the body - **$1-30**, police officers **$20-80** - and the weapon they carried (officers and foot cops: their pistol). Whoever killed them. Walk over it; it blinks for its last 10 seconds and vanishes after a minute.
-- **Cash stacks** of **$100-300** lie on sidewalks around town, **10** at a time, not on the maps; one taken comes back somewhere else.
-- **Rampages** pay $1,000-6,000 the first time you pass them.
+- **Cars**: every car you steal or hijack has **€4-120** inside, found when you get in (once per car).
+- **The dead** drop a cash stack by the body - **€1-30**, police officers **€20-80** - and the weapon they carried (officers and foot cops: their pistol). Whoever killed them. Walk over it; it blinks for its last 10 seconds and vanishes after a minute.
+- **Cash stacks** of **€100-300** lie on sidewalks around town, **10** at a time, not on the maps; one taken comes back somewhere else.
+- **Rampages** pay €1,000-6,000 the first time you pass them.
 
-What it costs: the fine at 1 star ($250), bail when busted and the hospital bill when wasted (10% of your cash each), and the stores (*Items and stores*).
+What it costs: the fine at 1 star (€250), bail when busted and the hospital bill when wasted (10% of your cash each), and the stores (*Items and stores*).
 
 Every amount is in `js/01i-economy-data.js` - one value, or a random amount from *min* to *max* - together with how many stacks lie in town and how long drops last. `tools/economy_sheet.py` puts every price in the game into one spreadsheet: column A the action or the commodity, column B its price (or, for a random amount, the least), C *Up to* (the most), then the unit, a note (such as which stores sell it) and a grey key. Sections: earnings, rampage rewards, fines and bills, store health and armor, store weapons, store ammo. Each price still lives with what it belongs to, and an import writes it back there, changing only that number: what deeds pay in `js/01i-economy-data.js`, rampage rewards in `js/01h-rampage-data.js`, the fine, bail and hospital bill in the police table (`js/01b-police-data.js`), health and armor in `js/01g-shop-data.js`, weapons and ammo in the weapon table (`js/01f-weapon-data.js`). So the weapon, rampage and police sheets and the economy sheet can be used side by side. An empty price for store goods means it is not sold.
 
