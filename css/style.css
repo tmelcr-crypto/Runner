@@ -479,3 +479,38 @@ button.clRow.on{border-color:var(--cyan)}
 #clMsg.ok{color:var(--good);text-shadow:0 0 8px rgba(61,255,166,.6)}
 @media (max-width:640px){ #clBody{flex-direction:column;align-items:center} #clFig{width:150px;height:196px} #clSide{width:100%} #clList{max-height:36vh} }
 @media (max-width:520px){ #toast{white-space:normal;width:92vw;font-size:11px;line-height:1.6} }   /* long messages wrap on a phone */
+
+/* ---- races (js/08o): the ANSWER / RACE button, the panel at the top, the big countdown, the results, the card ---- */
+#raceBtn{--sc:#ffd23f}
+#raceHud{position:absolute;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);display:flex;align-items:center;gap:10px;white-space:nowrap;
+  font-family:var(--f-display);color:var(--paper);background:rgba(8,10,24,.84);border:3px solid #ffd23f;box-shadow:0 0 16px rgba(255,210,63,.7);padding:7px 12px}
+#raceHud[hidden]{display:none}
+#raceHud .rl{font-size:9px;color:#ffd23f;text-shadow:0 0 8px #ffd23f}
+#racePos{font-weight:400;font-size:13px;color:var(--paper)}
+#raceLap{font-size:11px;color:#2bf3ff}
+#raceLap[hidden]{display:none}
+#raceClock{font-style:normal;font-size:15px;color:var(--yellow);min-width:4.6em;text-align:right}
+#raceHud.late #raceClock{color:#ff2a2a;animation:rampBlink .5s steps(2) infinite}
+#raceCount{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:clamp(54px,14vw,120px);color:#ffd23f;
+  text-shadow:0 0 18px #ffd23f,0 0 40px rgba(255,210,63,.6),5px 5px 0 #000;pointer-events:none;opacity:0}
+#raceCount.show{animation:raceCnt .9s ease-out forwards}
+#raceCount.go{color:#3dffa6;text-shadow:0 0 18px #3dffa6,0 0 40px rgba(61,255,166,.6),5px 5px 0 #000}
+@keyframes raceCnt{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+#raceRes{position:absolute;left:50%;top:calc(120px + env(safe-area-inset-top,0px));transform:translateX(-50%);width:min(380px,calc(100% - 32px));box-sizing:border-box;text-align:center;
+  font-family:var(--f-display);color:var(--paper);background:rgba(8,6,22,.9);border:3px solid #ffd23f;box-shadow:0 0 22px rgba(255,210,63,.6);padding:12px 14px 12px;pointer-events:auto}
+#raceRes[hidden]{display:none}
+#raceRes.pop{animation:rampBump .35s ease-out}
+#raceRes .tag{font-size:9px;color:#2bf3ff;margin:0 0 6px}
+#raceRes h2{font-size:clamp(16px,5vw,24px);margin:0 0 6px;color:#ffd23f;text-shadow:0 0 12px rgba(255,210,63,.7),3px 3px 0 #000}
+#rrRecord{font-size:10px;color:#3dffa6;margin:0 0 6px;animation:rampBlink .6s steps(2) infinite}
+#rrRecord[hidden]{display:none}
+#rrRows{display:grid;grid-template-columns:1fr auto;gap:5px 12px;text-align:left;font-size:9px;margin:8px 0 10px}
+#rrRows span{color:var(--dim)}
+#rrRows b{font-weight:400;color:var(--paper);text-align:right}
+.rrBarBox{height:4px;background:rgba(255,255,255,.12);margin:0 0 10px}
+#rrBar{display:block;height:100%;width:100%;background:#ffd23f}
+#rrClose{font-family:var(--f-display);font-size:11px;color:var(--ink);background:#ffd23f;border:0;padding:8px 18px;cursor:pointer;touch-action:manipulation}
+#raceCard .tag{color:#ffd23f;font-size:12px;margin:0 0 8px;text-shadow:0 0 10px #ffd23f}
+#raceCard h2{color:#fff;text-shadow:0 0 10px #ffd23f,0 0 24px rgba(255,210,63,.5),3px 3px 0 #000}
+#raceCard .stats{width:min(460px,100%);margin:10px auto}
+@media (max-width:520px){ #raceHud{top:calc(254px + env(safe-area-inset-top,0px));gap:7px;padding:6px 9px} #raceClock{font-size:12px} #raceRes{top:calc(150px + env(safe-area-inset-top,0px))} }

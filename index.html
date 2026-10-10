@@ -40,6 +40,10 @@
   <div id="toast"></div>
   <div id="warnBanner" hidden></div>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
+  <button id="raceBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7c0-1.7 4-3.5 9-3.5S21 5.3 21 7v2.2c0 .6-.5 1-1 .9l-3-.6a1 1 0 0 1-.8-1V7.3C15 6.9 13.6 6.7 12 6.7s-3 .2-4.2.6v1.2a1 1 0 0 1-.8 1l-3 .6c-.5.1-1-.3-1-.9zm4 5h10l2 8H5zm5 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><b></b><span class="go">ANSWER</span></button>
+  <div id="raceHud" hidden><span class="rl" id="raceHudName">RACE</span><b id="racePos"></b><span id="raceLap"></span><i id="raceClock">0:00</i></div>
+  <div id="raceCount"></div>
+  <div id="raceRes" hidden><p class="tag" id="rrName">RACE</p><h2 id="rrTitle">1ST PLACE!</h2><p id="rrRecord" hidden>NEW RECORD!</p><div id="rrRows"></div><div class="rrBarBox"><i id="rrBar"></i></div><button id="rrClose" type="button">CLOSE</button></div>
   <div id="jobHud" hidden title="Stop the job"><span class="rl" id="jobHudName">JOB</span><span class="lv" id="jobLevel">LEVEL 1</span><b id="jobCount">0 / 0</b><i id="jobClock">0:00</i><span class="jx">✕</span></div>
   <div id="rampHud" hidden><span id="rampIcoHud"></span><span class="rl">RAMPAGE</span><b id="rampCount">0 / 0</b><span id="rampWhat"></span><i id="rampClock">0:00</i></div>
   <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
@@ -273,6 +277,17 @@
     <p class="sub rampRules" id="jobRules"></p>
     <div class="menu"><button id="jobGo" class="big pri" type="button">START JOB</button><button id="jobNo" class="big alt back" type="button">NOT NOW</button></div>
     <p class="keys">ENTER STARTS · ESC OR E LEAVES</p>
+  </div>
+
+  <div class="card" id="raceCard" hidden>
+    <p class="tag" id="raceTag">STREET RACE</p>
+    <h2 id="raceName">RACE</h2>
+    <p class="sub" id="raceSub"></p>
+    <div class="stats"><span>FEE</span><span id="raceFee"></span><span>PRIZES</span><span id="racePrize"></span><span>YOUR BEST</span><span id="raceBest"></span></div>
+    <p class="sub rampRules" id="raceRules"></p>
+    <p class="warn" id="raceWarn" hidden></p>
+    <div class="menu"><button id="raceGo" class="big pri" type="button">ACCEPT</button><button id="raceNo" class="big alt back" type="button">NOT NOW</button></div>
+    <p class="keys">ENTER ACCEPTS · ESC OR E LEAVES</p>
   </div>
 
   <div class="card" id="jobStopCard" hidden>

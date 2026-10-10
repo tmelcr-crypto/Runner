@@ -34,19 +34,35 @@ Tris.prototype.mesh = function (mat) {
   const n = new Float32Array(this.p.length); for (let k = 1; k < n.length; k += 3) n[k] = 1; g.setAttribute('normal', new THREE.BufferAttribute(n, 3));
   g.computeBoundingSphere(); const m = new THREE.Mesh(g, mat); cityGroup.add(m); return m;
 };
-// a strip between lateral offsets o0..o1 (to the right of travel) along a polyline
+// a strip between lateral offsets o0..o1 (to the right of travel) along a polyline, joined smoothly at every bend: on the inside of a
+// bend the two pieces meet at their mitre, on the outside the gap is filled with a rounded fan - so a road keeps its full width through
+// any bend, however long or short the pieces either side. A polyline that ends where it starts is closed.
 function ribbon(T, pts, o0, o1, h, col) {
-  const n = pts.length; if (n < 2) return; const L = [], R = [];
-  for (let k = 0; k < n; k++) {
-    const a = pts[Math.max(0, k - 1)], b = pts[Math.min(n - 1, k + 1)]; let tx = b[0] - a[0], ty = b[1] - a[1]; const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
-    let sc = 1;
-    if (k > 0 && k < n - 1) {
-      const p0 = pts[k - 1], p1 = pts[k], p2 = pts[k + 1], ax = p1[0] - p0[0], ay = p1[1] - p0[1], bx = p2[0] - p1[0], by = p2[1] - p1[1];
-      const cos = (ax * bx + ay * by) / ((Math.hypot(ax, ay) * Math.hypot(bx, by)) || 1); sc = 1 / Math.max(0.5, Math.sqrt((1 + cos) / 2));
-    }
-    const nx = -ty * sc, ny = tx * sc; L.push([pts[k][0] + nx * o0, pts[k][1] + ny * o0]); R.push([pts[k][0] + nx * o1, pts[k][1] + ny * o1]);
+  const P = [pts[0]]; for (let k = 1; k < pts.length; k++) { const l = P[P.length - 1]; if (Math.abs(pts[k][0] - l[0]) + Math.abs(pts[k][1] - l[1]) > 0.02) P.push(pts[k]); }
+  const n = P.length, m = n - 1; if (m < 1) return;
+  const closed = m > 2 && Math.abs(P[0][0] - P[m][0]) + Math.abs(P[0][1] - P[m][1]) < 0.5, d = [], nr = [];
+  for (let k = 0; k < m; k++) { const dx = P[k + 1][0] - P[k][0], dy = P[k + 1][1] - P[k][1], l = Math.hypot(dx, dy); d.push([dx / l, dy / l]); nr.push([-dy / l, dx / l]); }
+  const J = [];                                                     // the bend at each point: its outer side s (+1: right), the mitre direction
+  for (let k = 0; k <= m; k++) {
+    const a = k > 0 ? k - 1 : closed ? m - 1 : -1, b = k < m ? k : closed ? 0 : -1;
+    if (a < 0 || b < 0) { J.push(null); continue; }
+    const cr = d[a][0] * d[b][1] - d[a][1] * d[b][0], dot = d[a][0] * d[b][0] + d[a][1] * d[b][1];
+    if (Math.abs(cr) < 1e-4 && dot > 0) { J.push(null); continue; }
+    let bx = nr[a][0] + nr[b][0], by = nr[a][1] + nr[b][1]; const bl = Math.hypot(bx, by) || 1;
+    J.push({ a, b, s: cr > 0 ? -1 : 1, bx: bx / bl, by: by / bl, half: Math.max(0.35, Math.sqrt(Math.max(0, (1 + dot) / 2))) });
   }
-  for (let k = 0; k < n - 1; k++) T.quad(L[k], R[k], R[k + 1], L[k + 1], h, col);
+  const at = (k, seg, o) => { const j = J[k], p = P[k]; if (j && o * j.s < 0) { const f = o / j.half; return [p[0] + j.bx * f, p[1] + j.by * f]; } return [p[0] + nr[seg][0] * o, p[1] + nr[seg][1] * o]; };
+  for (let k = 0; k < m; k++) T.quad(at(k, k, o0), at(k, k, o1), at(k + 1, k, o1), at(k + 1, k, o0), h, col);
+  for (let k = 0; k <= (closed ? m - 1 : m); k++) {                // the outside of each bend: a rounded fan
+    const j = J[k]; if (!j) continue;
+    const s = j.s, lo = Math.max(0, Math.min(o0 * s, o1 * s)), hi = Math.max(o0 * s, o1 * s); if (hi <= 0) continue;
+    const p = P[k], t0 = Math.atan2(nr[j.a][1] * s, nr[j.a][0] * s), dt = angDiff(t0, Math.atan2(nr[j.b][1] * s, nr[j.b][0] * s)), steps = Math.max(1, Math.ceil(Math.abs(dt) / 0.26));
+    for (let i = 0; i < steps; i++) {
+      const u0 = t0 + dt * i / steps, u1 = t0 + dt * (i + 1) / steps, c0 = Math.cos(u0), s0 = Math.sin(u0), c1 = Math.cos(u1), s1 = Math.sin(u1);
+      if (lo < 0.01) T.tri([p[0], p[1]], [p[0] + c0 * hi, p[1] + s0 * hi], [p[0] + c1 * hi, p[1] + s1 * hi], h, col);
+      else T.quad([p[0] + c0 * lo, p[1] + s0 * lo], [p[0] + c0 * hi, p[1] + s0 * hi], [p[0] + c1 * hi, p[1] + s1 * hi], [p[0] + c1 * lo, p[1] + s1 * lo], h, col);
+    }
+  }
 }
 function subPoly(E, s0, s1) {                                    // the part of edge E between arc lengths s0 and s1
   if (s1 - s0 < 1) return [];

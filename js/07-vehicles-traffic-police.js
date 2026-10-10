@@ -5,7 +5,7 @@
 const ARCADE = { acc: 1.7, brake: 1.5, grip: 2.2, hbGrip: 0.3, turn: 1.15, lat: 4.5 * G_ACC, full: 8 * KMH, steer: 16, coast: 0.35 };
 const REAL = { acc: 1, brake: 1, grip: 1, hbGrip: 0.28, turn: 1, lat: LAT_GRIP, full: 18 * KMH, steer: 10, coast: 0.12 };
 function stepCar(c, dt) {
-  const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, H = c.driver === 'player' ? ARCADE : REAL;
+  const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, H = c.driver === 'player' || c.driver === 'race' ? ARCADE : REAL;   // racers (js/08o) drive like you
   if (c.air > 0 || c.vz > 0) {                                    // thrown by a blast: no grip in the air - it flies, spins and comes down (with a small bounce)
     c.vz -= 900 * dt; c.air = Math.max(0, (c.air || 0) + c.vz * dt); if (c.air === 0) c.vz = c.vz < -200 ? -c.vz * 0.25 : 0;
     c.x += c.vx * dt; c.y += c.vy * dt; c.ang += c.av * dt; c.av *= Math.exp(-0.4 * dt); if (c.hitCd > 0) c.hitCd -= dt; return;
@@ -239,9 +239,10 @@ function updateCars(dt) {
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);
+    else if (c.driver === 'race') raceDrive(c, dt);                // a race's rivals (js/08o)
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
     if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);
-    if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
+    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
       const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;
       const ahead = (30 + spd * 0.5) * back, hx = c.x + fx * ahead, hy = c.y + fy * ahead;
       if (shoreDist(hx, hy) < 6) {
@@ -252,7 +253,7 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
-    if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead && !c.sunk) {   // and nobody shoves them in: the shore holds them like a kerb
+    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.sunk) {   // and nobody shoves them in: the shore holds them like a kerb
       const sd = shoreDist(c.x, c.y);
       if (sd < 0) { const g = shoreGrad(c.x, c.y), vin = c.vx * g[0] + c.vy * g[1]; c.x -= g[0] * sd; c.y -= g[1] * sd; if (vin < 0) { c.vx -= vin * g[0]; c.vy -= vin * g[1]; } }
     }

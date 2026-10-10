@@ -4,7 +4,8 @@
    dumpsters, trash bags, crates, pallets, bins, barrels, AC units, puddles, graffiti, lamps over the back doors, washing lines across
    the narrow alleys. Promenades along the water get palms, benches and lamps; quays get bollards; the apron gets floodlights and carts;
    park paths get benches and lamps.
-   The clutter is laid out once with a fixed seed (the same every game); dumpsters, crate stacks and AC units are solid. */
+   The clutter is laid out once with a fixed seed (the same every game); dumpsters, crate stacks and AC units are solid, and stand only
+   where an alley is wide enough to leave a car's width clear down the middle. */
 let CLUTTER = [];
 const YARD_COL = { y: '#2b2442', p: '#4a4170', ap: '#393550', q: '#423c5c', pk: '#584c84', lp: '#5a4466', mb: '#3e4232', sp: '#34303f' }, ALLEY_COL = '#211b30';
 const GRAF = ['#ff2bd6', '#2bf3ff', '#ffe14a', '#3dffa6', '#ff7a3d', '#a259ff'], GSphLo = new THREE.SphereGeometry(1, 6, 4);   // trash bags are lumpy anyway
@@ -26,9 +27,10 @@ const lotAt = (x, y, m) => LOTS.some(L => { const dx = x - L.cx, dy = y - L.cy, 
 function makeClutter() {
   const out = [], street = (x, y) => !!nearestRoad(x, y, ROAD_HALF + SW_W + 18);
   const solid = (x, y, w, h, a) => makeSolid(x, y, w, h, a, { clutter: true });
-  function junk(x, y, yaw, ux, uy, nx, ny, wall) {                 // one heap of back-alley junk against a wall
+  function junk(x, y, yaw, ux, uy, nx, ny, wall, room = 99) {      // one heap of back-alley junk against a wall; room: how deep from the wall a solid one may stand
     if (street(x, y) || inLandmark(x, y) || shoreDist(x, y) < 12 || wallAt(x, y) || lotAt(x, y, 8)) return;
-    const r = Math.random();
+    let r = Math.random();
+    if ((r < 0.18 && room < 16) || (r >= 0.5 && r < 0.6 && room < 13) || (r >= 0.85 && r < 0.94 && room < 13)) r = pick([0.2, 0.4, 0.7, 0.8]);   // no room: bags, boxes, bins or a barrel - a car gets through those
     if (r < 0.18) { const o = { k: 'dump', x, y, yaw, c: pick(['#2f6f4f', '#2a4aa8', '#7a3b2a', '#3a3f5c', '#4f6f2f']) }; out.push(o); o.solid = solid(x, y, 26, 14, yaw); }
     else if (r < 0.34) out.push({ k: 'bags', x, y, n: randi(2, 5) });
     else if (r < 0.5) out.push({ k: 'boxes', x, y, yaw, ux, uy, n: randi(1, 4) });
@@ -40,11 +42,12 @@ function makeClutter() {
   }
   for (const a of MAP.alleys || []) {                              // back alleys: junk along both walls, puddles, lamps, graffiti, washing lines
     const ang = a[4] * Math.PI / 180, ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux, L = a[2], W = a[3], yaw = ang;
+    const room = (W - 38) / 2;                                    // a car's width stays clear down the middle: dumpsters and AC units only where the alley is wide enough
     for (const sd of [-1, 1]) {
       const wx = a[0] + nx * sd * W / 2, wy = a[1] + ny * sd * W / 2, inx = -nx * sd, iny = -ny * sd;
-      for (let t = -L / 2 + 14 + Math.random() * 30; t < L / 2 - 12; t += rand(28, 56)) {   // the middle stays clear to walk (or squeeze a car) through
+      for (let t = -L / 2 + 14 + Math.random() * 30; t < L / 2 - 12; t += rand(28, 56)) {
         const px = wx + ux * t, py = wy + uy * t, wall = wallAt(px - inx * 2, py - iny * 2);
-        if (Math.random() < (wall ? 0.85 : 0.35)) junk(px + inx * 9, py + iny * 9, yaw, ux, uy, inx, iny, wall);
+        if (Math.random() < (wall ? 0.85 : 0.35)) junk(px + inx * 9, py + iny * 9, yaw, ux, uy, inx, iny, wall, room);
         if (wall && Math.random() < 0.12 && !street(px, py)) out.push({ k: 'graf', x: px + inx * 0.6, y: py + iny * 0.6, yaw, w: rand(12, 28), h: rand(5, 10), c: pick(GRAF) });
         if (wall && Math.random() < 0.12 && !street(px, py)) out.push({ k: 'lamp', x: px + inx * 2, y: py + iny * 2, yaw, gx: px + inx * 18, gy: py + iny * 18 });
       }
