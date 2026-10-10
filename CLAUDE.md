@@ -11,7 +11,7 @@
 ## The game
 - Vanilla JS with three.js r128 from cdnjs; plain scripts sharing globals, loaded in order from `index.html` (data tables `01*` first). GitHub Pages deploys from `main`.
 - Two modes: FREE ROAM (the game as it is) and STORY (to be built; shown as COMING SOON while `ready` is false in the modes table). Saved games keep their mode.
-- Tables: police, sky, airport, places and streets (`tools/settings_sheet.py`), vehicles, weapons, rampages, clothes, economy (every price, across tables), modes.
+- Tables: police, sky, airport, places, streets and jobs (`tools/settings_sheet.py`), vehicles, weapons, rampages, clothes, economy (every price, across tables), modes.
 - Agreed places to build next are listed in the README (Next steps); ask about each before building.
 - The city map (`js/00-map-data.js`) is generated, but the reference image is not kept: change the layout in place with `tools/remodel_city.py` (bump its version for a new remodel).
 - Keep the README and the in-game Help in step with every feature.
@@ -22,3 +22,4 @@
 
 ## Reminders for the owner
 - When work on STORY mode starts, bring up the open items in `docs/STORY.md` before building anything (first: the space center's entry - with permission or in certain clothes).
+- Building interiors are planned for later, in two kinds: (1) in the current top-down view, for storages, hangars, warehouses and the like; (2) a 2D side-on view (like Mario) with hallways and elevators up to the higher floors. Remind the owner of this before building anything you go inside (first: the houses to buy), when STORY mode starts, and whenever the owner asks what is next.

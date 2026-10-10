@@ -136,6 +136,11 @@ function buildCar(c) {                       // parts that never move on their o
     merged('b', body, [[GB, L, 8, Wd, 0, 7, 0], [GB, L * 0.34, 1.4, Wd - 8, -L * 0.04, 18.6, 0]]);
     m.cabin = part(tilt, GB, GLASS, L * 0.4, 7, Wd - 5, -L * 0.04, 14.5, 0);
     if (B === 'police') { part(tilt, GB, E.white, L * 0.3, 6.5, Wd + 0.8, -L * 0.04, 7, 0); bar(-L * 0.04, 20.2, 'police'); }
+    if (B === 'taxi') {                     // a lit TAXI box on the roof and a checker band along the sides
+      part(tilt, GB, mBas(0xfff1a8), 4.2, 3, Wd * 0.42, -L * 0.04, 21, 0); part(tilt, GB, E.black, 4.4, 0.6, Wd * 0.44, -L * 0.04, 19.5, 0);
+      const ch = []; for (let i = 0, n = 10; i < n; i++) for (const s of [-1, 1]) ch.push([GB, L * 0.7 / n, 1.6, 0.4, -L * 0.35 + (i + 0.5) * L * 0.7 / n, i % 2 ? 9.2 : 7.6, s * (Wd / 2 + 0.1)]);
+      merged('ck', E.black, ch);
+    }
     for (const x of [L * 0.31, -L * 0.31]) axle(x, 4.6);
     lamps(8, 2.6, 8, 2.6); seat(L * 0.02, 17.9);
   }

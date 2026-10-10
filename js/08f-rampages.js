@@ -13,7 +13,7 @@ const RAMP = { on: null, t: 0, got: 0, keep: null, spawnT: 0, short: 0, beep: 0,
 const RAMP_R = 24, RAMP_SEE = 320, RAMP_INF = 9999, RAMP_NEAR = 650, RAMP_PEOPLE = 18, RAMP_CARS = 10;
 let rampFound = new Set(), rampDone = new Set(), rampAt = null;
 function pickRampages() {               // once, when the hiding places are built (js/08d): one near the start, the rest as far apart as can be
-  const svc = [...SVC.police, ...SVC.hospital].map(s => s.r), sx = MAP.start[0], sy = MAP.start[1];
+  const svc = [...SVC.police, ...SVC.hospital, ...SVC.fire].map(s => s.r), sx = MAP.start[0], sy = MAP.start[1];   // clear of the police, hospitals and fire stations (js/08n)
   const cand = WSPOTS.filter(s => nearestRoad(s.x, s.y, 220) && !svc.some(b => dist(b.cx, b.cy, s.x, s.y) < 400));
   if (!cand.length) return;
   let first = null; for (const c of cand) { const d = dist(c.x, c.y, sx, sy); if (d > 250 && (!first || d < dist(first.x, first.y, sx, sy))) first = c; }
@@ -34,7 +34,7 @@ const rampTimeText = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s /
 
 /* ---------- finding them, the button by you, the screen before you start ---------- */
 function nearRamp() {                    // the rampage whose skull you stand at, on foot
-  if (RAMP.on || P.car || P.dead || P.act || state !== 'play' || !feat('rampages')) return null;
+  if (RAMP.on || JOB.on || P.car || P.dead || P.act || state !== 'play' || !feat('rampages')) return null;   // not during a vehicle job (js/08n)
   for (const r of RAMPAGES) if (r.placed && Math.abs(r.x - P.x) < RAMP_R && Math.abs(r.y - P.y) < RAMP_R && dist(r.x, r.y, P.x, P.y) < RAMP_R) return r;
   return null;
 }

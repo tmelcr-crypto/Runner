@@ -13,13 +13,15 @@ an import writes each one back there (only the price, the rest of each table is 
   weapons and their ammo js/01f-weapon-data.js    (also tools/weapon_sheet.py)
   clothes                js/01n-clothes-data.js   (also tools/clothes_sheet.py)
   car delivery prices    js/01c-vehicle-data.js   (also tools/vehicle_sheet.py)
+  vehicle jobs pay       js/01o-jobs-data.js      (also tools/settings_sheet.py jobs)
 Rows are found by the key in the last column, so they may be moved; a row that is missing keeps its price.
 Needs openpyxl for .xlsx and numbers-parser for .numbers."""
 import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__)); JSD = os.path.join(HERE, '..', 'js')
 FILES = {'eco': ('01i-economy-data.js', 'ECONOMY'), 'ramp': ('01h-rampage-data.js', 'RAMPAGE'), 'police': ('01b-police-data.js', 'POLICE'),
-         'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON'), 'clothes': ('01n-clothes-data.js', 'CLOTHES'), 'vehicle': ('01c-vehicle-data.js', 'VEHICLE')}
+         'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON'), 'clothes': ('01n-clothes-data.js', 'CLOTHES'), 'vehicle': ('01c-vehicle-data.js', 'VEHICLE'),
+         'jobs': ('01o-jobs-data.js', 'JOBS')}
 HEADS = ['Action or commodity', 'Price (or from)', 'Up to', 'Unit', 'Notes', 'Key (do not change)']
 USD, PCT = '€', '% of your cash'
 LIMITS = {'€': (0, 1000000), '$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
@@ -83,6 +85,11 @@ def rows():
     for v in block('vehicle')[3]['vehicles']:
         if v.get('role') == 'police' or v.get('job') or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank'): continue
         out.append(dict(key='delivery.' + v['id'], label='Deliver a %s' % v['name'].lower(), value=v.get('delivery') or 0, unit=USD, note='', file='vehicle', id=v['id'], field='delivery', lo=0, hi=1000000, empty_ok=False))
+    out.append(('#', 'VEHICLE JOBS', 'Taxi, paramedic, firefighter and vigilante (jobs table): what each fare, patient, fire or criminal car pays, and the level bonus.'))
+    for r in block('jobs')[3]['settings']:
+        if r['unit'] != USD: continue
+        out.append(dict(key='jobs.' + r['id'], label='%s: %s' % (r['group'], r['name']), value=r['v'], unit=USD, note=r.get('note', ''), file='jobs', id=r['id'], field='v',
+                        lo=r.get('min', 0), hi=r.get('max', 1000000), empty_ok=False))
     for r in out:
         if isinstance(r, dict): r.setdefault('ranged', False); r.setdefault('value2', None)
     return out

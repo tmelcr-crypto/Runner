@@ -12,7 +12,7 @@ import json, os, re, sys
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
 SHIFTERS = ['auto', 'sport', 'tall', 'throttle', 'bar']
-BODIES = ['sedan', 'sports', 'truck', 'police', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'new']
+BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'new']
 KERB_W, STALL_W = 2.33, 2.5                  # widest vehicle that fits the kerb parking lane / a parking lot stall (m)
 # key, label, kind (text / choice / num / int / yesno / colour), choices or (min, max), what it means, unit / how to fill
 ROWS = [
@@ -36,7 +36,7 @@ ROWS = [
     ('chase', 'Police chase weight', 'num', (0, 1000), 'How often the police send it after you, among the police vehicles allowed at your wanted level. Only for role police.', 'number, 0 or more'),
     ('chaseFrom', 'Chase from wanted level', 'int', (1, 5), 'The lowest wanted level at which the police send it or let it join a chase.', '1 to 5 stars'),
     ('hidden', 'Hidden on map (count)', 'int', (0, 5), 'How many stand parked at secret spots, always in the same places, for you to find.', 'number, usually 0'),
-    ('job', 'Job: none / trash / ambulance / fire', 'choice', ['none', 'trash', 'ambulance', 'fire'], 'trash: stops at the bins along its way. ambulance: comes for the dead. fire: comes to explosions and burning wrecks and puts them out.', 'pick from the list'),
+    ('job', 'Job: none / trash / ambulance / fire / taxi', 'choice', ['none', 'trash', 'ambulance', 'fire', 'taxi'], 'trash: stops at the bins along its way. ambulance: comes for the dead; you can do the paramedic job in it. fire: comes to explosions and burning wrecks and puts them out; the firefighter job. taxi: the taxi job, and it waits at the taxi ranks (jobs table).', 'pick from the list'),
     ('weapon', 'Weapon: none / rockets / water', 'choice', ['none', 'rockets', 'water'], 'rockets: when you drive it, FIRE launches rockets straight ahead (no ammo needed). water: FIRE sprays a water cannon that knocks people down and puts out fires (streets table). With a weapon of its own you cannot drop bombs from it.', 'pick none, rockets or water'),
     ('delivery', 'Delivery price at the docks (€)', 'num', (0, 1000000), 'What the dockers pay when this is the wanted car at the docks (less for damage). 0: never wanted. Also in the economy sheet.', 'euros, 0 = never'),
     ('shifter', 'Gear selector: auto / sport / tall / throttle / bar', 'choice', SHIFTERS, 'The gear selector on a touch screen (no letters; up is reverse, down is drive): auto - a T-handle lever, sport - a short round knob, tall - a long lever with a big knob, throttle - a military throttle handle, bar - a handlebar switch.', 'pick from the list'),

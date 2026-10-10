@@ -1,12 +1,14 @@
 """Settings tables <-> spreadsheet (Apple Numbers or Excel): the police (js/01b-police-data.js), day, night & weather (js/01d-sky-data.js),
 the airport (js/01k-airport-data.js), the places - airport gates, military base, port, lunapark, space center (js/01l-places-data.js) - and
-the streets - traffic lights, rules of the road, walk signals, sirens, heat reducers (js/01m-streets-data.js).
+the streets - traffic lights, rules of the road, walk signals, sirens, heat reducers (js/01m-streets-data.js) - and the vehicle jobs -
+taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and rewards (js/01o-jobs-data.js).
 
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
   python3 tools/settings_sheet.py airport export airport.numbers          ... the airport and its planes
   python3 tools/settings_sheet.py places export places.numbers            ... the gates, the base, the port, the lunapark, the space center
   python3 tools/settings_sheet.py streets export streets.numbers          ... traffic lights, drivers, pedestrians, sirens, heat reducers
+  python3 tools/settings_sheet.py jobs export jobs.numbers                ... the taxi, paramedic, firefighter and vigilante jobs
   python3 tools/settings_sheet.py police import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
 Both are made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments. Yellow cells are the
@@ -25,13 +27,14 @@ TABLES = {'police': ('01b-police-data.js', 'POLICE', {'levels': 'Wanted levels',
           'sky': ('01d-sky-data.js', 'SKY', {'settings': 'Settings'}),
           'airport': ('01k-airport-data.js', 'AIRPORT', {'settings': 'Settings'}),
           'places': ('01l-places-data.js', 'PLACES', {'settings': 'Settings'}),
-          'streets': ('01m-streets-data.js', 'STREETS', {'settings': 'Settings'})}
+          'streets': ('01m-streets-data.js', 'STREETS', {'settings': 'Settings'}),
+          'jobs': ('01o-jobs-data.js', 'JOBS', {'settings': 'Settings'})}
 JS = A = B = SHEETS = NAME = None
 def use(name):                               # pick the table the commands work on
     global JS, A, B, SHEETS, NAME, TIPS
     f, mark, SHEETS = TABLES[name]; NAME = name
     JS = os.path.join(HERE, '..', 'js', f); A, B = '/*%s-JSON*/' % mark, '/*END-%s-JSON*/' % mark
-    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS}[name]
+    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS}[name]
 
 
 def read_table():
@@ -173,6 +176,12 @@ TIPS_PLACES = [('ID column', 'How the game finds each row. Do not change it; row
             ('Military base', 'Inside the fence a warning counts down; still inside when it ends, the alarm gives the wanted level and the soldiers fire. They stay inside the base. What you take comes back after you have left.', None),
             ('Port', 'One ship moves at a time. Below the lower count the next movement is an arrival, above the higher one a departure.', None),
             ('Lunapark and space center', 'Visitors stroll inside the lunapark while you are there. The space center gate stays shut until the story opens it.', None)]
+TIPS_JOBS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+            ('Units', 'Times in seconds, distances in metres by road (a street block is about 100 m), speeds in km/h, money in euros, % as 0 to 100; a level and points are whole numbers.', None),
+            ('Starting a job', 'Drive the right vehicle into the marker at its dispatch point and stop: taxi at a taxi rank, ambulance at a hospital, fire engine at a fire station, police car at a police station. The START card shows.', None),
+            ('Levels', 'Level 1 asks for one fare, patient, fire or criminal car (Level 1 asks for), each level after for more. Each one adds time to the clock; a level done pays its bonus and the next begins.', None),
+            ('The clock', 'Time is given as if you drove at the speed set for the job, over the road distance, plus the extra seconds. Too low a speed makes the job easy, too high makes it impossible.', None),
+            ('Rewards', 'At the reward level, once per saved game: taxi - nitro in taxis; paramedic - more health; firefighter - fireproof; vigilante - more body armor.', None)]
 TIPS_STREETS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds or minutes, distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h, % as 0 to 100, stars as a wanted level 1 to 5.', None),
             ('Traffic lights', 'Each junction runs green, amber, all red for one group of approaches after another; opposite approaches share a group. Junctions are not in step with each other.', None),
@@ -307,7 +316,7 @@ def do_import(path, dry):
         v = num(raw)
         if v is None: errors.append('%s: "%s" is not a number' % (where, raw)); return None
         if v < r['min'] or v > r['max']: errors.append('%s: %s is outside %s to %s' % (where, fmt(v), fmt(r['min']), fmt(r['max']))); return None
-        if r['unit'] in ('count', 'stars') and not float(v).is_integer(): errors.append('%s: %s must be a whole number' % (where, fmt(v))); return None
+        if r['unit'] in ('count', 'stars', 'level', 'points') and not float(v).is_integer(): errors.append('%s: %s must be a whole number' % (where, fmt(v))); return None
         return v
     show = lambda r, v: yn(v) if r['unit'] == 'yes/no' else fmt(v)
     for key, title in SHEETS.items():
@@ -341,6 +350,11 @@ def do_import(path, dry):
     elif NAME == 'places':
         if st['shipsMax'] < st['shipsMin']: errors.append('Settings: Ships at the berths at most (%s) is less than at least (%s)' % (fmt(st['shipsMax']), fmt(st['shipsMin'])))
     elif NAME == 'streets': pass
+    elif NAME == 'jobs':
+        name = {r['id']: r['name'] for r in t['settings']}
+        for a, b_, what in (('taxiNear', 'taxiFar', 'Taxi: a call'), ('tripNear', 'tripFar', 'Taxi: a trip'), ('medNear', 'medFar', 'Paramedic: patients'),
+                            ('fireNear', 'fireFar', 'Firefighter: a burning car'), ('vigNear', 'vigFar', 'Vigilante: a criminal car')):
+            if st[b_] <= st[a]: errors.append('Settings: %s - "and at most" (%s) must be more than "at least" (%s)' % (what, fmt(st[b_]), fmt(st[a])))
     elif NAME == 'airport':
         if st['gatesMax'] < st['gatesMin']: errors.append('Settings: Planes at the gates at most (%s) is less than at least (%s)' % (fmt(st['gatesMax']), fmt(st['gatesMin'])))
         if st['takeRun'] > 380: errors.append('Settings: the take-off run must fit the runway (380 m at most)')

@@ -73,7 +73,7 @@ function fillBuilding(B, r) {
     : kind === 'warehouse' ? base.clone().lerp(C(0xb9bcc4), 0.7) : r.special ? base.clone() : base.clone().lerp(C(0xffffff), 0.35);   // hospital white, police station blue
   const trimC = r.pastel ? C(0xf4efe6).multiplyScalar(0.8) : (kind === 'deco' ? C(0xd9c27a) : tint.clone().lerp(C(0xf0ece0), 0.7)).multiplyScalar(0.55);
   const gfC = tint.clone().lerp(C(0xdad5c9), 0.55).multiplyScalar(0.7), W1 = C(0xffffff), iron = C(0x2b2e38), acC = C(0x9aa0ab), fanC = C(0x555a66);
-  const roofC = r.special === 'hospital' ? C(0xdfe4ea) : r.special === 'police' ? C(0x2a4aa8).multiplyScalar(0.7) : r.pastel ? tint.clone().lerp(C(0xffffff), 0.45).multiplyScalar(0.8) : (kind === 'warehouse' ? C(0xc2c6d0) : kind === 'deco' ? C(0xcfcbc0) : C(0x8a8d97).lerp(base, 0.12)).multiplyScalar(0.42);
+  const roofC = r.special === 'hospital' ? C(0xdfe4ea) : r.special === 'police' ? C(0x2a4aa8).multiplyScalar(0.7) : r.special === 'fire' ? C(0x7a1a22) : r.pastel ? tint.clone().lerp(C(0xffffff), 0.45).multiplyScalar(0.8) : (kind === 'warehouse' ? C(0xc2c6d0) : kind === 'deco' ? C(0xcfcbc0) : C(0x8a8d97).lerp(base, 0.12)).multiplyScalar(0.42);
   const roofK = kind === 'warehouse' ? 1 : kind === 'deco' ? 2 : 0, NEO = C(pick(GLOW));
   const nF = Math.max(1, Math.round((r.H - GFH) / FLOOR)), yG = y0 + GFH, yT = yG + nF * FLOOR;
   const facUV = (floors) => { const ov = randi(0, 3) / 4, v = floors / 4; return len => { const u = Math.max(1, Math.round(len / BAY)) / 4, ou = randi(0, 3) / 4; return [[ou, ov], [ou + u, ov], [ou + u, ov + v], [ou, ov + v]]; }; };
@@ -190,7 +190,7 @@ function fillBuilding(B, r) {
     }
   }
 
-  /* roof kit (not on a hospital or a police station: their roofs carry the cross and the lettering, js/10e) */
+  /* roof kit (not on a hospital, a police or a fire station: their roofs carry the cross and the lettering, js/10e) */
   if (r.special) return;
   const taken = [];
   const spot = (w, d) => {

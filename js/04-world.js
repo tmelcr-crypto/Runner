@@ -242,7 +242,7 @@ function fillStyle(cx, cy, w, h) {                               // style of one
   return o;
 }
 let LOTS = [], PARK_SPOTS = [], GATES = [];                                   // parking lots { ..., owner: the building it belongs to, stalls }; stalls { x, y, ang, lot }
-const SVC = { police: [], hospital: [] };                         // police stations and hospitals: { r: the building, lot: its parking lot or null }
+const SVC = { police: [], hospital: [], fire: [] };               // police stations, hospitals, fire stations (js/08n): { r: the building, lot: its parking lot or null }
 let worldReady = false;
 function genWorld() {
   if (worldReady) return;
@@ -260,7 +260,7 @@ function genWorld() {
   });
   const byIdx = new Map(BLD.map(r => [r.idx, r]));
   LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang, rows, owner, fill]) => ({ cx, cy, w, d, a: ang * Math.PI / 180, rows: rows || 1, owner: byIdx.get(owner) || null, fill: fill || 0, stalls: [] }));   // fill: share of stalls taken (0: the usual)
-  SVC.police = []; SVC.hospital = [];
+  SVC.police = []; SVC.hospital = []; SVC.fire = [];
   for (const k of ['police', 'hospital']) for (const [bi] of (MAP.services || {})[k] || []) {   // police stations: blue; hospitals: white (js/10e adds the signs and the cross)
     const r = byIdx.get(bi); if (!r) continue;
     r.special = k; r.kind = 'office'; r.pastel = false; r.c = k === 'hospital' ? '#eef1f5' : '#2f55c4'; r.H = GFH + (k === 'hospital' ? 2 : 1) * FLOOR;
@@ -285,7 +285,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); serviceDecor();                                  // landmarks; the signs, the cross and the lamps of the hospitals and police stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); pickFireStations(); serviceDecor();              // landmarks; the fire stations (js/08n); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

@@ -29,7 +29,7 @@ function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away
 function killPed(p, how, byPlayer, ang) {
   if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm();   // a soldier killed: the base is on alert (js/08j)
   if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
-  if (byPlayer) { P.kills++; if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }
+  if (byPlayer) { P.kills++; if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else if (!p.crim) reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }   // a criminal of the vigilante job: no crime (js/08n)
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
   alertPeds(p.x, p.y, 300, !byPlayer, 160); if (!p.gibbed) callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
 }
@@ -84,7 +84,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
     if (c === src || c.dead) continue; const d = dist(c.x, c.y, x, y);
     if (d < R + 20) damageCar(c, 110 * (1 - d / (R + 20)), byP);
   }
-  if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
+  if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R) * blastHurt()); }   // fireproof: less (js/08n)
   blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
   blastTargets(x, y, R, src); if (byP) baseHurt(x, y);             // the helicopter; a blast you set off inside the base (js/08j)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
@@ -95,7 +95,7 @@ function explodeCar(c) {
   const wasPlayer = P.car === c;
   if (wasPlayer) exitCar(true);
   explosion(c.x, c.y, 130, c);
-  if (wasPlayer) damagePlayer(45);
+  if (wasPlayer && blastHurt() >= 1) damagePlayer(45);            // fireproof: not at all (js/08n)
   if (c.byPlayer && c.t.cop) { addScore(ECO.copCarBoom, c.x, c.y, 'COP ' + c.t.name); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
   else if (c.byPlayer) addScore(ECO.carBoom, c.x, c.y, 'BOOM');
   c.vx *= 0.2; c.vy *= 0.2; c.driver = null;
@@ -276,7 +276,7 @@ function updatePlayer(dt, inp) {
       c.thr = rev ? -gas : gas;
     } else if (touchMode) { c.thr = 0; c.str = 0; c.assist = false; c.fs = 0; }
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
-    c.hb = inp.sprint;
+    c.hb = inp.sprint; jobNitro(c, dt);                            // nitro in a taxi, the taxi job's reward (js/08n)
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
     if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
