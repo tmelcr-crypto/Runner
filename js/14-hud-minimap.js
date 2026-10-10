@@ -22,7 +22,8 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
   }
   if (BASEM) fill(BASEM.area, '#3d4430'); if (SPACEM) fill(SPACEM.area, '#0f4a4a'); if (LUNA) fill(LUNA.area, '#5a3a6a');   // the base, the space center, the lunapark (js/10g)
   if (PORTM) { m.fillStyle = '#2a2244'; for (const s of PORTM.stacks) m.fillRect(s[0], s[1], s[2] - s[0], s[3] - s[1]); }
-  m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate) box(r);       // landmarks and props
+  if (SPW) { fill(SPW.area, '#2e2a3c'); mapSpeedway(m, x => x, y => y, 1); }   // the speedway (js/10i)
+  m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate && !r.wall) box(r);       // landmarks and props
   m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
   for (const s of SVC.hospital) { m.fillStyle = '#f4f4f6'; box(s.r); const k = Math.min(s.r.lw, s.r.lh) * 0.8; m.fillStyle = '#e0364f'; m.fillRect(s.r.cx - k / 2, s.r.cy - k / 6, k, k / 3); m.fillRect(s.r.cx - k / 6, s.r.cy - k / 2, k / 3, k); }   // a red cross
   for (const s of SVC.police) { m.fillStyle = '#3f6bff'; box(s.r); if (s.lot) { m.fillStyle = '#2a3a8a'; box({ cx: s.lot.cx, cy: s.lot.cy, lw: s.lot.w, lh: s.lot.d, ca: Math.cos(s.lot.a), sa: Math.sin(s.lot.a) }); } }

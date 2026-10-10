@@ -12,7 +12,7 @@ import json, os, re, sys
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
 SHIFTERS = ['auto', 'sport', 'tall', 'throttle', 'bar']
-BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'new']
+BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'nascar', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'new']
 KERB_W, STALL_W = 2.33, 2.5                  # widest vehicle that fits the kerb parking lane / a parking lot stall (m)
 # key, label, kind (text / choice / num / int / yesno / colour), choices or (min, max), what it means, unit / how to fill
 ROWS = [

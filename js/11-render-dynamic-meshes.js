@@ -74,6 +74,14 @@ function buildCar(c) {                       // parts that never move on their o
     part(tilt, GB, E.white, L * 0.98, 0.6, Wd + 0.3, 0, 9, 0);
     for (const x of [L * 0.38, -L * 0.38]) axle(x, 4.6);
     lamps(7.5, 2.4, 7.5, 2.4); seat(L * 0.22, 16.95);
+  } else if (B === 'nascar') {              // a stock car: low and long, a big rear spoiler, number roundels, a sponsor stripe
+    merged('b', body, [[GB, L, 7, Wd, 0, 6.5, 0], [GB, L * 0.36, 1.2, Wd - 6, -L * 0.04, 15.2, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.38, 5.4, Wd - 4, -L * 0.04, 12.4, 0);
+    merged('s', mc(0x14161d), [[GB, L * 1.0, 1.8, Wd + 0.3, 0, 7.6, 0], [GB, 2.2, 3.5, Wd + 1, -L / 2 + 1.5, 12, 0]]);   // a dark band; the spoiler blade
+    merged('r', E.white, [[GCirc, 7, 1, 7, -L * 0.04, 15.9, 0], [GB, L * 0.18, 4.4, 0.4, L * 0.05, 7.6, Wd / 2 + 0.25], [GB, L * 0.18, 4.4, 0.4, L * 0.05, 7.6, -(Wd / 2 + 0.25)]]);   // the roundels
+    merged('n', mc(0x14161d), [[GB, 3, 0.6, 1.4, -L * 0.04, 16.1, -1.2], [GB, 3, 0.6, 1.4, -L * 0.04, 16.1, 1.2], [GB, L * 0.06, 2.6, 0.5, L * 0.05, 7.6, Wd / 2 + 0.3], [GB, L * 0.06, 2.6, 0.5, L * 0.05, 7.6, -(Wd / 2 + 0.3)]]);   // the numbers
+    for (const x of [L * 0.31, -L * 0.31]) axle(x, 4.8);
+    lamps(7, 2.2, 7, 2.2); seat(-L * 0.04, 15.2, 0.9);
   } else if (B === 'bus') {                  // a tall box with a window band, a destination sign and a roof unit
     merged('b', body, [[GB, L, 26, Wd, 0, 16, 0]]);
     m.cabin = merged('g', E.glass, [[GB, L * 0.78, 8, 0.6, -L * 0.06, 21, Wd / 2 + 0.05], [GB, L * 0.78, 8, 0.6, -L * 0.06, 21, -(Wd / 2 + 0.05)], [GB, 0.8, 14, Wd - 4, L / 2 + 0.1, 18, 0]]);

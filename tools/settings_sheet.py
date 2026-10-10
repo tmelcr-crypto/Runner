@@ -1,7 +1,8 @@
 """Settings tables <-> spreadsheet (Apple Numbers or Excel): the police (js/01b-police-data.js), day, night & weather (js/01d-sky-data.js),
 the airport (js/01k-airport-data.js), the places - airport gates, military base, port, lunapark, space center (js/01l-places-data.js) - and
 the streets - traffic lights, rules of the road, walk signals, sirens, heat reducers (js/01m-streets-data.js) - and the vehicle jobs -
-taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and rewards (js/01o-jobs-data.js).
+taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and rewards (js/01o-jobs-data.js) - and the races - phone
+booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the fixed routes' junctions stay in the file).
 
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
@@ -9,6 +10,7 @@ taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and 
   python3 tools/settings_sheet.py places export places.numbers            ... the gates, the base, the port, the lunapark, the space center
   python3 tools/settings_sheet.py streets export streets.numbers          ... traffic lights, drivers, pedestrians, sirens, heat reducers
   python3 tools/settings_sheet.py jobs export jobs.numbers                ... the taxi, paramedic, firefighter and vigilante jobs
+  python3 tools/settings_sheet.py races export races.numbers              ... phone booths, street races, the NASCAR race, the drag strip
   python3 tools/settings_sheet.py police import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
 Both are made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments. Yellow cells are the
@@ -28,13 +30,14 @@ TABLES = {'police': ('01b-police-data.js', 'POLICE', {'levels': 'Wanted levels',
           'airport': ('01k-airport-data.js', 'AIRPORT', {'settings': 'Settings'}),
           'places': ('01l-places-data.js', 'PLACES', {'settings': 'Settings'}),
           'streets': ('01m-streets-data.js', 'STREETS', {'settings': 'Settings'}),
-          'jobs': ('01o-jobs-data.js', 'JOBS', {'settings': 'Settings'})}
+          'jobs': ('01o-jobs-data.js', 'JOBS', {'settings': 'Settings'}),
+          'races': ('01p-races-data.js', 'RACES', {'settings': 'Settings'})}
 JS = A = B = SHEETS = NAME = None
 def use(name):                               # pick the table the commands work on
     global JS, A, B, SHEETS, NAME, TIPS
     f, mark, SHEETS = TABLES[name]; NAME = name
     JS = os.path.join(HERE, '..', 'js', f); A, B = '/*%s-JSON*/' % mark, '/*END-%s-JSON*/' % mark
-    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS}[name]
+    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES}[name]
 
 
 def read_table():
@@ -182,6 +185,12 @@ TIPS_JOBS = [('ID column', 'How the game finds each row. Do not change it; rows 
             ('Levels', 'Level 1 asks for one fare, patient, fire or criminal car (Level 1 asks for), each level after for more. Each one adds time to the clock; a level done pays its bonus and the next begins.', None),
             ('The clock', 'Time is given as if you drove at the speed set for the job, over the road distance, plus the extra seconds. Too low a speed makes the job easy, too high makes it impossible.', None),
             ('Rewards', 'At the reward level, once per saved game: taxi - nitro in taxis; paramedic - more health; firefighter - fireproof; vigilante - more body armor.', None)]
+TIPS_RACES = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+            ('Units', 'Times in seconds, distances in metres (a street block is about 100 m), money in euros, % as 0 to 100; counts are whole numbers.', None),
+            ('Phone booths', 'Now and then one of the booths around you rings and shows on the maps. A booth by a fixed race offers that race (double ring) or a random one (fast trill).', None),
+            ('Street races', 'Accept on foot at the booth: the fee is paid, then reach the start in time in an allowed car and stop - the countdown starts. Rivals do not wait for you.', None),
+            ('Fixed races', 'Five routes, each with its fee and prizes (its own group). Their streets are set in the file (routes); ask Claude to change a route.', None),
+            ('NASCAR race and drag strip', 'At the speedway on the north Sandbar: the race booth by the grandstand; the drag strip along the shore - stop in its staging lane.', None)]
 TIPS_STREETS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds or minutes, distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h, % as 0 to 100, stars as a wanted level 1 to 5.', None),
             ('Traffic lights', 'Each junction runs green, amber, all red for one group of approaches after another; opposite approaches share a group. Junctions are not in step with each other.', None),
@@ -355,6 +364,11 @@ def do_import(path, dry):
         for a, b_, what in (('taxiNear', 'taxiFar', 'Taxi: a call'), ('tripNear', 'tripFar', 'Taxi: a trip'), ('medNear', 'medFar', 'Paramedic: patients'),
                             ('fireNear', 'fireFar', 'Firefighter: a burning car'), ('vigNear', 'vigFar', 'Vigilante: a criminal car')):
             if st[b_] <= st[a]: errors.append('Settings: %s - "and at most" (%s) must be more than "at least" (%s)' % (what, fmt(st[b_]), fmt(st[a])))
+    elif NAME == 'races':
+        if st['randomFar'] <= st['randomNear']: errors.append('Settings: a random race "and at most" (%s) must be more than "at least" (%s)' % (fmt(st['randomFar']), fmt(st['randomNear'])))
+        for g in ('random', 'seaview', 'palm', 'bridge', 'docks', 'coral', 'nascar'):
+            p1, p2, p3 = st[g + 'Prize1'], st[g + 'Prize2'], st[g + 'Prize3']
+            if not p1 >= p2 >= p3: errors.append('Settings: %s - the prizes must not grow from 1st to 3rd place (%s, %s, %s)' % (g, fmt(p1), fmt(p2), fmt(p3)))
     elif NAME == 'airport':
         if st['gatesMax'] < st['gatesMin']: errors.append('Settings: Planes at the gates at most (%s) is less than at least (%s)' % (fmt(st['gatesMax']), fmt(st['gatesMin'])))
         if st['takeRun'] > 380: errors.append('Settings: the take-off run must fit the runway (380 m at most)')

@@ -45,7 +45,10 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "taxiJob", "name": "Taxi job", "free": true, "story": true, "note": "In a taxi at a taxi rank: the rank sends you to fares and they tell you where to go; levels, pay and tips (jobs table). The reward: nitro in taxis. Off: no ranks, no job."},
   {"id": "medicJob", "name": "Paramedic job", "free": true, "story": true, "note": "In an ambulance at a hospital: patients lie about the city, up to 3 aboard, then to any hospital (jobs table). The reward: more health. Off: no job."},
   {"id": "fireJob", "name": "Firefighter job", "free": true, "story": true, "note": "In a fire engine at a fire station: put out burning cars with the water cannon before the time runs out (jobs table). The reward: fireproof. Off: no fire stations on the maps, no job."},
-  {"id": "vigilanteJob", "name": "Vigilante job", "free": true, "story": true, "note": "In a police car at a police station: take down criminals fleeing in cars; from level 5 they shoot back (jobs table). The reward: more body armor. Off: no job."}
+  {"id": "vigilanteJob", "name": "Vigilante job", "free": true, "story": true, "note": "In a police car at a police station: take down criminals fleeing in cars; from level 5 they shoot back (jobs table). The reward: more body armor. Off: no job."},
+  {"id": "streetRaces", "name": "Street races", "free": true, "story": true, "note": "Phone booths ring now and then: five fixed routes and random ones, five rivals, a fee and prizes by place (races table). Off: no calls, booths stay quiet."},
+  {"id": "speedway", "name": "Speedway: NASCAR race", "free": true, "story": true, "note": "The oval on the north Sandbar: the race booth puts you on the grid in a NASCAR special - 8 cars, 5 laps. A NASCAR special stands in the pit lane. Off: no race, no car in the pits (the speedway stays)."},
+  {"id": "dragStrip", "name": "Speedway: drag strip", "free": true, "story": true, "note": "Stop in the staging lane for a quarter-mile run against a rival, a fee and a prize. Off: no runs."}
 ],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}

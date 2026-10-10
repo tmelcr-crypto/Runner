@@ -285,7 +285,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); pickFireStations(); serviceDecor();              // landmarks; the fire stations (js/08n); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); pickFireStations(); serviceDecor();              // landmarks; the fire stations (js/08n); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

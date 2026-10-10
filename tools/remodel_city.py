@@ -207,6 +207,15 @@ def clear_ground(M, AREA, streets=False):
     return gone
 
 
+def move_services(M, gone, avoid=None):                              # services that stood on cleared ground move to the nearest building with a lot of its own
+    for kind, b in gone:
+        taken = {i for k in ('police', 'hospital') for i, l in M['services'][k]}
+        own = {L[6]: n for n, L in enumerate(M['lots']) if L[6] is not None and L[6] >= 0}
+        cand = [(math.hypot(B[0] - b[0], B[1] - b[1]), i) for i, B in enumerate(M['bld']) if i in own and i not in taken and not B[7] and min(B[2], B[3]) >= 80
+                and not (avoid and avoid.contains(Point(B[0], B[1])))]
+        i = min(cand)[1]; M['services'][kind].append([i, own[i]]); print('the %s at %s moves to building %d at %s' % (kind, b[:2], i, M['bld'][i][:2]))
+
+
 def edit_land(M, at, fn):                                              # the land polygon holding point `at` becomes fn(it)
     out = []
     for p in M['land']:
@@ -262,11 +271,7 @@ def remodel2(M):
     # ---------- the space center at Gravel Flats ----------
     SP = largest(LAND.intersection(box(2500, 300, 4660, 2800)))
     gone = clear_ground(M, SP, streets=True)
-    for kind, b in gone:                                                # its police station moves to the nearest building with a lot of its own
-        taken = {i for k in ('police', 'hospital') for i, l in M['services'][k]}
-        own = {L[6]: n for n, L in enumerate(M['lots']) if L[6] is not None and L[6] >= 0}
-        cand = [(math.hypot(B[0] - b[0], B[1] - b[1]), i) for i, B in enumerate(M['bld']) if i in own and i not in taken and not B[7] and min(B[2], B[3]) >= 80]
-        i = min(cand)[1]; M['services'][kind].append([i, own[i]]); print('the %s at %s moves to building %d at %s' % (kind, b[:2], i, M['bld'][i][:2]))
+    move_services(M, gone)                                             # its police station moves to the nearest building with a lot of its own
     sgate = {'x': 4630, 'y': 1450, 'a': 90, 'w': 140}
     M['space'] = {
         'area': rings(SP), 'fence': fence_line(SP.buffer(-30).exterior, [sgate]), 'gate': sgate,
@@ -356,7 +361,43 @@ def remodel2(M):
     return M
 
 
-STEPS = [remodel, remodel2]
+# version 3: the speedway on the north Sandbar, between the Seaview street and the sea: a NASCAR oval (its west straight the front stretch,
+# a grandstand outside it, the pit lane and the garages in the infield), parking and the race booth by the street, and a quarter-mile drag
+# strip along the shore, its staging lane at the north end beside the oval, its braking stretch running on down the beach.
+def remodel3(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    cx, cy, S, R, w = 13470, 4230, 1440, 460, 160                      # the oval: centre, straight length, centre-line radius, track width (long axis north-south)
+    xo, xi = cx - R - w / 2, cx - R + w / 2                            # the west straight's outer and inner edge
+    yn, ys = cy - S / 2, cy + S / 2                                     # where the straights end
+    KEEP = box(12465, 4015, 12645, 4375)                                # the Seaview police station and its lot stay
+    GROUNDS = largest(LAND.buffer(-30).intersection(box(12470, 2760, 14300, 5620)).difference(KEEP))
+    STRIP = largest(LAND.buffer(-20).intersection(box(14055, 2760, 14265, 10460)))
+    AREA = unary_union([GROUNDS, STRIP])
+    gone = clear_ground(M, AREA)
+    move_services(M, gone, AREA)
+    oval = unary_union([LineString([(cx, yn), (cx, ys)]).buffer(R + w / 2)])           # a stadium: the track's outer edge
+    inner = LineString([(cx, yn), (cx, ys)]).buffer(R - w / 2)
+    pit = [xi + 10, yn + 90, xi + 105, ys - 90]                         # the pit lane along the inner edge of the front stretch
+    garages = [xi + 115, yn + 130, xi + 200, ys - 130]
+    stands = [xo - 150, yn + 110, xo - 30, ys - 30]                      # the grandstand outside the front stretch (rising to the west)
+    gap = [xo, yn + 10, 90]                                              # the way onto the track: a gap in the outer wall at the north end of the front stretch
+    strip = {'x0': 14070, 'x1': 14250, 'lanes': [14115, 14205], 'apron': 2900, 'stage': 3120, 'finish': 3120 + 4828, 'end': 10250}
+    assert oval.bounds[2] < strip['x0'] - 40 and GROUNDS.contains(oval.buffer(20)), oval.bounds
+    assert STRIP.contains(box(strip['x0'], strip['stage'], strip['x1'], strip['end'])), STRIP.bounds
+    M['grass'] += rings(inner.buffer(-14).difference(box(pit[0] - 10, pit[1] - 40, garages[2] + 20, pit[3] + 40)))
+    M['yards'] += rings(AREA, 'sp')
+    for y in (3150, 3750, 4720, 5290):                                  # parking by the street, either side of the police station; the race booth beside it
+        M['lots'].append([12635, y, 520, 250, 90.0, 2, -1, 0.45])
+    M['speedway'] = {'area': rings(AREA), 'oval': {'cx': cx, 'cy': cy, 'S': S, 'R': R, 'w': w}, 'pit': pit, 'garages': garages, 'stands': stands,
+                     'gap': gap, 'booth': [12712, 4200], 'strip': strip, 'access': [[12780, 2850], [14160, 2850]], 'aw': 110}
+    LANDF = unary_union([poly(p) for p in M['land']])
+    for key in ('yards', 'grass', 'sand'):
+        M[key] = [g for g in M[key] if LANDF.intersects(poly(g))]
+    M['remodel'] = 3
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3]
 
 
 if __name__ == '__main__':
@@ -370,5 +411,8 @@ if __name__ == '__main__':
     head = head.replace("   tower, fence, gates) and the mall park. */",
                         "   tower, fence, gates, roads) and the mall park; version 2: the port (port), the lunapark (lunapark), the space center (space) and the\n"
                         "   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set. */")
+    head = head.replace("   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set. */",
+                        "   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set;\n"
+                        "   version 3: the speedway on the north Sandbar (speedway: oval, pit lane, garages, grandstand, booth, drag strip); yards sp = its ground. */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

@@ -6,7 +6,7 @@
    park paths get benches and lamps.
    The clutter is laid out once with a fixed seed (the same every game); dumpsters, crate stacks and AC units are solid. */
 let CLUTTER = [];
-const YARD_COL = { y: '#2b2442', p: '#4a4170', ap: '#393550', q: '#423c5c', pk: '#584c84', lp: '#5a4466', mb: '#3e4232' }, ALLEY_COL = '#211b30';
+const YARD_COL = { y: '#2b2442', p: '#4a4170', ap: '#393550', q: '#423c5c', pk: '#584c84', lp: '#5a4466', mb: '#3e4232', sp: '#34303f' }, ALLEY_COL = '#211b30';
 const GRAF = ['#ff2bd6', '#2bf3ff', '#ffe14a', '#3dffa6', '#ff7a3d', '#a259ff'], GSphLo = new THREE.SphereGeometry(1, 6, 4);   // trash bags are lumpy anyway
 const _wallQ = [];
 function wallAt(x, y) {                                           // is there a building wall right here?
@@ -130,7 +130,7 @@ function wheelie(fb, x, y, yaw) {
 
 /* ground: the yards as flat shapes, the alleys as dark asphalt strips with a gutter down the middle */
 function drawYards() {
-  for (const k of ['y', 'p', 'ap', 'q', 'pk', 'lp', 'mb']) { const ps = (MAP.yards || []).filter(y => y.k === k); if (ps.length) shapeMesh(ps, 0.3, YARD_COL[k]); }
+  for (const k of ['y', 'p', 'ap', 'q', 'pk', 'lp', 'mb', 'sp']) { const ps = (MAP.yards || []).filter(y => y.k === k); if (ps.length) shapeMesh(ps, 0.3, YARD_COL[k]); }
   const T = new Tris(), c = new THREE.Color(ALLEY_COL), g = new THREE.Color('#15111f');
   for (const a of MAP.alleys || []) {
     const ang = a[4] * Math.PI / 180, ca = Math.cos(ang), sa = Math.sin(ang), w = (x, z) => [a[0] + ca * x - sa * z, a[1] + sa * x + ca * z], L = a[2] / 2, W = a[3] / 2;

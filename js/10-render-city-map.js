@@ -200,6 +200,7 @@ function buildCity() {
   const slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, SWO + 8) && groundH(x, y) === 0 && !inLandmark(x, y) && !nearLot(x, y) && !onPath(x, y);
   let parkTrees = 0;                                               // counted apart from the palms along the streets
   for (const p of MAP.grass) {
+    if (spwIn(p.o[0][0], p.o[0][1])) continue;                     // the speedway's infield stays open (js/10i)
     const n = Math.min(150, Math.floor(Math.abs(polyArea(p.o)) / 9000));
     for (let k = 0; k < n && parkTrees++ < 1600; k++) {
       const pt = randomIn(p, (x, y) => clear(x, y, 14)); if (!pt) continue; const r = rand(9, 15);
