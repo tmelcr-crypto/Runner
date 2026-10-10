@@ -78,8 +78,9 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #bFire{right:calc(22px + env(safe-area-inset-right));bottom:calc(40px + env(safe-area-inset-bottom,0px));width:104px;height:104px;font-size:11px;border-color:var(--hot);background:rgba(255,59,92,.25)}
 #bFire[hidden]{display:none}
 #bFire.down{background:rgba(255,59,92,.65)}
-.ring{position:absolute;width:120px;height:120px;margin:0;border:3px solid rgba(255,255,255,.4);border-radius:50%;background:rgba(255,255,255,.06);display:none;pointer-events:none}
+.ring{position:absolute;box-sizing:border-box;width:120px;height:120px;margin:0;border:3px solid rgba(255,255,255,.4);border-radius:50%;background:rgba(255,255,255,.06);display:none;pointer-events:none}
 .knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,210,63,.6)}
+#rf{z-index:2}#kf{opacity:.8}   /* the throw stick around FIRE (js/06b) */
 .ghost{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom,0px));width:110px;height:110px;border:2px dashed rgba(255,255,255,.16);border-radius:50%;pointer-events:none;color:rgba(255,255,255,.28);font-family:var(--f-display);font-size:8px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.6}
 #gl{left:28px}#gr{right:28px}
 .tbtn{position:absolute;right:calc(14px + env(safe-area-inset-right));width:68px;height:68px;border-radius:50%;pointer-events:auto;touch-action:none;
@@ -388,6 +389,16 @@ button.shopRow.ammo{margin-left:28px}
 .touch-on #shifter .slbl,.touch-on #shifter .gbtn{display:none}
 .touch-on #shifter .gate{height:136px;margin:0}
 .touch-on #slot{left:0;width:auto}
+/* ---- a phone on its side (a short screen): the buttons gather in the bottom right corner - DASH beside FIRE, ENTER above DASH; in a
+   car ENTER above BRAKE and the gear lever left of BRAKE - clear of the minimap, the stars and the clock ---- */
+@media (max-height:500px){
+  .touch-on #bFire{right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .touch-on #bDash{top:auto;margin-top:0;right:calc(132px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .touch-on #bAct{top:auto;right:calc(132px + env(safe-area-inset-right));bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .touch-on.in-car #bAct{right:calc(123px + env(safe-area-inset-right));bottom:calc(116px + env(safe-area-inset-bottom,0px))}
+  .touch-on #shifter{right:calc(208px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  .touch-on #shifter .gate{height:120px}
+}
 #shifter[data-g="D"] #lever{top:calc(100% - 60px)}
 #shifter[data-k="tall"][data-g="D"] #lever{top:calc(100% - 68px)}
 #shifter[data-k="bar"][data-g="D"] #lever{top:calc(100% - 46px)}

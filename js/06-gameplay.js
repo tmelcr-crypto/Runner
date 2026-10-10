@@ -312,7 +312,7 @@ function updatePlayer(dt, inp) {
   updateReload(dt); updateSwing(dt);
   const w = WEAPONS[P.weapon]; if (!isThrown(w)) TA.on = TA.ok = false;   // switched away mid-aim
   if (w.scope) updateScope(orig, dt);                              // the rifle: aim in the scope while FIRE is held, shoot on letting go
-  else if (isThrown(w)) updateThrowAim(orig, dt);                   // a bomb: drag back like a slingshot, let go to throw (js/06b)
+  else if (isThrown(w)) updateThrowAim(orig, dt);                   // a bomb: aim the arc (the mouse drags back like a slingshot, FIRE on a touch screen is a little stick), let go to throw (js/06b)
   else if (isMelee(w)) { if (inp.fire && !P.dead && P.cool <= 0 && !P.swing) swingWeapon(w); }   // held, it keeps swinging
   else if (inp.fire && !P.dead && (w.auto || !P.trig)) fireWeapon();
   if (!inp.fire) P.dry = false; P.trig = inp.fire;

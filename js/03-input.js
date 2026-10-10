@@ -42,8 +42,8 @@ function bindStick(zone, ring, knob, onMove, onEnd) {
   zone.addEventListener('pointerdown', e => {
     if (id !== null) return; id = e.pointerId;
     try { zone.setPointerCapture(id); } catch (err) { }
-    ox = e.clientX; oy = e.clientY;
-    ring.style.display = 'block'; ring.style.left = (ox - 60) + 'px'; ring.style.top = (oy - 60) + 'px';
+    ox = e.clientX; oy = e.clientY; const zr = zone.getBoundingClientRect();   // the ring sits in the zone: under the finger, not 20% lower
+    ring.style.display = 'block'; ring.style.left = (ox - zr.left - 60) + 'px'; ring.style.top = (oy - zr.top - 60) + 'px';
     knob.style.transform = 'translate(0,0)'; onMove(0, 0); e.preventDefault();
   });
   zone.addEventListener('pointermove', e => {
