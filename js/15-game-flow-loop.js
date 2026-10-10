@@ -37,6 +37,7 @@ function resetGame(sv) {                     // a new game with the options in O
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
   placeStores();                                                   // the six stores and their markers (js/08e)
   resetFence(); resetPlanes();                                     // the airport fence whole again, planes at the gates (js/10f, js/08i)
+  resetPlaces(); resetShips();                                     // guards, barriers, the base and its armoury, ships at their berths (js/08j, js/08k)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
   if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
   spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
@@ -104,11 +105,12 @@ function updateCam(dt, idle) {
 function update(dt, idle) {
   gameT += dt; updateSky(dt);                                          // the clock and the weather (js/12d)
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
-  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updatePlanes(h); }       // so a fast car (or rocket) cannot pass through a wall
+  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
   if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
   updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
+  placesTick(dt); shipsTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {

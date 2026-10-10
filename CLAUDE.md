@@ -18,3 +18,6 @@
 ## Before pushing
 - `node --check` every changed script; test in headless Chromium with Playwright (three.js routed to a local copy) - no page errors, screenshots for anything visual, phone size too.
 - Rerun the earlier feature tests that the change could touch.
+
+## Reminders for the owner
+- When work on STORY mode starts, bring up the open items in `docs/STORY.md` before building anything (first: the space center's entry - with permission or in certain clothes).

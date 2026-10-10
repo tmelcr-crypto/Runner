@@ -28,7 +28,7 @@ function rocketHits(x, y, src) {        // anything solid at this point? (never 
   for (const c of cars) { if (c.sunk || c === src || Math.abs(c.x - x) > c.t.len / 2 + 20 || Math.abs(c.y - y) > c.t.len / 2 + 20) continue; for (const q of carCircles(c)) if (Math.hypot(x - q[0], y - q[1]) < q[2]) return true; }
   for (const p of peds) if (!p.dead && Math.abs(p.x - x) < 9 && Math.abs(p.y - y) < 9 && Math.hypot(p.x - x, p.y - y) < 9) return true;
   for (const o of officers) if (!o.dead && Math.hypot(o.x - x, o.y - y) < 9) return true;
-  if (planeAt(x, y)) return true;                                   // a plane on the ground (js/08i)
+  if (planeAt(x, y) || targetAt(x, y)) return true;                 // a plane on the ground (js/08i), the helicopter or a ship (js/08j)
   return x < CX0 || x > CX1 || y < CY0 || y > CY1;
 }
 function rocketBoom(r, x, y) {

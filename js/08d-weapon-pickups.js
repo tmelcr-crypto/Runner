@@ -9,6 +9,7 @@
    Melee weapons are the most common. They always lie in the same places, never go away, and you do not pick one up while you carry
    that weapon (its bubble is faint then). Guns, bombs and ammo lie in different places every game; one you take comes back somewhere
    else, out of sight, a minute later. Ammo is taken even before you have its gun, and kept for it. Only on foot (js/01j footPickups).
+   How many lie out depends on the mode too (js/01j settings, pickups: story has 30% of free roam's).
    Cash still lies on the sidewalks (js/08). */
 let WPICKS = [], WSPOTS = null, wpQ = [];
 const WP_BACK = 60, WP_R = 22, WP_GAP = 160;
@@ -22,7 +23,7 @@ function buildSpots() {                  // every hiding place, the same every g
     for (let t = -a[2] / 2 + 30; t < a[2] / 2 - 30; t += 70) { const o = (Math.random() - 0.5) * a[3] * 0.4; add(a[0] + ux * t + nx * o, a[1] + uy * t + ny * o, 'alley'); }
   }
   const scatter = (polys, per, most, k) => { for (const p of polys || []) { const n = clamp(Math.floor(Math.abs(polyArea(p.o)) / per), 1, most); for (let i = 0; i < n; i++) { const q = randomIn(p, hiddenOk); if (q) add(q[0], q[1], k); } } };
-  scatter((MAP.yards || []).filter(y => y.k !== 'ap'), 12000, 10, 'yard');
+  scatter((MAP.yards || []).filter(y => y.k !== 'ap' && y.k !== 'mb' && y.k !== 'lp'), 12000, 10, 'yard');
   scatter(MAP.grass, 20000, 16, 'park');
   scatter(MAP.sand, 40000, 8, 'beach');
   for (const L of LOTS) {                                           // the back corners of the parking lots, clear of the stalls' fronts
@@ -44,16 +45,17 @@ function freeSpot(rnd, away, key) {      // an unused hiding place, not too clos
 function placeWeapons() {                // a new game: melee in their fixed places, the rest at random
   if (!WSPOTS) { WSPOTS = withSeed(1979, buildSpots); pickRampages(); }   // the rampages take some of the hiding places (js/08f)
   for (const s of WSPOTS) s.used = null; WPICKS = []; wpQ = [];
+  const K = modeVal('pickups', 100) / 100, cnt = n => Math.round((n || 0) * K);   // the mode's share of the map counts
   if (feat('hiddenWeapons')) withSeed(2024, () => {                // melee weapons: the same places every game (modes: js/01j)
-    WEAPONS.forEach((w, wi) => { if (isMelee(w)) for (let k = 0; k < w.onMap; k++) putPick(freeSpot(Math.random, null, 'w' + wi), wi, false, true); });
+    WEAPONS.forEach((w, wi) => { if (isMelee(w)) for (let k = 0; k < cnt(w.onMap); k++) putPick(freeSpot(Math.random, null, 'w' + wi), wi, false, true); });
   });
   const start = { x: P.x, y: P.y, r: 300 };
   if (feat('hiddenWeapons')) WEAPONS.forEach((w, wi) => {
     if (isMelee(w)) return;
-    for (let k = 0; k < w.onMap; k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, false, false);
-    for (let k = 0; k < w.ammoMap; k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, true, false);
+    for (let k = 0; k < cnt(w.onMap); k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, false, false);
+    for (let k = 0; k < cnt(w.ammoMap); k++) putPick(freeSpot(Math.random, start, 'w' + wi), wi, true, false);
   });
-  if (feat('hiddenItems')) for (const it of ITEMS) for (let k = 0; k < (it.onMap || 0); k++) putPick(freeSpot(Math.random, start, 'i' + it.id), -1, false, false, it.id);   // health, armor, heat reducers
+  if (feat('hiddenItems')) for (const it of ITEMS) for (let k = 0; k < cnt(it.onMap); k++) putPick(freeSpot(Math.random, start, 'i' + it.id), -1, false, false, it.id);   // health, armor, heat reducers
 }
 function putPick(s, wi, ammo, fixed, item) {
   if (!s) return;
@@ -98,6 +100,7 @@ function updateWeaponPicks(dt) {
     } }
     Snd.pickup();
     if (p.fixed) continue;
+    if (p.base) { baseTaken(p); WPICKS.splice(k, 1); continue; }       // from the base's armoury: restocked later (js/08j)
     if (p.drop) { WPICKS.splice(k, 1); continue; }                    // gone for good
     p.spot.used = null; WPICKS.splice(k, 1); wpQ.push({ t: gameT + WP_BACK, wi: p.wi, ammo: p.ammo, item: p.item, key: p.key });   // comes back elsewhere later
   }

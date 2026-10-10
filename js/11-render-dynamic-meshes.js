@@ -189,13 +189,13 @@ function buildPerson(kind, shirt, skin) {
 }
 function syncPerson(p, kind, time, dt) {
   if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
-  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; }
+  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.tilt, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, 0, 25.4, 0); }   // a soldier's helmet (js/08j)
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && p.hostile) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
+  if (kind === 'ped' && (p.hostile || p.soldier)) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
   if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
@@ -207,7 +207,7 @@ function syncPerson(p, kind, time, dt) {
     o.tilt.position.y = Math.abs(k) * 0.8;
     if (kind === 'ped' && p.state === 'flee') { o.arms[0].rotation.z = -2.4; o.arms[1].rotation.z = -2.4; }
   }
-  const hid = kind === 'ped' && p.hostile && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you
+  const hid = kind === 'ped' && (p.hostile || p.soldier) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }
   if (p.held) {
     if (isMelee(WEAPONS[p.arm])) { const u = p.swingT > 0 ? 1 - p.swingT / 0.25 : 0; p.held.rotation.set(0, p.swingT > 0 ? lerp(1.3, -1.3, u) : 0.7, p.swingT > 0 ? lerp(0.9, 0.1, u) : 1.05); o.arms[1].rotation.z = p.swingT > 0 ? -1.4 * Math.sin(Math.PI * u) : -0.5; }

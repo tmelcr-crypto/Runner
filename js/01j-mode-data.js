@@ -3,7 +3,8 @@
    FREE ROAM: the city as it is, no story - do as you like. STORY: missions told as a story, built later (ready: false shows it as
    COMING SOON on the New game screen). features: which features each mode has, yes or no per mode. Every new feature gets a row
    here - free roam, story or both - and the game asks feat(id) before using it. A saved game keeps its mode.
-   tools/mode_sheet.py exports the features to Apple Numbers or Excel and reads an edited copy back. Keep the JSON valid. */
+   settings: numbers that differ by mode (modeVal(id)), each with its unit and the range allowed.
+   tools/mode_sheet.py exports the features and settings to Apple Numbers or Excel and reads an edited copy back. Keep the JSON valid. */
 const MODE_TABLE = /*MODE-JSON*/{
 "modes": [
   {"id": "free", "name": "FREE ROAM", "ready": true, "note": "The whole city and no story: steal cars, fight, shop, find weapons, play rampages."},
@@ -25,9 +26,19 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "gibs", "name": "Blasts tear people apart", "free": true, "story": true, "note": "No body left: pieces fly and fade, a large blood mark stays."},
   {"id": "bloodShapes", "name": "Irregular blood marks", "free": true, "story": true, "note": "Every mark its own shape. Off: round marks."},
   {"id": "footPickups", "name": "Pickups only on foot", "free": true, "story": true, "note": "Weapons, ammo, health, armor, heat reducers, cash and loot are not taken from inside a car. Off: driving over them works."},
-  {"id": "planes", "name": "Planes landing, taxiing and taking off", "free": true, "story": true, "note": "About one movement a minute at the airport; deadly, and a rocket or enough gunfire blows one up. Off: planes only stand at the gates."}
+  {"id": "planes", "name": "Planes landing, taxiing and taking off", "free": true, "story": true, "note": "About one movement a minute at the airport; deadly, and a rocket or enough gunfire blows one up. Off: planes only stand at the gates."},
+  {"id": "airportGates", "name": "Airport gate barriers and police guards", "free": true, "story": true, "note": "Stop at the barrier and it lifts; crash through and you are wanted. Off: the booms stay up and nobody guards them."},
+  {"id": "base", "name": "Military base: warning, alarm, soldiers, armoury", "free": true, "story": true, "note": "5 s warning inside the fence, then 4 stars and soldiers firing; heavy weapons, ammo, tanks, APCs, a helicopter. Off: an empty base."},
+  {"id": "ships", "name": "Cargo ships coming and going, cranes at work", "free": true, "story": true, "note": "A movement about every two minutes at the port. Off: the ships stay moored and the cranes still."},
+  {"id": "lunapark", "name": "Lunapark rides running", "free": true, "story": true, "note": "The wheel, coasters, flume, tower, swings, carousel, pirate ship, sky ride and train. Off: they stand still."},
+  {"id": "spaceGuards", "name": "Space center gate guards", "free": true, "story": true, "note": "Two guards at the shut gate. The way in (permission or certain clothes) comes with the story (docs/STORY.md)."}
+],
+"settings": [
+  {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}
 ]
 }/*END-MODE-JSON*/;
 const MODE = Object.fromEntries(MODE_TABLE.modes.map(m => [m.id, m])), FEAT = Object.fromEntries(MODE_TABLE.features.map(f => [f.id, f]));
 let gameMode = 'free';                                                 // the mode being played; a saved game keeps its own
 const feat = id => !FEAT[id] || !!FEAT[id][gameMode];                  // is this feature on in the mode being played (a feature not in the table: on)
+const MSET = Object.fromEntries((MODE_TABLE.settings || []).map(s => [s.id, s]));
+const modeVal = (id, def) => MSET[id] && MSET[id][gameMode] !== undefined ? MSET[id][gameMode] : def;   // a number set per mode

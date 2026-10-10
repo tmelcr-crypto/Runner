@@ -27,6 +27,7 @@ function updatePeds(dt) {
     if (p.stunT > 0) { p.stunT -= dt; p.vx = p.vy = 0; continue; }   // knocked down by a melee hit (js/06b)
     if (p.hostile && fightBack(p, dt)) continue;                    // armed and provoked: after you (js/08g)
     if (p.cop && copEngaged(p)) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }   // a foot patrol on the case (js/08b)
+    if (p.post && postStep(p, dt)) continue;                         // a guard at a post, a soldier on patrol (js/08j)
     if (p.combat) { p.combat = false; p.cv = null; if (!p.stroll) snapPed(p); }
     if (p.e < 0 && !p.stroll) snapPed(p);
     let mx = 0, my = 0, sp = 0;
@@ -59,7 +60,7 @@ function walkAreas() {
   for (const [cx, cy, L, w, deg] of MAP.alleys || []) { const a = deg * Math.PI / 180, r = L / 2 + w; WALKA.push({ k: 'alley', cx, cy, ca: Math.cos(a), sa: Math.sin(a), hl: L / 2 - 6, hw: Math.max(4, w / 2 - 14), bb: [cx - r, cy - r, cx + r, cy + r] }); }
   for (const g of MAP.grass) WALKA.push(poly('park', g));
   for (const g of MAP.sand) WALKA.push(poly('beach', g));
-  for (const g of MAP.yards || []) if (g.k === 'p' || g.k === 'pk') WALKA.push(poly('promenade', g));   // forecourts, promenades and park paths
+  for (const g of MAP.yards || []) if (g.k === 'p' || g.k === 'pk' || g.k === 'lp') WALKA.push(poly('promenade', g));   // forecourts, promenades, park paths, the lunapark
   return WALKA;
 }
 function inArea(A, x, y) {

@@ -5,8 +5,25 @@
    the control tower, a windsock, booths at the two gates and the fence round the airside. The fence stops people and cars but not
    bullets or eyes; a heavy vehicle going fast enough breaks through a panel (js/01k). The planes are js/08i. */
 const AIRF = MAP.airport || null;
-const FENCE_PANEL = 40, FENCE_H = 28;
-let FENCE = [];                                                   // fence panels: their solids and their two instances (net, top wire)
+const FENCE_PANEL = 40;
+let FENCE = [];                                                   // fence panels (every place's): their solids and their two instances (net, top wire)
+const FENCE_STYLE = {                                             // h: height; net, op: the mesh's colour and opacity; wire: the top; kg: what breaks through
+  airport: { h: 28, net: '#aab4c4', op: 0.3, wire: '#2bf3ff', post: '#5d6273', kg: () => AIRP.fenceKg },
+  base: { h: 34, net: '#8a9070', op: 0.38, wire: '#d8d8c8', post: '#4a4f3a', kg: () => AIRP.fenceKg, barbed: true },
+  compound: { h: 30, net: '#9a9a80', op: 0.38, wire: '#ffb02e', post: '#4a4f3a', kg: () => AIRP.fenceKg, barbed: true },
+  lunapark: { h: 22, net: '#20182c', op: 0.6, wire: '#ffd23f', post: '#20182c', kg: () => Infinity },
+  space: { h: 36, net: '#c8ccd4', op: 0.3, wire: '#ff3b5c', post: '#9aa0ab', kg: () => Infinity },
+};
+function addFence(lines, style) {                                 // fence panels of at most FENCE_PANEL along polylines; solids that stop people and cars
+  for (const line of lines) for (let k = 0; k < line.length - 1; k++) {
+    const [ax, ay] = line[k], [bx, by] = line[k + 1], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(L / FENCE_PANEL)), a = Math.atan2(by - ay, bx - ax);
+    if (L < 1) continue;
+    for (let i = 0; i < n; i++) {
+      const cx = ax + (bx - ax) * (i + 0.5) / n, cy = ay + (by - ay) * (i + 0.5) / n;
+      FENCE.push({ s: makeSolid(cx, cy, L / n, 4, a, { fence: true }), x: cx, y: cy, len: L / n, a, style, end: i === n - 1 && k === line.length - 2 });
+    }
+  }
+}
 function obox(gb, ax, az, bx, bz, w, y0, y1, col) {               // a box from (ax, az) to (bx, bz), w wide, between heights y0 and y1, any direction
   const L = Math.hypot(bx - ax, bz - az) || 1, ux = (bx - ax) / L, uz = (bz - az) / L, px = -uz * w / 2, pz = ux * w / 2, mx = (ax + bx) / 2, mz = (az + bz) / 2;
   const c = [[ax + px, az + pz], [bx + px, bz + pz], [bx - px, bz - pz], [ax - px, az - pz]];
@@ -58,29 +75,22 @@ function genAirport() {                                          // js/04 genWor
     const a = g.a * Math.PI / 180, bx = g.x + Math.cos(a) * (g.w / 2 + 16) - Math.sin(a) * 20, by = g.y + Math.sin(a) * (g.w / 2 + 16) + Math.cos(a) * 20;
     makeSolid(bx, by, 20, 16, 0, {}); add(bx, by, 14, 12, makeBooth);
   }
-  for (const line of AIRF.fence) for (let k = 0; k < line.length - 1; k++) {   // panels of at most FENCE_PANEL
-    const [ax, ay] = line[k], [bx, by] = line[k + 1], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(L / FENCE_PANEL)), a = Math.atan2(by - ay, bx - ax);
-    for (let i = 0; i < n; i++) {
-      const cx = ax + (bx - ax) * (i + 0.5) / n, cy = ay + (by - ay) * (i + 0.5) / n;
-      FENCE.push({ s: makeSolid(cx, cy, L / n, 4, a, { fence: true }), x: cx, y: cy, len: L / n, a });
-    }
-  }
+  addFence(AIRF.fence, 'airport');
 }
 const onRunway = (x, y, m) => !!AIRF && Math.abs(x - AIRF.runway.x) < AIRF.runway.w / 2 + m && y > AIRF.runway.y0 - m && y < AIRF.runway.y1 + m;
 function fenceBreak(rc, c) {                                     // js/07: a vehicle against a fence panel - true when it goes straight through
-  if (Math.round(c.t.mass * 1400) < AIRP.fenceKg || carSpeed(c) < AIRP.fenceKmh) return false;
   const p = FENCE.find(f => f.s === rc); if (!p) return false;
+  if (Math.round(c.t.mass * 1400) < FENCE_STYLE[p.style].kg() || carSpeed(c) < AIRP.fenceKmh) return false;
   rc.off = true; p.gone = true; showPanel(p, false);
   for (let k = 0; k < 14; k++) { const a = c.ang + rand(-0.9, 0.9), s = carSpeed(c) * rand(0.4, 0.9); addP({ x: p.x, y: p.y, z: rand(6, 24), vz: rand(30, 120), grav: 300, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.5, 1.1), max: 1.1, s0: rand(2, 4), s1: 1.5, col: pick(['#aab4c4', '#7c8494', '#2bf3ff']), drag: 2 }); }
   spark(p.x, p.y, 8); c.vx *= 0.9; c.vy *= 0.9;
   if (c.driver === 'player') { Snd.thud(260); cam.shake = Math.max(cam.shake, 6); }
   return true;
 }
-let fenceNet = null, fenceWire = null;
 const _fo = new THREE.Object3D();
 function showPanel(p, on) {
-  for (const [m, it] of [[fenceNet, p.net], [fenceWire, p.wire]]) {
-    if (!m || !it) continue;
+  for (const it of [p.net, p.wire, p.barb]) {
+    const m = it && it._m; if (!m) continue;
     _fo.position.set(it.x, it.y, it.z); _fo.scale.set(on ? it.sx : 0, on ? it.sy : 0, on ? it.sz : 0); _fo.rotation.set(0, it.ry, 0); _fo.updateMatrix();
     m.setMatrixAt(it._k, _fo.matrix); m.instanceMatrix.needsUpdate = true;
   }
@@ -140,15 +150,19 @@ function drawAirport(fb, fg, fc, poles, heads, pools) {
     for (let k = 0; k < 4; k++) fc.push({ x: wx + 4 + k * 5, y: 27, z: wy + k * 2, sx: 3.2 - k * 0.5, sy: 5, sz: 3.2 - k * 0.5, c: k % 2 ? '#f1f1ee' : '#ff7a3d' }); }
   const roadMat = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   R.mesh(roadMat).frustumCulled = false; Mk.mesh(markMat).frustumCulled = false;
-  const nets = [], wires = [];                                      // the fence: posts, a see-through net, a glowing top wire
+}
+function drawFences(fc) {                                         // js/10, once: every place's fence - posts, a see-through net (or railings), a top wire, barbed wire
+  const by = {};
   for (const p of FENCE) {
-    const ry = -p.a, ca = Math.cos(p.a), sa = Math.sin(p.a);
-    fc.push({ x: p.x - ca * p.len / 2, y: FENCE_H / 2, z: p.y - sa * p.len / 2, sx: 1.4, sy: FENCE_H, sz: 1.4, c: '#5d6273' });
-    nets.push(p.net = { x: p.x, y: FENCE_H / 2, z: p.y, sx: p.len, sy: FENCE_H - 2, sz: 0.6, ry, c: '#aab4c4' });
-    wires.push(p.wire = { x: p.x, y: FENCE_H, z: p.y, sx: p.len, sy: 1, sz: 1, ry, c: '#2bf3ff' });
+    const st = FENCE_STYLE[p.style], g = by[p.style] || (by[p.style] = { nets: [], wires: [], barbs: [] }), ry = -p.a, ca = Math.cos(p.a), sa = Math.sin(p.a), H = st.h;
+    for (const e of p.end ? [-1, 1] : [-1]) fc.push({ x: p.x + e * ca * p.len / 2, y: H / 2, z: p.y + e * sa * p.len / 2, sx: 1.4, sy: H, sz: 1.4, c: st.post });
+    g.nets.push(p.net = { x: p.x, y: H / 2, z: p.y, sx: p.len, sy: H - 2, sz: 0.6, ry, c: st.net });
+    g.wires.push(p.wire = { x: p.x, y: H, z: p.y, sx: p.len, sy: 1, sz: 1, ry, c: st.wire });
+    if (st.barbed) g.barbs.push(p.barb = { x: p.x, y: H + 3, z: p.y, sx: p.len, sy: 4, sz: 5, ry, c: '#7a7a70' });   // a coil of razor wire on top
   }
-  if (FENCE.length) {
-    fenceNet = instanced(GB, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide }), nets);
-    fenceWire = instanced(GB, M.instBasic, wires);
+  for (const k in by) {
+    const st = FENCE_STYLE[k], g = by[k];
+    instanced(GB, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: st.op, depthWrite: false, side: THREE.DoubleSide }), g.nets);
+    instanced(GB, M.instBasic, g.wires); if (g.barbs.length) instanced(GB, M.instWhite, g.barbs);
   }
 }

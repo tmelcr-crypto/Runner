@@ -20,6 +20,8 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
     m.lineWidth = AIRF.tw; m.lineCap = 'square'; for (const t of AIRF.taxiways) { m.beginPath(); t.forEach(([x, y], k) => k ? m.lineTo(x, y) : m.moveTo(x, y)); m.stroke(); }
     m.fillStyle = '#e8e6f0'; for (let y = r.y0 + 260; y < r.y1 - 260; y += 200) m.fillRect(r.x - 4, y, 8, 110);   // the centre line
   }
+  if (BASEM) fill(BASEM.area, '#3d4430'); if (SPACEM) fill(SPACEM.area, '#0f4a4a'); if (LUNA) fill(LUNA.area, '#5a3a6a');   // the base, the space center, the lunapark (js/10g)
+  if (PORTM) { m.fillStyle = '#2a2244'; for (const s of PORTM.stacks) m.fillRect(s[0], s[1], s[2] - s[0], s[3] - s[1]); }
   m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate) box(r);       // landmarks and props
   m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
   for (const s of SVC.hospital) { m.fillStyle = '#f4f4f6'; box(s.r); const k = Math.min(s.r.lw, s.r.lh) * 0.8; m.fillStyle = '#e0364f'; m.fillRect(s.r.cx - k / 2, s.r.cy - k / 6, k, k / 3); m.fillRect(s.r.cx - k / 6, s.r.cy - k / 2, k / 3, k); }   // a red cross
@@ -38,6 +40,7 @@ function drawMini(time) {
     else { mctx.fillStyle = '#8b90b8'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   }
   planeIcons(mctx, mxp, myp, sc, (x, y) => x > -20 && y > -20 && x < size + 20 && y < size + 20);   // the planes (js/08i)
+  shipIcons(mctx, mxp, myp, sc, (x, y) => x > -40 && y > -40 && x < size + 40 && y < size + 40);   // the ships (js/08k)
   svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
@@ -76,7 +79,7 @@ function drawBigMap(time) {
     g.fillStyle = '#000'; g.fillText(name, x + 2 * pr, y + 2 * pr); g.fillStyle = '#f1ead2'; g.fillText(name, x, y);
   }
   const ph = Math.floor(time * 4) % 2 === 0;
-  planeIcons(g, X, Y, k * 1.6, () => true); svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
+  planeIcons(g, X, Y, k * 1.6, () => true); shipIcons(g, X, Y, k, () => true); svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
   g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);

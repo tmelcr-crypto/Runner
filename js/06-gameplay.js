@@ -27,7 +27,7 @@ function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away
   }
 }
 function killPed(p, how, byPlayer, ang) {
-  if (p.dead) return; p.dead = true; p.deadT = 0;
+  if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm();   // a soldier killed: the base is on alert (js/08j)
   if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
   if (byPlayer) { P.kills++; if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
@@ -86,6 +86,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
   blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
+  blastTargets(x, y, R, src); if (byP) baseHurt(x, y);             // the helicopter; a blast you set off inside the base (js/08j)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }
@@ -110,6 +111,7 @@ function raycast(ox, oy, ang, range) {
     for (const q of carCircles(c)) { const t = rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]); if (t < bt) { bt = t; type = 'car'; obj = c; } }
   }
   const pr = planeRay(ox, oy, dx, dy, bt); if (pr) { bt = pr.t; type = 'plane'; obj = pr.pl; }   // a plane on the ground or low in the air (js/08i)
+  const tg = targetRay(ox, oy, dx, dy, bt); if (tg) { bt = tg.t; type = 'target'; obj = tg.o; }   // the helicopter, a ship's hull (js/08j)
   return { x: ox + dx * bt, y: oy + dy * bt, type, obj, t: bt, dx, dy };
 }
 function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and one unarmoured car; a building, the first person, an armoured or a second car stops it
@@ -123,6 +125,7 @@ function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and 
     if (t < R) hits.push({ t, type: 'car', obj: c });
   }
   const pr = planeRay(ox, oy, dx, dy, R); if (pr) hits.push({ t: pr.t, type: 'plane', obj: pr.pl });
+  const tg = targetRay(ox, oy, dx, dy, R); if (tg) hits.push({ t: tg.t, type: 'target', obj: tg.o });
   hits.sort((u, v) => u.t - v.t);
   let through = 0;
   for (const h of hits) {
@@ -162,7 +165,7 @@ function fireWeapon(aim) {                                      // aim: a point 
     const pa = k ? P.ang + rand(-w.spread, w.spread) : a;
     h = w.pierce ? rifleRay(P.x, P.y, pa, w) : raycast(P.x, P.y, pa, w.range); bulletHit(h, w, pa);
   }
-  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true);
+  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true); baseHurt(P.x, P.y);   // shooting inside the base sets off the alarm (js/08j)
   cam.shake = Math.max(cam.shake, w.shake);
 }
 function bulletHit(h, w, a) {                                   // one bullet: the tracer, and what it hit
@@ -172,6 +175,8 @@ function bulletHit(h, w, a) {                                   // one bullet: t
   else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); else { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } }
   else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * w.carDmg, true); }
   else if (h.type === 'plane') { spark(h.x, h.y, 5); damagePlane(h.obj, w.dmg * w.carDmg, true); }   // js/08i
+  else if (h.type === 'target') { spark(h.x, h.y, 5); damageTarget(h.obj, w.dmg * w.carDmg, true); }   // js/08j
+  if (h.type === 'ped' && h.obj.soldier) raiseAlarm();               // a soldier hit: the base is on alert (js/08j)
   else if (h.type === 'wall') spark(h.x, h.y, 4);
 }
 

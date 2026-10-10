@@ -161,13 +161,214 @@ def remodel(M):
     return M
 
 
+
+# ======================================================================================================================================
+# version 2: the port at Dockside, the lunapark on Heron Key, the space center at Gravel Flats, the military base north of the airport,
+# roads from the airport gates
+def largest(g): return max(g.geoms, key=lambda q: q.area) if hasattr(g, 'geoms') else g
+def rbox(x0, y0, x1, y1, r): return box(x0, y0, x1, y1).buffer(-r).buffer(r)          # a box with round corners
+def pts(line): return [[round(x), round(y)] for x, y in line.coords]
+
+
+def drop_streets(M, gone):                                            # streets for which gone(edge) is true go, and nodes left without one
+    N = M['nodes']; edges = [e for e in M['edges'] if not gone(e)]
+    used = sorted({e['a'] for e in edges} | {e['b'] for e in edges}); nmap = {old: new for new, old in enumerate(used)}
+    M['nodes'] = [N[k] for k in used]
+    for e in edges: e['a'] = nmap[e['a']]; e['b'] = nmap[e['b']]
+    M['edges'] = edges
+
+
+def node_at(M, x, y):                                                 # the node at (x, y), made if there is none
+    for k, n in enumerate(M['nodes']):
+        if abs(n[0] - x) < 1 and abs(n[1] - y) < 1: return k
+    M['nodes'].append([x, y]); return len(M['nodes']) - 1
+
+
+def clear_ground(M, AREA, streets=False):
+    """Buildings, lots, alleys, yards, grass, sand, props and landmarks in AREA go (building and lot indices are remapped); with streets
+    the streets through it go too. Returns the services (police, hospital) that stood there."""
+    keep_b = [k for k, b in enumerate(M['bld']) if rect(*b[:5]).intersection(AREA).area < 0.3 * b[2] * b[3]]
+    bmap = {old: new for new, old in enumerate(keep_b)}
+    gone = [(kind, M['bld'][b]) for kind in ('police', 'hospital') for b, l in M['services'][kind] if b not in bmap]
+    M['bld'] = [M['bld'][k] for k in keep_b]
+    lots, lmap = [], {}
+    for k, L in enumerate(M['lots']):
+        if rect(*L[:5]).intersection(AREA).area > 0.3 * L[2] * L[3]: continue
+        L = list(L); L[6] = bmap.get(L[6], -1) if L[6] is not None and L[6] >= 0 else -1; lmap[k] = len(lots); lots.append(L)
+    M['lots'] = lots
+    for kind in ('police', 'hospital'):
+        M['services'][kind] = [[bmap[b], lmap.get(l, -1) if l is not None and l >= 0 else -1] for b, l in M['services'][kind] if b in bmap]
+    M['alleys'] = [a for a in M['alleys'] if not AREA.intersects(rect(*a[:5]).buffer(-2))]
+    for key in ('yards', 'grass', 'sand'):
+        M[key] = [y for g in M[key] for y in rings(poly(g).difference(AREA.buffer(2)), g.get('k'))]
+    M['props'] = [p for p in M['props'] if not AREA.contains(Point(p['x'], p['y']))]
+    M['lm'] = [L for L in M['lm'] if not AREA.contains(Point(L['x'], L['y']))]
+    if streets: drop_streets(M, lambda e: LineString(e['p']).intersects(AREA.buffer(-4)))
+    return gone
+
+
+def edit_land(M, at, fn):                                              # the land polygon holding point `at` becomes fn(it)
+    out = []
+    for p in M['land']:
+        g = poly(p)
+        out += rings(fn(g)) if g.contains(Point(*at)) else [p]
+    M['land'] = out
+
+
+def fence_line(ring, gates):                                          # a closed fence (a polygon's outline) with a gap at each gate: polylines
+    line = LineString(list(ring.coords))
+    for gt in gates: line = line.difference(Point(gt['x'], gt['y']).buffer(gt['w'] / 2, cap_style=3))
+    return [pts(q) for q in (line.geoms if hasattr(line, 'geoms') else [line]) if q.length >= 20]
+
+
+def remodel2(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    A = M['airport']
+
+    # ---------- the military base: the peninsula north of the airport street ----------
+    BASE = largest(LAND.intersection(box(0, 7000, 3880, 9542)))
+    clear_ground(M, BASE, streets=True)
+    M['edges'].append({'a': node_at(M, 3228, 9900), 'b': node_at(M, 1500, 9630), 'p': [[3228, 9900], [3228, 9630], [1500, 9630]]})   # the airport street, now ending at the base
+    B_IN = BASE.buffer(-95)
+    gate = {'x': 2000, 'y': 9520, 'a': 0, 'w': 150}
+    roads = [[[2000, 9542], [2000, 8540]], [[1450, 9050], [3650, 9050]], [[3300, 9050], [3300, 9150]]]
+    towers = [[1420, 9440], [3760, 9440], [2040, 7790], [1540, 8560], [3400, 8640], [2700, 9440]]
+    bld = [  # t, cx, cy, w, h (axis aligned)
+        ['hq', 2240, 8800, 300, 150], ['barracks', 1640, 8820, 230, 110], ['barracks', 2720, 8790, 260, 110], ['barracks', 3150, 8860, 220, 110],
+        ['mess', 2700, 8600, 220, 110], ['garage', 3220, 9300, 760, 70], ['guard', 2110, 9430, 60, 50], ['fuel', 3600, 9180, 90, 90]]
+    motor = [2840, 9120, 3700, 9250]                                    # the motor pool: tanks and APCs in a row, nose to the road
+    veh = [['tank', 2930, 9190, -90], ['tank', 3090, 9190, -90], ['apc', 3250, 9190, -90], ['apc', 3410, 9190, -90], ['apc', 3570, 9190, -90]]
+    heli = [1650, 9230, 115]
+    parade = [2250, 9120, 2650, 9400]; flag = [2450, 9150]
+    arm = box(1780, 8100, 2470, 8540).intersection(B_IN); ammo = box(1985, 8200, 2265, 8400)
+    arm_gate = {'x': 2000, 'y': 8540, 'a': 0, 'w': 110}; ammo_gate = {'x': 2125, 'y': 8400, 'a': 0, 'w': 80}
+    for t, x, y, w, h in bld: assert B_IN.buffer(30).contains(box(x - w / 2, y - h / 2, x + w / 2, y + h / 2)), t
+    for x, y in towers: assert BASE.buffer(-20).contains(Point(x, y)), (x, y)
+    outer, inner = BASE.buffer(-28).exterior, BASE.buffer(-62).exterior
+    M['yards'] += rings(BASE.buffer(-4), 'mb')
+    M['base'] = {
+        'area': rings(BASE), 'gate': gate, 'fence': fence_line(outer, [gate]) + fence_line(inner, [gate]),
+        'roads': roads, 'rw': 90, 'towers': towers, 'buildings': [{'t': t, 'x': x, 'y': y, 'w': w, 'h': h} for t, x, y, w, h in bld],
+        'motor': motor, 'vehicles': veh, 'helipad': heli, 'parade': parade, 'flag': flag,
+        'armoury': {'ring': pts(arm.exterior), 'gate': arm_gate, 'fence': fence_line(arm.exterior, [arm_gate])},
+        'ammo': {'ring': pts(ammo.exterior), 'gate': ammo_gate, 'fence': fence_line(ammo.exterior, [ammo_gate])},
+        'bunker': [2125, 8270, 170, 80],
+    }
+
+    # ---------- the airport: roads from the two gates ----------
+    A['roads'] = [[[2350, 9690], [2350, 10560]], [[4040, 13360], [3260, 13360], [3260, 13060]]]
+    A['rw'] = 96
+
+    # ---------- the space center at Gravel Flats ----------
+    SP = largest(LAND.intersection(box(2500, 300, 4660, 2800)))
+    gone = clear_ground(M, SP, streets=True)
+    for kind, b in gone:                                                # its police station moves to the nearest building with a lot of its own
+        taken = {i for k in ('police', 'hospital') for i, l in M['services'][k]}
+        own = {L[6]: n for n, L in enumerate(M['lots']) if L[6] is not None and L[6] >= 0}
+        cand = [(math.hypot(B[0] - b[0], B[1] - b[1]), i) for i, B in enumerate(M['bld']) if i in own and i not in taken and not B[7] and min(B[2], B[3]) >= 80]
+        i = min(cand)[1]; M['services'][kind].append([i, own[i]]); print('the %s at %s moves to building %d at %s' % (kind, b[:2], i, M['bld'][i][:2]))
+    sgate = {'x': 4630, 'y': 1450, 'a': 90, 'w': 140}
+    M['space'] = {
+        'area': rings(SP), 'fence': fence_line(SP.buffer(-30).exterior, [sgate]), 'gate': sgate,
+        'pad': [2960, 1450, 170], 'tower': [2960, 1340], 'vab': [4150, 1450, 360, 300], 'lcc': [4180, 1880, 260, 110], 'office': [3850, 880, 300, 120],
+        'tanks': [[3060, 1130, 46], [3060, 1770, 40]], 'water': [3260, 1190], 'masts': [[2800, 1290], [2800, 1610], [3120, 1290], [3120, 1610]],
+        'crawlerway': [[3140, 1450], [3970, 1450]], 'cw': 130, 'crawler': [3720, 1450], 'road': [[4660, 1450], [4330, 1450], [4330, 1880]],
+        'garden': [4450, 1120], 'lot': [3850, 1060, 300, 120],
+    }
+    M['lots'].append([3850, 1060, 300, 120, 0.0, 2, -1, 0.6])             # staff parking by the office
+
+    # ---------- the lunapark on Heron Key: the island grows south and west, the street keeps to its north and east edge ----------
+    HK = (9700, 3300); PB = rbox(9230, 2640, 10530, 4430, 160)
+    edit_land(M, HK, lambda g: g.union(PB))
+    LAND = unary_union([poly(p) for p in M['land']])
+    ISL = largest(LAND.intersection(box(9050, 1800, 10650, 4600)))
+    LP = ISL.intersection(PB).difference(box(9000, 0, 10700, 2690)).difference(box(10072, 0, 10700, 3250))
+    LP = largest(LP).buffer(-12)
+    clear_ground(M, LP.buffer(10))
+    street = unary_union([LineString(e['p']).buffer(RH + SW + 2) for e in M['edges'] if LineString(e['p']).intersects(ISL)])
+    clear_ground(M, ISL.difference(LP.buffer(10)).difference(street))     # the north end: the car park
+    lgate = {'x': 9650, 'y': LP.bounds[1], 'a': 0, 'w': 120}
+    M['lots'] += [[9640, 2300, 520, 200, 0.0, 2, -1, 0.5], [10140, 2340, 240, 200, 0.0, 2, -1, 0.5]]
+    rides = [
+        {'t': 'woodie', 'x0': 9300, 'y0': 2830, 'x1': 9450, 'y1': 4350}, {'t': 'looper', 'x0': 10110, 'y0': 3310, 'x1': 10465, 'y1': 3990},
+        {'t': 'flume', 'x0': 10080, 'y0': 4050, 'x1': 10455, 'y1': 4360}, {'t': 'wheel', 'x': 9900, 'y': 2880, 'd': 300},
+        {'t': 'carousel', 'x': 9650, 'y': 3110, 'r': 60}, {'t': 'swings', 'x': 9560, 'y': 3480, 'r': 70}, {'t': 'tower', 'x': 9830, 'y': 3330, 'h': 300},
+        {'t': 'pirate', 'x': 9840, 'y': 3760, 'a': 0}, {'t': 'piazza', 'x': 9990, 'y': 3560, 'r': 90},
+        {'t': 'skyride', 'a': [9530, 2880], 'b': [10000, 4250]}, {'t': 'village', 'x0': 9490, 'y0': 3950, 'x1': 9780, 'y1': 4370},
+        {'t': 'booths', 'x0': 9620, 'y0': 3640, 'x1': 9720, 'y1': 3880}]
+    stands = [[9540, 2960], [9800, 3060], [10010, 3330], [9700, 3640], [9930, 4130], [9600, 3820], [10030, 2990]]
+    train = LP.buffer(-28).exterior
+    beds = [rbox(9480, 3200, 9580, 3330, 30), rbox(9700, 3450, 9760, 3560, 25), rbox(9880, 3950, 10030, 4040, 30), rbox(10180, 3995, 10440, 4040, 15),
+            rbox(9470, 3600, 9560, 3760, 30), rbox(9960, 3700, 10060, 3880, 30), rbox(9470, 2990, 9600, 3070, 25), rbox(9700, 2990, 9760, 3060, 20),
+            Point(9830, 3330).buffer(95), Point(9560, 3480).buffer(105), Point(9650, 3110).buffer(90), rbox(9600, 3900, 9760, 3945, 15)]
+    taken = unary_union([box(r['x0'], r['y0'], r['x1'], r['y1']).buffer(12) for r in rides if 'x0' in r and r['t'] not in ('village',)] +
+                        [Point(r['x'], r['y']).buffer({'tower': 30, 'swings': 60, 'carousel': 66, 'wheel': 170, 'piazza': 95, 'pirate': 90}.get(r['t'], 40)) for r in rides if 'x' in r] +
+                        [Point(x, y).buffer(48) for x, y in stands] + [box(r['x0'], r['y0'], r['x1'], r['y1']).buffer(10) for r in rides if r['t'] == 'village'])
+    lawns = unary_union(beds).difference(taken).intersection(LP.buffer(-40))
+    M['grass'] += rings(lawns)
+    M['yards'] += rings(LP.difference(lawns.buffer(1)), 'lp')                # the paved park with the lawns left open
+    M['lunapark'] = {'area': rings(LP), 'fence': fence_line(LP.exterior, [lgate]), 'gate': lgate, 'rides': rides, 'stands': stands, 'train': pts(train)}
+
+    # ---------- the port: Dockside becomes one port; straight quays on the east and south shore ----------
+    QE, QS, QN = 7000, 14800, 12110
+    edit_land(M, (5500, 13000), lambda g: g.union(box(5000, QN, QE, QS)).union(box(4660, 14000, 4740, 14400))
+              .difference(box(QE, QN, 8000, 16500)).difference(box(4990, QS, QE, 16500)))
+    LAND = unary_union([poly(p) for p in M['land']])
+    PORT = largest(LAND.intersection(box(4240, 11200, 7600, 16000)))
+    clear_ground(M, PORT)
+    for e in M['edges']:                                                # the street round the east blocks runs straight down to the shore street
+        if e['p'][0] == [6274, 12790] and e['p'][-1] == [5463, 13752]: e['p'] = [[6274, 12790], [6274, 13752], [5463, 13752]]
+    maint = box(4846, 12888, 5365, 13654)                               # the maintenance yard: workshops, junk, spare parts
+    M['yards'] += rings(PORT.buffer(-2).difference(maint), 'q')
+    berths = [{'x': QE + 72, 'y': y, 'a': 90, 'q': 'e'} for y in (12530, 13350, 14170)] + [{'x': x, 'y': QS + 72, 'a': 180, 'q': 's'} for x in (5450, 6300)]
+    cranes = []
+    for i, b in enumerate(berths):
+        for d in (-190, 190):
+            if b['q'] == 'e': cranes.append({'berth': i, 'x': QE - 130, 'y': b['y'] + d, 'a': 0, 'lo': b['y'] - 330, 'hi': b['y'] + 330})
+            else: cranes.append({'berth': i, 'x': b['x'] + d, 'y': QS - 130, 'a': 90, 'lo': b['x'] - 330, 'hi': b['x'] + 330})
+    stacks = []                                                         # blocks of 20 ft containers: [x0, y0, x1, y1, along x?]
+    for y0 in (12160, 12740, 13320):
+        for x0 in (6410, 6560): stacks.append([x0, y0, x0 + 125, y0 + 520, 0])
+    for y0 in (13920, 14130, 14340):
+        for x0 in (5060, 5720, 6380):
+            if x0 + 560 <= 6700: stacks.append([x0, y0, x0 + 560, y0 + 125, 1])
+    for x0, y0, x1, y1 in ([5590, 12920, 6150, 13050], [5590, 13110, 6150, 13240], [5590, 13300, 6150, 13430], [5590, 13490, 6150, 13620]):
+        stacks.append([x0, y0, x1, y1, 1])                              # the empty-container depot
+    sheds = [  # warehouses and workshops: [cx, cy, w, d, kind, height]
+        [4600, 11380, 700, 230, 'warehouse', 60], [4600, 11700, 700, 230, 'warehouse', 54], [5420, 11420, 430, 290, 'warehouse', 64],
+        [5950, 11440, 400, 290, 'warehouse', 58], [5100, 12370, 450, 300, 'warehouse', 60], [5870, 12370, 560, 300, 'warehouse', 66],
+        [4440, 12500, 300, 700, 'warehouse', 50], [5000, 13050, 280, 180, 'warehouse', 44], [5250, 13390, 200, 220, 'warehouse', 40],
+        [4440, 13350, 300, 300, 'office', 70]]
+    blk = len({b[5] for b in M['bld']}) + 5000
+    for k, (x, y, w, d, kind, h) in enumerate(sheds): M['bld'].append([x, y, w, d, 0.0, blk + k, 0, 0, kind, h])
+    M['yards'] += rings(maint, 'y')
+    M['port'] = {'quays': [[[QE, QN], [QE, QS]], [[5000, QS], [QE, QS]]], 'berths': berths, 'cranes': cranes, 'stacks': stacks,
+                 'tugs': [[4600, 14260, 90], [4800, 14300, 90]], 'pier': [4660, 14000, 4740, 14400], 'maint': [4846, 12888, 5365, 13654],
+                 'lanes': {'e': [7600, 8150], 's': 15275}, 'sea': 17200}
+    LANDF = unary_union([poly(p) for p in M['land']])                  # nothing is left lying out over the water
+    for key in ('yards', 'grass', 'sand'):
+        out = []
+        for g in M[key]:
+            G = poly(g)
+            out += [g] if LANDF.contains(G) else rings(G.intersection(LANDF), g.get('k'))
+        M[key] = out
+    M['remodel'] = 2
+    return M
+
+
+STEPS = [remodel, remodel2]
+
+
 if __name__ == '__main__':
-    head, M, tail = load()
-    if M.get('remodel', 0) >= VERSION: print('already remodelled (version %d)' % M['remodel']); sys.exit(0)
-    M = remodel(M)
+    head, M, tail = load(); done = M.get('remodel', 0)
+    if done >= len(STEPS): print('already remodelled (version %d)' % done); sys.exit(0)
+    for n in range(done, len(STEPS)): M = STEPS[n](M); M['remodel'] = n + 1
     head = head.replace("yards: open ground {o, h, k}: y = service yard, p = promenade or forecourt, ap = airport apron, q = quay; sw: sidewalk width. */",
                         "yards: open ground {o, h, k}: y = service yard, p = promenade or forecourt, ap = airport apron, q = quay, pk = park path; sw: sidewalk width.\n"
                         "   Remodelled by tools/remodel_city.py (remodel: version): the Skyport airport (airport: field, runway, taxiways, terminal, stands, hangars,\n"
                         "   tower, fence, gates) and the mall park. */")
+    head = head.replace("   tower, fence, gates) and the mall park. */",
+                        "   tower, fence, gates, roads) and the mall park; version 2: the port (port), the lunapark (lunapark), the space center (space) and the\n"
+                        "   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set. */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
-    print('remodelled:', SRC, '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
+    print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

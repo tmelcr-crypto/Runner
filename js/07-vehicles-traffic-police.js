@@ -42,7 +42,7 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { if (rc.gate && c.t.cop) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && rc.fence && fenceBreak(rc, c)) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      for (const rc of _nb) { if (rc.gate && c.t.cop) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       nearRails(q[0], q[1], _nr);
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }

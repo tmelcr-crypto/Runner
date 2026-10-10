@@ -62,6 +62,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #bigCv{border:3px solid var(--line);box-shadow:6px 6px 0 #000}
 #toast{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-family:var(--f-display);font-size:14px;text-align:center;color:var(--yellow);text-shadow:3px 3px 0 #000;opacity:0;white-space:nowrap}
 #toast.show{animation:toast 1.8s ease-out forwards}
+#warnBanner{position:absolute;left:50%;top:20%;transform:translateX(-50%);font-family:var(--f-display);font-size:18px;line-height:1.5;text-align:center;color:var(--hot);text-shadow:0 0 12px var(--hot),3px 3px 0 #000;white-space:nowrap;pointer-events:none;animation:warnBlink .6s steps(2) infinite}
+#warnBanner small{font-size:13px;color:var(--yellow)}
+@keyframes warnBlink{50%{opacity:.35}}
+@media (max-width:520px){#warnBanner{font-size:13px;top:31%}#warnBanner small{font-size:11px}}
 #toast.bad{color:var(--hot)}
 #wasted{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-family:var(--f-display);font-size:clamp(28px,9vw,80px);color:var(--hot);text-shadow:5px 5px 0 #000;background:rgba(40,0,10,.35)}
 @keyframes blink{50%{opacity:.25}}

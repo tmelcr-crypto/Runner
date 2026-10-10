@@ -234,7 +234,9 @@ function buildCity() {
     for (let k = 1; k < hull.length - 1; k++) for (const v of [hull[0], hull[k], hull[k + 1]]) shadowTris.push(v[0], 1.2, v[1]);
   }
   drawYards(); drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools);   // back alleys, yards and what lies about in them
-  drawAirport(fb, fg, fc, poles, heads, pools);                    // the airfield: runway, taxiways, markings, lights, the fence (js/10f)
+  drawAirport(fb, fg, fc, poles, heads, pools);                    // the airfield: runway, taxiways, markings, lights (js/10f)
+  drawPlaces(fb, fg, fc, fs, poles, heads, pools);                 // the base, the port, the lunapark, the space center: ground, roads, markings (js/10g)
+  drawFences(fc);                                                  // every fence (js/10f)
   chunked(GB, M.instWhite, pads); chunked(GB, M.instWhite, slabs);
   chunked(GSphLo, M.instWhite, fs); chunked(GCirc, M.instBasic, fp);
   chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instWhite, crowns);

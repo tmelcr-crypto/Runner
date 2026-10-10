@@ -36,6 +36,7 @@
   <div id="radioName"></div>
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vbar"><i></i></div><div id="vinfo"></div></div>
   <div id="toast"></div>
+  <div id="warnBanner" hidden></div>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
   <div id="rampHud" hidden><span id="rampIcoHud"></span><span class="rl">RAMPAGE</span><b id="rampCount">0 / 0</b><span id="rampWhat"></span><i id="rampClock">0:00</i></div>
   <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
@@ -193,8 +194,15 @@
         <li>Skyport in the south-west: about once a minute a plane lands from the sea and taxis to one of the five gates, or a parked one is pushed back, taxis out and takes off over the city.</li>
         <li>Keep off the runway and taxiways: a moving plane runs over anything in its way. Parked planes are solid.</li>
         <li>Enough gunfire, or a rocket or grenade at its tanks, blows a plane up - a huge blast and a burning wreck.</li>
-        <li>A fence keeps cars off the airfield; the two gates are open. Only a heavy vehicle - truck, bus, fire engine, APC, tank - going fast breaks through.</li>
+        <li>A fence keeps cars off the airfield. At the gates police guard a barrier: stop and it lifts; crash through and you are wanted. Only a heavy vehicle - truck, bus, fire engine, APC, tank - going fast breaks the fence.</li>
         <li>The big parking lot is on the avenue, next to the terminal. Bayside Mall stands in a park that covers its whole peninsula, with a pond.</li></ul></div>
+      <div><h3>MILITARY BASE</h3><ul>
+        <li>North of the airport. Inside the fence a <b>RESTRICTED AREA</b> warning counts down 5 seconds: stay and the alarm gives you <b>4 STARS</b> and the soldiers open fire.</li>
+        <li>Tanks and APCs in the motor pool, a helicopter on the pad, heavy weapons in the armoury and every kind of ammo in the store inside it. What you take comes back a few minutes after you leave.</li></ul></div>
+      <div><h3>PORT, LUNAPARK, SPACE CENTER</h3><ul>
+        <li>Dockside is a container port: ships come and go about every two minutes, and the gantry cranes unload them.</li>
+        <li>Heron Key is a lunapark - coasters, a Ferris wheel, a flume and more. Only on foot, through the turnstiles.</li>
+        <li>Gravel Flats is the space center. Its gate is shut for now.</li></ul></div>
       <div><h3>DAY, NIGHT, WEATHER</h3><ul>
         <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
         <li>Rain makes the roads slippery, storms bring lightning, and fog hides you from the police.</li></ul></div>
@@ -261,6 +269,7 @@
 <script src="js/01i-economy-data.js"></script>
 <script src="js/01j-mode-data.js"></script>
 <script src="js/01k-airport-data.js"></script>
+<script src="js/01l-places-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -278,6 +287,8 @@
 <script src="js/08g-armed-people.js"></script>
 <script src="js/08h-paramedics.js"></script>
 <script src="js/08i-planes.js"></script>
+<script src="js/08j-places.js"></script>
+<script src="js/08k-ships.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -285,6 +296,8 @@
 <script src="js/10d-render-clutter.js"></script>
 <script src="js/10e-render-services.js"></script>
 <script src="js/10f-airport.js"></script>
+<script src="js/10g-places.js"></script>
+<script src="js/10h-lunapark.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/12-render-effects.js"></script>
