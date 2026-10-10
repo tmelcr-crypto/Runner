@@ -1,5 +1,5 @@
 """Settings tables <-> spreadsheet (Apple Numbers or Excel): the police (js/01b-police-data.js), day, night & weather (js/01d-sky-data.js),
-the airport (js/01k-airport-data.js), the places - airport gates, military base, port, lunapark, space center (js/01l-places-data.js) - and
+the airport (js/01k-airport-data.js), the places - airport gates, military base, port, lunapark, space center, spray garages (js/01l-places-data.js) - and
 the streets - traffic lights, rules of the road, walk signals, sirens, heat reducers (js/01m-streets-data.js) - and the vehicle jobs -
 taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and rewards (js/01o-jobs-data.js) - and the races - phone
 booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the fixed routes' junctions stay in the file).
@@ -7,7 +7,7 @@ booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
   python3 tools/settings_sheet.py airport export airport.numbers          ... the airport and its planes
-  python3 tools/settings_sheet.py places export places.numbers            ... the gates, the base, the port, the lunapark, the space center
+  python3 tools/settings_sheet.py places export places.numbers            ... the gates, the base, the port, the lunapark, the space center, the spray garages
   python3 tools/settings_sheet.py streets export streets.numbers          ... traffic lights, drivers, pedestrians, sirens, heat reducers
   python3 tools/settings_sheet.py jobs export jobs.numbers                ... the taxi, paramedic, firefighter and vigilante jobs
   python3 tools/settings_sheet.py races export races.numbers              ... phone booths, street races, the NASCAR race, the drag strip
@@ -178,7 +178,8 @@ TIPS_PLACES = [('ID column', 'How the game finds each row. Do not change it; row
             ('Airport gates', 'Stop at a barrier and the guard lifts it; drive through without stopping and the boom breaks and you are wanted.', None),
             ('Military base', 'Inside the fence a warning counts down; still inside when it ends, the alarm gives the wanted level and the soldiers fire. They stay inside the base. What you take comes back after you have left.', None),
             ('Port', 'One ship moves at a time. Below the lower count the next movement is an arrival, above the higher one a departure.', None),
-            ('Lunapark and space center', 'Visitors stroll inside the lunapark while you are there. The space center gate stays shut until the story opens it.', None)]
+            ('Lunapark and space center', 'Visitors stroll inside the lunapark while you are there. The space center gate stays shut until the story opens it.', None),
+            ('Spray garages', 'Drive in, the door shuts, pick a colour: repainted and repaired for the price (money in euros, also in the economy sheet). Not seen going in, the police lose you up to the stars set.', None)]
 TIPS_JOBS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds, distances in metres by road (a street block is about 100 m), speeds in km/h, money in euros, % as 0 to 100; a level and points are whole numbers.', None),
             ('Starting a job', 'Drive the right vehicle into the marker at its dispatch point and stop: taxi at a taxi rank, ambulance at a hospital, fire engine at a fire station, police car at a police station. The START card shows.', None),

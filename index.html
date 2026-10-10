@@ -192,6 +192,10 @@
         <li>Ten clothes shops (a coat hanger on the maps), each with its own range: hats, glasses, tops, bottoms, shoes.</li>
         <li>Tap a piece and your figure tries it on; tap it again to buy it. <b>WARDROBE</b>: what you own, free to put on at any clothes shop.</li>
         <li>New clothes while no cop saw you go in: the police lose you (up to 3 stars; above that it drops to 3).</li></ul></div>
+      <div><h3>PAY 'N' SPRAY</h3><ul>
+        <li>Four paint shops (a spray can on the maps). Drive up in a car and the door rolls up; drive in and stop - the door comes down and the roof turns see-through.</li>
+        <li>Tap a colour - its own paints or any colour - and the car shows it. <b>SPRAY</b>: €100, repaired and repainted. <b>LEAVE</b>: nothing paid.</li>
+        <li>No cop saw you go in: the police lose you, at any level. Taxis, buses, ambulances, fire and trash trucks are repaired only; police and army vehicles are turned away.</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>€</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
@@ -216,11 +220,12 @@
       <div><h3>LOSING THEM</h3><ul>
         <li>Get out of sight. While they search, the stars blink and a red circle on the map shows where they are looking.</li>
         <li>Stay unseen long enough (12 s at 1 star, 50 s at 5) and they give up - it takes longer inside the circle.</li>
-        <li>A <b>HEAT REDUCER</b> takes a star off - even driving through it. From 3 stars one lies on the road ahead of you.</li></ul></div>
+        <li>A <b>HEAT REDUCER</b> takes a star off - even driving through it. From 3 stars one lies on the road ahead of you.</li>
+        <li>A <b>PAY 'N' SPRAY</b> loses them at any level - if no cop sees you go in. New clothes lose them up to 3 stars.</li></ul></div>
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($), the rampages you have found (skulls), the speedway and the drag strip (chequered flags), a ringing phone and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores (€), the clothes shops (hangers), the Pay 'n' Spray garages (spray cans), the rampages you have found (skulls), the speedway and the drag strips (chequered flags), a ringing phone and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>TRAFFIC</h3><ul>
         <li>Every junction has traffic lights. Cars stop on red, give way when turning across traffic and stop for people crossing; people cross at the zebras on the walk signal.</li>
@@ -296,6 +301,18 @@
     <p class="warn" id="raceWarn" hidden></p>
     <div class="menu"><button id="raceGo" class="big pri" type="button">ACCEPT</button><button id="raceTest" class="big" type="button" hidden>TEST RUN</button><button id="raceNo" class="big alt back" type="button">NOT NOW</button></div>
     <p class="keys">ENTER ACCEPTS · ESC OR E LEAVES</p>
+  </div>
+
+  <div class="card" id="pnsCard" hidden>
+    <p class="tag">PAY 'N' SPRAY · <span id="pnsName">CAR</span></p>
+    <p class="sub" id="pnsSub"></p>
+    <div id="pnsPaints">
+      <p class="lab">ITS OWN PAINTS</p><div class="sws" id="pnsOwn"></div>
+      <p class="lab">ANY COLOUR</p><div class="sws" id="pnsAny"></div>
+    </div>
+    <p class="warn ok" id="pnsMsg"></p>
+    <div class="menu"><button id="pnsGo" class="big pri" type="button">SPRAY</button><button id="pnsNo" class="big alt back" type="button">LEAVE</button></div>
+    <p class="keys">TAP A COLOUR · ENTER SPRAYS · ESC OR E LEAVES</p>
   </div>
 
   <div class="card" id="jobStopCard" hidden>
@@ -381,6 +398,7 @@
 <script src="js/08n-vehicle-jobs.js"></script>
 <script src="js/08o-races.js"></script>
 <script src="js/08p-guide.js"></script>
+<script src="js/08q-spray.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -391,6 +409,7 @@
 <script src="js/10g-places.js"></script>
 <script src="js/10h-lunapark.js"></script>
 <script src="js/10i-speedway.js"></script>
+<script src="js/10j-spray-garage.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>

@@ -58,7 +58,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns'); ov.classList.toggle('low', id === 'pnsCard'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -71,9 +71,10 @@ function back() {
   else if (id === 'rampCard') closeRamp();
   else if (id === 'jobCard' || id === 'jobStopCard') closeJob();
   else if (id === 'raceCard') closeRaceCard();
+  else if (id === 'pnsCard') closePns(false);
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
-function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim'); document.documentElement.classList.remove('menus'); }
+function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim', 'low'); document.documentElement.classList.remove('menus'); }
 for (const b of document.querySelectorAll('#overlay .back')) b.addEventListener('click', back);
 
 /* the title */

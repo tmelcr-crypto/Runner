@@ -31,9 +31,9 @@ function fillMats() {
   FILL_M.forEach((m, i) => { if (m.emissiveMap) EMI_MATS.add(m); else if (i === FM_GLOW || i === FM_SIGN) NEON_MATS.add(m); });   // dimmed by day (js/12d)
   return FILL_M;
 }
-function fillChunks() {                                          // one drawable per chunk square that holds fill buildings
+function fillChunks() {                                          // one drawable per chunk square that holds fill buildings (not those drawn on their own: the spray garages, js/10j)
   const groups = new Map();
-  for (const r of BLD) if (r.fill) { const k = Math.floor((r.cx + SEA) / FILL_CHUNK) * 1024 + Math.floor((r.cy + SEA) / FILL_CHUNK); let l = groups.get(k); if (!l) groups.set(k, l = []); l.push(r); }
+  for (const r of BLD) if (r.fill && !r.own) { const k = Math.floor((r.cx + SEA) / FILL_CHUNK) * 1024 + Math.floor((r.cy + SEA) / FILL_CHUNK); let l = groups.get(k); if (!l) groups.set(k, l = []); l.push(r); }
   return [...groups.values()].map(list => {
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const r of list) { x0 = Math.min(x0, r.x); x1 = Math.max(x1, r.x + r.w); y0 = Math.min(y0, r.y); y1 = Math.max(y1, r.y + r.h); }
