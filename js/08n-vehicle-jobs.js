@@ -32,6 +32,8 @@ const jobCount = L => JB.firstCount + (L - 1) * JB.moreCount;
 const hpMax = () => 100 + (JOB.rew.has('medic') && jobOn('medic') ? JB.medHealth : 0);                   // the paramedic's reward
 const armorMax = () => (ITEM.armor ? ITEM.armor.max : 100) + (JOB.rew.has('vigilante') && jobOn('vigilante') ? JB.vigArmor : 0);   // the vigilante's
 const blastHurt = () => JOB.rew.has('fire') && jobOn('fire') ? JB.fireproof : 1;                       // the firefighter's: fireproof
+const stationCar = c => JB.stationFree && jobOn('vigilante') && !!c.lot && !!c.lot.owner && c.lot.owner.special === 'police'   // js/06 enterCar: taking it is no crime
+  && dist(c.x, c.y, c.lot.cx, c.lot.cy) < Math.hypot(c.lot.w, c.lot.d) / 2;
 const rewardText = k => ({ taxi: 'NITRO IN TAXIS', medic: '+' + JB.medHealth + ' MAX HEALTH', fire: 'FIREPROOF', vigilante: '+' + JB.vigArmor + ' MAX BODY ARMOR' })[k];
 
 /* ---------- road distances: one field from a point, then the distance to anywhere by road ---------- */
@@ -188,6 +190,15 @@ function openJob(k) {
   showCard('jobCard', true);
 }
 function closeJob() { if (state !== 'job') return; state = 'play'; JOB.at = null; closeMenus(); }
+function openJobStop() {                 // a tap on the job's panel: stop it?
+  if (!JOB.on || state !== 'play') return;
+  const K = JOBK[JOB.on]; state = 'job'; toggleBigMap(false); toggleWheel(false); hush();
+  $('jobStopCard').style.setProperty('--jc', K.col); $('jsName').textContent = 'STOP THE ' + K.name + ' JOB?';
+  $('jsSub').textContent = 'LEVEL ' + JOB.level + '  ·  ' + JOB.got + ' / ' + JOB.need + '  ·  ' + money(JOB.cash) + ' EARNED';
+  showCard('jobStopCard', true);
+}
+$('jobHud').addEventListener('click', e => { e.stopPropagation(); openJobStop(); });
+$('jsStop').addEventListener('click', () => { closeJob(); jobEnd('YOU STOPPED IT'); });
 $('jobGo').addEventListener('click', () => { const k = JOB.at; closeJob(); if (k && P.car && jobKind(P.car) === k && !JOB.on) jobStart(k); });
 
 /* ---------- running a job ---------- */

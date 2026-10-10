@@ -69,7 +69,7 @@ function back() {
   else if (id === 'shopCard') closeShop();
   else if (id === 'clothesCard') closeClothes();
   else if (id === 'rampCard') closeRamp();
-  else if (id === 'jobCard') closeJob();
+  else if (id === 'jobCard' || id === 'jobStopCard') closeJob();
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
 function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim'); document.documentElement.classList.remove('menus'); }

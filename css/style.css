@@ -347,6 +347,11 @@ button.shopRow.ammo{margin-left:28px}
 #jobHud{--jc:#fff;position:absolute;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);display:flex;align-items:center;gap:10px;white-space:nowrap;
   font-family:var(--f-display);color:var(--paper);background:rgba(8,10,24,.84);border:3px solid var(--jc);box-shadow:0 0 16px var(--jc);padding:7px 12px}
 #jobHud[hidden]{display:none}
+#jobHud{pointer-events:auto;cursor:pointer;touch-action:manipulation}   /* a tap: STOP THE JOB? */
+#jobHud .jx{font-size:9px;color:var(--dim);margin-left:-2px}
+#jobStopCard{--jc:#fff}
+#jobStopCard .tag{color:var(--jc);font-size:12px;margin:0 0 8px;text-shadow:0 0 10px var(--jc)}
+#jobStopCard h2{color:#fff;text-shadow:0 0 10px var(--jc),0 0 24px var(--jc),3px 3px 0 #000}
 #jobHud .rl{font-size:9px;color:var(--jc);text-shadow:0 0 8px var(--jc)}
 #jobHud .lv{font-size:8px;color:var(--dim)}
 #jobCount{font-weight:400;font-size:15px;color:var(--yellow);text-shadow:0 0 8px rgba(255,225,74,.7)}

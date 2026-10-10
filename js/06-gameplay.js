@@ -220,7 +220,7 @@ function enterCar(c) {
     if (!provoke(ped)) { ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; }   // an armed driver comes back at you (js/08g)
     if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0);
-  } else if (c.t.cop) reportCrime(COP.crime.stealCop, 0);
+  } else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
   else reportCrime(COP.crime.steal, 0);
   if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
