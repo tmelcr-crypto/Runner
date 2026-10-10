@@ -1,7 +1,9 @@
-"""Settings tables <-> spreadsheet (Apple Numbers or Excel): the police (js/01b-police-data.js) and day, night & weather (js/01d-sky-data.js).
+"""Settings tables <-> spreadsheet (Apple Numbers or Excel): the police (js/01b-police-data.js), day, night & weather (js/01d-sky-data.js)
+and the airport (js/01k-airport-data.js).
 
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
+  python3 tools/settings_sheet.py airport export airport.numbers          ... the airport and its planes
   python3 tools/settings_sheet.py police import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
 Both are made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments. Yellow cells are the
@@ -17,13 +19,14 @@ from openpyxl.worksheet.datavalidation import DataValidation
 HERE = os.path.dirname(os.path.abspath(__file__))
 STARS = ['1 star', '2 stars', '3 stars', '4 stars', '5 stars']
 TABLES = {'police': ('01b-police-data.js', 'POLICE', {'levels': 'Wanted levels', 'settings': 'Settings', 'crimes': 'Crimes'}),
-          'sky': ('01d-sky-data.js', 'SKY', {'settings': 'Settings'})}
+          'sky': ('01d-sky-data.js', 'SKY', {'settings': 'Settings'}),
+          'airport': ('01k-airport-data.js', 'AIRPORT', {'settings': 'Settings'})}
 JS = A = B = SHEETS = NAME = None
 def use(name):                               # pick the table the commands work on
     global JS, A, B, SHEETS, NAME, TIPS
     f, mark, SHEETS = TABLES[name]; NAME = name
     JS = os.path.join(HERE, '..', 'js', f); A, B = '/*%s-JSON*/' % mark, '/*END-%s-JSON*/' % mark
-    TIPS = TIPS_POLICE if name == 'police' else TIPS_SKY
+    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT}[name]
 
 
 def read_table():
@@ -153,6 +156,12 @@ TIPS_SKY = [('ID column', 'How the game finds each row. Do not change it; rows m
             ('Weather', 'After each spell of weather the next one is picked by the five chances. A change blends in over the set seconds.', None),
             ('Rain', 'Wet roads give less grip (your car and traffic alike) and traffic slows down; at night the roads shine with the lights.', None),
             ('Police', 'At night and in rain or fog the police see less far than their normal sight range (police table).', None)]
+TIPS_AIRPORT = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+            ('Units', 'Speeds in km/h, distances in metres (a car is 4.5 m long, the runway about 400 m), times in seconds, angles in degrees.', None),
+            ('Traffic', 'One plane moves at a time: it lands and taxis to a free gate, or it is pushed back, taxis out and takes off. The next one starts the set seconds after the last one started (or as soon as it is done).', None),
+            ('Gates', 'There are five gates. Below the lower count the next movement is a landing, above the higher one a take-off; in between they take turns.', None),
+            ('Damage', 'Gunfire wears a plane down like a car. A blast close enough blows it up at once. A moving plane kills whoever it runs into and wrecks cars.', None),
+            ('Fence', 'The fence round the airfield stops people and cars. Only vehicles at least this heavy, going at least this fast, break through.', None)]
 TIPS_POLICE = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
         ('Units', 'Distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h or m/s, times in seconds, % as 0 to 100.', None),
         ('Heat and stars', 'Each crime the police see or hear adds heat (Crimes sheet). Enough heat gives a wanted level (Wanted levels: Heat needed). Heat below 1 star fades away; stars only go when you lose the police or pay a fine.', None),
@@ -311,6 +320,9 @@ def do_import(path, dry):
         heat = next(r['v'] for r in t['levels'] if r['id'] == 'heat')
         if any(b_ <= a for a, b_ in zip(heat, heat[1:])): errors.append('Wanted levels / Heat needed must rise from level to level: %s' % heat)
         if st['gapMax'] < st['gapMin']: errors.append('Settings: Time between shots to (%s) is less than from (%s)' % (fmt(st['gapMax']), fmt(st['gapMin'])))
+    elif NAME == 'airport':
+        if st['gatesMax'] < st['gatesMin']: errors.append('Settings: Planes at the gates at most (%s) is less than at least (%s)' % (fmt(st['gatesMax']), fmt(st['gatesMin'])))
+        if st['takeRun'] > 380: errors.append('Settings: the take-off run must fit the runway (380 m at most)')
     else:
         if st['wxMax'] < st['wxMin']: errors.append('Settings: Weather lasts at most (%s) is less than at least (%s)' % (fmt(st['wxMax']), fmt(st['wxMin'])))
         if st['sunset'] <= st['sunrise'] + 3: errors.append('Settings: Sunset must come at least 3 hours after sunrise')

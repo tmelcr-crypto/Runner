@@ -97,7 +97,7 @@ function rayCircle(ox, oy, dx, dy, cx, cy, r) {
 const _ba = [];
 function buildingsAlong(x1, y1, x2, y2, fn) {
   bHash.query(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), _ba);
-  for (const rc of _ba) if (!rc.gate) fn(rc);                    // a gate's boom stops cars, not bullets or eyes
+  for (const rc of _ba) if (!rc.gate && !rc.fence) fn(rc);       // a gate's boom and the airport fence stop cars, not bullets or eyes
 }
 function losClear(x1, y1, x2, y2, hardOnly) {                 // hardOnly: only buildings and landmarks block, not the props a rifle round goes through
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
@@ -259,7 +259,7 @@ function genWorld() {
     return makeSolid(cx, cy, w, h, ang * Math.PI / 180, { idx, seed: cx * 7 + cy * 13 + 1, grp, inner, pad: true, bld: true, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel, roof: shade(g.c, 28), wall: shade(g.c, -60) });
   });
   const byIdx = new Map(BLD.map(r => [r.idx, r]));
-  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang, rows, owner]) => ({ cx, cy, w, d, a: ang * Math.PI / 180, rows: rows || 1, owner: byIdx.get(owner) || null, stalls: [] }));
+  LOTS = (MAP.lots || []).filter(l => !hitsColony(l[0], l[1], l[2], l[3], l[4])).map(([cx, cy, w, d, ang, rows, owner, fill]) => ({ cx, cy, w, d, a: ang * Math.PI / 180, rows: rows || 1, owner: byIdx.get(owner) || null, fill: fill || 0, stalls: [] }));   // fill: share of stalls taken (0: the usual)
   SVC.police = []; SVC.hospital = [];
   for (const k of ['police', 'hospital']) for (const [bi] of (MAP.services || {})[k] || []) {   // police stations: blue; hospitals: white (js/10e adds the signs and the cross)
     const r = byIdx.get(bi); if (!r) continue;
@@ -285,7 +285,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); serviceDecor();                                  // landmarks; the signs, the cross and the lamps of the hospitals and police stations (js/10e)
+  genLandmarks(); genAirport(); serviceDecor();                                  // landmarks; the signs, the cross and the lamps of the hospitals and police stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

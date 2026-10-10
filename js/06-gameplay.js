@@ -85,6 +85,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
     if (d < R + 20) damageCar(c, 110 * (1 - d / (R + 20)), byP);
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R)); }
+  blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }
@@ -108,6 +109,7 @@ function raycast(ox, oy, ang, range) {
     if (P.car === c || Math.abs(c.x - ox) > range + 60 || Math.abs(c.y - oy) > range + 60) continue;
     for (const q of carCircles(c)) { const t = rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]); if (t < bt) { bt = t; type = 'car'; obj = c; } }
   }
+  const pr = planeRay(ox, oy, dx, dy, bt); if (pr) { bt = pr.t; type = 'plane'; obj = pr.pl; }   // a plane on the ground or low in the air (js/08i)
   return { x: ox + dx * bt, y: oy + dy * bt, type, obj, t: bt, dx, dy };
 }
 function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and one unarmoured car; a building, the first person, an armoured or a second car stops it
@@ -120,6 +122,7 @@ function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and 
     for (const q of carCircles(c)) t = Math.min(t, rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]));
     if (t < R) hits.push({ t, type: 'car', obj: c });
   }
+  const pr = planeRay(ox, oy, dx, dy, R); if (pr) hits.push({ t: pr.t, type: 'plane', obj: pr.pl });
   hits.sort((u, v) => u.t - v.t);
   let through = 0;
   for (const h of hits) {
@@ -168,6 +171,7 @@ function bulletHit(h, w, a) {                                   // one bullet: t
   if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } else if (!provoke(p)) { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
   else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); else { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } }
   else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * w.carDmg, true); }
+  else if (h.type === 'plane') { spark(h.x, h.y, 5); damagePlane(h.obj, w.dmg * w.carDmg, true); }   // js/08i
   else if (h.type === 'wall') spark(h.x, h.y, 4);
 }
 

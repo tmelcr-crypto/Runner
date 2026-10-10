@@ -158,7 +158,8 @@
         <li><b>ARMED PEOPLE</b> some passers-by carry a pistol or a melee weapon: hurt them, or someone next to them, and they fight back. They drop it when killed.</li>
         <li><b>WEAPONS</b> you have to find: only your fists to start with. Each weapon and its ammo float in a bubble of the weapon's own colour, hidden in alleys, yards, parks, parking lots and on the beaches. Melee weapons are the most common and always lie in the same places.</li>
         <li>Hidden the same way, each in its own bubble: <b>HEALTH</b> (white, +50 when you are hurt), <b>BODY ARMOR</b> (blue, +50) and the <b>HEAT REDUCER</b> (flashing red and blue: one star less while you are wanted). None of it shows on the maps.</li>
-        <li><b>BODY ARMOR</b> is the blue bar under your health: it takes the damage first.</li></ul></div>
+        <li><b>BODY ARMOR</b> is the blue bar under your health: it takes the damage first.</li>
+        <li>All of it is picked up <b>ON FOOT</b> only: driving over it does nothing.</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>$</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
@@ -188,6 +189,12 @@
       <div><h3>THE MAP</h3><ul>
         <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($), the rampages you have found (skulls) and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
+      <div><h3>THE AIRPORT</h3><ul>
+        <li>Skyport in the south-west: about once a minute a plane lands from the sea and taxis to one of the five gates, or a parked one is pushed back, taxis out and takes off over the city.</li>
+        <li>Keep off the runway and taxiways: a moving plane runs over anything in its way. Parked planes are solid.</li>
+        <li>Enough gunfire, or a rocket or grenade at its tanks, blows a plane up - a huge blast and a burning wreck.</li>
+        <li>A fence keeps cars off the airfield; the two gates are open. Only a heavy vehicle - truck, bus, fire engine, APC, tank - going fast breaks through.</li>
+        <li>The big parking lot is on the avenue, next to the terminal. Bayside Mall stands in a park that covers its whole peninsula, with a pond.</li></ul></div>
       <div><h3>DAY, NIGHT, WEATHER</h3><ul>
         <li>The clock is under the stars. A whole day lasts 24 minutes (New game: CLOCK).</li>
         <li>Rain makes the roads slippery, storms bring lightning, and fog hides you from the police.</li></ul></div>
@@ -253,6 +260,7 @@
 <script src="js/01h-rampage-data.js"></script>
 <script src="js/01i-economy-data.js"></script>
 <script src="js/01j-mode-data.js"></script>
+<script src="js/01k-airport-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -269,12 +277,14 @@
 <script src="js/08f-rampages.js"></script>
 <script src="js/08g-armed-people.js"></script>
 <script src="js/08h-paramedics.js"></script>
+<script src="js/08i-planes.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
 <script src="js/10c-render-fill.js"></script>
 <script src="js/10d-render-clutter.js"></script>
 <script src="js/10e-render-services.js"></script>
+<script src="js/10f-airport.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/12-render-effects.js"></script>

@@ -8,7 +8,7 @@
    reducer only while you are wanted. None of it is shown on the maps.
    Melee weapons are the most common. They always lie in the same places, never go away, and you do not pick one up while you carry
    that weapon (its bubble is faint then). Guns, bombs and ammo lie in different places every game; one you take comes back somewhere
-   else, out of sight, a minute later. Ammo is taken even before you have its gun, and kept for it. Walking or driving over works.
+   else, out of sight, a minute later. Ammo is taken even before you have its gun, and kept for it. Only on foot (js/01j footPickups).
    Cash still lies on the sidewalks (js/08). */
 let WPICKS = [], WSPOTS = null, wpQ = [];
 const WP_BACK = 60, WP_R = 22, WP_GAP = 160;
@@ -73,11 +73,11 @@ function lowerWanted(n) {                // the heat reducer: n stars less, as i
   P.heat = COP.lv.heat[s]; P.stars = s; P.sinceCrime = 0; toast('WANTED LEVEL ' + s);
 }
 function updateWeaponPicks(dt) {
-  const px = P.car ? P.car.x : P.x, py = P.car ? P.car.y : P.y, reach = P.car ? WP_R + P.car.t.wid / 2 : WP_R;
+  const px = P.car ? P.car.x : P.x, py = P.car ? P.car.y : P.y, reach = P.car ? WP_R + P.car.t.wid / 2 : WP_R, inCar = !!P.car && feat('footPickups');   // on foot only (js/01j)
   for (let k = WPICKS.length - 1; k >= 0; k--) {
     const p = WPICKS[k]; p.bob += dt * 3;
     if (p.drop && gameT > p.until) { WPICKS.splice(k, 1); continue; }   // dropped by the dead (js/08g) and left lying too long
-    if (P.dead || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
+    if (P.dead || inCar || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
     if (RAMP.on && p.wi === RAMP.on.wi) continue;                     // the rampage's own weapon and ammo wait until it is over (js/08f)
     if (p.item) { if (!takeItem(p)) continue; }
     else { const w = WEAPONS[p.wi], i = p.wi, col = w.color;

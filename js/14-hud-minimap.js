@@ -14,6 +14,12 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
   const box = r => { m.beginPath(); solidCorners(r).forEach(([x, y], k) => k ? m.lineTo(x, y) : m.moveTo(x, y)); m.closePath(); m.fill(); };
   m.fillStyle = '#2a2244'; for (const L of LOTS) box({ cx: L.cx, cy: L.cy, lw: L.w, lh: L.d, ca: Math.cos(L.a), sa: Math.sin(L.a) });   // parking lots
   m.fillStyle = '#1e1640'; for (const p of MAP.props) if (p.t === 'runway') { const a = p.a * Math.PI / 180; box({ cx: p.x, cy: p.y, lw: p.w, lh: p.h, ca: Math.cos(a), sa: Math.sin(a) }); }   // runways
+  if (AIRF) {                                                     // the Skyport (js/10f): the airfield, the apron, the runway and taxiways
+    fill(AIRF.field, '#0f4a4a'); fill((MAP.yards || []).filter(y => y.k === 'ap'), '#2a2244');
+    const r = AIRF.runway; m.fillStyle = '#1e1640'; m.fillRect(r.x - r.w / 2, r.y0, r.w, r.y1 - r.y0);
+    m.lineWidth = AIRF.tw; m.lineCap = 'square'; for (const t of AIRF.taxiways) { m.beginPath(); t.forEach(([x, y], k) => k ? m.lineTo(x, y) : m.moveTo(x, y)); m.stroke(); }
+    m.fillStyle = '#e8e6f0'; for (let y = r.y0 + 260; y < r.y1 - 260; y += 200) m.fillRect(r.x - 4, y, 8, 110);   // the centre line
+  }
   m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate) box(r);       // landmarks and props
   m.fillStyle = '#6a2cc9'; for (const r of BLD) box(r);
   for (const s of SVC.hospital) { m.fillStyle = '#f4f4f6'; box(s.r); const k = Math.min(s.r.lw, s.r.lh) * 0.8; m.fillStyle = '#e0364f'; m.fillRect(s.r.cx - k / 2, s.r.cy - k / 6, k, k / 3); m.fillRect(s.r.cx - k / 6, s.r.cy - k / 2, k / 3, k); }   // a red cross
@@ -31,6 +37,7 @@ function drawMini(time) {
     if (c.t.cop && c.driver) { mctx.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; mctx.fillRect(x - 5, y - 5, 10, 10); }
     else { mctx.fillStyle = '#8b90b8'; mctx.fillRect(x - 2, y - 2, 4, 4); }
   }
+  planeIcons(mctx, mxp, myp, sc, (x, y) => x > -20 && y > -20 && x < size + 20 && y < size + 20);   // the planes (js/08i)
   svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
@@ -69,7 +76,7 @@ function drawBigMap(time) {
     g.fillStyle = '#000'; g.fillText(name, x + 2 * pr, y + 2 * pr); g.fillStyle = '#f1ead2'; g.fillText(name, x, y);
   }
   const ph = Math.floor(time * 4) % 2 === 0;
-  svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
+  planeIcons(g, X, Y, k * 1.6, () => true); svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
   g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);

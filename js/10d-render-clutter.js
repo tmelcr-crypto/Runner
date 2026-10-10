@@ -2,10 +2,11 @@
 /* ---------- 7g. BACK ALLEYS, YARDS AND THE REST OF THE OPEN GROUND ----------
    The map leaves an alley behind each row of buildings and a yard wherever a block has room left over. Here they are paved and filled:
    dumpsters, trash bags, crates, pallets, bins, barrels, AC units, puddles, graffiti, lamps over the back doors, washing lines across
-   the narrow alleys. Promenades along the water get palms, benches and lamps; quays get bollards; the apron gets floodlights and carts.
+   the narrow alleys. Promenades along the water get palms, benches and lamps; quays get bollards; the apron gets floodlights and carts;
+   park paths get benches and lamps.
    The clutter is laid out once with a fixed seed (the same every game); dumpsters, crate stacks and AC units are solid. */
 let CLUTTER = [];
-const YARD_COL = { y: '#2b2442', p: '#4a4170', ap: '#393550', q: '#423c5c' }, ALLEY_COL = '#211b30';
+const YARD_COL = { y: '#2b2442', p: '#4a4170', ap: '#393550', q: '#423c5c', pk: '#584c84' }, ALLEY_COL = '#211b30';
 const GRAF = ['#ff2bd6', '#2bf3ff', '#ffe14a', '#3dffa6', '#ff7a3d', '#a259ff'], GSphLo = new THREE.SphereGeometry(1, 6, 4);   // trash bags are lumpy anyway
 const _wallQ = [];
 function wallAt(x, y) {                                           // is there a building wall right here?
@@ -93,8 +94,16 @@ function makeClutter() {
       edgesOf(y, (a, ux, uy, nx, ny, L) => {
         for (let t = 40; t < L - 40; t += 320) { const px = a[0] + ux * t + nx * 20, py = a[1] + uy * t + ny * 20; if (!street(px, py)) out.push({ k: 'flood', x: px, y: py }); }
       });
-      const n = Math.min(10, Math.floor(Math.abs(polyArea(y.o)) / 60000));
+      const n = MAP.airport ? 0 : Math.min(10, Math.floor(Math.abs(polyArea(y.o)) / 60000));   // the Skyport's carts wait between the gates, off the planes' way (js/10f)
       for (let k = 0; k < n; k++) { const p = randomIn(y, (x, yy) => !street(x, yy)); if (p) out.push({ k: 'cart', x: p[0], y: p[1], yaw: Math.random() * TAU }); }
+    } else if (y.k === 'pk') {                                     // park paths: benches and lamps along both edges, now one side, now the other
+      let side = 0;
+      edgesOf(y, (a, ux, uy, nx, ny, L) => {
+        for (let t = 20 + Math.random() * 40; t < L - 20; t += rand(90, 150)) {
+          const px = a[0] + ux * t - nx * 8, py = a[1] + uy * t - ny * 8; if (street(px, py) || inLandmark(px, py) || shoreDist(px, py) < 10) continue;   // just off the path, on the grass
+          if (++side % 3) out.push({ k: 'bench', x: px - nx * 4, y: py - ny * 4, yaw: Math.atan2(uy, ux), nx, ny }); else out.push({ k: 'plamp', x: px, y: py });
+        }
+      });
     }
   }
   return out;
@@ -121,7 +130,7 @@ function wheelie(fb, x, y, yaw) {
 
 /* ground: the yards as flat shapes, the alleys as dark asphalt strips with a gutter down the middle */
 function drawYards() {
-  for (const k of ['y', 'p', 'ap', 'q']) { const ps = (MAP.yards || []).filter(y => y.k === k); if (ps.length) shapeMesh(ps, 0.3, YARD_COL[k]); }
+  for (const k of ['y', 'p', 'ap', 'q', 'pk']) { const ps = (MAP.yards || []).filter(y => y.k === k); if (ps.length) shapeMesh(ps, 0.3, YARD_COL[k]); }
   const T = new Tris(), c = new THREE.Color(ALLEY_COL), g = new THREE.Color('#15111f');
   for (const a of MAP.alleys || []) {
     const ang = a[4] * Math.PI / 180, ca = Math.cos(ang), sa = Math.sin(ang), w = (x, z) => [a[0] + ca * x - sa * z, a[1] + sa * x + ca * z], L = a[2] / 2, W = a[3] / 2;

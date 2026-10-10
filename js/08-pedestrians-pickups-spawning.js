@@ -59,7 +59,7 @@ function walkAreas() {
   for (const [cx, cy, L, w, deg] of MAP.alleys || []) { const a = deg * Math.PI / 180, r = L / 2 + w; WALKA.push({ k: 'alley', cx, cy, ca: Math.cos(a), sa: Math.sin(a), hl: L / 2 - 6, hw: Math.max(4, w / 2 - 14), bb: [cx - r, cy - r, cx + r, cy + r] }); }
   for (const g of MAP.grass) WALKA.push(poly('park', g));
   for (const g of MAP.sand) WALKA.push(poly('beach', g));
-  for (const g of MAP.yards || []) if (g.k === 'p') WALKA.push(poly('promenade', g));
+  for (const g of MAP.yards || []) if (g.k === 'p' || g.k === 'pk') WALKA.push(poly('promenade', g));   // forecourts, promenades and park paths
   return WALKA;
 }
 function inArea(A, x, y) {
@@ -134,7 +134,7 @@ function updatePickups(dt) {
   for (let k = pickups.length - 1; k >= 0; k--) {
     const p = pickups[k]; p.bob += dt * 4;
     if (p.until && gameT > p.until) { pickups.splice(k, 1); continue; }   // a dropped stack left lying too long
-    if (dist(P.x, P.y, p.x, p.y) > 26) continue;
+    if ((P.car && feat('footPickups')) || dist(P.x, P.y, p.x, p.y) > 26) continue;   // on foot only (js/01j)
     if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
     else if (p.type === 'cash') addScore(p.amt || 0, p.x, p.y, 'CASH');
     else {                                                          // ammunition: as much as the weapon table says, up to what you can carry
@@ -200,7 +200,7 @@ function fillLots(initial) {
     if (d > 1500 || (!initial && d < offDist() + Math.hypot(L.w, L.d) / 2)) continue;
     L.filled = true; const cop = L.owner && L.owner.special === 'police';
     for (const p of L.stalls) {
-      if (Math.random() > (cop ? 0.75 : 0.55) || cars.some(c => Math.abs(c.x - p.x) < 40 && Math.abs(c.y - p.y) < 40)) continue;
+      if (Math.random() > (cop ? 0.75 : L.fill || 0.55) || cars.some(c => Math.abs(c.x - p.x) < 40 && Math.abs(c.y - p.y) < 40)) continue;
       const type = cop ? (pickType('chase', t => t.cop && t.chaseFrom <= 1 && t.wid <= STALL_W) || 'police') : pickType('parked', t => t.wid <= STALL_W); if (!type) continue;
       const c = makeCar(type, p.x, p.y, p.ang + rand(-0.04, 0.04), null); c.lot = L; cars.push(c);
     }

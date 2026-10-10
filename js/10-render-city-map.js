@@ -207,10 +207,12 @@ function buildCity() {
     fb.push({ x, y: 12, z: y, sx: 2, sy: 24, sz: 2, c: '#2b2e38' });
   }
   // parks: trees off the roads; beaches: palms, umbrellas and towels
-  const slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, SWO + 8) && groundH(x, y) === 0 && !inLandmark(x, y) && !nearLot(x, y);
+  const paths = (MAP.yards || []).filter(y => y.k === 'pk'), onPath = (x, y) => paths.some(p => inPoly(x, y, p));   // park paths (js/10d) stay clear
+  const slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, SWO + 8) && groundH(x, y) === 0 && !inLandmark(x, y) && !nearLot(x, y) && !onPath(x, y);
+  let parkTrees = 0;                                               // counted apart from the palms along the streets
   for (const p of MAP.grass) {
-    const n = Math.min(70, Math.floor(Math.abs(polyArea(p.o)) / 9000));
-    for (let k = 0; k < n && trunks.length < 1600; k++) {
+    const n = Math.min(150, Math.floor(Math.abs(polyArea(p.o)) / 9000));
+    for (let k = 0; k < n && parkTrees++ < 1600; k++) {
       const pt = randomIn(p, (x, y) => clear(x, y, 14)); if (!pt) continue; const r = rand(9, 15);
       trunks.push({ x: pt[0], y: 6, z: pt[1], sx: 2.2, sy: 12, sz: 2.2, c: '#24143c' });
       crowns.push({ x: pt[0], y: 12 + r * 0.7, z: pt[1], sx: r * 1.1, sy: r * 1.2, sz: r * 1.1, c: pick(['#1f9e7a', '#178a6a', '#23b38a', '#2a7fb8', '#7a35d6']) });
@@ -232,6 +234,7 @@ function buildCity() {
     for (let k = 1; k < hull.length - 1; k++) for (const v of [hull[0], hull[k], hull[k + 1]]) shadowTris.push(v[0], 1.2, v[1]);
   }
   drawYards(); drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools);   // back alleys, yards and what lies about in them
+  drawAirport(fb, fg, fc, poles, heads, pools);                    // the airfield: runway, taxiways, markings, lights, the fence (js/10f)
   chunked(GB, M.instWhite, pads); chunked(GB, M.instWhite, slabs);
   chunked(GSphLo, M.instWhite, fs); chunked(GCirc, M.instBasic, fp);
   chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instWhite, crowns);
