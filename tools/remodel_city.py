@@ -361,6 +361,35 @@ def remodel2(M):
     return M
 
 
+def split_edge_at(M, pt):                                              # the street through pt is cut there into two, meeting at a new node; returns it
+    for k, e in enumerate(M['edges']):
+        P = e['p']
+        for i in range(len(P) - 1):
+            seg = LineString([P[i], P[i + 1]])
+            if seg.distance(Point(pt)) < 1 and Point(pt).distance(Point(P[i])) > 1 and Point(pt).distance(Point(P[i + 1])) > 1:
+                n = node_at(M, pt[0], pt[1]); a = dict(e, b=n, p=P[:i + 1] + [list(pt)]); b = dict(e, a=n, p=[list(pt)] + P[i + 1:])
+                M['edges'][k:k + 1] = [a, b]; return n
+    raise ValueError('no street through %s' % (pt,))
+
+
+def tidy_streets(M):
+    """Three generated streets doubled others: one ran over the Seaview street 20 units off, one alongside the Palm Heights avenue 116
+    off, one alongside the Coral Shore street 62 off - their sidewalks and junk ended up in the middle of a wide road. The first goes;
+    the other two now meet the street they shadowed, and the strips they left become lawn and paving."""
+    same = lambda e, pts: e['p'] == pts
+    M['edges'] = [e for e in M['edges'] if not same(e, [[11383, 3160], [11383, 3140], [12379, 3140], [12379, 3160]])]
+    n1, n2 = split_edge_at(M, (6274, 2871)), split_edge_at(M, (6274, 4210))
+    k = next(i for i, e in enumerate(M['edges']) if same(e, [[8172, 2600], [8172, 2871], [6390, 2871], [6390, 4210], [7908, 4210], [7268, 4850]]))
+    e = M['edges'][k]
+    M['edges'][k:k + 1] = [dict(e, b=n1, p=[[8172, 2600], [8172, 2871], [6274, 2871]]), dict(e, a=n2, p=[[6274, 4210], [7908, 4210], [7268, 4850]])]
+    n3 = split_edge_at(M, (9568, 11960))
+    k = next(i for i, e in enumerate(M['edges']) if same(e, [[9987, 11960], [9925, 12022], [9568, 12022], [9568, 12594]]))
+    e = M['edges'][k]; M['edges'][k] = dict(e, a=n3, p=[[9568, 11960], [9568, 12594]])
+    edge = RH + SW                                                     # what a street covers either side of its centre line
+    M['grass'] += rings(box(6274 + edge, 2871 + edge, 6390 + edge, 4210 - edge))
+    M['yards'] += rings(box(9568 + edge, 11960 + edge, 9925 + 20, 12022 + edge), 'p')
+
+
 # version 3: a small speedway on the Palm Heights beach (the west shore), between the shore and the backs of the beach-front row: a short
 # NASCAR oval (its west straight the front stretch, a grandstand outside it on ground won from the sea, grass in the infield), the paddock
 # between the oval and the shore street (the pits: garages, the race booth, the NASCAR special) and an eighth-mile drag strip along the
@@ -395,6 +424,7 @@ def remodel3(M):
     SAREA = unary_union([strip_area(sand, 14), Point(*sand['booth']).buffer(40), LineString(access).buffer(50)]).intersection(LAND)
     for lm in M['lm']: assert Point(lm['x'], lm['y']).distance(strip_area(sand, 14)) > 150, lm
     gone = clear_ground(M, unary_union([AREA, SAREA]))
+    tidy_streets(M)
     move_services(M, gone, AREA)
     assert AREA.buffer(1).contains(OVAL) and AREA.buffer(1).contains(box(*STANDS)), (OVAL.bounds, AREA.bounds)
     assert LAND.buffer(1).contains(strip_area(sand, 14)), 'the Sandbar strip leaves the land'

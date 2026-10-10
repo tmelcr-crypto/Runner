@@ -173,10 +173,11 @@ function buildCity() {
   for (const s of RAILS) { rails.wall([s.x1, s.y1], [s.x2, s.y2], 0.6, 6, rc); }
   if (RAILS.length) rails.mesh(new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
   // street lights at the kerb, alternating sides
+  const onOtherRoad = (x, y, e) => nearRoads(x, y, ROAD_HALF + 6).some(r => r.e !== e);
   const poles = [], heads = [], pools = [], nearLot = (x, y) => LOTS.some(L => Math.abs(x - L.cx) < L.w / 2 + L.d / 2 && Math.abs(y - L.cy) < L.w / 2 + L.d / 2);
   for (const E of RE) for (let s = SWO + 60; s < E.len - SWO - 60; s += 300) {      // clear of the traffic lights by the crossings
     const sd = Math.round(s / 300) % 2 ? 1 : -1, c = edgeAt(E.i, s, q), off = (ROAD_HALF + 5) * sd, px = c.x - c.ty * off, py = c.y + c.tx * off;
-    if (inLandmark(px, py)) continue;
+    if (inLandmark(px, py) || onOtherRoad(px, py, E.i)) continue;
     const lc = (E.i + Math.round(s / 300)) % 2 ? '#ff2bd6' : '#2bf3ff', ix = c.x - c.ty * off * 0.55, iy = c.y + c.tx * off * 0.55;
     poles.push({ x: px, y: 31, z: py, sx: 1.4, sy: 62, sz: 1.4, c: '#14102a' });
     heads.push({ x: ix * 0.1 + px * 0.9, y: 62, z: iy * 0.1 + py * 0.9, sx: 7, sy: 2.6, sz: 7, c: lc });
@@ -191,7 +192,7 @@ function buildCity() {
     for (let s = SWO + 16 + rand(0, 30); s < E.len - SWO - 16; s += rand(44, 76)) {
       const c = edgeAt(E.i, s, q), rx = -c.ty * sd, ry = c.tx * sd, yaw = -Math.atan2(c.ty, c.tx);
       const kx = c.x + rx * (ROAD_HALF + 5), ky = c.y + ry * (ROAD_HALF + 5), bx = c.x + rx * (SWO - 5), by = c.y + ry * (SWO - 5);
-      if (shoreDist(bx, by) < 24 || inLandmark(bx, by) || nearLot(bx, by)) continue;
+      if (shoreDist(bx, by) < 24 || inLandmark(bx, by) || nearLot(bx, by) || onOtherRoad(bx, by, E.i) || onOtherRoad(kx, ky, E.i)) continue;   // never out on another street
       const pr = PALMY[districtAt(c.x, c.y)] || 0.15, r = Math.random(), mark = partMark(furn); let thr = null;   // thr: [x, y, mass, what a car does to it (js/12e)] of a piece a blast can throw
       if (s > nextStop) {                                        // bus shelter: roof, glass back, two posts, a lit sign
         nextStop = s + rand(700, 1100); const ox = rx * 3, oy = ry * 3;
