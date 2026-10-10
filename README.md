@@ -479,3 +479,11 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats*: yachts and speedboats to steal and drive on the water (a new vehicle type).
    - *Junkyard and car crusher*: stacks of wrecks; drop a car in the crusher for cash.
+6. **Side jobs, world events and activities, agreed with the owner** (each will be asked about in detail first; the vehicle jobs come first):
+   - *Vehicle jobs*: taxi, paramedic, firefighter and vigilante - one mission system (targets, markers, timers, rewards) that STORY mode reuses.
+   - *Street races*: checkpoint races across the city against computer drivers; an entry fee, a prize, best times.
+   - *Robberies and the cash van*: robbers run out of a store to a getaway car; an armoured cash van to ram open for its money bags.
+   - *Fires, crashes and blackouts*: burning buildings with fire engines racing there, pile-ups with tow trucks, storm blackouts with the traffic lights flashing amber.
+   - *Scheduled moments*: a rocket launch at the space center, fireworks over the lunapark, a plane in trouble at the airport.
+   - *Houses to buy*: 10 across the city, each one unique; a garage keeps your cars safe and a wardrobe holds every piece of clothing you bought.
+   - *Stats and a 100% screen*: everything found and done, with a completion percentage.
