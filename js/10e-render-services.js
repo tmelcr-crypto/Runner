@@ -1,11 +1,13 @@
 'use strict';
-/* ---------- 7a5. HOSPITALS & POLICE STATIONS ----------
+/* ---------- 7a5. HOSPITALS, POLICE AND FIRE STATIONS ----------
    Four of each, picked by tools/build_city.py and spread over the city (MAP.services, SVC in js/04). The building itself is a normal
    street building restyled (white for a hospital, blue for a police station); this adds what makes it recognisable from above and
    from the street:
    hospital - a big red cross on a white roof pad, a red cross and a HOSPITAL sign over the entrance, an entrance canopy;
    police station - POLICE written large on the roof, a POLICE sign and two blue lamps at the door, a blue and white checkered band,
-   a flag. Its parking lot holds the patrol cars (js/08). Wasted, you start again at a hospital door; busted, at a police station's. */
+   a flag. Its parking lot holds the patrol cars (js/08). Wasted, you start again at a hospital door; busted, at a police station's.
+   fire station (three, picked in js/08n) - FIRE on the roof, white bay doors under a FIRE STATION sign, a red lamp; its yard holds
+   a fire engine. */
 const SV_RED = mBas(0xe0364f), SV_BLUE = mBas(0x3f6bff);
 function serviceDecor() {
   for (const k of ['hospital', 'police', 'fire']) for (const s of SVC[k] || []) {
