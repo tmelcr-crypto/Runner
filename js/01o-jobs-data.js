@@ -11,7 +11,7 @@ const JOBS_TABLE = /*JOBS-JSON*/{
 "settings": [
   {"id": "firstCount", "group": "All jobs", "name": "Level 1 asks for", "unit": "count", "min": 1, "max": 10, "v": 1, "note": "Fares, patients, burning cars or criminal cars."},
   {"id": "moreCount", "group": "All jobs", "name": "Each level after asks for this many more", "unit": "count", "min": 0, "max": 5, "v": 1, "note": "With 1: level 2 asks for 2, level 3 for 3, and so on."},
-  {"id": "rewardLevel", "group": "All jobs", "name": "The lasting reward comes with level", "unit": "level", "min": 2, "max": 30, "v": 12, "note": "Reached once, the reward stays with the saved game. The rewards are below, with each job."},
+  {"id": "rewardLevel", "group": "All jobs", "name": "The lasting reward comes with level", "unit": "level", "min": 2, "max": 30, "v": 8, "note": "Reached once, the reward stays with the saved game. The rewards are below, with each job."},
   {"id": "levelPay", "group": "All jobs", "name": "A finished level pays this, times the level", "unit": "€", "min": 0, "max": 10000, "v": 100, "note": "Level 3 done: 3 times this. On top of what each fare, patient, fire or criminal pays."},
   {"id": "outMax", "group": "All jobs", "name": "A job ends when you are out of the vehicle for", "unit": "s", "min": 3, "max": 60, "v": 10, "note": "It also ends when the time runs out or the vehicle is wrecked. Police stars do not end it."},
   {"id": "stopSpeed", "group": "All jobs", "name": "Stopped means slower than", "unit": "km/h", "min": 2, "max": 30, "v": 8, "note": "To open the START card in a marker, to pick someone up and to drop them off."},
@@ -51,6 +51,7 @@ const JOBS_TABLE = /*JOBS-JSON*/{
   {"id": "firePay", "group": "Firefighter", "name": "A fire put out pays", "unit": "€", "min": 0, "max": 1000, "v": 60, "note": "Plus the amount below times the level."},
   {"id": "firePayLevel", "group": "Firefighter", "name": "plus, times the level", "unit": "€", "min": 0, "max": 1000, "v": 15, "note": ""},
   {"id": "fireproof", "group": "Firefighter", "name": "Reward, fireproof: blasts still hurt you", "unit": "%", "min": 0, "max": 100, "v": 50, "note": "Of the usual damage. And the car you are in blowing up does not hurt you at all."},
+  {"id": "stationFree", "group": "Vigilante", "name": "A police car in a police station's yard is free to take", "unit": "yes/no", "v": true, "note": "YES: no crime for taking it there, for the job. Stealing one in the street or pulling a cop out stays a crime."},
   {"id": "vigNear", "group": "Vigilante", "name": "A criminal car is at least", "unit": "m", "min": 30, "max": 1000, "v": 150, "note": "From you, by road. It drives on like traffic until you come close, then flees."},
   {"id": "vigFar", "group": "Vigilante", "name": "and at most", "unit": "m", "min": 60, "max": 2000, "v": 500, "note": ""},
   {"id": "vigSpeed", "group": "Vigilante", "name": "The clock gives time as if you drove at", "unit": "km/h", "min": 10, "max": 150, "v": 40, "note": "Over the road distance to each criminal car."},
@@ -67,5 +68,5 @@ const JOBS_TABLE = /*JOBS-JSON*/{
   {"id": "vigArmor", "group": "Vigilante", "name": "Reward: more body armor", "unit": "points", "min": 0, "max": 200, "v": 50, "note": "Body armor goes up to 100 plus this."}
 ]
 }/*END-JOBS-JSON*/;
-/* JB: the same settings in game units: km/h and m become game speeds and distances, % a fraction */
+/* JB: the same settings in game units: km/h and m become game speeds and distances, % a fraction (yes/no stays true or false) */
 const JB = (() => { const o = {}; for (const r of JOBS_TABLE.settings) o[r.id] = r.unit === 'km/h' ? r.v * KMH : r.unit === 'm' ? r.v * UNITS_PER_M : r.unit === '%' ? r.v / 100 : r.v; return o; })();
