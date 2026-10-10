@@ -146,7 +146,7 @@ function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
   const off = (o, d, s) => [o.x + Math.cos(o.yaw) * d - Math.sin(o.yaw) * s, o.y + Math.sin(o.yaw) * d + Math.cos(o.yaw) * s];
   const lists = [[fb, GB, false], [fg, GB, true], [fc, GCyl, false], [fs, GSphLo, false], [crowns, GSph, false]];
   const MASS = { dump: 2.4, bags: 0.5, boxes: 0.4, crates: 1.1, pallet: 0.8, bins: 0.7, barrel: 1, ac: 1.2, bench: 1, planter: 1.8, cart: 1.4 };   // what a blast can throw, and how heavy
-  const SMASHK = o => ({ bags: 'bag', boxes: 'box', crates: o.n === 1 ? 'crate' : null, pallet: 'pallet', bins: 'bin', barrel: 'bin' })[o.k] || null;   // what a car does to it (js/12e)
+  const SMASHK = o => ({ bags: 'bag', boxes: 'box', crates: o.n === 1 ? 'crate' : null, pallet: 'pallet', bins: 'bin', barrel: 'bin', bench: 'bench', planter: 'planter' })[o.k] || null;   // what a car does to it (js/12e)
   for (const o of CLUTTER) {
     const ry = -(o.yaw || 0), mark = MASS[o.k] ? partMark(lists) : null;
     if (o.k === 'dump') { fb.push({ x: o.x, y: 7, z: o.y, sx: 26, sy: 14, sz: 14, ry, c: o.c }); fb.push({ x: o.x, y: 14.7, z: o.y, sx: 26.8, sy: 1.4, sz: 14.8, ry, c: shade(o.c, -30) }); }
