@@ -104,9 +104,9 @@ function shopRows(s) {                   // what this store sells, as rows: weap
   for (const id of s.sells) {
     const it = ITEM[id];
     if (it) {
-      const have = id === 'health' ? P.hp : P.armor, full = have >= it.max;
-      rows.push({ icon: ITEM_ICON[id], col: it.color, name: it.name + ' +' + it.amount, info: 'YOU HAVE ' + Math.round(have) + ' / ' + it.max, price: it.price, why: full ? 'FULL' : '',
-        buy: () => { if (id === 'health') P.hp = Math.min(it.max, P.hp + it.amount); else P.armor = Math.min(it.max, P.armor + it.amount); } });
+      const have = id === 'health' ? P.hp : P.armor, top = id === 'health' ? it.max + hpMax() - 100 : armorMax(), full = have >= top;   // the job rewards raise the top (js/08n)
+      rows.push({ icon: ITEM_ICON[id], col: it.color, name: it.name + ' +' + it.amount, info: 'YOU HAVE ' + Math.round(have) + ' / ' + top, price: it.price, why: full ? 'FULL' : '',
+        buy: () => { if (id === 'health') P.hp = Math.min(top, P.hp + it.amount); else P.armor = Math.min(top, P.armor + it.amount); } });
       continue;
     }
     const i = WEAPONS.findIndex(w => w.id === id), w = WEAPONS[i]; if (!w || w.price == null) continue;

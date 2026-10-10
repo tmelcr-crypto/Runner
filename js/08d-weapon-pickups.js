@@ -76,8 +76,8 @@ function putPick(s, wi, ammo, fixed, item) {
 }
 function takeItem(p) {                   // health, armor or a heat reducer: false while you do not need it (it stays)
   const it = ITEM[p.item];
-  if (p.item === 'health') { if (P.hp >= it.max) return false; P.hp = Math.min(it.max, P.hp + it.amount); popup(p.x, p.y - 12, '+' + it.amount + ' HEALTH', '#ff6b86'); }
-  else if (p.item === 'armor') { if (P.armor >= it.max) return false; P.armor = Math.min(it.max, P.armor + it.amount); popup(p.x, p.y - 12, '+' + it.amount + ' ARMOR', it.color); }
+  if (p.item === 'health') { const mx = it.max + hpMax() - 100; if (P.hp >= mx) return false; P.hp = Math.min(mx, P.hp + it.amount); popup(p.x, p.y - 12, '+' + it.amount + ' HEALTH', '#ff6b86'); }   // the paramedic's reward raises the top (js/08n)
+  else if (p.item === 'armor') { const mx = armorMax(); if (P.armor >= mx) return false; P.armor = Math.min(mx, P.armor + it.amount); popup(p.x, p.y - 12, '+' + it.amount + ' ARMOR', it.color); }
   else if (p.item === 'bribe') { if (P.stars <= 0) return false; lowerWanted(it.amount); popup(p.x, p.y - 12, '-' + it.amount + ' STAR', '#ffe14a'); }
   return true;
 }

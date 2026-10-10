@@ -15,7 +15,8 @@ function stepCar(c, dt) {
   c.slip = Math.abs(vl);
   if (c.thr !== 0) {
     const braking = c.thr * vf < 0;
-    const a = braking ? t.brake * H.brake * (0.55 + 0.45 * SKY.grip) : t.acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? t.max : Math.min(t.max * 0.45, 35 * KMH))));
+    const nb = c.nitroT > 0, top = nb ? t.max * (1 + JB.nitroTop) : t.max, acc = nb ? t.acc * (1 + JB.nitroPush) : t.acc;   // nitro (js/08n)
+    const a = braking ? t.brake * H.brake * (0.55 + 0.45 * SKY.grip) : acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? top : Math.min(t.max * 0.45, 35 * KMH))));
     vf += c.thr * a * dt;
   }
   vf *= Math.exp(-(c.thr === 0 ? (c.driver ? H.coast : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little
@@ -144,7 +145,7 @@ function routeEdge(c) {                      // a vehicle on a call (js/08c): at
   }
   return best || { e: c.e, fw: -c.fw };
 }
-const nextFor = c => c.task ? routeEdge(c) : nextEdge(c.e, c.fw);
+const nextFor = c => c.task ? routeEdge(c) : c.crim && c.crim.flee ? fleeEdge(c) : nextEdge(c.e, c.fw);   // criminals fleeing you take the street away from you (js/08n)
 function laneAhead(c, ahead, out) {          // point on the car's lane `ahead` units further on, running into the next edge if needed
   const E = RE[c.e], s = c.s + ahead;
   if (s <= E.len) return lanePoint(c.e, c.fw, s, c.lo || LANE, out);
@@ -206,14 +207,15 @@ function aiDrive(c, dt) {
   const near = laneAhead(c, (40 + Math.max(0, vf) * 0.3) * (1 - 0.45 * Math.min(1, dfar / 1.2)), _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));   // aim closer in a bend, so the corner is not cut into the other lane
   c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
   if (!c.cruise) c.cruise = Math.min(c.t.max * 0.9, rand(40, 55) * KMH);   // town traffic: 40-55 km/h
-  let tgt = (c.task ? Math.min(c.t.max * 0.9, 65 * KMH) : c.cruise) * (1 - SKYP.aiSlow * SKY.wet) * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
+  const flee = !!(c.crim && c.crim.flee);                           // a criminal on the run (js/08n): fast, through red lights, over people
+  let tgt = (c.task ? Math.min(c.t.max * 0.9, 65 * KMH) : flee ? Math.min(c.t.max * 0.95, JB.vigFlee) : c.cruise) * (1 - SKYP.aiSlow * SKY.wet) * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
   const stop = vf > 0 ? vf * vf / (2 * c.t.brake * (0.55 + 0.45 * SKY.grip)) : 0, reach = 70 + stop * 1.6 + Math.max(0, vf) * 0.4;   // look far enough ahead to stop in time
   const look = (ox, oy, lw, back) => { const rx = ox - c.x, ry = oy - c.y, ah = rx * fx + ry * fy, al = ah - F - (back || 0), lat = Math.abs(-rx * fy + ry * fx); if (ah > 18 && al < reach && lat < lw && al < block) block = al; };
   const R = reach + 30 + F;
   for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R + o.t.len / 2 && Math.abs(o.y - c.y) < R + o.t.len / 2) look(o.x, o.y, sir && o.pullT > gameT ? 14 : 24, Math.max(0, o.t.len / 2 - 27) + 14);   // a bus ahead ends further back; stop a little short of its bumper   // cars in the parking lane (33 to the side) are not in the way
-  if (!P.car) look(P.x, P.y, 24);
-  for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < R && Math.abs(p.y - c.y) < R) look(p.x, p.y, 20);
-  block = Math.min(block, roadRules(c, vf, stop, F)); tgt = Math.min(tgt, _tr.cap);   // traffic lights, giving way, people crossing (js/07b)
+  if (!P.car && !flee) look(P.x, P.y, 24);
+  if (!flee) for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < R && Math.abs(p.y - c.y) < R) look(p.x, p.y, 20);
+  if (!flee) { block = Math.min(block, roadRules(c, vf, stop, F)); tgt = Math.min(tgt, _tr.cap); }   // traffic lights, giving way, people crossing (js/07b)
   if (pulled) tgt = Math.min(tgt, Math.max(c.cruise * STR.pullSlow, _tr.cap < 1e9 ? 12 * KMH : 0));   // slow down for the siren (rolling over a red light: at a crawl)
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = 0; return; }
   if (block < 48 + stop) { c.thr = vf > 8 ? -1 : 0; if (vf <= 8) { const k = Math.exp(-6 * dt); c.vx *= k; c.vy *= k; } }   // too close to stop gently: full brake, and hold it once stopped

@@ -58,7 +58,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -69,6 +69,7 @@ function back() {
   else if (id === 'shopCard') closeShop();
   else if (id === 'clothesCard') closeClothes();
   else if (id === 'rampCard') closeRamp();
+  else if (id === 'jobCard') closeJob();
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
 function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim'); document.documentElement.classList.remove('menus'); }
@@ -143,6 +144,7 @@ function putSave(s, d) { try { localStorage.setItem(SAVE_KEY + s, JSON.stringify
 function latestSave() { let b = null; for (const s of SLOTS) { const d = getSave(s); if (d && (!b || d.t > b.t)) b = d; } return b; }
 function saveBlock() {                               // why you cannot save now ('' = you can)
   if (RAMP.on) return 'FINISH THE RAMPAGE FIRST';
+  if (JOB.on) return 'FINISH THE JOB FIRST';
   if (P.stars > 0) return 'LOSE THE POLICE FIRST';
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
@@ -155,7 +157,7 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe] },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(),
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -171,7 +173,8 @@ function saveSpot(sv) {                              // where a saved game puts 
 }
 function applySave(sv) {                             // called by resetGame (js/15) once the city is set up again
   const p = sv.P, n = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? clamp(v, lo, hi) : d;
-  P.hp = n(p.hp, 1, 100, 100); P.armor = n(p.armor, 0, 100, 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
+  jobLoad(sv.jobs);                                                 // job levels and rewards first: they raise the top of health and armor (js/08n)
+  P.hp = n(p.hp, 1, hpMax(), 100); P.armor = n(p.armor, 0, armorMax(), 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
   if (Array.isArray(p.wardrobe)) for (const id of p.wardrobe) if (CLOTH[id] && !P.wardrobe.includes(id)) P.wardrobe.push(id);   // clothes by id (js/01n); unknown ones are dropped
   if (p.outfit && typeof p.outfit === 'object') for (const sl of CL_SLOTS) { const id = p.outfit[sl]; if (id === null && (sl === 'hat' || sl === 'glasses')) P.outfit[sl] = null; else if (CLOTH[id] && CLOTH[id].slot === sl && P.wardrobe.includes(id)) P.outfit[sl] = id; }
   const wi = typeof p.weapon === 'string' ? WEAPONS.findIndex(w => w.id === p.weapon) : Math.round(n(p.weapon, 0, WEAPONS.length - 1, 0));

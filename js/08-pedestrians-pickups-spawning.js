@@ -137,7 +137,7 @@ function updatePickups(dt) {
     const p = pickups[k]; p.bob += dt * 4;
     if (p.until && gameT > p.until) { pickups.splice(k, 1); continue; }   // a dropped stack left lying too long
     if ((P.car && feat('footPickups')) || dist(P.x, P.y, p.x, p.y) > 26) continue;   // on foot only (js/01j)
-    if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
+    if (p.type === 'health') { if (P.hp >= hpMax()) continue; P.hp = Math.min(hpMax(), P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
     else if (p.type === 'cash') addScore(p.amt || 0, p.x, p.y, 'CASH');
     else {                                                          // ammunition: as much as the weapon table says, up to what you can carry
       const wi = WEAPONS.findIndex(w => w.id === p.type), w = WEAPONS[wi]; if (!w) { pickups.splice(k, 1); continue; }
@@ -177,7 +177,7 @@ function laneSpot(minD, maxD, kerb, type) {   // a point on a lane (kerb: a car 
     const fw = Math.random() < 0.5 ? 1 : -1, s = fw > 0 ? r.s : E.len - r.s, q = lanePoint(r.e, fw, s, kerb ? PARK_OFF : LANE, {});
     const d = dist(q.x, q.y, P.x, P.y); if (d < minD || d > maxD) continue;
     if (shoreDist(q.x, q.y) < (kerb ? 60 : 20) || cars.some(c => dist(c.x, c.y, q.x, q.y) < (kerb ? 36 : 60) + half + c.t.len / 2)) continue;
-    if (kerb && !kerbFits(q.x, q.y, Math.atan2(q.ty, q.tx), kerb)) continue;
+    if (kerb && (!kerbFits(q.x, q.y, Math.atan2(q.ty, q.tx), kerb) || DISPATCH.some(d => Math.abs(d.x - q.x) < 260 && Math.abs(d.y - q.y) < 260 && dist(d.x, d.y, q.x, q.y) < (d.rank ? 200 : 90)))) continue;   // the taxi ranks and the job markers stay clear (js/08n)
     return { x: q.x, y: q.y, ang: Math.atan2(q.ty, q.tx), e: r.e, fw, s };
   }
   return null;
@@ -206,6 +206,7 @@ function fillLots(initial) {
       const type = cop ? (pickType('chase', t => t.cop && t.chaseFrom <= 1 && t.wid <= STALL_W) || 'police') : pickType('parked', t => t.wid <= STALL_W); if (!type) continue;
       const c = makeCar(type, p.x, p.y, p.ang + rand(-0.04, 0.04), null); c.lot = L; cars.push(c);
     }
+    jobLotCars(L);                                                 // a fire station's engine, a hospital's ambulance (js/08n)
   }
 }
 function spawnCop() {                         // a police vehicle sent from further away (js/08b decides when): by chase weight, among those allowed at this level
@@ -217,7 +218,7 @@ let spawnT = 0;
 function manageSpawns(dt) {
   spawnT -= dt;
   for (let k = cars.length - 1; k >= 0; k--) { const c = cars[k]; if (P.car !== c && ((!c.keep && dist(c.x, c.y, P.x, P.y) > 2200) || (c.dead && c.deadT > 30) || (c.sunk && c.sinkT > 4))) cars.splice(k, 1); }
-  for (let k = peds.length - 1; k >= 0; k--) { const p = peds[k]; if ((p.dead && p.deadT > bodyTime(p)) || dist(p.x, p.y, P.x, P.y) > 1500) peds.splice(k, 1); }
+  for (let k = peds.length - 1; k >= 0; k--) { const p = peds[k]; if ((p.dead && p.deadT > bodyTime(p)) || (!p.keep && dist(p.x, p.y, P.x, P.y) > 1500)) peds.splice(k, 1); }   // keep: a fare, a patient, a criminal (js/08n)
   if (spawnT <= 0) {
     spawnT = 0.3; let traffic = 0, parked = 0, live = 0;
     for (const c of cars) { if (c.driver === 'ai') traffic++; else if (!c.driver && !c.dead && !c.lot && !c.keep) parked++; }   // kerb parking only

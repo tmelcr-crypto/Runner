@@ -132,11 +132,29 @@ python3 tools/settings_sheet.py police import police.numbers [--dry-run]
 
 Both have a sheet per kind of setting - Wanted levels (one column per star), Settings, Crimes - and a How to fill sheet. Yellow cells are the values and YES / NO cells are pop-up menus. The Excel workbook also has grey Check cells that say OK or what is wrong; a Numbers file is written without formulas. The import checks every value against its allowed range, lists what changed and only then rewrites the table.
 
+## Vehicle jobs
+
+Four jobs, each in its own vehicle and started at its own **dispatch point**. The point's marker - a ring, a beam of light and the job's name - shows only while you sit in the right vehicle; stop in it and the START card opens (the job's level 1, your best level, the level bonus, the reward; *ENTER* starts it).
+
+| Job | Vehicle | Dispatch point | What you do | Reward at level 12 |
+|---|---|---|---|---|
+| **Taxi** | a taxi | a taxi rank | the rank sends you to a fare waiting at the kerb; stop by them, they get in and say where to; stop at the destination's marker. Paid by the distance, plus a tip for the time left (each crash with a fare aboard costs some of it) | **nitro** in taxis: Shift or N (the NITRO button on a touch screen) - more pull and top speed for 3 s, ready again 10 s later |
+| **Paramedic** | an ambulance | a hospital | all the level's patients lie about the city at once; stop by one to take them aboard, up to 3, then stop at any hospital's marker. A crash with patients aboard costs 3 s; a patient who dies ends the job | **+50 max health** (150) |
+| **Firefighter** | a fire engine | a fire station | cars burn about the city, up to 3 at a time; spray each with the water cannon (FIRE) until it is out (1.5 s). When the time runs out they blow up | **fireproof**: blasts hurt you half as much, and the car you are in blowing up does not hurt you |
+| **Vigilante** | a police car | a police station | criminals drive about like traffic until you come within 60 m, then flee at up to 100 km/h through red lights, always away from you. Wreck their car - or once it is down to 35% they get out and run: take them down. From level 5 they shoot back (from the car and on foot), from level 8 two cars at once. 400 m away and they got away. Killing them is no crime | **+50 max body armor** (150) |
+
+- **Levels**: level 1 asks for one fare, patient, fire or criminal car, each level after for one more. Each one adds time to the clock - the road distance as if you drove it at 35-40 km/h, plus a few seconds - and pays when done; a finished level pays €100 times the level, and the next level begins at once.
+- **The job ends** when the time runs out, the vehicle is wrecked or you are out of it for 10 s (another vehicle of the same kind will do). Police stars do not end it. Your best level is kept, and the reward once you reach level 12 - both are saved with the game. While a job runs: the level, the count and the clock at the top; a ring, a beam and an arrow on what to do, and a dot on the minimap (an arrow at its edge when it is off it) and on the city map.
+- **Taxi ranks**: four, on long streets well spread over the city - yellow kerb paint, a lit TAXI sign and two cabs waiting. **Fire stations**: three red buildings with bay doors, FIRE STATION over them and FIRE on the roof, their engine in the yard. Both are on the minimap and the city map (a yellow cab sign, a flame on red). A hospital's yard keeps an ambulance; a police station's yard has its patrol cars. A vehicle taken from there is back once you have been away.
+- **The taxi** is a new vehicle: a yellow cab with a lit roof box and a checker band; a few drive in traffic.
+- Every number is in `js/01o-jobs-data.js` (`tools/settings_sheet.py jobs`; the pay is also in the economy sheet). Modes: `taxiJob`, `medicJob`, `fireJob`, `vigilanteJob` - both modes.
+
 ## Vehicles
 
 | Vehicle | Length | Top speed | Notes |
 |---|---|---|---|
 | Sedan, estate | 4.5 m, 5.5 m | 180 km/h | the everyday cars; the estate has a long roof and roof rails |
+| Taxi | 4.6 m | 175 km/h | yellow cab with a lit roof box and a checker band; waits at the taxi ranks; the taxi job |
 | Sports | 3.2 m | 260 km/h | fast, slides easily |
 | Pickup | 6.5 m | 150 km/h | open bed; 2.4 m wide, so it parks only in parking lots |
 | Limo | 10 m | 144 km/h | long and low |
@@ -412,6 +430,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01l-places-data.js` | the airport gates, the military base, the port, the lunapark and the space center in everyday units (`tools/settings_sheet.py places`), converted to `PLC` |
 | `js/01m-streets-data.js` | traffic lights, drivers, pedestrians, sirens and the heat reducers on the road and in the alleys, in everyday units (`tools/settings_sheet.py streets`), converted to `STR` |
 | `js/01n-clothes-data.js` | the ten clothes shops, every piece of clothing (slot, style, colours, price) and the clothes' police settings (`tools/clothes_sheet.py`) |
+| `js/01o-jobs-data.js` | the vehicle jobs: dispatch points, levels, the clock, pay, rewards, nitro (`tools/settings_sheet.py jobs`) |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
@@ -423,6 +442,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/07b-traffic-lights.js` | traffic lights: the junctions, light groups and timing, the rules for drivers (stop line, amber, giving way, people crossing), sirens and pulling over, people round the corners and over the crossings, the signal heads |
 | `js/08l-clothes-shops.js` | the clothes shops: placement, door markers, the shop screen with the turning figure, trying on, buying, the wardrobe, losing the police |
 | `js/08m-car-delivery.js` | car delivery at the docks: the wanted car, the board, the export bay, the crane loading it on the car carrier, the pay |
+| `js/08n-vehicle-jobs.js` | the vehicle jobs: taxi ranks, fire stations, dispatch markers and the START card, levels, the clock, fares, patients, fires, criminals, rewards, nitro, the job's markers and map dots |
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
 | `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
 | `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
@@ -479,8 +499,7 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats*: yachts and speedboats to steal and drive on the water (a new vehicle type).
    - *Junkyard and car crusher*: stacks of wrecks; drop a car in the crusher for cash.
-6. **Side jobs, world events and activities, agreed with the owner** (each will be asked about in detail first; the vehicle jobs come first):
-   - *Vehicle jobs*: taxi, paramedic, firefighter and vigilante - one mission system (targets, markers, timers, rewards) that STORY mode reuses.
+6. **Side jobs, world events and activities, agreed with the owner** (each will be asked about in detail first; the vehicle jobs are built - see Vehicle jobs):
    - *Street races*: checkpoint races across the city against computer drivers; an entry fee, a prize, best times.
    - *Robberies and the cash van*: robbers run out of a store to a getaway car; an armoured cash van to ram open for its money bags.
    - *Fires, crashes and blackouts*: burning buildings with fire engines racing there, pile-ups with tow trucks, storm blackouts with the traffic lights flashing amber.

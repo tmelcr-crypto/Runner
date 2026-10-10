@@ -104,7 +104,7 @@ function waterCannon(c, inp, dt) {
   for (const o of cars) {
     if (o === c || o.sunk || inJet(o.x, o.y) < 0) continue;
     const k = STR.waterCarPush * dt / Math.max(0.3, o.t.mass); o.vx += ux * k; o.vy += uy * k;
-    if (o.burn > 0) { o.burn = 0; o.dead = true; o.deadT = 0; o.driver = null; }   // put out before it blows: a wreck
+    if (o.burn > 0 && !(o.jobFire && (o.wetT = (o.wetT || 0) + dt) < JB.fireSpray)) { o.burn = 0; o.dead = true; o.deadT = 0; o.driver = null; }   // put out before it blows: a wreck (a fire of the firefighter job takes a little spraying, js/08n)
     if (o.dead) o.doused = true;
   }
   if (hitPeople && (c.jetT = (c.jetT || 0) - dt) <= 0) {             // like a punch, every half second someone is in the jet
