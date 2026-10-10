@@ -520,7 +520,7 @@ function raceFinish(Ro) {
     rows.push(['TOP SPEED', Math.round(Ro.top / KMH) + ' KM/H']);
   }
   rows.push(['CRASHES', String(Ro.crash)], ['PRIZE', prize > 0 ? money(prize) : 'NONE']);
-  Ro.phase = 'done'; Ro.chute = Ro.kind === 'drag';
+  Ro.phase = 'done'; Ro.place = place; Ro.chute = Ro.kind === 'drag';
   showRaceRes(place === 1 ? (Ro.kind === 'drag' ? 'YOU WIN!' : '1ST PLACE!') : Ro.kind === 'drag' ? 'YOU LOSE' : ordinal(place) + ' PLACE', Ro.name, rows, record);
   if (place === 1) { Snd.tone(523, 1047, 0.18, 0.15, 'square'); setTimeout(() => Snd.tone(784, 1568, 0.3, 0.15, 'square'), 160); } else Snd.tone(440, 330, 0.3, 0.12, 'square');
 }
@@ -569,7 +569,7 @@ function raceHudUpdate() {               // js/14
   let a = Ro.kind === 'street' ? 'STREET RACE' : Ro.kind === 'nascar' ? 'NASCAR' : 'DRAG', b = '', cc = '', d = '';
   if (Ro.phase === 'toStart') { b = 'TO THE START'; d = rampTimeText(Ro.t); }
   else {
-    const n = Ro.rivals.length + 1, pos = Ro.phase === 'run' ? racePlace(Ro) : Ro.kind === 'nascar' ? Math.min(3, n) : 1;
+    const n = Ro.rivals.length + 1, pos = Ro.phase === 'run' ? racePlace(Ro) : Ro.phase === 'done' ? Ro.place : Ro.kind === 'nascar' ? Math.min(3, n) : 1;   // on the grid: where you start
     b = 'POS ' + pos + '/' + n;
     cc = Ro.kind === 'street' ? 'CP ' + Math.min(Ro.cp + 1, Ro.cps.length) + '/' + Ro.cps.length : Ro.kind === 'nascar' ? 'LAP ' + clamp(Ro.lap + 1, 1, Ro.laps) + '/' + Ro.laps : '';
     d = Ro.kind === 'drag' ? Ro.T.toFixed(2) : raceTime(Ro.T).slice(0, -1);
