@@ -506,3 +506,4 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
    - *Scheduled moments*: a rocket launch at the space center, fireworks over the lunapark, a plane in trouble at the airport.
    - *Houses to buy*: 10 across the city, each one unique; a garage keeps your cars safe and a wardrobe holds every piece of clothing you bought.
    - *Stats and a 100% screen*: everything found and done, with a completion percentage.
+7. **Building interiors, later** (agreed with the owner; each kind will be asked about in detail first): two kinds - in the current top-down view for storages, hangars, warehouses and the like; and a 2D side-on view (like a platform game) with hallways and elevators up to the higher floors.

@@ -22,3 +22,4 @@
 
 ## Reminders for the owner
 - When work on STORY mode starts, bring up the open items in `docs/STORY.md` before building anything (first: the space center's entry - with permission or in certain clothes).
+- Building interiors are planned for later, in two kinds: (1) in the current top-down view, for storages, hangars, warehouses and the like; (2) a 2D side-on view (like Mario) with hallways and elevators up to the higher floors. Remind the owner of this before building anything you go inside (first: the houses to buy), when STORY mode starts, and whenever the owner asks what is next.
