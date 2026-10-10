@@ -43,6 +43,7 @@ function resetGame(sv) {                     // a new game with the options in O
   if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
   spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
   if (sv) applySave(sv);                                        // score, weapons, health, the clock and the weather (js/15b)
+  resetDelivery(sv ? sv.dlv || {} : null);                         // the car wanted at the docks (js/08m)
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
 function startGame(sv) {                     // sv: a saved game to carry on (js/15b), otherwise a new game with OPT
@@ -111,7 +112,7 @@ function update(dt, idle) {
   if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
   updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
-  placesTick(dt); shipsTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
+  placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {

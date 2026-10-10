@@ -65,7 +65,7 @@ function collideCars() {
   for (let a = 0; a < cars.length; a++) {
     const A = cars[a];
     for (let b = a + 1; b < cars.length; b++) {
-      const Bc = cars[b];
+      const Bc = cars[b]; if (A.hook || Bc.hook) continue;
       const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach) continue;
       let hit = false, nx = 0, ny = 0, pen = 0;
       for (const p of carCircles(A)) for (const q of carCircles(Bc)) {
@@ -233,6 +233,7 @@ function updateCars(dt) {
   trafficTick();                                                   // sirens about, people on the crossings (js/07b)
   if (gameT > copFieldT && cars.some(c => c.driver === 'cop')) { copFieldT = gameT + 0.5; copTarget = roadFieldTo(PS.lx, PS.ly); }   // police drive to what they know (js/08b)
   for (const c of cars) {
+    if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);

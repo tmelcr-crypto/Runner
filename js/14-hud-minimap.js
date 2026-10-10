@@ -138,6 +138,7 @@ function updateHud(time) {
     H.car = c; $('radioBtn').hidden = !inCar; document.documentElement.classList.toggle('in-car', inCar); $('bDash').innerHTML = inCar ? 'BRAKE' : 'DASH';
     if (inCar) { $('shifter').dataset.k = c.t.shifter; const n = $('carName'); n.textContent = c.t.name; n.className = ''; void n.offsetWidth; n.className = 'show'; }
   }
+  { const dh = deliveryHint(); if (dh && !P.act && !(PS.stopOn && P.stars > 0)) hint = dh; }   // at the export bay (js/08m) its word comes first
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && !c.t.weapon && !drop && !canDriveBy(); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;

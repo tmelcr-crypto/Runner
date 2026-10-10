@@ -155,7 +155,7 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe] },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] },
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)

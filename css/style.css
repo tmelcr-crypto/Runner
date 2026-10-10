@@ -439,3 +439,4 @@ button.clRow.on{border-color:var(--cyan)}
 #clMsg{min-height:1.7em;margin:0 0 10px}
 #clMsg.ok{color:var(--good);text-shadow:0 0 8px rgba(61,255,166,.6)}
 @media (max-width:640px){ #clBody{flex-direction:column;align-items:center} #clFig{width:150px;height:196px} #clSide{width:100%} #clList{max-height:36vh} }
+@media (max-width:520px){ #toast{white-space:normal;width:92vw;font-size:11px;line-height:1.6} }   /* long messages wrap on a phone */
