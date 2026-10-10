@@ -365,28 +365,46 @@ def remodel2(M):
 # NASCAR oval (its west straight the front stretch, a grandstand outside it on ground won from the sea, grass in the infield), the paddock
 # between the oval and the shore street (the pits: garages, the race booth, the NASCAR special) and an eighth-mile drag strip along the
 # beach's east edge, its staging lanes at the south end by the street, the run going north, the braking stretch ending at the beach's north
-# tip. The beach north of the oval stays open (reached round the strip's north end).
+# tip. The beach north of the oval stays open (reached round the strip's north end). And a long drag strip down the Sandbar (the east
+# beach): 600 m timed, for top speed runs and races, its staging lanes at the north end, reached by a lane from the avenue's north corner.
+# Each strip has its own race booth by its staging lanes.
+def strip_at(sx, sy, ang, run, end, wall, booth, name, sid):     # a drag strip: the staging line's centre, the way it runs (degrees), distances along it
+    a = math.radians(ang); ux, uy = math.cos(a), math.sin(a); nx, ny = -uy, ux
+    at = lambda d, o: [round(sx + ux * d + nx * o), round(sy + uy * d + ny * o)]
+    return {'id': sid, 'name': name, 'sx': sx, 'sy': sy, 'ang': ang, 'hw': 67, 'lanes': [-33, 33], 'apron': -90, 'finish': run, 'end': end, 'wall': wall,
+            'booth': at(booth[0], booth[1])}, at
+def strip_area(st, pad):                                             # the ground a strip covers, as a polygon
+    a = math.radians(st['ang']); ux, uy = math.cos(a), math.sin(a); nx, ny = -uy, ux; w = st['hw'] + pad
+    pt = lambda d, o: (st['sx'] + ux * d + nx * o, st['sy'] + uy * d + ny * o)
+    return Polygon([pt(st['apron'] - pad, -w), pt(st['wall'] + 20, -w), pt(st['wall'] + 20, w), pt(st['apron'] - pad, w)])
 def remodel3(M):
     cx, cy, S, R, w = 4635, 4400, 700, 150, 90                         # the oval: centre, straight length, centre-line radius, track width (long axis north-south)
     yn, ys = cy - S / 2, cy + S / 2                                     # where the straights end
-    strip = {'x0': 4870, 'x1': 5004, 'lanes': [4904, 4970], 'dir': -1, 'apron': 5728, 'stage': 5640, 'finish': 5640 - 2414, 'end': 2640, 'wall': 2590}
+    palm, _ = strip_at(4937, 5640, -90, 2414, 3000, 3050, (-40, 112), 'PALM STRIP', 'palm')   # an eighth of a mile (201 m)
     OVAL = LineString([(cx, yn), (cx, ys)]).buffer(R + w / 2 + 12)      # the track and its walls
     STANDS = [cx - R - w / 2 - 175, cy - 250, cx - R - w / 2 - 40, cy + 250]   # the grandstand outside the front stretch (rising to the west)
-    PADDOCK = box(4560, ys + R + 20, strip['x0'] - 10, 5735)
-    WON = unary_union([rbox(4180, yn - R - 70, 4880, ys + R + 120, 150), PADDOCK, box(strip['x0'] - 16, strip['wall'] - 20, strip['x1'] + 12, 5735)])   # ground won from the sea
+    PADDOCK = box(4560, ys + R + 20, 4860, 5735)
+    PSTRIP = strip_area(palm, 14)
+    WON = unary_union([rbox(4180, yn - R - 70, 4880, ys + R + 120, 150), PADDOCK, PSTRIP.buffer(6, join_style=2)])   # ground won from the sea
     edit_land(M, (4900, 4400), lambda g: g.union(WON))
     LAND = unary_union([poly(p) for p in M['land']])
-    STRIP = box(strip['x0'] - 14, strip['wall'] - 16, strip['x1'] + 10, 5735)
-    AREA = unary_union([rbox(4180, yn - R - 70, strip['x0'] - 10, ys + R + 120, 150).intersection(LAND), PADDOCK, STRIP]).intersection(LAND)
-    gone = clear_ground(M, AREA)
+    AREA = unary_union([rbox(4180, yn - R - 70, 4860, ys + R + 120, 150).intersection(LAND), PADDOCK, PSTRIP, Point(*palm['booth']).buffer(40)]).intersection(LAND)
+    # the Sandbar strip: from the beach's north end, south down the middle, clear of the Sail and the Bay Wheel
+    sand, at = strip_at(13173, 2100, 87.5, 7200, 9100, 9150, (-40, 130), 'SANDBAR STRIP', 'sand')   # 600 m timed
+    access = [[12400, 3060], [12880, 2560], at(-120, 0)]                # the lane from the avenue's north corner (clear of the corner building)
+    SAREA = unary_union([strip_area(sand, 14), Point(*sand['booth']).buffer(40), LineString(access).buffer(50)]).intersection(LAND)
+    for lm in M['lm']: assert Point(lm['x'], lm['y']).distance(strip_area(sand, 14)) > 150, lm
+    gone = clear_ground(M, unary_union([AREA, SAREA]))
     move_services(M, gone, AREA)
     assert AREA.buffer(1).contains(OVAL) and AREA.buffer(1).contains(box(*STANDS)), (OVAL.bounds, AREA.bounds)
+    assert LAND.buffer(1).contains(strip_area(sand, 14)), 'the Sandbar strip leaves the land'
     inner = LineString([(cx, yn), (cx, ys)]).buffer(R - w / 2 - 8)
     garages = [4572, ys + R + 70, 4632, ys + R + 330]                 # the pit garages along the paddock's west side
     M['grass'] += rings(inner)
-    M['yards'] += rings(AREA.difference(inner), 'sp')
+    M['yards'] += rings(AREA.difference(inner), 'sp') + rings(SAREA, 'sp')
     M['speedway'] = {'area': rings(AREA), 'oval': {'cx': cx, 'cy': cy, 'S': S, 'R': R, 'w': w}, 'stands': STANDS, 'paddock': list(PADDOCK.bounds),
-                     'garages': garages, 'gap': [cx, ys + R + w / 2 + 5, 100], 'booth': [4705, 5640], 'car': [4700, ys + R + 260, -90.0], 'strip': strip}
+                     'garages': garages, 'gap': [cx, ys + R + w / 2 + 5, 100], 'booth': [4705, 5640], 'car': [4700, ys + R + 260, -90.0],
+                     'strips': [palm, sand], 'access': access, 'aw': 90}
     LANDF = unary_union([poly(p) for p in M['land']])
     for key in ('yards', 'grass', 'sand'):
         M[key] = [g for g in M[key] if LANDF.intersects(poly(g))]
@@ -410,6 +428,7 @@ if __name__ == '__main__':
                         "   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set. */")
     head = head.replace("   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set. */",
                         "   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set;\n"
-                        "   version 3: the speedway on the Palm Heights beach (speedway: oval, grandstand, paddock, garages, booth, drag strip); yards sp = its ground. */")
+                        "   version 3: the speedway on the Palm Heights beach (speedway: oval, grandstand, paddock, garages, booth) and two drag strips (speedway.strips: the\n"
+                        "   Palm strip beside it, the Sandbar strip down the east beach, each with its booth); yards sp = their ground. */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

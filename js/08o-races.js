@@ -8,16 +8,20 @@
    against fast cars that do not wait for you. From the countdown to the results the doors and FIRE are locked. Prizes by place.
    NASCAR: at the race booth in the speedway's paddock you are put in a NASCAR special on the grid; the start counts down; laps of the
    oval against the others; afterwards you are back at the booth. A NASCAR special also stands in the paddock to take.
-   DRAG STRIP: stop in the left staging lane in an allowed car; a rival in a fast car waits in the right one. The lights: three ambers,
-   then green - go. An eighth of a mile; the win pays.
+   DRAG STRIPS: the Palm strip beside the speedway (an eighth of a mile) and the long Sandbar strip on the east beach (600 m), each with
+   its own race booth. Stop by the booth in an allowed car (on foot it tells you to bring one): RACE against a rival in a fast car waiting
+   in the right lane (a fee, the win pays), or a free TEST RUN alone - top speed, 0-100 km/h and the split times. The lights: three
+   ambers, then green - go.
    After a race the results show for a while (or close them); your car is held still meanwhile.
    Rivals drive their own route at their own pace (no catch-up): the fastest the corners and their brakes allow, round slower cars. */
-const RACE = { on: null, ring: null, nextRing: 0, offer: null, card: null, res: null, lockT: 0, best: {}, nascar: 0, lap: 0, drag: 0, wins: 0, dirty: false };
+const RACE = { on: null, ring: null, nextRing: 0, offer: null, card: null, res: null, lockT: 0, best: {}, nascar: 0, lap: 0, drag: {}, top: 0, wins: 0, dirty: false };
 const RACE_YEL = '#ffd23f', RACE_CYAN = '#2bf3ff', RACE_GREEN = '#3dffa6', RACE_PINK = '#ff2bd6', RACE_ORANGE = '#ff7a3d';
-const BOOTH_R = 30, START_R = 42, RDS = 16, STRIP_MR = 40;
+const BOOTH_R = 30, START_R = 42, RDS = 16;
 let BOOTHS = [], ROUTES = [], raceGroup = null;
-const DRAG = { rival: null, filled: false, mark: false, shown: false };
+const DRAG = {}, DRAGB = { at: null, shown: false };   // per strip: the rival waiting; the booth you stopped at in a car
+const DRAG_SPLITS = [['60 FT', 60 * 0.3048], ['201 M', 201.17], ['402 M', 402.34], ['600 M', 600]];   // split times on the strips, in metres
 const PIT = { filled: false };
+const ICON_PHONE = $('raceBtn').querySelector('.si').innerHTML, ICON_FLAG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2h2v20H4zM7 3h3v3H7zm6 0h3v3h-3zm-3 3h3v3h-3zm6 0h3v3h-3zM7 9h3v3H7zm6 0h3v3h-3zm-3 3h3v3h-3zm6 0h3v3h-3z"/><path d="M7 3h12v12H7z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
 const isService = t => t.cop || !!t.job || !!t.weapon || t.body === 'bus';
 const raceTime = s => { s = Math.max(0, s); const m = Math.floor(s / 60), r = s - m * 60; return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2); };
 const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'TH' : ['TH', 'ST', 'ND', 'RD'][n % 10] || 'TH');
@@ -108,7 +112,7 @@ function pickBooths() {
     if (E.nt || E.len < 260) continue;
     for (const fw of [1, -1]) {
       const s = E.len / 2, q = lanePoint(E.i, fw, s, ROAD_HALF + SW_W - 6, {}), st = lanePoint(E.i, fw, s, ROAD_HALF + 8, {});
-      if (shoreDist(q.x, q.y) < 50 || inLandmark(q.x, q.y) || spwIn(q.x, q.y) || !freeAt(q.x, q.y, 2) || pedBlocked(st.x, st.y)) continue;
+      if (shoreDist(q.x, q.y) < 50 || inLandmark(q.x, q.y) || spwIn(q.x, q.y) || stripIn(q.x, q.y, 80) || !freeAt(q.x, q.y, 2) || pedBlocked(st.x, st.y)) continue;
       const dn = districtAt(q.x, q.y); if (!dn || dn === 'OPEN WATER') continue;
       if (away.some(o => Math.abs(o.x - q.x) < 220 && Math.abs(o.y - q.y) < 220 && dist(o.x, o.y, q.x, q.y) < 180)) continue;
       cand.push({ x: q.x, y: q.y, ang: Math.atan2(q.ty, q.tx), e: E.i, fw, routes: [] });
@@ -144,8 +148,8 @@ function boothModel(b) {                 // a payphone booth: glass on three sid
   g.userData = { band, halo, ring }; return g;
 }
 function placeRaces() {                  // a new game (js/15): no race, no call; the first one builds the routes, the booths and their models
-  raceAbort(true); RACE.ring = null; RACE.offer = null; RACE.card = null; DRAG.rival = null; DRAG.filled = false; DRAG.mark = false; DRAG.shown = false; PIT.filled = false;
-  closeRaceRes(true); $('raceHud').hidden = true; $('raceCount').className = ''; if (typeof treeLights === 'function') treeLights(-1);
+  raceAbort(true); RACE.ring = null; RACE.offer = null; RACE.card = null; for (const k in DRAG) delete DRAG[k]; DRAGB.at = null; DRAGB.shown = false; PIT.filled = false;
+  closeRaceRes(true); guideBuild(null); $('raceHud').hidden = true; $('raceCount').className = ''; for (const S of SPW_STRIPS) treeLights(S.id, -1);
   if (raceGroup) return;
   ROUTES = [];
   for (const r of RACE_ROUTES) { const pts = buildFixed(r); if (!pts) continue; const R = makeRoute(pts, [-22, 0, 22]); if (R.n * RDS < 900) continue; ROUTES.push({ id: r.id, name: r.name, R }); }
@@ -184,15 +188,16 @@ function ringSound(rg, dt) {             // a fixed race: the double ring; a ran
 function nearRaceSpot() {                // on foot at the ringing booth, or at the speedway's race booth: { kind, b }
   if (P.car || P.dead || P.act || state !== 'play' || RACE.on) return null;
   const rg = RACE.ring; if (rg && Math.abs(rg.b.x - P.x) < BOOTH_R && Math.abs(rg.b.y - P.y) < BOOTH_R && dist(rg.b.x, rg.b.y, P.x, P.y) < BOOTH_R) return { kind: 'phone', b: rg.b };
-  if (SPW && feat('speedway')) { const [x, y] = SPW.booth; if (dist(x, y, P.x, P.y) < 36) return { kind: 'nascar' }; }
+  if (SPW && feat('speedway')) { const [x, y] = SPW.booth; if (dist(x, y, P.x, P.y) < 36) return { kind: 'nascar', b: { x, y } }; }
+  if (feat('dragStrip')) for (const S of SPW_STRIPS) { const [x, y] = S.booth; if (dist(x, y, P.x, P.y) < 36) return { kind: 'drag', S, b: { x, y } }; }
   return null;
 }
-function raceKey() { const r = nearRaceSpot(); if (!r) return null; const c = nearestCar(); const at = r.b || { x: SPW.booth[0], y: SPW.booth[1] }; return c && dist(c.x, c.y, P.x, P.y) < dist(at.x, at.y, P.x, P.y) - 8 ? null : r; }
+function raceKey() { const r = nearRaceSpot(); if (!r) return null; const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(r.b.x, r.b.y, P.x, P.y) - 8 ? null : r; }
 function raceUi() {                      // every frame (js/14): ANSWER at the ringing booth, RACE at the speedway's booth
   const r = nearRaceSpot(), bt = $('raceBtn');
   if (!r) { if (!bt.hidden) bt.hidden = true; return; }
   const k = r.kind;
-  if (bt.hidden || bt.dataset.k !== k) { bt.hidden = false; bt.dataset.k = k; bt.querySelector('b').textContent = k === 'phone' ? 'STREET RACE' : 'NASCAR RACE'; bt.querySelector('.go').textContent = k === 'phone' ? 'ANSWER' : 'RACE'; }
+  if (bt.hidden || bt.dataset.k !== k + (r.S ? r.S.id : '')) { bt.dataset.k = k + (r.S ? r.S.id : ''); bt.hidden = false; bt.querySelector('b').textContent = k === 'phone' ? 'STREET RACE' : k === 'nascar' ? 'NASCAR RACE' : r.S.name; bt.querySelector('.go').textContent = k === 'phone' ? 'ANSWER' : 'RACE'; bt.querySelector('.si').innerHTML = k === 'phone' ? ICON_PHONE : ICON_FLAG; }
   doorBtnAt(bt);
 }
 $('raceBtn').addEventListener('click', e => { e.stopPropagation(); const r = nearRaceSpot(); if (r) openRaceCard(r); });
@@ -245,17 +250,21 @@ function openRaceCard(r) {
     o = { kind: 'nascar', tag: 'NASCAR RACE', name: 'PALM 200', sub: RC.nascarLaps + ' LAPS  ·  ' + RC.nascarCars + ' CARS  ·  ' + Math.round(OV.L / UNITS_PER_M) + ' M A LAP', fee: RC.nascarFee, prizes: racePrizes('nascar'), best: RACE.nascar,
       rules: 'You are put in a NASCAR special on the grid; the start counts down ' + Math.round(RC.nascarCount) + ' s. You cannot get out or use weapons. Afterwards you are back here at the booth.' };
   } else {
-    o = { kind: 'drag', tag: 'DRAG RACE', name: 'EIGHTH MILE', sub: '201 M  ·  ONE RIVAL', fee: RC.dragFee, prizes: [RC.dragPrize], best: RACE.drag,
-      rules: 'Three amber lights, then green: go. Wait for the green. A win pays; after the line a parachute stops you. You cannot get out or use weapons.' };
+    const S = r.S, g = S.id === 'sand' ? 'sand' : 'drag';
+    o = { kind: 'drag', S, tag: 'DRAG STRIP', name: S.name, sub: Math.round(S.finish / UNITS_PER_M) + ' M' + (S.id === 'palm' ? ' (AN EIGHTH OF A MILE)' : '') + '  ·  RACE A RIVAL OR A TEST RUN', fee: RC[g + 'Fee'], prizes: [RC[g + 'Prize']], best: RACE.drag[S.id],
+      rules: 'RACE: one rival in a fast car, the win pays. TEST RUN: alone, free - top speed, 0-100 km/h and the split times. Three amber lights, then green: go. After the line a parachute stops you. You cannot get out or use weapons.' };
   }
   RACE.card = o; state = 'race'; toggleBigMap(false); toggleWheel(false); hush(); $('raceBtn').hidden = true;
-  const cash = P.score >= o.fee, why = P.stars > 0 ? 'LOSE THE POLICE FIRST' : JOB.on ? 'FINISH THE JOB FIRST' : RAMP.on ? 'FINISH THE RAMPAGE FIRST' : !cash ? 'NOT ENOUGH CASH' : '';
+  const cash = P.score >= o.fee, car = o.kind !== 'drag' || (P.car && fitsRace(P.car)), why = P.stars > 0 ? 'LOSE THE POLICE FIRST' : JOB.on ? 'FINISH THE JOB FIRST' : RAMP.on ? 'FINISH THE RAMPAGE FIRST'
+    : !car ? (P.car ? 'NOT IN A PUBLIC SERVICE VEHICLE' : 'COME BACK IN A CAR - ANY BUT A PUBLIC SERVICE VEHICLE') : !cash ? 'NOT ENOUGH CASH' : '';
+  const test = o.kind === 'drag' && car && P.stars <= 0 && !JOB.on && !RAMP.on && P.score >= RC.testFee;   // a test run needs no cash for the race
   $('raceTag').textContent = o.tag; $('raceName').textContent = o.name; $('raceSub').textContent = o.sub;
   $('raceFee').textContent = money(o.fee);
   $('racePrize').textContent = o.prizes.length > 1 ? o.prizes.map((p, i) => ordinal(i + 1) + ' ' + money(p)).join('  ') : money(o.prizes[0]) + ' FOR A WIN';
-  $('raceBest').textContent = o.best ? (o.kind === 'drag' ? o.best.toFixed(3) + ' S' : raceTime(o.best)) : 'NONE YET';
+  $('raceBest').textContent = o.best ? (o.kind === 'drag' ? o.best.toFixed(3) + ' S' + (RACE.top ? '  ·  TOP ' + Math.round(RACE.top) + ' KM/H' : '') : raceTime(o.best)) : 'NONE YET';
   $('raceRules').textContent = o.rules; $('raceWarn').textContent = why; $('raceWarn').hidden = !why;
-  $('raceGo').hidden = !!why; $('raceGo').textContent = 'ACCEPT · ' + money(o.fee); $('raceNo').classList.toggle('pri', !!why);
+  $('raceGo').hidden = !!why; $('raceGo').textContent = (o.kind === 'drag' ? 'RACE · ' : 'ACCEPT · ') + money(o.fee); $('raceTest').hidden = !test; $('raceTest').textContent = 'TEST RUN · ' + (RC.testFee > 0 ? money(RC.testFee) : 'FREE');
+  $('raceNo').classList.toggle('pri', !!why && !test); $('raceTest').classList.toggle('pri', !!why && test);
   showCard('raceCard', true);
 }
 function closeRaceCard() { if (state !== 'race') return; state = 'play'; closeMenus(); }
@@ -264,7 +273,11 @@ $('raceGo').addEventListener('click', () => {
   if (!o || RACE.on || P.stars > 0 || JOB.on || RAMP.on || P.score < o.fee || P.dead) return;
   if (o.kind === 'street') { if (!RACE.ring || nearRaceSpot() === null) return; streetAccept(o); }
   else if (o.kind === 'nascar') { if (!P.car && nearRaceSpot()) nascarStart(o); }
-  else if (P.car && fitsRace(P.car)) dragStart(o);
+  else if (P.car && fitsRace(P.car)) dragStart(o, false);
+});
+$('raceTest').addEventListener('click', () => {
+  const o = RACE.card; closeRaceCard(); RACE.card = null;
+  if (o && o.kind === 'drag' && !RACE.on && P.stars <= 0 && !JOB.on && !RAMP.on && P.score >= RC.testFee && P.car && fitsRace(P.car)) dragStart(o, true);
 });
 
 /* ---------- racers ---------- */
@@ -390,37 +403,42 @@ function backToBooth(Ro) {               // after the NASCAR race: out of the ca
   const s = boothSpot(); P.x = s.x; P.y = s.y; P.vx = P.vy = 0; P.ang = Math.PI / 2; cam.x = P.x; cam.y = P.y; P.act = null;
 }
 
-/* ---------- the drag strip ---------- */
-const stripSpot = (lane, len) => { const S = SPW_STRIP; return { x: S.lanes[lane], y: S.stage - S.dir * (len / 2 + 3), ang: S.dir < 0 ? -Math.PI / 2 : Math.PI / 2 }; };
-const stripAlong = (S, y) => (y - S.stage) * S.dir;              // how far past the staging line, the way the run goes
-function dragTick() {                    // a rival waits in the right lane while you are about (put there out of sight)
-  if (!SPW_STRIP || !feat('dragStrip') || RACE.on) return;
-  const S = SPW_STRIP, mx = S.lanes[1], my = S.stage, d = dist(mx, my, P.x, P.y);
-  if (DRAG.filled) { if (d > 2400) { DRAG.filled = false; if (DRAG.rival) DRAG.rival.keep = false; DRAG.rival = null; } return; }
-  if (d > 1500 || d < offDist() + 100) return;
-  const type = CAR_TYPES.sports ? 'sports' : rivalType(), p = stripSpot(1, CAR_TYPES[type].len);
-  if (cars.some(c => dist(c.x, c.y, p.x, p.y) < 40)) return;
-  const c = makeCar(type, p.x, p.y, p.ang, null); c.keep = true; c.searched = true; c.lot = SPW_STRIP; cars.push(c); DRAG.rival = c; DRAG.filled = true;
+/* ---------- the drag strips ---------- */
+const stripSpot = (S, lane, len) => { const q = stripPt(S, -(len / 2 + 3), S.lanes[lane]); return { x: q.x, y: q.y, ang: S.a }; };
+const stripIn = (x, y, m) => SPW_STRIPS.some(S => { const d = stripAlong(S, x, y); return d > S.apron - m && d < S.wall + m && Math.abs(stripSide(S, x, y)) < S.hw + m; });
+function dragTick() {                    // at each strip a rival waits in the right lane while you are about (put there out of sight)
+  if (!feat('dragStrip') || RACE.on) return;
+  for (const S of SPW_STRIPS) {
+    const D = DRAG[S.id] || (DRAG[S.id] = { rival: null, filled: false }), d = dist(S.sx, S.sy, P.x, P.y);
+    if (D.filled) { if (d > 2400) { D.filled = false; if (D.rival) D.rival.keep = false; D.rival = null; } continue; }
+    if (d > 1500 || d < offDist() + 100) continue;
+    const type = CAR_TYPES.sports ? 'sports' : rivalType(), p = stripSpot(S, 1, CAR_TYPES[type].len);
+    if (cars.some(c => dist(c.x, c.y, p.x, p.y) < 40)) continue;
+    const c = makeCar(type, p.x, p.y, p.ang, null); c.keep = true; c.searched = true; c.lot = S; cars.push(c); D.rival = c; D.filled = true;
+  }
 }
-function dragMarkTick() {                // in an allowed car, stopped in the left staging lane: the card (once per stop)
-  if (!SPW_STRIP || !feat('dragStrip') || RACE.on || state !== 'play') { DRAG.mark = false; return; }
-  const c = P.car, S = SPW_STRIP, m = stripSpot(0, 50);
-  const inMark = !!c && Math.abs(c.x - m.x) < STRIP_MR && Math.abs(c.y - m.y) < STRIP_MR + 10;
-  if (inMark !== DRAG.mark) { DRAG.mark = inMark; DRAG.shown = false; }
-  if (inMark && !DRAG.shown && carSpeed(c) < 8 * KMH) { DRAG.shown = true; if (isService(c.t)) toast('NO PUBLIC SERVICE VEHICLES ON THE STRIP', true); else openRaceCard({ kind: 'drag' }); }
+function dragMarkTick() {                // stopped by a strip's booth in a car: its card (once per stop - drive off and back for it again)
+  let at = null;
+  if (feat('dragStrip') && !RACE.on && state === 'play' && P.car && !P.dead) for (const S of SPW_STRIPS) if (dist(S.booth[0], S.booth[1], P.car.x, P.car.y) < 80) at = S;
+  if (at !== DRAGB.at) { DRAGB.at = at; DRAGB.shown = false; }
+  if (at && !DRAGB.shown && carSpeed(P.car) < 8 * KMH) { DRAGB.shown = true; openRaceCard({ kind: 'drag', S: at }); }
 }
-function dragStart(o) {
-  const c = P.car, S = SPW_STRIP; P.score -= o.fee;
-  let r = DRAG.rival; if (!r || !cars.includes(r) || r.dead || r.hp <= 0 || r.driver || P.car === r) r = null;
-  const type = r ? r.type : (CAR_TYPES.sports ? 'sports' : rivalType()), col = r ? r.color : undefined, q = stripSpot(1, CAR_TYPES[type].len);
-  clearSpot(q.x, q.y, 20); if (r && !cars.includes(r)) r = null;
-  const pts = [[S.lanes[1], S.stage - S.dir * 200], [S.lanes[1], S.end]], R = makeRoute(pts, [0], -200);
-  if (r) { cars.splice(cars.indexOf(r), 1); r = null; }
-  const rv = addRival(R, type, -CAR_TYPES[type].len / 2 - 3, 0, 1, 1, col); rv.ang = q.ang; rv.x = q.x; rv.y = q.y;
-  const p = stripSpot(0, c.t.len); c.x = p.x; c.y = p.y; c.ang = p.ang; c.vx = c.vy = c.av = 0; c.keep = true; DRAG.rival = null; DRAG.filled = false;
-  RACE.on = { kind: 'drag', name: 'EIGHTH MILE', R, rivals: [rv], phase: 'count', t: 0, T: 0, car: c, me: null, tree: -1, green: 0, react: 0, moved: false, fee: o.fee, prizes: o.prizes,
-    crash: 0, hp: c.hp, crashCd: 0, top: 0, lateT: 30, rivalGo: RC.dragReact * rand(0.7, 1.3), chute: false };
-  treeLights(-1); raceHudOn();
+function dragStart(o, test) {
+  const c = P.car, S = o.S, D = DRAG[S.id] || (DRAG[S.id] = { rival: null, filled: false }); P.score -= test ? RC.testFee : o.fee;
+  const p = stripSpot(S, 0, c.t.len); clearSpot(p.x, p.y, 20); c.x = p.x; c.y = p.y; c.ang = p.ang; c.vx = c.vy = c.av = 0; c.keep = true;
+  const rivals = []; let R = null;
+  if (!test) {
+    let r = D.rival; if (!r || !cars.includes(r) || r.dead || r.hp <= 0 || r.driver || P.car === r) r = null;
+    const type = r ? r.type : (CAR_TYPES.sports ? 'sports' : rivalType()), col = r ? r.color : undefined, q = stripSpot(S, 1, CAR_TYPES[type].len);
+    if (r) cars.splice(cars.indexOf(r), 1);
+    clearSpot(q.x, q.y, 20);
+    const a = stripPt(S, -200, S.lanes[1]), b = stripPt(S, S.end, S.lanes[1]); R = makeRoute([[a.x, a.y], [b.x, b.y]], [0], -200);
+    const rv = addRival(R, type, -CAR_TYPES[type].len / 2 - 3, 0, 1, 1, col); rv.ang = q.ang; rv.x = q.x; rv.y = q.y; rivals.push(rv);
+  }
+  D.rival = null; D.filled = false;
+  RACE.on = { kind: 'drag', test, S, name: S.name + (test ? ' - TEST RUN' : ''), R, rivals, phase: 'count', t: 0, T: 0, car: c, me: null, tree: -1, react: 0, moved: false, fee: o.fee, prizes: o.prizes,
+    crash: 0, hp: c.hp, crashCd: 0, top: 0, lateT: 30, rivalGo: RC.dragReact * rand(0.7, 1.3), chute: false, split: [], hundred: 0, lastD: 0 };
+  treeLights(S.id, -1); raceHudOn();
 }
 
 /* ---------- running a race ---------- */
@@ -436,7 +454,7 @@ function raceTick(dt) {                  // js/15, every frame of play
 function countTick(dt, Ro) {             // the countdown on the start: everyone held; GO
   if (Ro.kind === 'drag') {                                          // the tree: three ambers half a second apart, then green
     Ro.t += dt; const st = Ro.t < 1 ? -1 : Ro.t < 1.5 ? 0 : Ro.t < 2 ? 1 : Ro.t < 2.5 ? 2 : 3;
-    if (st !== Ro.tree) { Ro.tree = st; treeLights(st); if (st >= 0 && st < 3) Snd.tone(660, 660, 0.12, 0.12, 'square'); }
+    if (st !== Ro.tree) { Ro.tree = st; treeLights(Ro.S.id, st); if (st >= 0 && st < 3) Snd.tone(660, 660, 0.12, 0.12, 'square'); }
     if (st === 3) { raceGo(Ro); Ro.green = 0; }
     return;
   }
@@ -457,10 +475,15 @@ function runTick(dt, Ro) {
   Ro.crashCd -= dt; if (c.hp < Ro.hp - 2 && Ro.crashCd <= 0) { Ro.crashCd = 0.7; Ro.crash++; } Ro.hp = c.hp;
   let finD;                                                         // where the finish is, along the route
   if (Ro.kind === 'drag') {
-    const S = SPW_STRIP; finD = (S.finish - S.stage) * S.dir;
-    if (!Ro.moved && stripAlong(S, c.y) + c.t.len / 2 > 4) { Ro.moved = true; Ro.react = Ro.T; }
+    const S = Ro.S; finD = S.finish;
+    Ro.myD = stripAlong(S, c.x, c.y) + c.t.len / 2;
+    if (!Ro.moved && Ro.myD > 4) { Ro.moved = true; Ro.react = Ro.T; }
+    if (!Ro.hundred && carSpeed(c) >= 100 * KMH) Ro.hundred = Ro.T;
+    for (const [k, m] of DRAG_SPLITS) { const sd = m * UNITS_PER_M; if (sd < finD - 5 && Ro.lastD < sd && Ro.myD >= sd) Ro.split.push([k, Ro.T - dt * (Ro.myD - sd) / Math.max(1, Ro.myD - Ro.lastD)]); }
+    if (Ro.myD >= finD) Ro.T -= dt * (Ro.myD - finD) / Math.max(1, Ro.myD - Ro.lastD);   // the time at the line itself
+    Ro.lastD = Ro.myD;
     const rv = Ro.rivals[0]; if (rv && rv.race && !rv.race.go && Ro.T >= Ro.rivalGo) rv.race.go = true;
-    Ro.myD = stripAlong(S, c.y) + c.t.len / 2;
+    if (Ro.T > 60) { raceFail('TOO SLOW'); return; }
   } else {
     trackOn(Ro.me, c.x, c.y);
     if (Ro.kind === 'street') {
@@ -482,7 +505,7 @@ function runTick(dt, Ro) {
     const K = o.race; if (!K || K.out) continue;
     if (K.done) continue;
     if (o.dead || o.hp <= 0 || o.sunk || !cars.includes(o) || o.driver !== 'race') { K.out = true; continue; }
-    const along = Ro.kind === 'drag' ? stripAlong(SPW_STRIP, o.y) + o.t.len / 2 : K.d;
+    const along = Ro.kind === 'drag' ? stripAlong(Ro.S, o.x, o.y) + o.t.len / 2 : K.d;
     if (along >= finD) {
       K.done = true; K.time = Ro.T;
       if (Ro.kind === 'street') toTraffic(o); else if (Ro.kind === 'drag') K.hold = true; else { K.v = K.v.map(v => v * 0.55); }
@@ -495,34 +518,39 @@ function runTick(dt, Ro) {
   if (Ro.T > 900) raceFail('TOO SLOW');
 }
 function racePlace(Ro) {                 // your place now: the finished ahead of you, then by how far along
-  let p = 1; for (const o of Ro.rivals) { const K = o.race || o._race; if (!K) continue; if (K.done || (!K.out && (Ro.kind === 'drag' ? stripAlong(SPW_STRIP, o.y) + o.t.len / 2 : K.d) > Ro.myD)) p++; }
+  let p = 1; for (const o of Ro.rivals) { const K = o.race || o._race; if (!K) continue; if (K.done || (!K.out && (Ro.kind === 'drag' ? stripAlong(Ro.S, o.x, o.y) + o.t.len / 2 : K.d) > Ro.myD)) p++; }
   return p;
 }
 function raceFinish(Ro) {
   const place = racePlace(Ro), n = Ro.rivals.length + 1, time = Ro.T, c = Ro.car;
   let winner = Infinity; for (const o of Ro.rivals) { const K = o.race || o._race; if (K && K.done) winner = Math.min(winner, K.time); }
-  const prize = Ro.kind === 'drag' ? (place === 1 ? Ro.prizes[0] : 0) : (Ro.prizes[place - 1] || 0);
+  const prize = Ro.kind === 'drag' ? (place === 1 && !Ro.test ? Ro.prizes[0] : 0) : (Ro.prizes[place - 1] || 0);
   let record = false;
   if (Ro.kind === 'street' && Ro.id !== 'random') { if (!RACE.best[Ro.id] || time < RACE.best[Ro.id]) { record = true; RACE.best[Ro.id] = time; } }
   else if (Ro.kind === 'nascar') { if (!RACE.nascar || time < RACE.nascar) { record = true; RACE.nascar = time; } if (Ro.bestLap && (!RACE.lap || Ro.bestLap < RACE.lap)) RACE.lap = Ro.bestLap; }
-  else if (Ro.kind === 'drag') { if (!RACE.drag || time < RACE.drag) { record = true; RACE.drag = time; } }
-  if (place === 1) RACE.wins++;
+  else if (Ro.kind === 'drag') { const id = Ro.S.id; if (!RACE.drag[id] || time < RACE.drag[id]) { record = true; RACE.drag[id] = time; } RACE.top = Math.max(RACE.top, Ro.top / KMH); }
+  if (place === 1 && !Ro.test) RACE.wins++;
   if (prize > 0) { P.score += prize; popup(c.x, c.y - 30, '+' + money(prize), RACE_GREEN); }
   RACE.dirty = true;
   const rows = [['PLACE', ordinal(place) + ' OF ' + n]];
   if (Ro.kind === 'drag') {
     const rv = Ro.rivals[0], K = rv && (rv.race || rv._race);
-    rows.push(['TIME (ET)', time.toFixed(3) + ' S'], ['REACTION', Ro.react.toFixed(3) + ' S'], ['TRAP SPEED', Math.round(carSpeed(c) / KMH) + ' KM/H'], ['RIVAL', K && K.done ? K.time.toFixed(3) + ' S' : 'STILL GOING']);
+    if (Ro.test) rows.shift();
+    rows.push(['TIME (ET)', time.toFixed(3) + ' S'], ['REACTION', Ro.react.toFixed(3) + ' S']);
+    if (Ro.hundred) rows.push(['0-100 KM/H', Ro.hundred.toFixed(2) + ' S']);
+    for (const [k, t] of Ro.split) rows.push([k, t.toFixed(3) + ' S']);
+    rows.push(['TRAP SPEED', Math.round(carSpeed(c) / KMH) + ' KM/H'], ['TOP SPEED', Math.round(Ro.top / KMH) + ' KM/H']);
+    if (!Ro.test) rows.push(['RIVAL', K && K.done ? K.time.toFixed(3) + ' S' : 'STILL GOING']);
   } else {
     rows.push(['TIME', raceTime(time)]);
     if (place > 1 && isFinite(winner)) rows.push(['BEHIND THE WINNER', '+' + (time - winner).toFixed(2) + ' S']);
     if (Ro.kind === 'nascar' && Ro.bestLap) rows.push(['BEST LAP', raceTime(Ro.bestLap)]);
     rows.push(['TOP SPEED', Math.round(Ro.top / KMH) + ' KM/H']);
   }
-  rows.push(['CRASHES', String(Ro.crash)], ['PRIZE', prize > 0 ? money(prize) : 'NONE']);
+  rows.push(['CRASHES', String(Ro.crash)]); if (!Ro.test) rows.push(['PRIZE', prize > 0 ? money(prize) : 'NONE']);
   Ro.phase = 'done'; Ro.place = place; Ro.chute = Ro.kind === 'drag';
-  showRaceRes(place === 1 ? (Ro.kind === 'drag' ? 'YOU WIN!' : '1ST PLACE!') : Ro.kind === 'drag' ? 'YOU LOSE' : ordinal(place) + ' PLACE', Ro.name, rows, record);
-  if (place === 1) { Snd.tone(523, 1047, 0.18, 0.15, 'square'); setTimeout(() => Snd.tone(784, 1568, 0.3, 0.15, 'square'), 160); } else Snd.tone(440, 330, 0.3, 0.12, 'square');
+  showRaceRes(Ro.test ? 'TEST RUN' : place === 1 ? (Ro.kind === 'drag' ? 'YOU WIN!' : '1ST PLACE!') : Ro.kind === 'drag' ? 'YOU LOSE' : ordinal(place) + ' PLACE', Ro.name, rows, record);
+  if (place === 1 && !Ro.test) { Snd.tone(523, 1047, 0.18, 0.15, 'square'); setTimeout(() => Snd.tone(784, 1568, 0.3, 0.15, 'square'), 160); } else Snd.tone(440, 330, 0.3, 0.12, 'square');
 }
 function raceFail(why) {                 // the race is over for you: no results, no fee back
   const Ro = RACE.on; if (!Ro) return;
@@ -533,7 +561,7 @@ function raceEnd(Ro) {                   // tidy up after a race (finished, fail
   RACE.on = null; $('raceHud').hidden = true; $('raceCount').className = '';
   if (Ro.kind === 'street') { for (const o of Ro.rivals) if (o.race) toTraffic(o); }
   else if (Ro.kind === 'nascar') { if (!P.dead && !P.busted) backToBooth(Ro); else { for (const o of Ro.rivals) { o.race = null; o.driver = null; o.keep = false; } } }
-  else { treeLights(-1); for (const o of Ro.rivals) { o.race = null; o.driver = null; o.keep = false; } }
+  else { treeLights(Ro.S.id, -1); for (const o of Ro.rivals) { o.race = null; o.driver = null; o.keep = false; } }
   if (Ro.car && cars.includes(Ro.car)) Ro.car.keep = false;
   if (RACE.dirty && !saveBlock()) putSave('auto', makeSave(lastThumb));   // the prize and the records are kept even if you close the game now
   RACE.dirty = false;
@@ -566,11 +594,11 @@ function raceHudOn() { $('raceHud').hidden = false; H.rcA = H.rcB = H.rcC = H.rc
 function bigCount(t, go) { const e = $('raceCount'); e.textContent = t; e.className = ''; void e.offsetWidth; e.className = go ? 'show go' : 'show'; }
 function raceHudUpdate() {               // js/14
   const Ro = RACE.on; if (!Ro) return;
-  let a = Ro.kind === 'street' ? 'STREET RACE' : Ro.kind === 'nascar' ? 'NASCAR' : 'DRAG', b = '', cc = '', d = '';
+  let a = Ro.kind === 'street' ? 'STREET RACE' : Ro.kind === 'nascar' ? 'NASCAR' : Ro.test ? 'TEST RUN' : 'DRAG', b = '', cc = '', d = '';
   if (Ro.phase === 'toStart') { b = 'TO THE START'; d = rampTimeText(Ro.t); }
   else {
     const n = Ro.rivals.length + 1, pos = Ro.phase === 'run' ? racePlace(Ro) : Ro.phase === 'done' ? Ro.place : Ro.kind === 'nascar' ? Math.min(3, n) : 1;   // on the grid: where you start
-    b = 'POS ' + pos + '/' + n;
+    b = Ro.test ? Math.round(carSpeed(Ro.car) / KMH) + ' KM/H' : 'POS ' + pos + '/' + n;
     cc = Ro.kind === 'street' ? 'CP ' + Math.min(Ro.cp + 1, Ro.cps.length) + '/' + Ro.cps.length : Ro.kind === 'nascar' ? 'LAP ' + clamp(Ro.lap + 1, 1, Ro.laps) + '/' + Ro.laps : '';
     d = Ro.kind === 'drag' ? Ro.T.toFixed(2) : raceTime(Ro.T).slice(0, -1);
   }
@@ -582,7 +610,7 @@ function raceHudUpdate() {               // js/14
 function raceHint() {                    // js/14: what to do now
   const Ro = RACE.on, c = P.car;
   if (!Ro) {
-    if (DRAG.mark && DRAG.shown && c && carSpeed(c) < 8 * KMH && !isService(c.t)) return 'DRIVE OUT AND STOP IN THE STAGING LANE AGAIN TO RACE';
+    if (DRAGB.at && DRAGB.shown && c && carSpeed(c) < 8 * KMH) return 'DRIVE OFF AND STOP BY THE BOOTH AGAIN FOR THE STRIP';
     return '';
   }
   if (Ro.phase === 'toStart') {
@@ -618,17 +646,13 @@ function raceTargets() {                 // for js/08n's markers and map blips: 
   if (Ro && Ro.kind === 'street') {
     if (Ro.phase === 'toStart') out.push({ x: Ro.slot.x, y: Ro.slot.y, col: RACE_YEL, ring: true, r: START_R });
     else if (Ro.phase === 'run' || Ro.phase === 'count') for (let k = Ro.cp; k < Math.min(Ro.cps.length, Ro.cp + 2); k++) { const i = Ro.cps[k], last = k === Ro.cps.length - 1; out.push({ x: Ro.R.x[i], y: Ro.R.y[i], col: last ? RACE_GREEN : k === Ro.cp ? RACE_YEL : '#ffffff', ring: true, r: k === Ro.cp ? RC.cpSize * 0.8 : RC.cpSize * 0.5, dim: k > Ro.cp }); }
-  } else if (!Ro && SPW_STRIP && feat('dragStrip') && P.car && !isService(P.car.t) && dist(P.x, P.y, SPW_STRIP.lanes[0], SPW_STRIP.stage) < 900) {
-    const m = stripSpot(0, 50); out.push({ x: m.x, y: m.y, col: RACE_CYAN, ring: true, r: STRIP_MR });
+  } else if (!Ro && feat('dragStrip') && P.car && !isService(P.car.t)) {
+    for (const S of SPW_STRIPS) if (dist(P.x, P.y, S.booth[0], S.booth[1]) < 900) out.push({ x: S.booth[0], y: S.booth[1], col: RACE_CYAN, ring: true, r: 60 });
   }
   return out;
 }
-function raceBlips(g, X, Y, size, q, ph) {   // js/14: the route, the racers, then the targets (jobBlips draws them, an arrow at the edge when off the minimap)
+function raceBlips(g, X, Y, size, q, ph) {   // js/14: the racers, then the targets (the route: js/08p's guide line) (jobBlips draws them, an arrow at the edge when off the minimap)
   const Ro = RACE.on;
-  if (Ro && Ro.kind === 'street' && Ro.phase !== 'done') {
-    const R = Ro.R, i0 = Ro.phase === 'toStart' ? 0 : Ro.me.i; g.save(); g.strokeStyle = 'rgba(255,210,63,0.85)'; g.lineWidth = Math.max(2, q * 0.5); g.lineJoin = 'round'; g.beginPath();
-    for (let i = i0; i < R.n; i += 2) i === i0 ? g.moveTo(X(R.x[i]), Y(R.y[i])) : g.lineTo(X(R.x[i]), Y(R.y[i])); g.lineTo(X(R.x[R.n - 1]), Y(R.y[R.n - 1])); g.stroke(); g.restore();
-  }
   if (Ro) for (const o of Ro.rivals) if (o.race && !o.race.out && !o.dead) { const x = X(o.x), y = Y(o.y); if (size && (x < 0 || y < 0 || x > size || y > size)) continue; g.fillStyle = RACE_ORANGE; g.fillRect(x - q * 0.45, y - q * 0.45, q * 0.9, q * 0.9); }
   jobBlips(g, X, Y, size, q, ph, raceTargets());
 }
@@ -637,7 +661,7 @@ function raceIcons(g, X, Y, q, inView) { // js/14 svcIcons: a ringing booth (a p
   if (rg && Math.floor(gameT * 3) % 2 === 0) { const x = X(rg.b.x), y = Y(rg.b.y); if (inView(x, y)) phoneIcon(g, x, y, q, rg.fixed ? RACE_YEL : RACE_CYAN); }
   const flag = (x, y, c2) => { g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { g.fillStyle = (i + j) % 2 ? '#111118' : c2; g.fillRect(x - q + i * q / 2, y - q + j * q / 2, q / 2, q / 2); } };
   if (SPW && feat('speedway')) { const x = X(SPW.booth[0]), y = Y(SPW.booth[1]); if (inView(x, y)) flag(x, y, '#f4f4f4'); }
-  if (SPW_STRIP && feat('dragStrip')) { const x = X(SPW_STRIP.lanes[0] + 30), y = Y(SPW_STRIP.stage); if (inView(x, y)) flag(x, y, RACE_CYAN); }
+  if (feat('dragStrip')) for (const S of SPW_STRIPS) { const x = X(S.booth[0]), y = Y(S.booth[1]); if (inView(x, y)) flag(x, y, RACE_CYAN); }
 }
 function phoneIcon(g, x, y, q, col) {
   g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = col; g.fillRect(x - q, y - q, 2 * q, 2 * q);
@@ -657,11 +681,12 @@ function gfxRaces(time) {                // js/13: the ringing booth glows and b
 }
 
 /* ---------- saved games ---------- */
-const raceSave = () => ({ best: Object.assign({}, RACE.best), nascar: RACE.nascar, lap: RACE.lap, drag: RACE.drag, wins: RACE.wins });
+const raceSave = () => ({ best: Object.assign({}, RACE.best), nascar: RACE.nascar, lap: RACE.lap, drag: Object.assign({}, RACE.drag), top: RACE.top, wins: RACE.wins });
 function raceLoad(sv) {                  // js/15b applySave (and a new game: sv null)
-  RACE.best = {}; RACE.nascar = 0; RACE.lap = 0; RACE.drag = 0; RACE.wins = 0; RACE.nextRing = gameT + RC.ringEvery * rand(0.25, 0.5);
+  RACE.best = {}; RACE.nascar = 0; RACE.lap = 0; RACE.drag = {}; RACE.top = 0; RACE.wins = 0; RACE.nextRing = gameT + RC.ringEvery * rand(0.25, 0.5);
   if (!sv || typeof sv !== 'object') return;
   const t = v => typeof v === 'number' && isFinite(v) && v > 0 && v < 1e5 ? v : 0;
   if (sv.best && typeof sv.best === 'object') for (const r of RACE_ROUTES) { const v = t(sv.best[r.id]); if (v) RACE.best[r.id] = v; }
-  RACE.nascar = t(sv.nascar); RACE.lap = t(sv.lap); RACE.drag = t(sv.drag); RACE.wins = Math.round(t(sv.wins));
+  RACE.nascar = t(sv.nascar); RACE.lap = t(sv.lap); RACE.top = t(sv.top); RACE.wins = Math.round(t(sv.wins));
+  if (sv.drag && typeof sv.drag === 'object') for (const S of SPW_STRIPS) { const v = t(sv.drag[S.id]); if (v) RACE.drag[S.id] = v; }
 }

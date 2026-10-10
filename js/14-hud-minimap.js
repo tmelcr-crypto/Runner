@@ -44,7 +44,7 @@ function drawMini(time) {
   shipIcons(mctx, mxp, myp, sc, (x, y) => x > -40 && y > -40 && x < size + 40 && y < size + 40);   // the ships (js/08k)
   svcIcons(mctx, mxp, myp, 6, (x, y) => x > -8 && y > -8 && x < size + 8 && y < size + 8);
   jobBlips(mctx, mxp, myp, size, 6, ph);                          // where the job sends you, an arrow at the edge if it is off the minimap (js/08n)
-  raceBlips(mctx, mxp, myp, size, 6, ph);                         // a race's route, rivals and checkpoints (js/08o)
+  guideBlips(mctx, mxp, myp, 3); raceBlips(mctx, mxp, myp, size, 6, ph);   // the guide line (js/08p); a race's rivals and checkpoints (js/08o)
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
@@ -92,7 +92,7 @@ function drawBigMap(time) {
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
   jobBlips(g, X, Y, 0, 6 * pr, ph);                                 // the job's targets (js/08n)
-  raceBlips(g, X, Y, 0, 6 * pr, ph);                                // a race (js/08o)
+  guideBlips(g, X, Y, 2.5 * pr); raceBlips(g, X, Y, 0, 6 * pr, ph);   // the guide line (js/08p), a race (js/08o)
   g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);
   g.fillStyle = '#ffd23f'; g.strokeStyle = '#000'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(11, 0); g.lineTo(-8, -7); g.lineTo(-4, 0); g.lineTo(-8, 7); g.closePath(); g.stroke(); g.fill(); g.restore();
 }
@@ -139,7 +139,7 @@ function updateHud(time) {
     else if (c.t.weapon) hint = (touchMode ? 'FIRE: ' : 'CLICK OR J: ') + (c.t.weapon === 'water' ? 'WATER CANNON' : 'ROCKETS');
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
   else if (RAMP.on) hint = RAMP.on.name + ': ' + goalText(RAMP.on) + (RAMP.on.target === 'cars' ? ' - THEY COUNT WHEN THEY CATCH FIRE' : '');
-  else { const n = nearestCar(), s = shopKey(), r = rampKey(), rk = raceKey(); if (rk) { vinfo = rk.kind === 'phone' ? 'A RINGING PHONE' : 'THE RACE BOOTH'; hint = touchMode ? (rk.kind === 'phone' ? 'TAP ANSWER' : 'TAP RACE') : (rk.kind === 'phone' ? 'PRESS E TO ANSWER THE PHONE' : 'PRESS E FOR THE NASCAR RACE'); } else if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
+  else { const n = nearestCar(), s = shopKey(), r = rampKey(), rk = raceKey(); if (rk) { vinfo = rk.kind === 'phone' ? 'A RINGING PHONE' : rk.kind === 'drag' ? rk.S.name : 'THE RACE BOOTH'; hint = touchMode ? (rk.kind === 'phone' ? 'TAP ANSWER' : 'TAP RACE') : (rk.kind === 'phone' ? 'PRESS E TO ANSWER THE PHONE' : rk.kind === 'drag' ? 'BRING A CAR - OR PRESS E TO SEE THE STRIP' : 'PRESS E FOR THE NASCAR RACE'); } else if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
   storeUi(); rampUi(); raceUi(); rampHudUpdate(); jobHudUpdate(); raceHudUpdate();   // the SHOP, RAMPAGE, ANSWER and RACE buttons by you, the rampage's, the job's and the race's panel (js/08e, 08f, 08n, 08o)
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
   const inCar = !!c; if (H.car !== c) {                            // getting in or out: the RADIO button, the touch layout, DASH or BRAKE, the car's name for a moment

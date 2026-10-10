@@ -190,7 +190,8 @@ TIPS_RACES = [('ID column', 'How the game finds each row. Do not change it; rows
             ('Phone booths', 'Now and then one of the booths around you rings and shows on the maps. A booth by a fixed race offers that race (double ring) or a random one (fast trill).', None),
             ('Street races', 'Accept on foot at the booth: the fee is paid, then reach the start in time in an allowed car and stop - the countdown starts. Rivals do not wait for you.', None),
             ('Fixed races', 'Five routes, each with its fee and prizes (its own group). Their streets are set in the file (routes); ask Claude to change a route.', None),
-            ('NASCAR race and drag strip', 'At the speedway on the north Sandbar: the race booth by the grandstand; the drag strip along the shore - stop in its staging lane.', None)]
+            ('NASCAR race', 'At the small speedway on the Palm Heights beach: its race booth stands in the paddock by the shore street.', None),
+            ('Drag strips', 'The Palm strip beside the speedway (201 m) and the Sandbar strip on the east beach (600 m), each with its booth: stop by it in a car - a race against a rival (fee and prize), or a test run alone.', None)]
 TIPS_STREETS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds or minutes, distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h, % as 0 to 100, stars as a wanted level 1 to 5.', None),
             ('Traffic lights', 'Each junction runs green, amber, all red for one group of approaches after another; opposite approaches share a group. Junctions are not in step with each other.', None),

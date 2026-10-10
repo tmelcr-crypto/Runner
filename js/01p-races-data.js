@@ -5,8 +5,8 @@
    (one of the routes below, best times kept) rings with a double ring, a random one (a new route each time) with a fast trill. Accept,
    pay the fee, and you have a minute to reach the start in a car of your choice - not a public service vehicle; stop at the start and
    it counts down. During a race the doors and FIRE are locked. The NASCAR race starts at the speedway's race booth (in the paddock by the
-   shore street of the Palm Heights beach): you are put in a NASCAR special on the grid. The drag strip beside the oval: stop in the
-   staging lane for an eighth-mile run against a rival.
+   shore street of the Palm Heights beach): you are put in a NASCAR special on the grid. The drag strips - the Palm strip beside the oval
+   (an eighth of a mile) and the Sandbar strip on the east beach (600 m) - start at their own booths: a race against a rival, or a test run.
    tools/settings_sheet.py exports the settings to Apple Numbers or Excel and writes an edited copy back:
      python3 tools/settings_sheet.py races export races.numbers  /  ... races import races.numbers
    routes: the fixed street races - a name, then the streets' junctions it goes through (x, y), start first, finish last; the race takes
@@ -58,9 +58,12 @@ const RACES_TABLE = /*RACES-JSON*/{
   {"id": "nascarPrize1", "group": "NASCAR race", "name": "Pays the winner", "unit": "€", "min": 0, "max": 100000, "v": 2500, "note": ""},
   {"id": "nascarPrize2", "group": "NASCAR race", "name": "second place", "unit": "€", "min": 0, "max": 100000, "v": 1200, "note": ""},
   {"id": "nascarPrize3", "group": "NASCAR race", "name": "third place", "unit": "€", "min": 0, "max": 100000, "v": 600, "note": ""},
-  {"id": "dragFee", "group": "Drag strip", "name": "Fee", "unit": "€", "min": 0, "max": 10000, "v": 100, "note": "An eighth of a mile (201 m) against one rival in a fast car."},
-  {"id": "dragPrize", "group": "Drag strip", "name": "A win pays", "unit": "€", "min": 0, "max": 100000, "v": 400, "note": ""},
-  {"id": "dragReact", "group": "Drag strip", "name": "The rival is off the line after", "unit": "s", "min": 0, "max": 2, "v": 0.35, "note": "On average, after the green light."},
+  {"id": "dragFee", "group": "Palm strip", "name": "A race costs", "unit": "€", "min": 0, "max": 10000, "v": 100, "note": "An eighth of a mile (201 m) beside the speedway, against one rival in a fast car. Start at its booth."},
+  {"id": "dragPrize", "group": "Palm strip", "name": "A win pays", "unit": "€", "min": 0, "max": 100000, "v": 400, "note": ""},
+  {"id": "sandFee", "group": "Sandbar strip", "name": "A race costs", "unit": "€", "min": 0, "max": 10000, "v": 200, "note": "600 m down the east beach, against one rival in a fast car. Start at its booth."},
+  {"id": "sandPrize", "group": "Sandbar strip", "name": "A win pays", "unit": "€", "min": 0, "max": 100000, "v": 800, "note": ""},
+  {"id": "testFee", "group": "Drag strips", "name": "A test run costs", "unit": "€", "min": 0, "max": 10000, "v": 0, "note": "Alone on either strip: top speed, 0-100 km/h and the split times. 0: free."},
+  {"id": "dragReact", "group": "Drag strips", "name": "The rival is off the line after", "unit": "s", "min": 0, "max": 2, "v": 0.35, "note": "On average, after the green light."},
   {"id": "resultsFor", "group": "Results", "name": "The results show for", "unit": "s", "min": 2, "max": 60, "v": 10, "note": "Or close them sooner. Meanwhile your car stops; after the NASCAR race you are back at the race booth."}
 ],
 "routes": [

@@ -91,7 +91,7 @@ def rows():
         if r['unit'] != USD: continue
         out.append(dict(key='jobs.' + r['id'], label='%s: %s' % (r['group'], r['name']), value=r['v'], unit=USD, note=r.get('note', ''), file='jobs', id=r['id'], field='v',
                         lo=r.get('min', 0), hi=r.get('max', 1000000), empty_ok=False))
-    out.append(('#', 'RACES', 'Street races (random and the five fixed routes), the NASCAR race and the drag strip: entry fees and prizes by place (races table).'))
+    out.append(('#', 'RACES', 'Street races (random and the five fixed routes), the NASCAR race and the two drag strips: entry fees, prizes by place, the test run (races table).'))
     for r in block('races')[3]['settings']:
         if r['unit'] != USD: continue
         out.append(dict(key='races.' + r['id'], label='%s: %s' % (r['group'], r['name']), value=r['v'], unit=USD, note=r.get('note', ''), file='races', id=r['id'], field='v',

@@ -6,14 +6,16 @@
      inside (grass in the infield); a gap in the outer wall at the south turn lets you drive on from the paddock.
    - the grandstand outside the front stretch, full of people, a roof over its top rows.
    - the paddock between the oval and the shore street: the pit garages, the race booth (the NASCAR race, js/08o) and the NASCAR special.
-   - the drag strip along the beach's east edge: two lanes, the staging line at the south end by the street, the run going north an
-     eighth of a mile (201 m), then the braking stretch, a sand trap and a tyre wall. Fences both sides, the start lights (the tree) between
-     the lanes, the timing boards at the finish.
+   - two drag strips, each with its race booth by the staging lanes (js/08o): the Palm strip along the beach's east edge (its staging line
+     at the south end by the street, the run going north an eighth of a mile, 201 m) and the Sandbar strip down the middle of the east beach
+     (staging at the north end, reached by a lane from the avenue's north corner; 600 m timed, for top speed runs). Each: two lanes, the
+     braking stretch, a sand trap and a tyre wall, fences both sides, the start lights (the tree) between the lanes, the timing boards at
+     the finish. A strip runs any way: stripPt(S, d, off) is the point d along it from the staging line, off to the right.
    ovalAt / ovalU: a point on the oval from the distance along it and back - the races (js/08o) drive and count laps with them. */
 const SPW = MAP.speedway || null;
 const OV = SPW ? (() => { const o = Object.assign({}, SPW.oval); o.yn = o.cy - o.S / 2; o.ys = o.cy + o.S / 2; o.L = 2 * o.S + 2 * Math.PI * o.R;
   o.t1 = o.S / 2; o.t2 = o.t1 + Math.PI * o.R; o.t3 = o.t2 + o.S; o.t4 = o.t3 + Math.PI * o.R; return o; })() : null;
-const SPW_STRIP = SPW ? SPW.strip : null;
+const SPW_STRIPS = SPW ? SPW.strips.map(S => { const a = S.ang * Math.PI / 180; return Object.assign({}, S, { ux: Math.cos(a), uy: Math.sin(a), nx: -Math.sin(a), ny: Math.cos(a), a }); }) : [];
 function ovalAt(u, off, out) {            // u: the distance from the start line along the centre line (the way the cars run); off: outward from it
   const O = OV; u = ((u % O.L) + O.L) % O.L; out = out || {};
   let x, y, ang, nx, ny;
@@ -35,7 +37,9 @@ function ovalU(x, y) {                    // the other way: { u, off } of the ne
 }
 const spwIn = (x, y) => !!SPW && SPW.area.some(a => inPoly(x, y, a));
 const onOval = (x, y) => !!OV && Math.abs(ovalU(x, y).off) < OV.w / 2 + 2;
-const stripY = (S, d) => S.stage + S.dir * d;        // a point d along the drag strip's run from the staging line
+const stripPt = (S, d, off, out) => { out = out || {}; out.x = S.sx + S.ux * d + S.nx * (off || 0); out.y = S.sy + S.uy * d + S.ny * (off || 0); return out; };
+const stripAlong = (S, x, y) => (x - S.sx) * S.ux + (y - S.sy) * S.uy;   // how far past the staging line, the way the run goes
+const stripSide = (S, x, y) => (x - S.sx) * S.nx + (y - S.sy) * S.ny;
 let SPW_PIT = null;                       // where the NASCAR special stands in the paddock (js/08o keeps one there)
 
 /* ---------- solids and models: once, with the city (js/04 genWorld) ---------- */
@@ -58,11 +62,15 @@ function genSpeedway() {
   const px = O.cx + 40, py = O.cy - O.S / 2 + 60; makeSolid(px, py, 16, 16, 0, {}); add(px, py, 20, 20, makePylon);
   add(O.cx, O.cy, O.R - O.w / 2, O.S / 2, makeInfieldSign);
   SPW_PIT = { x: SPW.car[0], y: SPW.car[1], ang: SPW.car[2] * Math.PI / 180 };
-  const S = SPW_STRIP, mid = (S.lanes[0] + S.lanes[1]) / 2;          // the drag strip: fences, the tree, the timing boards, the tyre wall
   FENCE_STYLE.track = FENCE_STYLE.track || { h: 26, net: '#c8ccd4', op: 0.32, wire: '#ffd23f', post: '#9aa0ab', kg: () => Infinity };
-  addFence([[[S.x0 - 8, S.stage], [S.x0 - 8, S.wall - 6]], [[S.x1 + 8, S.stage], [S.x1 + 8, S.wall - 6]], [[S.x0 - 8, S.wall - 6], [S.x1 + 8, S.wall - 6]]], 'track');
-  const ty = stripY(S, 40); makeSolid(mid, ty, 6, 6, 0, {}); add(mid, ty, 12, 12, makeTree, S.dir < 0 ? Math.PI : 0);
-  makeSolid(S.x0 - 50, S.finish, 8, 24, 0, {}); add(S.x0 - 50, S.finish, 20, 30, makeTimers);
+  for (const S of SPW_STRIPS) {                                     // each drag strip: fences, the tree, the timing boards, its booth
+    const p = (d, o) => { const q = stripPt(S, d, o); return [q.x, q.y]; }, w = S.hw + 8;
+    addFence([[p(0, -w), p(S.wall + 6, -w)], [p(0, w), p(S.wall + 6, w)], [p(S.wall + 6, -w), p(S.wall + 6, w)]], 'track');
+    const t = stripPt(S, 40, 0); makeSolid(t.x, t.y, 6, 6, 0, {}); add(t.x, t.y, 12, 12, () => makeTree(S.id), S.a - Math.PI / 2);
+    const m = stripPt(S, S.finish, -(S.hw + 50)); makeSolid(m.x, m.y, 8, 24, S.a + Math.PI / 2, {}); add(m.x, m.y, 20, 30, makeTimers, S.a + Math.PI / 2);
+    const [bx, by] = S.booth, ba = Math.atan2(S.sy - by, S.sx - bx) + Math.PI;   // its window to the strip
+    makeSolid(bx, by, 22, 18, ba, {}); add(bx, by, 30, 30, () => makeRaceBooth('DRAG'), ba);
+  }
 }
 const spwGap = (x, y) => { const [gx, gy, gw] = SPW.gap; return Math.abs(x - gx) < gw / 2 && Math.abs(y - gy) < 40; };
 
@@ -84,14 +92,19 @@ function drawSpeedway(R, Mk, rect, road, lamp, fb) {
   rect(R, px0, py0, px1, py1, 0.44, C('#3a3846'));                          // the paddock, bays painted along it
   for (let y = py0 + 90; y < py1 - 120; y += 60) rect(Mk, px0 + 100, y, px0 + 170, y + 3, 0.63, C('#f1f1ee'));
   const [gx, gy, gw] = SPW.gap; rect(R, gx - gw / 2, gy - 30, gx + gw / 2, py0 + 10, 0.45, C('#3a3846'));   // the way on through the wall
-  const S = SPW_STRIP, mid = (S.lanes[0] + S.lanes[1]) / 2, y0 = Math.min(S.apron, S.wall), y1 = Math.max(S.apron, S.wall), yEnd = S.end, yWall = S.wall;
-  rect(R, S.x0, Math.min(S.apron, S.end), S.x1, Math.max(S.apron, S.end), 0.46, C('#2a2830'));   // the strip
-  rect(R, S.x0 - 4, Math.min(yEnd, yWall), S.x1 + 4, Math.max(yEnd, yWall), 0.45, C('#8a7a58'));   // the sand trap
-  for (let d = 20; Math.abs(d) < Math.abs(S.end - S.stage); d += 60) { const y = stripY(S, d); rect(Mk, mid - 1.5, Math.min(y, y + S.dir * 30), mid + 1.5, Math.max(y, y + S.dir * 30), 0.63, C('#ffd23f')); }
-  rect(Mk, S.x0, S.stage - 2, S.x1, S.stage + 2, 0.63, C('#f1f1ee'));     // the staging line
-  for (let i = 0; i < 14; i++) for (let j = 0; j < 2; j++) { const x0 = S.x0 + i * (S.x1 - S.x0) / 14, yy = S.finish - 8 + j * 8; rect(Mk, x0, yy, x0 + (S.x1 - S.x0) / 14, yy + 8, 0.63, C((i + j) % 2 ? '#111118' : '#f4f4f4')); }
-  for (const ft of [60, 330]) { const y = stripY(S, ft * 0.3048 * UNITS_PER_M); for (const x of [S.x0 + 4, S.x1 - 10]) rect(Mk, x, y - 1, x + 6, y + 1, 0.63, C('#f1f1ee')); }   // the timing marks
-  for (let k = 0; k < 8; k++) fb.push({ x: S.x0 + 10 + k * (S.x1 - S.x0 - 20) / 7, y: 4, z: yWall + S.dir * 6, sx: 14, sy: 8, sz: 14, c: '#16161a' });   // the tyre wall
+  for (const S of SPW_STRIPS) {                                     // the drag strips: asphalt, the sand trap, the lines, the tyre wall
+    const p = (d, o) => { const q = stripPt(S, d, o); return [q.x, q.y]; }, quad = (T, d0, d1, o0, o1, h, col) => T.quad(p(d0, o0), p(d0, o1), p(d1, o1), p(d1, o0), h, col), w = S.hw;
+    quad(R, S.apron, S.end, -w, w, 0.46, C('#2a2830'));
+    quad(R, S.end, S.wall, -w - 4, w + 4, 0.45, C('#8a7a58'));
+    for (let d = 20; d < S.end; d += 60) quad(Mk, d, d + 30, -1.5, 1.5, 0.63, C('#ffd23f'));
+    for (const o of [-w + 2, w - 5]) quad(Mk, S.apron, S.end, o, o + 3, 0.63, C('#f1f1ee'));
+    quad(Mk, -2, 2, -w, w, 0.63, C('#f1f1ee'));                     // the staging line
+    for (let i = 0; i < 14; i++) for (let j = 0; j < 2; j++) quad(Mk, S.finish - 8 + j * 8, S.finish + j * 8, -w + i * 2 * w / 14, -w + (i + 1) * 2 * w / 14, 0.63, C((i + j) % 2 ? '#111118' : '#f4f4f4'));
+    for (const ft of [60, 330, 660, 1320]) { const d = ft * 0.3048 * UNITS_PER_M; if (d < S.finish - 50) for (const o of [-w + 6, w - 12]) quad(Mk, d - 1, d + 1, o, o + 6, 0.63, C('#f1f1ee')); }   // the timing marks
+    for (let k = 0; k < 8; k++) { const q = p(S.wall + 6, -w + 10 + k * (2 * w - 20) / 7); fb.push({ x: q[0], y: 4, z: q[1], sx: 14, sy: 8, sz: 14, ry: -S.a, c: '#16161a' }); }
+    for (let d = 300; d < S.end; d += 520) { const q = p(d, -(w + 30)); lamp(q[0], q[1], 60, '#fff3d0', 300); }
+  }
+  if (SPW.access) road(SPW.access, SPW.aw, 0.46, '#2c2a33', '#ffd23f');   // the lane to the Sandbar strip
   for (const off of [O.w / 2 + 5, -(O.w / 2 + 5)]) {                       // the walls: concrete, a coloured band on the outer one
     const n = Math.ceil(O.L / 40), a = {}, b = {}, outer = off > 0, hgt = outer ? 12 : 6;
     for (let k = 0; k < n; k++) {
@@ -102,7 +115,6 @@ function drawSpeedway(R, Mk, rect, road, lamp, fb) {
     }
   }
   for (let u = 0; u < O.L; u += O.L / 10) { ovalAt(u, O.w / 2 + 30, q); if (q.x > O.cx + 20 || (q.x < O.cx - O.R && q.y > SPW.stands[1] - 20 && q.y < SPW.stands[3] + 20) || spwGap(q.x, q.y + 30)) continue; lamp(q.x, q.y, 70, '#fff3d0', 320); }   // floodlights round the outside (not on the strip's side)
-  for (let d = 300; Math.abs(d) < Math.abs(S.end - S.stage); d += 520) lamp(S.x0 - 30, stripY(S, d), 60, '#fff3d0', 300);
 }
 
 /* ---------- models (streamed like landmarks; local x, z = world x - centre, world y - centre) ---------- */
@@ -134,13 +146,13 @@ function makeGarages(w, d) {              // a long low block, roller doors towa
   const m = withSign(lmMesh(T, G), 'GARAGES', '#f1f1ee', Math.min(d * 0.5, 240), 24, 0, H + 2.5, 0);
   m.children[m.children.length - 1].rotation.set(-Math.PI / 2, 0, Math.PI / 2); return m;   // written on the roof, for the camera
 }
-function makeRaceBooth() {                // the race booth: a kiosk with a window, RACE in lights, a chequered flag
+function makeRaceBooth(txt) {             // a race booth: a kiosk with a window, RACE (or DRAG) in lights, a chequered flag
   const T = new GeoBuilder(), G = new GeoBuilder();
   box5(T, -11, 0, -9, 11, 22, 9, _C('#2a2d3a')); box5(T, -13, 22, -11, 13, 25, 11, _C('#ff2bd6'));
   face(G, [[-11.3, 8, -6], [-11.3, 8, 6], [-11.3, 17, 6], [-11.3, 17, -6]], [-1, 0, 0], _C('#ffe9a8'));
   box5(T, 13, 0, -1, 14.4, 46, 1, _C('#d8d8d8'));
   for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) box5(G, 14.4 + i * 4, 34 + j * 4, -0.3, 18.4 + i * 4, 38 + j * 4, 0.3, _C((i + j) % 2 ? '#111118' : '#f4f4f4'));
-  return withSign(lmMesh(T, G), 'RACE', '#ffd23f', 34, 12, 0, 34, 0);
+  return withSign(lmMesh(T, G), txt || 'RACE', txt === 'DRAG' ? '#2bf3ff' : '#ffd23f', 34, 12, 0, 34, 0);
 }
 function makePylon() {                    // the scoring pylon: a tall column of lit positions
   const T = new GeoBuilder(), G = new GeoBuilder();
@@ -154,18 +166,18 @@ function makeInfieldSign() {              // the track's name painted big on the
   s.material.transparent = true; s.material.opacity = 0.55; s.material.depthWrite = false;
   s.rotation.set(-Math.PI / 2, 0, Math.PI / 2); s.position.set(-60, 0.9, 0); g.add(s); g.userData.own = [s.material]; return g;
 }
-function makeTree() {                     // the drag strip's start lights: a pole, three ambers, a green, a red on each side
+function makeTree(id) {                   // a drag strip's start lights: a pole, three ambers, a green, a red on each side
   const T = new GeoBuilder(), G = new GeoBuilder();
   box5(T, -1.2, 0, -1.2, 1.2, 30, 1.2, _C('#2a2d3a')); box5(T, -5, 14, -2, 5, 36, 2, _C('#14141a'));
   const m = lmMesh(T, G), lights = [];
   for (let k = 0; k < 5; k++) for (const s of [-1, 1]) {
     const l = new THREE.Mesh(GSph, mBas(k < 3 ? 0x3a2a10 : k === 3 ? 0x103a18 : 0x3a1010)); l.scale.setScalar(1.6); l.position.set(s * 2.6, 32 - k * 4, -2.4); m.add(l); lights.push(l);
   }
-  m.userData.lights = lights; DRAG_TREE.mesh = m; return m;
+  m.userData.lights = lights; const T0 = DRAG_TREE[id] || (DRAG_TREE[id] = { stage: -1 }); T0.mesh = m; if (T0.stage >= 0) setTimeout(() => treeLights(id, T0.stage)); return m;
 }
-const DRAG_TREE = { mesh: null, stage: -1 };       // js/08o lights it: 0..2 ambers, 3 green, 4 red
-function treeLights(stage) {
-  DRAG_TREE.stage = stage; const m = DRAG_TREE.mesh; if (!m) return;
+const DRAG_TREE = {};                     // per strip: its tree's mesh (while it is near) and what it shows - js/08o lights it: 0..2 ambers, 3 green, 4 red
+function treeLights(id, stage) {
+  const T0 = DRAG_TREE[id] || (DRAG_TREE[id] = { stage: -1 }); T0.stage = stage; const m = T0.mesh; if (!m) return;
   m.userData.lights.forEach((l, i) => { const k = Math.floor(i / 2), on = k < 3 ? stage === k || (stage > k && stage < 3) : k === 3 ? stage === 3 : stage === 4;
     l.material = mBas(on ? (k < 3 ? 0xffb02e : k === 3 ? 0x3dffa6 : 0xff2a2a) : (k < 3 ? 0x3a2a10 : k === 3 ? 0x103a18 : 0x3a1010)); });
 }
@@ -184,6 +196,10 @@ function mapSpeedway(m, X, Y, k) {
   m.lineWidth = O.w * k; m.strokeStyle = '#3a3448'; m.beginPath();
   for (let u = 0; u <= O.L; u += 30) { ovalAt(u, 0, q); u ? m.lineTo(X(q.x), Y(q.y)) : m.moveTo(X(q.x), Y(q.y)); } m.closePath(); m.stroke();
   m.lineWidth = Math.max(1, 3 * k); m.strokeStyle = '#ffd23f'; m.stroke();
-  const S = SPW_STRIP, y0 = Math.min(S.apron, S.end), y1 = Math.max(S.apron, S.end); m.fillStyle = '#3a3448'; m.fillRect(X(S.x0), Y(y0), (S.x1 - S.x0) * k, (y1 - y0) * k);
-  m.fillStyle = '#ffd23f'; m.fillRect(X(S.x0), Y(S.finish) - 1, (S.x1 - S.x0) * k, 2);
+  for (const S of SPW_STRIPS) {
+    const p = (d, o) => stripPt(S, d, o), poly = (pts, col) => { m.fillStyle = col; m.beginPath(); pts.forEach((q, i) => i ? m.lineTo(X(q.x), Y(q.y)) : m.moveTo(X(q.x), Y(q.y))); m.closePath(); m.fill(); };
+    poly([p(S.apron, -S.hw), p(S.end, -S.hw), p(S.end, S.hw), p(S.apron, S.hw)], '#3a3448');
+    poly([p(S.finish - 10, -S.hw), p(S.finish + 10, -S.hw), p(S.finish + 10, S.hw), p(S.finish - 10, S.hw)], '#ffd23f');
+  }
+  if (SPW.access) { m.strokeStyle = '#3a3448'; m.lineWidth = SPW.aw * k; m.beginPath(); SPW.access.forEach(([x, y], i) => i ? m.lineTo(X(x), Y(y)) : m.moveTo(X(x), Y(y))); m.stroke(); }
 }
