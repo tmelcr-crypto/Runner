@@ -65,7 +65,7 @@ function damageCar(c, d, byPlayer) {
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
-    if (c.driver === 'ai' || c.driver === 'cop') c.driver = null;
+    if (c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') c.driver = null;
     if (c.byPlayer) rampWreck(c);                                   // a wreck for the rampage (js/08f)
   }
 }
@@ -213,7 +213,7 @@ function exitCar(forced) {
   P.carSwap = null;
 }
 function enterCar(c) {
-  if (c.driver === 'ai' || c.driver === 'cop') {
+  if (c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') {
     const cop = c.driver === 'cop' || c.t.cop;
     const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30);
     if (cop) ped.arm = -1;
@@ -221,7 +221,7 @@ function enterCar(c) {
     if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0);
   } else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
-  else reportCrime(COP.crime.steal, 0);
+  else if (!c.free) reportCrime(COP.crime.steal, 0);             // the NASCAR special in the speedway's paddock is free to take (js/08o)
   if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
   c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
   carWeapon(c);
@@ -240,9 +240,9 @@ function letGo(c) {                                              // a carjacking
 }
 function tryEnterExit() {
   if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
-  if (P.car) { exitCar(); return; }
+  if (P.car) { if (raceLocked('NO GETTING OUT DURING A RACE')) return; exitCar(); return; }   // js/08o
   const c = nearestCar(); if (!c || rampLocked('ON FOOT DURING A RAMPAGE')) return;
-  const occ = c.driver === 'ai' || c.driver === 'cop';
+  const occ = c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race';
   P.act = { k: 'steal', c, t: 0, dur: occ ? 3 : 1, occ }; P.vx = P.vy = 0;       // an empty car takes a second; pulling a driver out takes three
 }
 function updateAct(dt) {                                         // stealing: when the time is up you are in and can drive off at once
@@ -250,7 +250,7 @@ function updateAct(dt) {                                         // stealing: wh
   if (P.dead || c.dead || c.sunk || P.car) { P.act = null; if (a.occ && !P.dead && !P.car) letGo(c); return; }
   a.t += dt;
   if (a.occ) { P.x = c.x; P.y = c.y; P.vx = c.vx; P.vy = c.vy; cam.shake = Math.max(cam.shake, 1.5); }   // hanging on at the door, fighting for the wheel
-  else if (c.driver === 'ai' || c.driver === 'cop') { P.act = null; return; }
+  else if (c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') { P.act = null; return; }
   if (a.t >= a.dur) { P.act = null; enterCar(c); }
 }
 function nearestCar() {
@@ -277,8 +277,10 @@ function updatePlayer(dt, inp) {
     } else if (touchMode) { c.thr = 0; c.str = 0; c.assist = false; c.fs = 0; }
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
     c.hb = inp.sprint; jobNitro(c, dt);                            // nitro in a taxi, the taxi job's reward (js/08n)
+    raceHold(c, dt);                                               // a race's countdown and results hold the car still (js/08o)
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
-    if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
+    if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '')) { }   // a race: FIRE is locked
+    else if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
     else carDrop(c, inp);                                          // a bomb in hand: FIRE drops it out of the window (js/06b)
     P.ctrig = inp.fire; return;

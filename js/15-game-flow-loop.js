@@ -37,7 +37,7 @@ function resetGame(sv) {                     // a new game with the options in O
   if (feat('townCash')) for (let k = 0; k < ECO.townN; k++) spawnPickup();   // cash stacks around town (js/01i)
   CALLS = []; clearTeams(); if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
-  placeStores(); placeClothes(); jobLoad(null);                                   // the six stores and their markers (js/08e); no job levels or rewards yet (a saved game fills them in, js/08n)
+  placeStores(); placeClothes(); jobLoad(null); placeRaces(); raceLoad(null);   // the six stores (js/08e); no job levels or rewards yet (a saved game fills them in, js/08n); the phone booths, no race (js/08o)
   resetFence(); resetPlanes();                                     // the airport fence whole again, planes at the gates (js/10f, js/08i)
   resetPlaces(); resetShips();                                     // guards, barriers, the base and its armoury, ships at their berths (js/08j, js/08k)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
@@ -70,6 +70,7 @@ function handleKeys() {
   else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) { if (CLS.at) closeClothes(); else closeShop(); } }   // E leaves the store (or the clothes shop) again
   else if (state === 'ramp') { if (pressed.KeyE || pressed.KeyF) closeRamp(); }   // and the rampage's screen
   else if (state === 'job') { if (pressed.KeyE || pressed.KeyF) closeJob(); }     // and a job's START card (js/08n)
+  else if (state === 'race') { if (pressed.KeyE || pressed.KeyF) closeRaceCard(); }   // and a race's card (js/08o)
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
     if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
@@ -83,7 +84,8 @@ function handleKeys() {
       if (!lock && pressed.wheel) { const k = own.indexOf(P.weapon); P.weapon = own[(Math.max(0, k) + pressed.wheel + own.length) % own.length]; }
       if (!lock && pressed.KeyQ && !bigOpen) toggleWheel(true);
       if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
-      if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(); if (r) openRamp(r); else if (s) openShop(s); else tryEnterExit(); }   // at a store's door E goes in, at a skull the rampage's screen
+      if ((pressed.KeyE || pressed.KeyF || pressed.Enter || pressed.NumpadEnter) && RACE.res) closeRaceRes();   // the race's results (js/08o)
+      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (s) openShop(s); else tryEnterExit(); }   // at a store's door E goes in, at a skull the rampage's screen
     }
   }
   if (pressed.KeyM) Snd.toggle();
@@ -111,7 +113,7 @@ function update(dt, idle) {
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
-  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); jobTick(dt); }   // vehicle jobs (js/08n)   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
+  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); jobTick(dt); raceTick(dt); }   // vehicle jobs (js/08n)   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
   updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
   placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
@@ -135,7 +137,7 @@ function frame(ts) {
   if (state === 'preview') { pvFrame(); return; }
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
+  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
   Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);

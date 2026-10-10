@@ -40,6 +40,10 @@
   <div id="toast"></div>
   <div id="warnBanner" hidden></div>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
+  <button id="raceBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7c0-1.7 4-3.5 9-3.5S21 5.3 21 7v2.2c0 .6-.5 1-1 .9l-3-.6a1 1 0 0 1-.8-1V7.3C15 6.9 13.6 6.7 12 6.7s-3 .2-4.2.6v1.2a1 1 0 0 1-.8 1l-3 .6c-.5.1-1-.3-1-.9zm4 5h10l2 8H5zm5 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><b></b><span class="go">ANSWER</span></button>
+  <div id="raceHud" hidden><span class="rl" id="raceHudName">RACE</span><b id="racePos"></b><span id="raceLap"></span><i id="raceClock">0:00</i></div>
+  <div id="raceCount"></div>
+  <div id="raceRes" hidden><p class="tag" id="rrName">RACE</p><h2 id="rrTitle">1ST PLACE!</h2><p id="rrRecord" hidden>NEW RECORD!</p><div id="rrRows"></div><div class="rrBarBox"><i id="rrBar"></i></div><button id="rrClose" type="button">CLOSE</button></div>
   <div id="jobHud" hidden title="Stop the job"><span class="rl" id="jobHudName">JOB</span><span class="lv" id="jobLevel">LEVEL 1</span><b id="jobCount">0 / 0</b><i id="jobClock">0:00</i><span class="jx">✕</span></div>
   <div id="rampHud" hidden><span id="rampIcoHud"></span><span class="rl">RAMPAGE</span><b id="rampCount">0 / 0</b><span id="rampWhat"></span><i id="rampClock">0:00</i></div>
   <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
@@ -168,6 +172,14 @@
         <li><b>TAXI</b>: the rank sends you to a fare; stop by them, then at the destination. Fast trips tip more, crashes cost the tip. <b>PARAMEDIC</b>: up to 3 patients aboard, then any hospital; crashes cost time. <b>FIREFIGHTER</b>: spray burning cars with the water cannon until they are out. <b>VIGILANTE</b>: wreck the criminals' car or take them down when they run; from level 5 they shoot back.</li>
         <li>Level 8 once: <b>NITRO</b> in taxis (Shift or N, or the NITRO button), +50 max health, fireproof, +50 max body armor.</li>
         <li>Tap or click the job's panel at the top to <b>STOP</b> the job. A police car in a police station's yard is yours for the vigilante job - no crime.</li></ul></div>
+      <div><h3>RACES</h3><ul>
+        <li><b>STREET RACES</b>: now and then a phone booth near you rings (a blinking phone on the maps). On foot at it, tap <b>ANSWER</b> or press <b>E</b>. A double ring is one of five fixed races (best times kept), a fast trill a random one.</li>
+        <li><b>ACCEPT</b> pays the fee (not given back). You have 60 s to stop at the start in any car but a public service vehicle - not while wanted. It counts down 3 s; pass every checkpoint in order. Prizes for 1st, 2nd and 3rd.</li>
+        <li>From the countdown to the results you cannot get out or use weapons.</li>
+        <li><b>SPEEDWAY</b> on the Palm Heights beach: at the race booth in the paddock tap <b>RACE</b> - you are put in a NASCAR special on the grid, 5 laps against 7 others. A NASCAR special also stands in the paddock to take.</li>
+        <li><b>DRAG STRIPS</b>: the Palm strip beside the speedway (201 m) and the long Sandbar strip on the east beach (600 m). Stop by a strip's booth in a car: <b>RACE</b> a rival, or a free <b>TEST RUN</b> for your top speed, 0-100 and split times. Three ambers, then green - go.</li>
+        <li>A faded <b>LIME LINE</b> on the streets shows the way during a street race, a job, or with the car wanted at the docks.</li>
+        <li>The results show for 10 s: close them with <b>CLOSE</b>, <b>E</b> or <b>ENTER</b>.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
         <li><b>CASH</b> stacks lie on sidewalks around town, not on the maps; the dead drop cash too, and every car has some inside.</li>
         <li><b>ARMED PEOPLE</b> some passers-by carry a pistol or a melee weapon: hurt them, or someone next to them, and they fight back. They drop it when killed.</li>
@@ -208,7 +220,7 @@
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($), the rampages you have found (skulls) and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores ($), the rampages you have found (skulls), the speedway and the drag strip (chequered flags), a ringing phone and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>TRAFFIC</h3><ul>
         <li>Every junction has traffic lights. Cars stop on red, give way when turning across traffic and stop for people crossing; people cross at the zebras on the walk signal.</li>
@@ -275,6 +287,17 @@
     <p class="keys">ENTER STARTS · ESC OR E LEAVES</p>
   </div>
 
+  <div class="card" id="raceCard" hidden>
+    <p class="tag" id="raceTag">STREET RACE</p>
+    <h2 id="raceName">RACE</h2>
+    <p class="sub" id="raceSub"></p>
+    <div class="stats"><span>FEE</span><span id="raceFee"></span><span>PRIZES</span><span id="racePrize"></span><span>YOUR BEST</span><span id="raceBest"></span></div>
+    <p class="sub rampRules" id="raceRules"></p>
+    <p class="warn" id="raceWarn" hidden></p>
+    <div class="menu"><button id="raceGo" class="big pri" type="button">ACCEPT</button><button id="raceTest" class="big" type="button" hidden>TEST RUN</button><button id="raceNo" class="big alt back" type="button">NOT NOW</button></div>
+    <p class="keys">ENTER ACCEPTS · ESC OR E LEAVES</p>
+  </div>
+
   <div class="card" id="jobStopCard" hidden>
     <p class="tag">JOB</p>
     <h2 id="jsName">STOP THE JOB?</h2>
@@ -332,6 +355,7 @@
 <script src="js/01m-streets-data.js"></script>
 <script src="js/01n-clothes-data.js"></script>
 <script src="js/01o-jobs-data.js"></script>
+<script src="js/01p-races-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -355,6 +379,8 @@
 <script src="js/08l-clothes-shops.js"></script>
 <script src="js/08m-car-delivery.js"></script>
 <script src="js/08n-vehicle-jobs.js"></script>
+<script src="js/08o-races.js"></script>
+<script src="js/08p-guide.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -364,6 +390,7 @@
 <script src="js/10f-airport.js"></script>
 <script src="js/10g-places.js"></script>
 <script src="js/10h-lunapark.js"></script>
+<script src="js/10i-speedway.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>

@@ -3,7 +3,8 @@
    Cardboard boxes, garbage bags, single crates and pallets burst when a vehicle drives into them: bits fly the way it was going and
    a patch of mess stays on the ground. Bins, barrels and newspaper boxes are knocked flying and spill their trash; a hydrant is
    knocked off and a fountain of water shoots up for a few seconds. Each hit slows the vehicle a little (a heavy one hardly notices).
-   A blast throws all of it (js/12c) and shreds the light things near its middle.
+   Benches, parking meters and beach umbrellas are knocked flying; a phone box's glass shatters; a planter breaks; a bush is flattened
+   (js/01j moreProps). A blast throws all of it (js/12c) and shreds the light things near its middle.
    Whatever was smashed or knocked away is put back after a minute and a half, once you are far enough away not to see it. */
 const SMASH = {                          // debris colours, how much a 1.4 t car slows, the mess left on the ground (colour, radius)
   box: { cols: ['#a07a4c', '#8a6a44', '#c9a676', '#d9c29a', '#6e5236'], slow: 0.03, decal: '#5e4a33', r: 9 },
@@ -12,8 +13,15 @@ const SMASH = {                          // debris colours, how much a 1.4 t car
   pallet: { cols: ['#9a7a50', '#7a5a3a', '#c9a676'], slow: 0.04, decal: '#4e3a26', r: 8 },
   bin: { cols: ['#1d1b24', '#e8e4d8', '#6b5a48', '#3a5f3a', '#ffe14a'], slow: 0.08 },
   hydrant: { cols: ['#e0364f', '#9fd4ff', '#cfeeff'], slow: 0.2 },
+  bench: { cols: ['#7a5a3a', '#9a7a50', '#2b2e38'], slow: 0.08 },
+  meter: { cols: ['#c8ccd4', '#ffd23f', '#55586a'], slow: 0.05 },
+  umbrella: { cols: ['#ff2bd6', '#ffe14a', '#2bf3ff', '#e8e8e8'], slow: 0.03 },
+  booth: { cols: ['#9fd8ff', '#cfeeff', '#ffffff', '#2a4aa8'], slow: 0.12, decal: '#3a5a8a', r: 9 },
+  planter: { cols: ['#8d86a8', '#5e4a33', '#1f9e7a', '#23b38a'], slow: 0.1, decal: '#4e3a26', r: 10 },
+  bush: { cols: ['#1f9e7a', '#178a6a', '#2e8b57', '#7fbf5a'], slow: 0.05, decal: '#24402c', r: 9 },
 };
-const SHRED = { box: true, bag: true, crate: true, pallet: true }, MESSED = [], SPRAYS = [];
+const MORE_SMASH = { bench: 1, meter: 1, umbrella: 1, booth: 1, planter: 1, bush: 1 };   // js/01j moreProps
+const SHRED = { box: true, bag: true, crate: true, pallet: true, booth: true, planter: true, bush: true }, MESSED = [], SPRAYS = [];
 let messT = 0;
 function messed(o) { o.t = gameT; if (!MESSED.includes(o)) MESSED.push(o); }
 function hideParts(o) {                  // take its pieces out of the merged street-furniture mesh
@@ -29,7 +37,7 @@ function breakProp(o, nx, ny, sp) {      // burst: gone, in bits, a mess left wh
   if (o.flying) { o.flying = false; const f = FLY.indexOf(o); if (f >= 0) FLY.splice(f, 1); }
   if (o.solid) o.solid.off = true;
   o.broken = o.gone = true; messed(o);
-  const S = SMASH[o.smash] || SMASH.box, a0 = Math.atan2(ny, nx), n = o.smash === 'bag' ? 22 : 16;
+  const S = SMASH[o.smash] || SMASH.box, a0 = Math.atan2(ny, nx), n = o.smash === 'bag' || o.smash === 'booth' || o.smash === 'bush' ? 24 : 16;
   for (let k = 0; k < n; k++) {
     const a = a0 + rand(-1.1, 1.1), s = sp * rand(0.25, 0.8) + rand(20, 80);
     addP({ x: o.x + rand(-4, 4), y: o.y + rand(-4, 4), z: rand(3, 10), vz: rand(80, 230), grav: 600, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
@@ -65,7 +73,7 @@ function smashProps(dt) {                // every frame (js/15): vehicles agains
     for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
       const l = TGRID.get(a * 1024 + b); if (!l) continue;
       for (let i = l.length - 1; i >= 0; i--) {
-        const o = l[i]; if (!o || !o.smash || o.gone || o.flying || Math.abs(o.x - c.x) > reach || Math.abs(o.y - c.y) > reach) continue;
+        const o = l[i]; if (!o || !o.smash || o.gone || o.flying || (MORE_SMASH[o.smash] && !feat('moreProps')) || Math.abs(o.x - c.x) > reach || Math.abs(o.y - c.y) > reach) continue;
         circ = circ || carCircles(c);
         if (circ.some(q => Math.hypot(q[0] - o.x, q[1] - o.y) < q[2] + 6)) smashProp(o, c, sp);
       }

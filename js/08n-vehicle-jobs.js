@@ -168,7 +168,7 @@ function jobMarkTick() {                 // in the right vehicle, stopped in its
     if (k && jobOn(k) && !(gameT < (JOB.toldT[k] || 0))) { JOB.toldT[k] = gameT + 90; toast(JOBK[k].veh + ': DRIVE TO ' + JOBK[k].at + ' FOR THE ' + JOBK[k].name + ' JOB'); }
   }
   if (state !== 'play') return;                                   // the card is up: keep which marker you are in
-  if (!k || !jobOn(k)) { JOB.mark = null; return; }
+  if (!k || !jobOn(k) || RACE.on) { JOB.mark = null; return; }     // not during a race (js/08o)
   let m = null; for (const d of DISPATCH) if (d.kind === k && Math.abs(d.x - c.x) < JOB_MR && Math.abs(d.y - c.y) < JOB_MR && dist(d.x, d.y, c.x, c.y) < JOB_MR) m = d;
   if (m !== JOB.mark) { JOB.mark = m; JOB.shown = false; }
   if (m && !JOB.shown && carSpeed(c) < JB.stopSpeed) { JOB.shown = true; openJob(k); }
@@ -487,8 +487,8 @@ function jobTargets() {                   // where to go now: { x, y, col, car }
   else for (const o of JOB.tg) { const K = o.crim; if (!K) continue; if (!K.out) out.push({ x: o.x, y: o.y, col, car: o }); else for (const p of K.men) if (!p.dead) out.push({ x: p.x, y: p.y, col }); }
   return out;
 }
-function jobBlips(g, X, Y, size, q, ph) {      // the minimap (size: its width, an arrow at the edge for what is off it) or the city map (size 0)
-  for (const t of jobTargets()) {
+function jobBlips(g, X, Y, size, q, ph, list) {   // the minimap (size: its width, an arrow at the edge for what is off it) or the city map (size 0); list: other targets (js/08o)
+  for (const t of list || jobTargets()) {
     let x = X(t.x), y = Y(t.y);
     if (size) {
       const m = 8, cx = size / 2, inside = x > m && y > m && x < size - m && y < size - m;
@@ -519,7 +519,7 @@ function gfxJobs(time) {                  // js/13: the dispatch markers (only i
   const c = P.car, k = !JOB.on && c ? jobKind(c) : null;
   for (const d of DISPATCH) { const on = k === d.kind && jobOn(k); if (d.g.visible !== on) d.g.visible = on; if (on) d.g.userData.ring.scale.setScalar(JOB_MR + Math.sin(time * 3) * 2); }
   const ranks = jobOn('taxi'); for (const R of RANKS) for (const m of R.deco) m.visible = ranks;
-  const tg = jobTargets(), bm = (op) => new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide });
+  const tg = jobTargets().concat(raceTargets()), bm = (op) => new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide });
   while (JM.length < tg.length) {                                   // a ring on the ground, a beam of light, an arrow bobbing above
     const g = new THREE.Group(), ring = new THREE.Mesh(RAMP_RING, bm(0.95)), pad = new THREE.Mesh(RAMP_PAD, bm(0.18)), beam = new THREE.Mesh(GCyl, bm(0.2));
     ring.position.y = 1.7; pad.position.y = 1.5; beam.scale.set(22, 120, 22); beam.position.y = 60;
@@ -530,9 +530,9 @@ function gfxJobs(time) {                  // js/13: the dispatch markers (only i
   JM.forEach((g, i) => {
     const t = tg[i]; g.visible = !!t; if (!t) return;
     const u = g.userData; for (const m of [u.ring, u.pad, u.beam, u.cone]) m.material.color.set(t.col);
-    const r = t.ring ? JOB_TR * 0.8 : t.car ? t.car.t.len / 2 + 12 : 26;
+    const r = t.r || (t.ring ? JOB_TR * 0.8 : t.car ? t.car.t.len / 2 + 12 : 26);
     g.position.set(t.x, groundH(t.x, t.y), t.y); u.ring.scale.setScalar(r + Math.sin(time * 3) * 2); u.pad.scale.setScalar(r);
-    u.cone.position.y = (t.car ? 56 : 44) + Math.sin(time * 4) * 4; u.cone.rotation.y = time * 2;
+    u.cone.position.y = (t.car ? 56 : 44) + Math.sin(time * 4) * 4; u.cone.rotation.y = time * 2; u.beam.visible = u.cone.visible = !t.dim;   // dim: a race's checkpoint after the next (js/08o)
   });
 }
 const jobSave = () => ({ best: Object.assign({}, JOB.best), rew: [...JOB.rew] });

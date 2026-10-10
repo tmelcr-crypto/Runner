@@ -82,6 +82,11 @@ const Snd = {
     if (k === 'box') { this.burst(0.14, 1400, 250, 0.32 * v); this.burst(0.08, 300, 90, 0.3 * v); }                 // cardboard: a dull crumple
     else if (k === 'bag') { this.burst(0.2, 700, 140, 0.36 * v); this.burst(0.06, 2400, 900, 0.12 * v, 'bandpass'); } // a soft burst
     else if (k === 'crate' || k === 'pallet') { this.burst(0.12, 3000, 700, 0.4 * v, 'bandpass'); this.tone(180, 90, 0.08, 0.14 * v, 'square'); }   // splintering wood
+    else if (k === 'booth') { this.burst(0.35, 7000, 2500, 0.32 * v, 'highpass'); this.tone(2400, 1800, 0.12, 0.08 * v, 'triangle'); }   // glass shattering
+    else if (k === 'bush') { this.burst(0.25, 2500, 900, 0.22 * v, 'bandpass'); }                                       // a rustle
+    else if (k === 'planter') { this.burst(0.15, 900, 200, 0.4 * v); this.tone(160, 80, 0.1, 0.15 * v, 'sine'); }         // a crack and a thud
+    else if (k === 'bench') { this.burst(0.14, 2600, 600, 0.38 * v, 'bandpass'); this.tone(150, 80, 0.1, 0.15 * v, 'square'); }   // wood
+    else if (k === 'umbrella') { this.burst(0.18, 1200, 400, 0.2 * v, 'bandpass'); }
     else if (k === 'hydrant') { this.tone(620, 380, 0.3, 0.2 * v, 'square'); this.burst(2.4, 5000, 3000, 0.16 * v, 'highpass'); }   // a clang, then the hiss of water
     else { this.tone(460, 260, 0.22, 0.17 * v, 'square'); this.burst(0.1, 1800, 400, 0.25 * v); }                   // a bin: a hollow clang
   },

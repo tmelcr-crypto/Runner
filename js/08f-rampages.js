@@ -34,7 +34,7 @@ const rampTimeText = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s /
 
 /* ---------- finding them, the button by you, the screen before you start ---------- */
 function nearRamp() {                    // the rampage whose skull you stand at, on foot
-  if (RAMP.on || JOB.on || P.car || P.dead || P.act || state !== 'play' || !feat('rampages')) return null;   // not during a vehicle job (js/08n)
+  if (RAMP.on || JOB.on || RACE.on || P.car || P.dead || P.act || state !== 'play' || !feat('rampages')) return null;   // not during a vehicle job (js/08n)
   for (const r of RAMPAGES) if (r.placed && Math.abs(r.x - P.x) < RAMP_R && Math.abs(r.y - P.y) < RAMP_R && dist(r.x, r.y, P.x, P.y) < RAMP_R) return r;
   return null;
 }
