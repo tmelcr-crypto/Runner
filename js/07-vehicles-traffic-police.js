@@ -42,7 +42,7 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { if (rc.gate && c.t.cop) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      for (const rc of _nb) { if (rc.gate && c.t.cop) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       nearRails(q[0], q[1], _nr);
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
@@ -65,7 +65,7 @@ function collideCars() {
   for (let a = 0; a < cars.length; a++) {
     const A = cars[a];
     for (let b = a + 1; b < cars.length; b++) {
-      const Bc = cars[b];
+      const Bc = cars[b]; if (A.hook || Bc.hook) continue;
       const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach) continue;
       let hit = false, nx = 0, ny = 0, pen = 0;
       for (const p of carCircles(A)) for (const q of carCircles(Bc)) {
@@ -147,9 +147,9 @@ function routeEdge(c) {                      // a vehicle on a call (js/08c): at
 const nextFor = c => c.task ? routeEdge(c) : nextEdge(c.e, c.fw);
 function laneAhead(c, ahead, out) {          // point on the car's lane `ahead` units further on, running into the next edge if needed
   const E = RE[c.e], s = c.s + ahead;
-  if (s <= E.len) return lanePoint(c.e, c.fw, s, LANE, out);
+  if (s <= E.len) return lanePoint(c.e, c.fw, s, c.lo || LANE, out);
   if (!c.nx) c.nx = nextFor(c);
-  return lanePoint(c.nx.e, c.nx.fw, Math.min(RE[c.nx.e].len, s - E.len), LANE, out);
+  return lanePoint(c.nx.e, c.nx.fw, Math.min(RE[c.nx.e].len, s - E.len), c.lo || LANE, out);
 }
 function snapToRoad(c) {                     // (re)join the nearest road, heading the way the car already points
   const r = nearestRoad(c.x, c.y, 500); if (!r) return false;
@@ -200,22 +200,23 @@ function aiDrive(c, dt) {
   }
   if (c.t.job && serviceStop(c, dt)) return;                        // at the scene of a call, or stopped at a bin (js/08c)
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, spd = carSpeed(c), F = Math.max(0, c.t.len / 2 - 27);   // F: how much further a long vehicle's nose is
+  const sir = feat('sirens') && isSiren(c), pulled = feat('sirens') && pullOver(c);   // lights and siren: down the middle; a siren near: keep right (js/07b)
+  c.lo = lerp(c.lo || LANE, pulled ? LANE + STR.pullSide : sir ? 4 : LANE, 1 - Math.exp(-2.5 * dt));
   const far = laneAhead(c, 120 + Math.max(0, vf) * 0.6, _cw), dfar = Math.abs(angDiff(c.ang, Math.atan2(far.y - c.y, far.x - c.x)));
   const near = laneAhead(c, (40 + Math.max(0, vf) * 0.3) * (1 - 0.45 * Math.min(1, dfar / 1.2)), _lq), d = angDiff(c.ang, Math.atan2(near.y - c.y, near.x - c.x));   // aim closer in a bend, so the corner is not cut into the other lane
   c.str = clamp(d * 4.5, -1, 1);                                    // firm steering keeps cars in their lane, clear of parked ones
   if (!c.cruise) c.cruise = Math.min(c.t.max * 0.9, rand(40, 55) * KMH);   // town traffic: 40-55 km/h
   let tgt = (c.task ? Math.min(c.t.max * 0.9, 65 * KMH) : c.cruise) * (1 - SKYP.aiSlow * SKY.wet) * (1 - 0.5 * Math.min(1, Math.abs(d))) * (1 - 0.68 * Math.min(1, dfar / 1.2)), block = 999;   // slow right down for a sharp turn
   const stop = vf > 0 ? vf * vf / (2 * c.t.brake * (0.55 + 0.45 * SKY.grip)) : 0, reach = 70 + stop * 1.6 + Math.max(0, vf) * 0.4;   // look far enough ahead to stop in time
-  const look = (ox, oy, lw, back) => { const rx = ox - c.x, ry = oy - c.y, al = rx * fx + ry * fy - F - (back || 0), lat = Math.abs(-rx * fy + ry * fx); if (al > 18 && al < reach && lat < lw && al < block) block = al; };
+  const look = (ox, oy, lw, back) => { const rx = ox - c.x, ry = oy - c.y, ah = rx * fx + ry * fy, al = ah - F - (back || 0), lat = Math.abs(-rx * fy + ry * fx); if (ah > 18 && al < reach && lat < lw && al < block) block = al; };
   const R = reach + 30 + F;
-  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R + o.t.len / 2 && Math.abs(o.y - c.y) < R + o.t.len / 2) look(o.x, o.y, 24, Math.max(0, o.t.len / 2 - 27));   // a bus ahead ends further back   // cars in the parking lane (33 to the side) are not in the way
+  for (const o of cars) if (o !== c && Math.abs(o.x - c.x) < R + o.t.len / 2 && Math.abs(o.y - c.y) < R + o.t.len / 2) look(o.x, o.y, sir && o.pullT > gameT ? 14 : 24, Math.max(0, o.t.len / 2 - 27) + 14);   // a bus ahead ends further back; stop a little short of its bumper   // cars in the parking lane (33 to the side) are not in the way
   if (!P.car) look(P.x, P.y, 24);
   for (const p of peds) if (!p.dead && Math.abs(p.x - c.x) < R && Math.abs(p.y - c.y) < R) look(p.x, p.y, 20);
-  { const Ec = RE[c.e], toEnd = Ec.len - c.s - F, node = RN[c.fw > 0 ? Ec.b : Ec.a], box = ROAD_HALF + SW_W + 20;   // give way: wait at the junction while it is busy
-    if (node.e.length >= 3 && toEnd > box && toEnd < box + stop + 60)
-      for (const o of cars) if (o !== c && o.driver && !o.dead && Math.abs(o.x - node.x) < box && Math.abs(o.y - node.y) < box && o.e !== c.e && carSpeed(o) > 5) { block = Math.min(block, toEnd - box + 48); break; } }
+  block = Math.min(block, roadRules(c, vf, stop, F)); tgt = Math.min(tgt, _tr.cap);   // traffic lights, giving way, people crossing (js/07b)
+  if (pulled) tgt = Math.min(tgt, Math.max(c.cruise * STR.pullSlow, _tr.cap < 1e9 ? 12 * KMH : 0));   // slow down for the siren (rolling over a red light: at a crawl)
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = 0; return; }
-  if (block < 48 + stop) { c.thr = vf > 8 ? -1 : 0; }                                   // too close to stop gently: full brake
+  if (block < 48 + stop) { c.thr = vf > 8 ? -1 : 0; if (vf <= 8) { const k = Math.exp(-6 * dt); c.vx *= k; c.vy *= k; } }   // too close to stop gently: full brake, and hold it once stopped
   else { if (block < reach) tgt = Math.min(tgt, Math.max(0, (block - 48) * 1.1)); c.thr = vf < tgt ? 0.8 : (vf > tgt + 15 * KMH ? -0.6 : 0); }
   if (spd < 10 && block > 150) { c.stuck += dt; if (c.stuck > 2) { c.rev = 1; c.stuck = 0; } } else c.stuck = 0;
 }
@@ -229,12 +230,14 @@ function wrestle(c, dt) {                                        // a carjacking
   c.wst = lerp(c.wst || 0, c.ws, Math.min(1, dt * 14)); c.str = c.wst; c.thr = c.wg; c.hb = false;
 }
 function updateCars(dt) {
+  trafficTick();                                                   // sirens about, people on the crossings (js/07b)
   if (gameT > copFieldT && cars.some(c => c.driver === 'cop')) { copFieldT = gameT + 0.5; copTarget = roadFieldTo(PS.lx, PS.ly); }   // police drive to what they know (js/08b)
   for (const c of cars) {
+    if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
     else if (c.driver === 'ai') aiDrive(c, dt);
     else if (c.driver === 'cop') copDrive(c, dt);
-    else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = false; }
+    else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
     if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);
     if ((c.driver === 'ai' || c.driver === 'cop') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
       const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;
@@ -254,9 +257,16 @@ function updateCars(dt) {
     if (!c.sunk && shoreDist(c.x, c.y) < -8) sinkCar(c);
     if (c.sunk && c.sinkT < 1.4 && Math.random() < 0.3) splashFx(c.x + rand(-14, 14), c.y + rand(-14, 14), 3);
     carHitsPeds(c);
-    // damage effects
+    // damage you can see (there is no health bar): thin white wisps from the bonnet, then thick grey smoke and sparks, then black smoke
+    // and flames; on fire it burns all over until it blows (js/11 scorches and lights up the paint)
     const f = c.hp / c.maxhp; c.smokeT -= dt;
-    if (!c.dead && c.smokeT <= 0 && (f < 0.4 || c.burn > 0)) { c.smokeT = f < 0.2 || c.burn > 0 ? 0.05 : 0.14; smokeFx(c.x, c.y, f < 0.2); if (f < 0.2 || c.burn > 0) fireFx(c.x + Math.cos(c.ang) * 12, c.y + Math.sin(c.ang) * 12); }
+    if (!c.dead && c.smokeT <= 0 && (f < 0.75 || c.burn > 0)) {
+      const ca = Math.cos(c.ang), sa = Math.sin(c.ang), bx = c.x + ca * c.t.len * 0.3, by = c.y + sa * c.t.len * 0.3;
+      if (c.burn > 0) { c.smokeT = 0.035; smokeFx(c.x, c.y, true, 1.7); for (let k = 0; k < 3; k++) { const o = rand(-0.45, 0.45) * c.t.len; fireFx(c.x + ca * o, c.y + sa * o, 1.6); } }
+      else if (f < 0.3) { c.smokeT = 0.05; smokeFx(bx, by, true, 1.3); fireFx(bx, by); if (Math.random() < 0.25) spark(bx, by, 2); }
+      else if (f < 0.5) { c.smokeT = 0.09; smokeFx(bx, by, false, 1.2); if (Math.random() < 0.12) spark(bx, by, 2); }
+      else { c.smokeT = 0.22; smokeFx(bx, by, false, 0.8, true); }
+    }
     if (c.dead && !c.sunk && !c.doused && c.deadT < 25 && c.smokeT <= 0) { c.smokeT = 0.18; smokeFx(c.x, c.y, true); if (Math.random() < 0.4) fireFx(c.x, c.y); }
     if (c.burn > 0 && !c.dead) { c.burn -= dt; if (c.burn <= 0) explodeCar(c); }
   }

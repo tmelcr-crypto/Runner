@@ -39,7 +39,18 @@ for (const r of NEW_OPTS) {
   $('optRows').appendChild(b);
 }
 paintOpts();
-function newGame() { Object.assign(OPT, NEWOPT); startGame(); }
+function newGame() { Object.assign(OPT, NEWOPT); gameMode = newMode; startGame(); }
+
+/* the modes (js/01j): NEW GAME asks first - FREE ROAM goes on to its options; one that is not built yet shows COMING SOON */
+let newMode = 'free';
+function paintModes() {
+  for (const b of document.querySelectorAll('#modeCard .modeBtn')) {
+    const m = MODE[b.dataset.mode]; b.disabled = !m.ready; b.innerHTML = m.name + (m.ready ? '' : '<small>COMING SOON</small>');
+    document.querySelector('#modeCard .modeNote[data-mode="' + m.id + '"]').textContent = m.note;
+  }
+}
+for (const b of document.querySelectorAll('#modeCard .modeBtn')) b.addEventListener('click', () => { newMode = b.dataset.mode; $('newTitle').textContent = MODE[newMode].name; showCard('newCard'); });
+const modeOf = d => (MODE[d && d.mode] && MODE[d.mode].ready ? d.mode : 'free');   // a saved game's mode (older saves: free roam)
 
 /* ---------- the cards: one shows at a time; Back returns to the one before ---------- */
 let cardStack = [];
@@ -48,7 +59,7 @@ function showCard(id, fresh) {                       // fresh: start a new stack
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
   const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp'); document.documentElement.classList.add('menus');
-  if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); }
+  if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
 }
@@ -56,6 +67,7 @@ function back() {
   const id = curCard();
   if (id === 'pauseCard') resumeGame();
   else if (id === 'shopCard') closeShop();
+  else if (id === 'clothesCard') closeClothes();
   else if (id === 'rampCard') closeRamp();
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
@@ -67,11 +79,11 @@ function paintTitle() {
   const d = latestSave();
   $('contBtn').hidden = !d; $('contInfo').hidden = !d; if (d) $('contInfo').textContent = saveLine(d);
   $('newBtn').classList.toggle('alt', !!d);                       // with a save to continue, CONTINUE is the main button
-  $('bestLine').textContent = best > 0 ? 'BEST SCORE ' + best.toLocaleString('en-US') : 'Steal a car, make trouble, outrun the police.';
+  $('bestLine').textContent = best > 0 ? 'MOST CASH ' + money(best) : 'Steal a car, make trouble, outrun the police.';
 }
 function showTitle() { state = 'menu'; $('hud').hidden = true; $('shifter').hidden = true; hush(); showCard('startCard', true); }
 $('contBtn').addEventListener('click', () => { const d = latestSave(); if (d) loadGame(d); });
-$('newBtn').addEventListener('click', () => showCard('newCard'));
+$('newBtn').addEventListener('click', () => showCard('modeCard'));
 $('goBtn').addEventListener('click', newGame);
 $('loadBtn').addEventListener('click', () => openSlots('load'));
 $('helpBtn').addEventListener('click', () => showCard('helpCard'));
@@ -85,7 +97,7 @@ function pauseGame() {
 }
 function resumeGame() { if (state !== 'pause') return; state = 'play'; closeMenus(); }
 function paintPause() {
-  $('pauseInfo').textContent = skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + P.score.toLocaleString('en-US') + ' PTS  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length;
+  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length : '');
   const why = saveBlock(); $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why;
 }
 function quitToTitle() {
@@ -94,10 +106,11 @@ function quitToTitle() {
   showTitle();
 }
 $('menuBtn').addEventListener('click', () => { if (state === 'play') pauseGame(); });
+$('mapMenu').addEventListener('click', e => { e.stopPropagation(); if (state !== 'play') return; toggleBigMap(false); pauseGame(); });   // the city map's MENU (on a touch screen the only one)
 $('resumeBtn').addEventListener('click', resumeGame);
 $('saveBtn').addEventListener('click', () => openSlots('save'));
 $('pLoadBtn').addEventListener('click', () => openSlots('load'));
-$('pNewBtn').addEventListener('click', () => showCard('newCard'));
+$('pNewBtn').addEventListener('click', () => showCard('modeCard'));
 $('pHelpBtn').addEventListener('click', () => showCard('helpCard'));
 $('quitBtn').addEventListener('click', quitToTitle);
 document.addEventListener('visibilitychange', () => {           // switching to another app or tab: pause, and keep the game safe
@@ -111,7 +124,7 @@ $('oLoadBtn').addEventListener('click', () => openSlots('load'));
 $('oMenuBtn').addEventListener('click', showTitle);
 
 /* help: one page per tab; the WEAPONS page comes from the weapon table (js/01f): its name and how to use it; the points from js/01i */
-{ const rg = id => Array.isArray(ECO[id]) ? '$' + ECO[id][0] + '-' + ECO[id][1] : '$' + ECO[id];
+{ const rg = id => Array.isArray(ECO[id]) ? money(ECO[id][0]) + '-' + ECO[id][1] : money(ECO[id]);
   $('helpPoints').textContent = 'Your score is your cash. Every car you steal or hijack has ' + rg('carCash') + ' inside. Killing pays nothing by itself: the dead drop a cash stack ('
     + rg('pedCash') + ', police ' + rg('copCash') + ') and the weapon they carried - pick them up within ' + ECO.dropTime + ' s. ' + ECO.townN + ' cash stacks of ' + rg('townCash')
     + ' lie around town (not on the maps). Destroying pays nothing.'; }
@@ -138,10 +151,11 @@ function saveBlock() {                               // why you cannot save now 
 }
 function makeSave(thumb) {
   const c = P.car;
-  return { v: SAVE_V, t: Date.now(), where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
-    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars },
+  return { v: SAVE_V, t: Date.now(), mode: gameMode, where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
+    P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
+      outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe] },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] },
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -158,6 +172,8 @@ function saveSpot(sv) {                              // where a saved game puts 
 function applySave(sv) {                             // called by resetGame (js/15) once the city is set up again
   const p = sv.P, n = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? clamp(v, lo, hi) : d;
   P.hp = n(p.hp, 1, 100, 100); P.armor = n(p.armor, 0, 100, 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
+  if (Array.isArray(p.wardrobe)) for (const id of p.wardrobe) if (CLOTH[id] && !P.wardrobe.includes(id)) P.wardrobe.push(id);   // clothes by id (js/01n); unknown ones are dropped
+  if (p.outfit && typeof p.outfit === 'object') for (const sl of CL_SLOTS) { const id = p.outfit[sl]; if (id === null && (sl === 'hat' || sl === 'glasses')) P.outfit[sl] = null; else if (CLOTH[id] && CLOTH[id].slot === sl && P.wardrobe.includes(id)) P.outfit[sl] = id; }
   const wi = typeof p.weapon === 'string' ? WEAPONS.findIndex(w => w.id === p.weapon) : Math.round(n(p.weapon, 0, WEAPONS.length - 1, 0));
   P.weapon = Math.max(0, wi);
   if (p.arms && typeof p.arms === 'object') {                     // by weapon id, so the weapon table can change between saves
@@ -179,7 +195,7 @@ function applySave(sv) {                             // called by resetGame (js/
     for (const k of ['cloud', 'rain', 'fog', 'storm', 'wet']) SKY[k] = n(s[k], 0, 1, SKY[k]);
   }
 }
-function loadGame(sv) { Object.assign(OPT, OPT_DEF, sv.opt || {}); startGame(sv); }
+function loadGame(sv) { Object.assign(OPT, OPT_DEF, sv.opt || {}); gameMode = modeOf(sv); startGame(sv); }
 function autosaveTick(dt) {
   if (state !== 'play' || (autoT += dt) < 60 || saveBlock()) return;
   autoT = 0; snapReq.push(t => { lastThumb = t; putSave('auto', makeSave(t)); });
@@ -197,7 +213,7 @@ let slotMode = 'load';
 const SLOT_NAME = { auto: 'AUTOSAVE', 1: 'SLOT 1', 2: 'SLOT 2', 3: 'SLOT 3' };
 function saveLine(d) {
   const wx = d.sky ? hhmm(d.sky.hour) + (d.sky.kind !== 'clear' ? ' ' + (WX_NAME[d.sky.kind] || '') : '') : '';
-  return [wx, d.where, (d.P.score || 0).toLocaleString('en-US') + ' PTS', ago(d.t)].filter(Boolean).join('  ·  ');
+  return [MODE[modeOf(d)].name, wx, d.where, money(d.P.score || 0), ago(d.t)].filter(Boolean).join('  ·  ');
 }
 function ago(t) {
   const s = (Date.now() - t) / 1000;

@@ -16,9 +16,24 @@ cv.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY
 cv.addEventListener('mousedown', e => { if (e.button === 0 && !touchMode) { mouse.down = true; mouse.x = e.clientX; mouse.y = e.clientY; } });
 addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; });
 cv.addEventListener('contextmenu', e => e.preventDefault());
+/* the browser's own touch gestures stay out of the game: pinch to zoom (Safari's gesture events, any move with two fingers or more),
+   double-tap to zoom, the long-press menu. Buttons keep their taps: touch-action: manipulation already stops a double-tap zoom there */
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale !== undefined && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = e.timeStamp || Date.now(), tapTarget = e.target.closest && e.target.closest('button, a, input, select, textarea, label');
+  if (now - lastTouchEnd < 350 && !tapTarget && e.cancelable) e.preventDefault();   // a second tap this soon would zoom the page
+  lastTouchEnd = now;
+}, { passive: false });
+document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
+addEventListener('contextmenu', e => { if (touchMode) e.preventDefault(); });
 cv.addEventListener('wheel', e => { pressed.wheel = e.deltaY > 0 ? 1 : -1; e.preventDefault(); }, { passive: false });
 
-function enableTouch() { if (touchMode) return; touchMode = true; document.documentElement.classList.add('touch-on'); }
+function enableTouch() {                    // a touch screen: the compact HUD - the weapon button and the action bar move under the cash (css: touch-on)
+  if (touchMode) return; touchMode = true; document.documentElement.classList.add('touch-on');
+  const ht = document.getElementById('hudTouch'); if (ht) ht.append(document.getElementById('weaponbar'), document.getElementById('reload'));
+}
 if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enableTouch();
 addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouch(); }, true);
 
@@ -27,8 +42,8 @@ function bindStick(zone, ring, knob, onMove, onEnd) {
   zone.addEventListener('pointerdown', e => {
     if (id !== null) return; id = e.pointerId;
     try { zone.setPointerCapture(id); } catch (err) { }
-    ox = e.clientX; oy = e.clientY;
-    ring.style.display = 'block'; ring.style.left = (ox - 60) + 'px'; ring.style.top = (oy - 60) + 'px';
+    ox = e.clientX; oy = e.clientY; const zr = zone.getBoundingClientRect();   // the ring sits in the zone: under the finger, not 20% lower
+    ring.style.display = 'block'; ring.style.left = (ox - zr.left - 60) + 'px'; ring.style.top = (oy - zr.top - 60) + 'px';
     knob.style.transform = 'translate(0,0)'; onMove(0, 0); e.preventDefault();
   });
   zone.addEventListener('pointermove', e => {
@@ -65,7 +80,7 @@ $('radioBtn').addEventListener('click', () => { pressed.radio = true; });
 $('bigmap').addEventListener('click', () => { pressed.Tab = true; });
 function updateGearUi() {
   $('gD').classList.toggle('on', P.gear === 'D'); $('gR').classList.toggle('on', P.gear === 'R');
-  $('lever').style.top = P.gear === 'R' ? '0px' : 'calc(100% - 60px)';
+  $('shifter').dataset.g = P.gear;                                // no letters: the lever's place (up R, down D) and its glow (css)
 }
 function setGear(g) {                       // like the real dial: only shifts when you are nearly stopped
   if (P.gear === g || !P.car) return; const c = P.car;

@@ -11,6 +11,7 @@ import json, os, re, sys
 
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
+SHIFTERS = ['auto', 'sport', 'tall', 'throttle', 'bar']
 BODIES = ['sedan', 'sports', 'truck', 'police', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'new']
 KERB_W, STALL_W = 2.33, 2.5                  # widest vehicle that fits the kerb parking lane / a parking lot stall (m)
 # key, label, kind (text / choice / num / int / yesno / colour), choices or (min, max), what it means, unit / how to fill
@@ -36,7 +37,9 @@ ROWS = [
     ('chaseFrom', 'Chase from wanted level', 'int', (1, 5), 'The lowest wanted level at which the police send it or let it join a chase.', '1 to 5 stars'),
     ('hidden', 'Hidden on map (count)', 'int', (0, 5), 'How many stand parked at secret spots, always in the same places, for you to find.', 'number, usually 0'),
     ('job', 'Job: none / trash / ambulance / fire', 'choice', ['none', 'trash', 'ambulance', 'fire'], 'trash: stops at the bins along its way. ambulance: comes for the dead. fire: comes to explosions and burning wrecks and puts them out.', 'pick from the list'),
-    ('weapon', 'Weapon: none / rockets', 'choice', ['none', 'rockets'], 'rockets: when you drive it, FIRE launches rockets straight ahead (no ammo needed).', 'pick none or rockets'),
+    ('weapon', 'Weapon: none / rockets / water', 'choice', ['none', 'rockets', 'water'], 'rockets: when you drive it, FIRE launches rockets straight ahead (no ammo needed). water: FIRE sprays a water cannon that knocks people down and puts out fires (streets table). With a weapon of its own you cannot drop bombs from it.', 'pick none, rockets or water'),
+    ('delivery', 'Delivery price at the docks (€)', 'num', (0, 1000000), 'What the dockers pay when this is the wanted car at the docks (less for damage). 0: never wanted. Also in the economy sheet.', 'euros, 0 = never'),
+    ('shifter', 'Gear selector: auto / sport / tall / throttle / bar', 'choice', SHIFTERS, 'The gear selector on a touch screen (no letters; up is reverse, down is drive): auto - a T-handle lever, sport - a short round knob, tall - a long lever with a big knob, throttle - a military throttle handle, bar - a handlebar switch.', 'pick from the list'),
 ] + [('c%d' % k, 'Colour %d (#hex)' % k, 'colour', None, 'Paint colour; each vehicle picks one of its colours at random, and its neon underglow takes the same colour.' if k == 1 else 'Another paint colour (optional).',
       '#RRGGBB' + ('; at least one' if k == 1 else '')) for k in range(1, 7)] + [
     ('notes', 'Notes / look', 'text', None, 'How it looks or behaves, especially for a new body.', 'free text'),
@@ -46,10 +49,10 @@ ROW = {r[0]: r for r in ROWS}
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('body', 'body'), ('role', 'role'), ('len', 'length'), ('wid', 'width'), ('top', 'top speed'),
          ('accTo', 'accelerates'), ('accS', '...in seconds'), ('accS', 'in seconds'), ('brake', 'braking'), ('steer', 'steering'), ('grip', 'tyre grip'),
          ('hp', 'health'), ('kg', 'weight'), ('armored', 'armored'), ('traffic', 'traffic weight'), ('parked', 'parked weight'), ('chase', 'police chase'),
-         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
-DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'colors': [], 'notes': ''}
+         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('delivery', 'delivery price'), ('shifter', 'gear selector')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
+DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'delivery': 0, 'shifter': 'auto', 'colors': [], 'notes': ''}
 ORDER = ['id', 'name', 'body', 'role', 'len', 'wid', 'top', 'accTo', 'accS', 'brake', 'steer', 'grip', 'hp', 'kg', 'armored', 'traffic', 'parked', 'chase', 'chaseFrom',
-         'hidden', 'job', 'weapon', 'colors', 'notes']
+         'hidden', 'job', 'weapon', 'delivery', 'shifter', 'colors', 'notes']
 
 
 def read_table():
@@ -247,7 +250,7 @@ def build(cols, present, old):
             else:
                 n = num(raw); lo, hi = ROW[key][3]
                 if n is None:
-                    if key in ('traffic', 'parked', 'chase', 'hidden'): v[key] = 0
+                    if key in ('traffic', 'parked', 'chase', 'hidden', 'delivery'): v[key] = 0
                     elif key == 'chaseFrom': v[key] = 1
                     else: errors.append('%s / %s: missing or not a number' % (where, lab))
                 elif n < lo or n > hi: errors.append('%s / %s: %s is outside %s to %s' % (where, lab, fmt(n), fmt(lo), fmt(hi)))

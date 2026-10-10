@@ -157,12 +157,17 @@ function syncCar(c, time, dt) {
   const f = c.hp / c.maxhp, m = c.m;
   m.ug.visible = !c.dead; m.hb.visible = !!c.driver && !c.dead;
   if (m.drv) m.drv.visible = !!c.driver && !c.dead;
-  if (m.rider) m.rider.material = c.driver === 'player' ? PLAYER_SHIRT : m.riderM;   // you on the bike: in your yellow
+  if (m.rider) m.rider.material = c.driver === 'player' ? playerTopMat() : m.riderM;   // you on the bike: in your top's colour
   if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; }
-  else if (!c.dead && Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.55); }
+  else if (!c.dead) {                      // there is no health bar: the damage shows - the paint scorches darker, nearly done for it throbs dull red, on fire it flickers orange
+    if (Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.8); }
+    const glow = c.burn > 0 ? 0.5 + 0.3 * Math.sin(time * 31) * Math.sin(time * 17) : f < 0.3 ? 0.16 + 0.16 * Math.sin(time * 9) : -1;
+    if (glow >= 0) { m.body.emissive.setRGB(glow, glow * (c.burn > 0 ? 0.38 : 0.06), 0); c.glowing = true; }
+    else if (c.glowing) { c.glowing = false; m.body.emissive.copy(c.baseCol).multiplyScalar(0.22); }
+  }
   const brake = !c.dead && c.driver && c.thr < 0; if (brake !== c.tailOn) { c.tailOn = brake; for (const l of m.tail) l.material = brake ? E.tailOn : E.tailOff; }
   if (m.bar.length) {                       // light bars: police while crewed, ambulance and fire engine on a call, the trash truck's beacon at a bin
-    const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;
+    const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task || !!c.medics), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;
     m.bar[0].material = on && ph ? M[0] : M[1]; m.bar[1].material = on && !ph ? M[2] : M[3];
   }
 }
@@ -177,9 +182,9 @@ function buildPerson(kind, shirt, skin) {
     const lp = new THREE.Group(); lp.position.set(0, 9, s * 2.5); part(lp, GB, pm, 3.2, 9, 3.4, 0, -4.5, 0); tilt.add(lp); o.legs.push(lp);
     const ap = new THREE.Group(); ap.position.set(0, 19.5, s * 5.8); part(ap, GB, sm, 3, 8.5, 2.8, 0, -4, 0); tilt.add(ap); o.arms.push(ap);
   }
-  part(tilt, GSph, km, 3.9, 3.9, 3.9, 0.5, 23, 0);
+  o.head = part(tilt, GSph, km, 3.9, 3.9, 3.9, 0.5, 23, 0);
   if (kind === 'officer') { part(tilt, GB, mc(0x1a2a6a), 5.4, 2.2, 7.6, 0.4, 26, 0); part(tilt, GB, mc(0x111111), 2.4, 0.8, 6, 3.2, 25, 0); }
-  else part(tilt, GSph, mc(kind === 'player' ? 0x3a2a1a : 0x2a2018), 4.1, 3.3, 4.1, -0.4, 24, 0);
+  else o.hair = part(tilt, GSph, mc(kind === 'player' ? 0x3a2a1a : 0x2a2018), 4.1, 3.3, 4.1, -0.4, 24, 0);
   if (kind !== 'ped') { o.gun = part(tilt, GB, E.black, kind === 'officer' ? 9 : 10, 2.4, 2.4, 8, 14, 3.6); }
   else {                                     // an umbrella, up when it rains
     const u = new THREE.Group(); u.position.set(1, 0, 3.5); u.visible = false; tilt.add(u);
@@ -188,13 +193,14 @@ function buildPerson(kind, shirt, skin) {
   return o;
 }
 function syncPerson(p, kind, time, dt) {
-  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; }
+  if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
+  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.tilt, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, 0, 25.4, 0); }   // a soldier's helmet (js/08j)
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && p.hostile) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
+  if (kind === 'ped' && (p.hostile || p.soldier)) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
   if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
@@ -206,7 +212,7 @@ function syncPerson(p, kind, time, dt) {
     o.tilt.position.y = Math.abs(k) * 0.8;
     if (kind === 'ped' && p.state === 'flee') { o.arms[0].rotation.z = -2.4; o.arms[1].rotation.z = -2.4; }
   }
-  const hid = kind === 'ped' && p.hostile && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you
+  const hid = kind === 'ped' && (p.hostile || p.soldier) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }
   if (p.held) {
     if (isMelee(WEAPONS[p.arm])) { const u = p.swingT > 0 ? 1 - p.swingT / 0.25 : 0; p.held.rotation.set(0, p.swingT > 0 ? lerp(1.3, -1.3, u) : 0.7, p.swingT > 0 ? lerp(0.9, 0.1, u) : 1.05); o.arms[1].rotation.z = p.swingT > 0 ? -1.4 * Math.sin(Math.PI * u) : -0.5; }
@@ -215,8 +221,9 @@ function syncPerson(p, kind, time, dt) {
 }
 const P3 = { mesh: null, pm: null, arrow: null, flash: null, yel: mc(0xffd23f), red: mc(0xff6b86), mgOn: false };
 function syncPlayer(time, dt) {
+  const ok = outfitKey(P.outfit); if (P3.mesh && P3.ok !== ok) { scene.remove(P3.mesh); P3.mesh = null; P3.heldId = null; }   // new clothes (js/08l): a new figure
   if (!P3.mesh) {
-    const o = buildPerson('player', '#ffd23f', '#f2c6a0'); P3.mesh = o.g; P3.pm = o; scene.add(o.g);
+    const o = buildPerson('player', '#ffd23f', '#f2c6a0'); dressPerson(o, P.outfit); P3.ok = ok; P3.mesh = o.g; P3.pm = o; scene.add(o.g);
     P3.arrow = new THREE.Mesh(new THREE.ConeGeometry(2.6, 8, 3).rotateZ(-Math.PI / 2), mBas(0xffffff)); P3.arrow.position.set(30, 5, 0); o.g.add(P3.arrow);
     P3.flash = new THREE.Mesh(GSph, mBas(0xfff0a0)); P3.flash.scale.set(4.5, 4.5, 4.5); o.g.add(P3.flash);
     P3.gy = 0; { const pg = new THREE.Mesh(GP, glowMat('#2bf3ff', 0.85)); pg.scale.set(52, 1, 52); pg.position.y = 1.4; o.g.add(pg); }
@@ -226,7 +233,7 @@ function syncPlayer(time, dt) {
   P3.mesh.position.set(P.x, P3.gy + (P.air || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8;
   o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
-  o.torso.material = P.hurtT > 0 ? P3.red : P3.yel;
+  o.torso.material = P.hurtT > 0 ? P3.red : o.topMat;
   if (P.busted) { o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; } else o.tilt.rotation.z = 0;      // knocked flat
   const w = WEAPONS[P.weapon];                                       // the weapon in your hand (js/11b); a melee weapon rests on the shoulder and swings
   if (P3.heldId !== w.id) {

@@ -30,7 +30,7 @@ COLS = [
     ('target', 'Target', 'choice', TARGETS, 'people: kill anyone on foot (police officers count too). cars: wreck vehicles - one counts when it catches fire.', 'pick from the list'),
     ('count', 'How many', 'int', (1, 200), 'How many people to kill, or vehicles to wreck.', 'count'),
     ('time', 'Time (s)', 'int', (10, 900), 'How long you have. The clock stops while the game waits (pause, map).', 'seconds'),
-    ('reward', 'Reward ($)', 'int', (0, 1000000), 'Cash for passing it the first time (your score is your cash). Played again: no reward.', 'dollars'),
+    ('reward', 'Reward (€)', 'int', (0, 1000000), 'Cash for passing it the first time (your score is your cash). Played again: no reward.', 'euros'),
     ('notes', 'Notes', 'long', None, 'Anything else - not used by the game.', 'free text'),
 ]
 KEYS = [c[0] for c in COLS]; COL = {c[0]: c for c in COLS}
@@ -161,7 +161,7 @@ def read_rows(path):
 def num(v):
     if isinstance(v, bool) or v is None: return None
     if isinstance(v, str):
-        try: v = float(v.strip().replace(',', '').replace('$', ''))
+        try: v = float(v.strip().replace(',', '').replace('$', '').replace('€', ''))
         except ValueError: return None
     v = round(float(v), 6); return int(v) if v.is_integer() else v
 

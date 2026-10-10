@@ -35,7 +35,7 @@ function unitSees(u, ex, ey, face) {     // a cop who has just seen you keeps wa
 function policeKnow(x, y) { PS.lx = x; PS.ly = y; PS.r = COP.searchStart; PS.lose = 0; PS.seenT = gameT; }
 /* a crime: it only counts when a cop sees it, hears it (hear: radius around you) or a bullet lands near one (ix, iy); armed: a gun or a blast */
 function reportCrime(n, hear, ix, iy, armed) {
-  if (RAMP.on) return;                                             // a rampage: the police look the other way (js/08f)
+  if (RAMP.on || !feat('police')) return;                         // a rampage: the police look the other way (js/08f); a mode without police (js/01j)
   let w = false;
   forCops((u, x, y, face) => {
     if (w) return;
@@ -89,7 +89,7 @@ function stopOrder(dt) {
 }
 function payFine() {
   const f = Math.min(P.score, Math.round(COP.fine)); P.score -= f;
-  if (f > 0) popup(P.x, P.y - 14, '-' + f + ' FINE', '#ff3b5c');
+  if (f > 0) popup(P.x, P.y - 14, '-' + money(f) + ' FINE', '#ff3b5c');
   clearWanted(f > 0 ? 'FINED ' + f + '. ON YOUR WAY' : 'LET OFF WITH A WARNING');
 }
 function resist() {
@@ -117,7 +117,7 @@ function dispatch(dt) {
 /* ---------- police cars ---------- */
 function copDrive(c, dt) {
   const tgt = P.car || P, lv = P.stars, d = dist(c.x, c.y, tgt.x, tgt.y), spd = carSpeed(c);
-  const vmax = Math.min(c.t.max * 0.92, COP.lv.speed[lv] || 50 * KMH);
+  const vmax = copCareful(c, Math.min(c.t.max * 0.92, COP.lv.speed[lv] || 50 * KMH));   // slower over a junction against the lights (js/07b)
   c.hb = false;
   if (!PS.seen && dist(c.x, c.y, PS.lx, PS.ly) < PS.r * 0.8 + 60) {     // nobody sees you and this car is at the search area: cruise its streets
     if (!c.searching) { c.searching = true; c.e = -1; c.cruise = COP.searchSpeed; }
@@ -283,5 +283,5 @@ function respawn() {
   for (; foot < COP.footPatrols; foot++) spawnFootCop(true);
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; streamCity(true);
   state = 'play'; deadTimer = 0; $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED'; updateGearUi();
-  toast((busted ? 'OUT ON BAIL' : 'OUT OF HOSPITAL') + (lose > 0 ? ' -' + lose : ''));
+  toast((busted ? 'OUT ON BAIL' : 'OUT OF HOSPITAL') + (lose > 0 ? ' -' + money(lose) : ''));
 }

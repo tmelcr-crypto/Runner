@@ -9,7 +9,7 @@ html,body{margin:0;padding:0}
 }
 [hidden]{display:none!important}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--f-body);font-size:20px;
-  touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+  touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;background:var(--ink);cursor:crosshair}
 .lbl{font-family:var(--f-display);font-size:8px;letter-spacing:1px;color:var(--dim)}
 .box{background:var(--panel);border:3px solid var(--line);box-shadow:4px 4px 0 #000;padding:8px 10px}
@@ -48,8 +48,6 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #weaponbar button.on b{color:var(--ink)}
 #vehicle{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));min-width:190px;text-align:center}
 #vname{font-family:var(--f-display);font-size:9px;color:var(--paper)}
-#vbar{height:8px;background:#2a1b2c;margin-top:7px}
-#vbar i{display:block;height:100%;width:100%;background:var(--good)}
 #vinfo{margin-top:5px;color:var(--dim);font-size:18px}
 #hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom,0px));font-family:var(--f-display);font-size:9px;color:var(--yellow);text-shadow:2px 2px 0 #000;white-space:nowrap}
 #clock{font-family:var(--f-display);font-size:9px;color:var(--paper);text-shadow:2px 2px 0 #000;text-align:right;white-space:nowrap}
@@ -62,6 +60,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #bigCv{border:3px solid var(--line);box-shadow:6px 6px 0 #000}
 #toast{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-family:var(--f-display);font-size:14px;text-align:center;color:var(--yellow);text-shadow:3px 3px 0 #000;opacity:0;white-space:nowrap}
 #toast.show{animation:toast 1.8s ease-out forwards}
+#warnBanner{position:absolute;left:50%;top:20%;transform:translateX(-50%);font-family:var(--f-display);font-size:18px;line-height:1.5;text-align:center;color:var(--hot);text-shadow:0 0 12px var(--hot),3px 3px 0 #000;white-space:nowrap;pointer-events:none;animation:warnBlink .6s steps(2) infinite}
+#warnBanner small{font-size:13px;color:var(--yellow)}
+@keyframes warnBlink{50%{opacity:.35}}
+@media (max-width:520px){#warnBanner{font-size:13px;top:31%}#warnBanner small{font-size:11px}}
 #toast.bad{color:var(--hot)}
 #wasted{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-family:var(--f-display);font-size:clamp(28px,9vw,80px);color:var(--hot);text-shadow:5px 5px 0 #000;background:rgba(40,0,10,.35)}
 @keyframes blink{50%{opacity:.25}}
@@ -76,8 +78,9 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #bFire{right:calc(22px + env(safe-area-inset-right));bottom:calc(40px + env(safe-area-inset-bottom,0px));width:104px;height:104px;font-size:11px;border-color:var(--hot);background:rgba(255,59,92,.25)}
 #bFire[hidden]{display:none}
 #bFire.down{background:rgba(255,59,92,.65)}
-.ring{position:absolute;width:120px;height:120px;margin:0;border:3px solid rgba(255,255,255,.4);border-radius:50%;background:rgba(255,255,255,.06);display:none;pointer-events:none}
+.ring{position:absolute;box-sizing:border-box;width:120px;height:120px;margin:0;border:3px solid rgba(255,255,255,.4);border-radius:50%;background:rgba(255,255,255,.06);display:none;pointer-events:none}
 .knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,210,63,.6)}
+#rf{z-index:2}#kf{opacity:.8}   /* the throw stick around FIRE (js/06b) */
 .ghost{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom,0px));width:110px;height:110px;border:2px dashed rgba(255,255,255,.16);border-radius:50%;pointer-events:none;color:rgba(255,255,255,.28);font-family:var(--f-display);font-size:8px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.6}
 #gl{left:28px}#gr{right:28px}
 .tbtn{position:absolute;right:calc(14px + env(safe-area-inset-right));width:68px;height:68px;border-radius:50%;pointer-events:auto;touch-action:none;
@@ -268,8 +271,6 @@ button.del:focus,button.del:hover{outline:0;color:var(--hot);border-color:var(--
 #wheel{flex-direction:column;gap:14px}
 #wHow{margin:0;max-width:min(86vmin,460px);padding:0 12px;font-family:var(--f-display);font-size:9px;line-height:1.8;text-align:center;color:var(--paper);text-shadow:0 0 6px #000,2px 2px 0 #000}
 
-/* ---- in a vehicle with a gun (the tank) FIRE sits left of the gear stick, which takes its usual corner ---- */
-html.gun-car #bFire{right:calc(178px + env(safe-area-inset-right));bottom:calc(46px + env(safe-area-inset-bottom,0px))}
 
 /* ---- weapons in their own colours (js/01f color) ---- */
 .wslot .wico{filter:drop-shadow(0 0 6px currentColor)}
@@ -341,3 +342,112 @@ button.shopRow.ammo{margin-left:28px}
 #rampCard .stats{width:min(420px,100%);margin:0 auto 10px}
 .rampRules{max-width:460px;margin:6px auto 12px}
 @media (max-width:520px){ #rampHud{top:calc(254px + env(safe-area-inset-top,0px));gap:7px;padding:6px 9px} #rampIcoHud{width:40px} #rampCount,#rampClock{font-size:12px} }
+
+/* ---- game modes (js/01j): the New game choice ---- */
+#modeCard .modeBtn small{display:block;font-size:8px;margin-top:6px;letter-spacing:1px}
+#modeCard .modeBtn:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
+#modeCard .modeNote{margin:-6px 0 6px;max-width:340px}
+
+/* ---- touch screens: a compact HUD - cash, health and armor as numbers, the weapon as an icon with its ammo, a radio icon in a car;
+   MENU sits in the city map (tap the minimap), no sound button (the device's volume) ---- */
+#hudTouch,#carName{display:none}
+.touch-on .hud-tl,.touch-on #vehicle,.touch-on #mute,.touch-on #menuBtn{display:none}
+.touch-on #hudTouch{position:absolute;left:max(10px,env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+#cash{font-family:var(--f-display);font-size:13px;font-weight:400;color:var(--yellow);text-shadow:0 0 8px rgba(255,225,74,.55),2px 2px 0 #000}
+#vitals{display:flex;gap:12px;font-family:var(--f-display);font-size:11px;text-shadow:2px 2px 0 #000}
+#vitals b{font-weight:400}
+#hpNum{color:#ff4d8d;text-shadow:0 0 8px rgba(255,77,141,.6),2px 2px 0 #000}
+#hpNum.low{animation:blink .4s steps(2) infinite}
+#arNum{color:#5b8bff;text-shadow:0 0 8px rgba(47,107,255,.7),2px 2px 0 #000}
+#arNum[hidden]{display:none}
+.touch-on #weaponbar{position:static;transform:none;gap:6px;margin-top:2px;align-items:stretch}
+.touch-on #wBtn{flex-direction:column;justify-content:center;gap:3px;padding:5px 7px!important;min-width:54px}
+.touch-on #wIcon{width:40px}
+.touch-on #wAmmo{font-size:7px}
+.touch-on #wAmmo:empty{display:none}
+#radioBtn .ri{display:none;width:22px;height:22px}
+.touch-on #radioBtn{padding:5px 8px!important;color:var(--cyan)!important}
+.touch-on #radioBtn .ri{display:block;filter:drop-shadow(0 0 4px currentColor)}
+.touch-on #radioBtn .t{display:none}
+.touch-on #reload{width:132px;height:13px;margin-top:2px}
+.touch-on #reload span{font-size:7px}
+.touch-on .hud-tr{gap:5px}
+.touch-on #stars{padding:3px 5px;gap:2px}
+.touch-on .star{width:12px;height:12px}
+.touch-on #clock{font-size:7px}
+.touch-on #carName{display:block;font-family:var(--f-display);font-size:8px;color:var(--yellow);text-shadow:0 0 8px currentColor,2px 2px 0 #000;opacity:0;white-space:nowrap}
+#carName.show{animation:zone 3.2s ease-out forwards}
+#mapMenu{position:absolute;right:max(14px,env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top,0px));font:inherit;font-family:var(--f-display);font-size:10px;color:var(--ink);background:var(--yellow);border:0;
+  padding:12px 16px;box-shadow:0 0 14px rgba(255,225,74,.6),3px 3px 0 #000;cursor:pointer;touch-action:manipulation}
+@media (max-width:640px){ .touch-on #bFire{width:92px;height:92px} .touch-on .tbtn{width:62px;height:62px} }
+
+/* ---- in a car on a touch screen: steer with the left thumb; the right thumb has BRAKE and FIRE side by side in the corner, the gear
+   selector above them. The selector has no letters: its lever is up for reverse (a red glow), down for drive (green) ---- */
+.touch-on.in-car #bFire{right:calc(14px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+.touch-on.in-car #bDash{top:auto;margin-top:0;right:calc(120px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom,0px));width:74px;height:74px;font-size:9px}
+.touch-on #shifter{right:calc(16px + env(safe-area-inset-right));bottom:calc(140px + env(safe-area-inset-bottom,0px));width:64px;padding:0;background:none;border:0;box-shadow:none}
+.touch-on #shifter .slbl,.touch-on #shifter .gbtn{display:none}
+.touch-on #shifter .gate{height:136px;margin:0}
+.touch-on #slot{left:0;width:auto}
+/* ---- a phone on its side (a short screen): the buttons gather in the bottom right corner - DASH beside FIRE, ENTER above DASH; in a
+   car ENTER above BRAKE and the gear lever left of BRAKE - clear of the minimap, the stars and the clock ---- */
+@media (max-height:500px){
+  .touch-on #bFire{right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .touch-on #bDash{top:auto;margin-top:0;right:calc(132px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .touch-on #bAct{top:auto;right:calc(132px + env(safe-area-inset-right));bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .touch-on.in-car #bAct{right:calc(123px + env(safe-area-inset-right));bottom:calc(116px + env(safe-area-inset-bottom,0px))}
+  .touch-on #shifter{right:calc(208px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  .touch-on #shifter .gate{height:120px}
+}
+#shifter[data-g="D"] #lever{top:calc(100% - 60px)}
+#shifter[data-k="tall"][data-g="D"] #lever{top:calc(100% - 68px)}
+#shifter[data-k="bar"][data-g="D"] #lever{top:calc(100% - 46px)}
+#shifter[data-g="R"] #lever b{box-shadow:0 0 14px 3px rgba(255,59,92,.85),2px 3px 0 #000}
+#shifter[data-g="D"] #lever b{box-shadow:0 0 14px 3px rgba(61,255,166,.7),2px 3px 0 #000}
+/* auto: a chrome T-handle with a thumb button */
+#shifter[data-k="auto"] #lever b{left:2px;right:2px;top:20px;bottom:24px;border-radius:7px;border:2px solid #c9cfe6;background:linear-gradient(180deg,#f2f4ff,#8f96b8 55%,#4b5070)}
+#shifter[data-k="auto"] #lever b::before{top:-7px;width:14px;height:7px;margin-left:-7px;border-radius:3px 3px 0 0;background:#b3b9d6}
+/* sport: a short round aluminium knob on a leather boot */
+#shifter[data-k="sport"] .gate{height:104px}
+#shifter[data-k="sport"] #lever b{left:9px;right:9px;top:12px;bottom:16px;border-radius:50%;border:3px solid #d8dbe8;background:radial-gradient(circle at 35% 30%,#ffffff,#b9bdd0 35%,#5d6178 75%)}
+#shifter[data-k="sport"] #lever b::before{top:50%;width:18px;height:3px;margin:-1.5px 0 0 -9px;border-radius:2px;background:#ff3b5c}
+#shifter[data-k="sport"] #slot::before{width:30px;margin-left:-15px;border-radius:15px;background:repeating-linear-gradient(180deg,#141018 0 4px,#221a26 4px 8px)}
+/* tall: a long truck lever with a big black knob */
+#shifter[data-k="tall"] .gate{height:168px}
+#shifter[data-k="tall"] #lever{height:68px}
+#shifter[data-k="tall"] #lever b{left:4px;right:4px;top:4px;bottom:30px;border-radius:16px 16px 10px 10px;border:3px solid #444a68;background:radial-gradient(ellipse at 40% 30%,#5a607e,#16182a 70%)}
+#shifter[data-k="tall"] #lever b::before{top:6px;width:20px;height:5px;margin-left:-10px;background:#ffb02e}
+#shifter[data-k="tall"] #lever::before{width:8px;margin-left:-4px;top:30px;bottom:2px}
+/* throttle: a military throttle handle, olive with a red trigger, on a hazard-striped track */
+#shifter[data-k="throttle"] #lever b{left:0;right:0;top:16px;bottom:18px;border-radius:5px;border:3px solid #4b5232;background:linear-gradient(180deg,#8b9560,#4f5a2f)}
+#shifter[data-k="throttle"] #lever b::before{top:4px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#ff2a2a}
+#shifter[data-k="throttle"] #slot::before{background:repeating-linear-gradient(135deg,#ffd23f 0 6px,#16140a 6px 12px);border-color:#4b5232}
+/* bar: a handlebar switch - a small rocker */
+#shifter[data-k="bar"] .gate{height:92px}
+#shifter[data-k="bar"] #lever{height:46px}
+#shifter[data-k="bar"] #lever b{left:12px;right:12px;top:4px;bottom:4px;border-radius:9px;border:3px solid #2bf3ff;background:repeating-linear-gradient(180deg,#1b2034 0 4px,#2c3352 4px 8px)}
+#shifter[data-k="bar"] #lever b::before{display:none}
+#shifter[data-k="bar"] #lever::before{display:none}
+
+/* ---- clothes shops (js/08l): your figure trying things on, the shop's range or your wardrobe ---- */
+#clothesCard{max-width:780px}
+#clBody{display:flex;gap:14px;align-items:flex-start;margin:10px auto 6px}
+#clFig{width:220px;height:300px;flex:none;border:3px solid var(--line);background:radial-gradient(ellipse at 50% 72%,rgba(122,60,255,.35),rgba(7,3,15,.65));box-shadow:0 0 14px rgba(122,60,255,.45)}
+#clSide{flex:1;min-width:0}
+#clTabs{margin:0 0 8px;justify-content:flex-start}
+#clList{display:flex;flex-direction:column;gap:6px;max-height:min(46vh,420px);overflow:auto;padding:2px 4px 2px 2px}
+button.clRow{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;text-align:left;font:inherit;color:var(--paper);background:rgba(16,6,36,.78);border:3px solid var(--line);
+  padding:7px 10px;cursor:pointer;touch-action:manipulation}
+button.clRow.sel{border-color:var(--yellow);box-shadow:0 0 12px rgba(255,225,74,.5)}
+button.clRow.on{border-color:var(--cyan)}
+.clRow .sw{display:flex;width:36px;height:22px;border:2px solid #000;box-shadow:0 0 6px rgba(0,0,0,.6)}
+.clRow .sw i{flex:1}
+.clRow .nm b{display:block;font-family:var(--f-display);font-size:9px;font-weight:400}
+.clRow .nm small{display:block;font-size:15px;color:var(--dim)}
+.clRow .pr{font-family:var(--f-display);font-size:10px;color:var(--yellow);white-space:nowrap}
+.clRow .pr.poor{color:var(--hot)}
+.clRow.on .pr{color:var(--cyan)}
+#clMsg{min-height:1.7em;margin:0 0 10px}
+#clMsg.ok{color:var(--good);text-shadow:0 0 8px rgba(61,255,166,.6)}
+@media (max-width:640px){ #clBody{flex-direction:column;align-items:center} #clFig{width:150px;height:196px} #clSide{width:100%} #clList{max-height:36vh} }
+@media (max-width:520px){ #toast{white-space:normal;width:92vw;font-size:11px;line-height:1.6} }   /* long messages wrap on a phone */

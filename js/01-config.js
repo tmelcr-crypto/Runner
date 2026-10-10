@@ -11,6 +11,7 @@ const randi = (a, b) => Math.floor(rand(a, b + 1));
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
+const money = n => '€' + Math.max(0, Math.round(n)).toLocaleString('en-US');   // cash on screen: €12,345
 const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
 

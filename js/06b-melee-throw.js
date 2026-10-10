@@ -4,13 +4,15 @@
    in front of you, out to the weapon's reach beyond your body: damage, a push and a knockdown - pushed more than 3 m they fly instead
    (js/12c). Cars in the arc take the vehicle damage; boxes, bags and crates burst, bins fly (js/12e). Nobody hears it unless the table
    says so; police who see it count it like a shot.
-   Throwing (use throw), like a slingshot: hold FIRE and drag the opposite way to the throw. A row of dots shows the arc and a ring the
-   size of the blast where it will land; the further you drag, the further it goes, up to the throw range. Let go to throw; a short
-   drag throws nothing. With the J key: hold to wind up - the longer, the further - and it goes the way you face.
+   Throwing (use throw), with the mouse like a slingshot: hold the button and drag the opposite way to the throw. On a touch screen FIRE
+   turns into a small stick: hold it and drag toward where it should land - to the stick's edge (THROW_PAD) for the full range, so
+   there is room for it in every direction even with FIRE in the corner of the screen. A row of dots shows the arc and a ring the size
+   of the blast where it will land; the further you drag, the further it goes, up to the throw range. Let go to throw; a short drag
+   (back to the middle) throws nothing. With the J key: hold to wind up - the longer, the further - and it goes the way you face.
    In a car FIRE drops one out of the window behind you.
    A bomb flies in an arc, bounces off walls, cars and the ground (if it bounces at all) and rolls a little, blinking faster as the
    fuse runs down, then blows up like a rocket with the weapon's blast radius. In deep water it fizzles out. */
-const SWING_T = 0.24, SWING_HIT = 0.1, BODY_R = 9, GR_G = G_ACC * 1.6, THROW_ANG = 0.78;
+const SWING_T = 0.24, SWING_HIT = 0.1, BODY_R = 9, GR_G = G_ACC * 1.6, THROW_ANG = 0.78, THROW_PAD = 55, THROW_DEAD = 10;   // the touch stick on FIRE: radius, dead middle (px)
 let grenades = [];
 const TA = { on: false, by: null, ax: 0, ay: 0, d: 0, ang: 0, wind: 0, ok: false, tx: 0, ty: 0, carTrig: false };
 
@@ -76,9 +78,10 @@ function updateThrowAim(inp, dt) {       // from updatePlayer while a thrown wea
   if (held) {
     if (TA.by === 'key') { TA.wind = Math.min(1, TA.wind + dt / 1.1); TA.ang = P.ang; TA.d = TA.wind * w.throw; }
     else {
-      const s = throwPtr(TA.by), vx = TA.ax - s.x, vy = TA.ay - s.y, m = Math.hypot(vx, vy);
-      if (m > 14) { TA.ang = Math.atan2(vy, vx); P.ang = TA.ang; }
-      TA.d = clamp((m - 14) / (Math.min(VW, VH) * 0.3), 0, 1) * w.throw;
+      const s = throwPtr(TA.by), touch = TA.by === 'touch', dead = touch ? THROW_DEAD : 14;   // touch: toward the target; mouse: away from it
+      const vx = touch ? s.x - TA.ax : TA.ax - s.x, vy = touch ? s.y - TA.ay : TA.ay - s.y, m = Math.hypot(vx, vy);
+      if (m > dead) { TA.ang = Math.atan2(vy, vx); P.ang = TA.ang; }
+      TA.d = clamp((m - dead) / (touch ? THROW_PAD - dead : Math.min(VW, VH) * 0.3), 0, 1) * w.throw;
     }
     TA.ok = TA.d > MPS; TA.tx = P.x + Math.cos(TA.ang) * TA.d; TA.ty = P.y + Math.sin(TA.ang) * TA.d;
     return;
@@ -133,7 +136,7 @@ function updateGrenades(dt) {
     }
     if ((g.beep -= dt) <= 0) { g.beep = clamp(g.fuse * 0.22, 0.07, 0.5); g.blink = 0.06; if (dist(g.x, g.y, P.x, P.y) < 450) Snd.tone(1700, 1700, 0.025, 0.05, 'square'); }
     if (g.fuse <= 0) {
-      g.dead = true; explosion(g.x, g.y, g.w.blast, RK_SRC); alertPeds(g.x, g.y, Math.max(g.w.panic, 500)); reportCrime(COP.crime.blast, COP.blastHear, g.x, g.y, true);
+      g.dead = true; explosion(g.x, g.y, g.w.blast, RK_SRC, g.w.blastThrow); alertPeds(g.x, g.y, Math.max(g.w.panic, 500)); reportCrime(COP.crime.blast, COP.blastHear, g.x, g.y, true);
     }
   }
   if (grenades.some(g => g.dead)) { for (const g of grenades) if (g.dead && g.mesh) scene.remove(g.mesh); grenades = grenades.filter(g => !g.dead); }
@@ -154,6 +157,13 @@ function gfxGrenades() {
 let AIM = null;
 function gfxThrowAim() {
   const w = WEAPONS[P.weapon], show = TA.on && TA.ok && state === 'play' && !P.car && !P.dead && isThrown(w);
+  { const ring = $('rf'), on = TA.on && TA.by === 'touch' && state === 'play' && !P.car && !P.dead && isThrown(w);   // the touch stick around FIRE
+    if (ring.style.display !== (on ? 'block' : 'none')) ring.style.display = on ? 'block' : 'none';
+    if (on) {
+      let dx = TS.fx - TA.ax, dy = TS.fy - TA.ay; const m = Math.hypot(dx, dy); if (m > THROW_PAD) { dx *= THROW_PAD / m; dy *= THROW_PAD / m; }
+      ring.style.left = (TA.ax - 60) + 'px'; ring.style.top = (TA.ay - 60) + 'px';
+      $('kf').style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)'; $('kf').style.background = w.color;
+    } }
   if (!AIM) {
     AIM = { dots: [], ring: new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })) };
     for (let k = 0; k < 16; k++) { const d = new THREE.Mesh(GSph, new THREE.MeshBasicMaterial({ color: 0xffffff })); d.scale.setScalar(1.3); scene.add(d); AIM.dots.push(d); }

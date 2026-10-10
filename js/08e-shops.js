@@ -33,14 +33,14 @@ function pickStores() {                  // the shop buildings that become store
 }
 function placeStores() {                 // the first game: find the stores and put up their markers (they stay for every game after)
   $('shopBtn').hidden = true; shopAt = null;
-  if (shopGroup) return;
+  if (shopGroup) { shopGroup.visible = feat('stores'); return; }
   STORES = pickStores(); shopGroup = new THREE.Group(); scene.add(shopGroup);
   for (const s of STORES) {
     const g = new THREE.Group(); g.position.set(s.x, groundH(s.x, s.y), s.y);
     const flat = (geo, op, sc, y) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: s.color, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); m.scale.setScalar(sc); m.position.y = y; g.add(m); return m; };
     flat(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), 0.2, STORE_R - 4, 1.4);                    // a pad of light in front of the door
     const ring = flat(new THREE.RingGeometry(0.88, 1, 48).rotateX(-Math.PI / 2), 0.95, STORE_R - 4, 1.6);
-    const badge = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: dollarTex(s.color), transparent: true, depthWrite: false }));
+    const badge = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: euroTex(s.color), transparent: true, depthWrite: false }));
     badge.scale.setScalar(16); badge.position.y = 1.8; g.add(badge);                                         // a $ on the ground
     const glow = new THREE.Mesh(GP, glowMat(s.color, 0.8)); glow.scale.set(80, 1, 80); glow.position.y = 1.3; g.add(glow);
     const beam = new THREE.Mesh(GCyl, new THREE.MeshBasicMaterial({ color: s.color, transparent: true, opacity: 0.14, depthWrite: false })); beam.scale.set(14, 52, 14); beam.position.y = 26; g.add(beam);
@@ -49,11 +49,12 @@ function placeStores() {                 // the first game: find the stores and 
     const sign = signMesh(s.name, s.color, 96, 24); sign.position.set(0, 84, 0); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180); g.add(sign);   // turned to face the camera
     g.userData = { icon, ring }; s.g = g; shopGroup.add(g);
   }
+  shopGroup.visible = feat('stores');                               // a mode without stores (js/01j)
 }
-function dollarTex(col) {                // the $ painted in front of a store's door
+function euroTex(col) {                // the € painted in front of a store's door
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
   g.strokeStyle = col; g.lineWidth = 8; g.shadowColor = col; g.shadowBlur = 12; g.beginPath(); g.arc(64, 64, 52, 0, TAU); g.stroke();
-  g.font = 'bold 84px "Arial Black",Impact,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = col; g.fillText('$', 64, 70); g.shadowBlur = 0; g.globalAlpha = 0.8; g.fillStyle = '#fff'; g.fillText('$', 64, 70);
+  g.font = 'bold 84px "Arial Black",Impact,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = col; g.fillText('€', 64, 70); g.shadowBlur = 0; g.globalAlpha = 0.8; g.fillStyle = '#fff'; g.fillText('€', 64, 70);
   const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
 }
 function gfxStores(time) {
@@ -61,25 +62,25 @@ function gfxStores(time) {
   for (const s of STORES) { if (!s.g) continue; s.g.userData.icon.rotation.y = time * 1.2; s.g.userData.ring.scale.setScalar(STORE_R - 4 + Math.sin(time * 3) * 1.5); }
 }
 function nearStore() {                   // the store whose door you stand at, on foot
-  if (!STORES || P.car || P.dead || P.act || RAMP.on || state !== 'play') return null;
+  if (!STORES || P.car || P.dead || P.act || RAMP.on || state !== 'play' || !feat('stores')) return null;
   for (const s of STORES) if (Math.abs(s.x - P.x) < STORE_R && Math.abs(s.y - P.y) < STORE_R && dist(s.x, s.y, P.x, P.y) < STORE_R) return s;
   return null;
 }
-function shopKey() {                    // E at a store's door: the store, unless a car stands closer to you than the door
-  const s = nearStore(); if (!s) return null;
+function shopKey() {                    // E at a store's door (or a clothes shop's, js/08l): the shop, unless a car stands closer to you than the door
+  const s = nearStore() || nearClothes(); if (!s) return null;
   const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(s.x, s.y, P.x, P.y) ? null : s;
 }
-function storeUi() {                     // every frame (js/14): the SHOP button next to you at a store door
-  const s = nearStore(), b = $('shopBtn');
+function storeUi() {                     // every frame (js/14): the SHOP button next to you at a store door, or a clothes shop's
+  const s = nearStore() || nearClothes(), b = $('shopBtn');
   if (!s) { if (!b.hidden) b.hidden = true; return; }
-  if (b.hidden) { b.hidden = false; b.style.setProperty('--sc', s.color); b.querySelector('b').textContent = s.name; }
+  if (b.hidden || b.dataset.s !== s.name) { b.hidden = false; b.dataset.s = s.name; b.style.setProperty('--sc', s.color); b.querySelector('b').textContent = s.name; }
   doorBtnAt(b);
 }
 function doorBtnAt(b) {                  // a button by you (SHOP, RAMPAGE): up and to the right, clear of the signs and of the touch buttons
   const q = worldToScreen(P.x, P.y), hw = b.offsetWidth / 2 + 6, hh = b.offsetHeight / 2 + 6;
   b.style.left = Math.round(clamp(q.x + 95, hw, VW - hw)) + 'px'; b.style.top = Math.round(clamp(q.y - 110, hh, VH - hh)) + 'px';
 }
-$('shopBtn').addEventListener('click', e => { e.stopPropagation(); const s = nearStore(); if (s) openShop(s); });
+$('shopBtn').addEventListener('click', e => { e.stopPropagation(); const s = nearStore() || nearClothes(); if (s) openShop(s); });
 
 /* ---------- the store's screen ---------- */
 const ITEM_ICON = {
@@ -87,8 +88,8 @@ const ITEM_ICON = {
   armor: '<svg viewBox="0 0 96 40" fill="currentColor"><path d="M34 6h8l6 5 6-5h8l6 8-4 4v18H36V18l-4-4z"/></svg>',
   bribe: '<svg viewBox="0 0 96 40" fill="currentColor"><path d="M48 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z"/></svg>',
 };
-const money = n => '$' + Math.max(0, Math.round(n)).toLocaleString('en-US');
 function openShop(s) {
+  if (s.clothes) { openClothes(s); return; }                         // a clothes shop (js/08l)
   shopAt = s; shopBought = false; state = 'shop'; toggleBigMap(false); toggleWheel(false); hush(); $('shopBtn').hidden = true;
   $('shopName').textContent = s.name; $('shopName').style.color = s.color; shopSay('');
   paintShop(); showCard('shopCard', true);

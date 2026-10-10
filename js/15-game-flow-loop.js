@@ -18,7 +18,8 @@ function resetGame(sv) {                     // a new game with the options in O
   const side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1, load = sv ? saveSpot(sv) : null;   // a saved game puts you back where you were
   if (load) sp = load;
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
-    heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false }); updateGearUi();
+    heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false, carSwap: null,
+    outfit: CL_START(), wardrobe: CLOTHES_TABLE.items.filter(i => !i.shop).map(i => i.id) }); updateGearUi();   // the clothes you start in (js/01n)
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   if (load && load.car) { const c = load.car; c.searched = true; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
   else if (!sv) {                                                  // starter cars in the parking lane on the player's side
@@ -32,14 +33,17 @@ function resetGame(sv) {                     // a new game with the options in O
   for (const L of LOTS) L.filled = false; fillLots(true);
   for (let k = 0; k < 50 * crowd; k++) if (k % 3 || !spawnStroller(true)) spawnPedNear(true);   // a third of them strolling off the sidewalks
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
-  for (let k = 0; k < ECO.townN; k++) spawnPickup();               // cash stacks around town (js/01i)
-  CALLS = []; placeHidden();                                      // the tank at its secret spot (js/08c)
+  if (feat('townCash')) for (let k = 0; k < ECO.townN; k++) spawnPickup();   // cash stacks around town (js/01i)
+  CALLS = []; clearTeams(); if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
   placeWeapons(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
-  placeStores();                                                   // the six stores and their markers (js/08e)
+  placeStores(); placeClothes();                                                   // the six stores and their markers (js/08e)
+  resetFence(); resetPlanes();                                     // the airport fence whole again, planes at the gates (js/10f, js/08i)
+  resetPlaces(); resetShips();                                     // guards, barriers, the base and its armoury, ships at their berths (js/08j, js/08k)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
   if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
   spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
   if (sv) applySave(sv);                                        // score, weapons, health, the clock and the weather (js/15b)
+  resetDelivery(sv ? sv.dlv || {} : null);                         // the car wanted at the docks (js/08m)
   $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
 }
 function startGame(sv) {                     // sv: a saved game to carry on (js/15b), otherwise a new game with OPT
@@ -52,7 +56,7 @@ function showOver() {
   state = 'over'; toggleBigMap(false); toggleWheel(false);
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const s = Math.floor(gameT), mm = Math.floor(s / 60), ss = String(s % 60).padStart(2, '0');
-  $('oScore').textContent = P.score; $('oBest').textContent = best; $('oKills').textContent = P.kills;
+  $('oScore').textContent = money(P.score); $('oBest').textContent = money(best); $('oKills').textContent = P.kills;
   $('oStars').textContent = P.maxStars; $('oTime').textContent = mm + ':' + ss;
   Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0);
   $('overCard').querySelector('h1').textContent = P.busted ? 'BUSTED' : 'WASTED';
@@ -62,7 +66,7 @@ function showOver() {
 
 function handleKeys() {
   if (state === 'over') { if (pressed.KeyR) startGame(); }         // menus: Enter, the arrows and Esc are handled in js/15b
-  else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) closeShop(); }   // E leaves the store again
+  else if (state === 'shop') { if (pressed.KeyE || pressed.KeyF) { if (CLS.at) closeClothes(); else closeShop(); } }   // E leaves the store (or the clothes shop) again
   else if (state === 'ramp') { if (pressed.KeyE || pressed.KeyF) closeRamp(); }   // and the rampage's screen
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
@@ -103,17 +107,20 @@ function updateCam(dt, idle) {
 function update(dt, idle) {
   gameT += dt; updateSky(dt);                                          // the clock and the weather (js/12d)
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
-  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); }       // so a fast car (or rocket) cannot pass through a wall
+  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
-  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // rampages: found, the clock, people and cars brought in (js/08f)              // an autosave every minute while no police are after you (js/15b)
+  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); }   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
+  updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
+  planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
+  placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
   if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }
     else { Snd.setEngine(false, 0, 0); Snd.setScreech(0); }
-    let nd = 1e9; for (const o of cars) if (o.driver === 'cop' && !o.dead) nd = Math.min(nd, dist(o.x, o.y, P.x, P.y));
-    Snd.setSiren(P.stars > 0 && nd < 1000 ? 1 - nd / 1000 : 0, gameT);
+    let nd = 1e9, na = 1e9; for (const o of cars) if (!o.dead) { if (o.driver === 'cop') nd = Math.min(nd, dist(o.x, o.y, P.x, P.y)); else if (o.task && o.t.job === 'ambulance' && o.driver === 'ai' && feat('medics')) na = Math.min(na, dist(o.x, o.y, P.x, P.y)); }
+    Snd.setSiren(Math.max(P.stars > 0 && nd < 1000 ? 1 - nd / 1000 : 0, na < 900 ? 1 - na / 900 : 0), gameT);   // police after you; an ambulance on a call (js/08h)
   }
   updateCam(dt, idle);
 }

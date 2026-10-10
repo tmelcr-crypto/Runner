@@ -11,16 +11,18 @@ an import writes each one back there (only the price, the rest of each table is 
   fine, bail, bill       js/01b-police-data.js    (also tools/settings_sheet.py police)
   health, body armor     js/01g-shop-data.js
   weapons and their ammo js/01f-weapon-data.js    (also tools/weapon_sheet.py)
+  clothes                js/01n-clothes-data.js   (also tools/clothes_sheet.py)
+  car delivery prices    js/01c-vehicle-data.js   (also tools/vehicle_sheet.py)
 Rows are found by the key in the last column, so they may be moved; a row that is missing keeps its price.
 Needs openpyxl for .xlsx and numbers-parser for .numbers."""
 import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__)); JSD = os.path.join(HERE, '..', 'js')
 FILES = {'eco': ('01i-economy-data.js', 'ECONOMY'), 'ramp': ('01h-rampage-data.js', 'RAMPAGE'), 'police': ('01b-police-data.js', 'POLICE'),
-         'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON')}
+         'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON'), 'clothes': ('01n-clothes-data.js', 'CLOTHES'), 'vehicle': ('01c-vehicle-data.js', 'VEHICLE')}
 HEADS = ['Action or commodity', 'Price (or from)', 'Up to', 'Unit', 'Notes', 'Key (do not change)']
-USD, PCT = '$', '% of your cash'
-LIMITS = {'$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
+USD, PCT = '€', '% of your cash'
+LIMITS = {'€': (0, 1000000), '$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
 
 
 def path(f): return os.path.join(JSD, FILES[f][0])
@@ -71,6 +73,16 @@ def rows():
         lab = ('%s +%d' % (nice(w['name']) + 's', w['pickup'])) if w.get('use') == 'throw' else ('%ss +%d' % (nice(w['short']), w['pickup'])) if w.get('class') == 'launcher' \
             else '%s ammo +%d rounds' % (nice(w['name']), w['pickup'])
         out.append(dict(key='ammo.' + w['id'], label=lab, value=w.get('ammoPrice'), unit=USD, note=where(w['id']), file='weapon', id=w['id'], field='ammoPrice', lo=0, hi=1000000, empty_ok=True))
+    cl = block('clothes')[3]; shops = {x['id']: x['name'] for x in cl['shops']}
+    out.append(('#', 'CLOTHES', 'Each piece at the one clothes shop that sells it. Once bought it is yours: wearing it again is free at any clothes shop.'))
+    for it in cl['items']:
+        if not it.get('shop'): continue
+        out.append(dict(key='clothes.' + it['id'], label='%s (%s)' % (it['name'].capitalize(), it['slot']), value=it.get('price'), unit=USD, note='Sold at %s.' % shops.get(it['shop'], it['shop']),
+                        file='clothes', id=it['id'], field='price', lo=0, hi=100000, empty_ok=False))
+    out.append(('#', 'CAR DELIVERY AT THE DOCKS', 'What the dockers pay for the wanted car (a damaged one pays less: places table). 0: that vehicle is never wanted.'))
+    for v in block('vehicle')[3]['vehicles']:
+        if v.get('role') == 'police' or v.get('job') or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank'): continue
+        out.append(dict(key='delivery.' + v['id'], label='Deliver a %s' % v['name'].lower(), value=v.get('delivery') or 0, unit=USD, note='', file='vehicle', id=v['id'], field='delivery', lo=0, hi=1000000, empty_ok=False))
     for r in out:
         if isinstance(r, dict): r.setdefault('ranged', False); r.setdefault('value2', None)
     return out
@@ -178,7 +190,7 @@ def read_sheet(src):
 def num(v):
     if isinstance(v, bool) or v is None: return None
     if isinstance(v, str):
-        v = v.strip().replace(',', '').replace('$', '').replace('%', '')
+        v = v.strip().replace(',', '').replace('$', '').replace('€', '').replace('%', '')
         if v == '': return ''
         try: v = float(v)
         except ValueError: return None

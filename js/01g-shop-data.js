@@ -11,7 +11,7 @@ const SHOP_TABLE = /*SHOP-JSON*/{
 "items": [
   {"id": "health", "name": "HEALTH", "short": "HEALTH", "color": "#ffffff", "onMap": 10, "amount": 50, "max": 100, "price": 150, "howTo": "Walk over it when you are hurt: +50 health.", "notes": "A white box with a red cross."},
   {"id": "armor", "name": "BODY ARMOR", "short": "ARMOR", "color": "#2f6bff", "onMap": 6, "amount": 50, "max": 100, "price": 250, "howTo": "+50 armor: the blue bar under your health. It takes the damage before your health does.", "notes": "A dark blue vest with lighter plates."},
-  {"id": "bribe", "name": "HEAT REDUCER", "short": "HEAT", "color": "#ff2a55", "onMap": 4, "amount": 1, "max": null, "price": null, "howTo": "Walk over it while wanted: one star less. Its bubble flashes red and blue.", "notes": "A police star with an arrow pointing down."}
+  {"id": "bribe", "name": "HEAT REDUCER", "short": "HEAT", "color": "#ff2a55", "onMap": 4, "amount": 1, "max": null, "price": null, "howTo": "Walk or drive over it while wanted: one star less. Its bubble flashes red and blue.", "notes": "A police star with an arrow pointing down."}
 ],
 "stores": [
   {"id": "sports", "name": "BAT CAVE SPORTS", "color": "#ffb02e", "sells": ["bat", "golf", "knife", "health"]},

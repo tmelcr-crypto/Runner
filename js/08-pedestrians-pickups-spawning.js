@@ -8,7 +8,7 @@ function sidewalkPoint(p, ahead, out) {
   lanePoint(p.e, p.fw, s, 0, out); const cx = out.x, cy = out.y, off = walkOffset(cx - out.ty * p.side * SIDEWALK, cy + out.tx * p.side * SIDEWALK) * p.side;
   out.x = cx - out.ty * off; out.y = cy + out.tx * off; return out;
 }
-function pedNext(p) {                         // reached the end of the edge: choose the next one, sometimes cross the road
+function pedNext(p) {                         // at a bend or a dead end: on along the next edge, or back (junctions: js/07b pedPlan)
   const E = RE[p.e], node = p.fw > 0 ? E.b : E.a, opts = RN[node].e.filter(ei => ei !== p.e);
   const ne = opts.length ? pick(opts) : p.e, F = RE[ne];
   if (ne === p.e) { p.fw = -p.fw; p.side = -p.side; }
@@ -18,15 +18,16 @@ function pedNext(p) {                         // reached the end of the edge: ch
 function snapPed(p) {                         // after fleeing or fighting: rejoin the nearest sidewalk, keeping to the side the person is on
   const r = nearestRoad(p.x, p.y, 700); if (!r) { p.e = -1; return; }
   const t = edgeAt(r.e, r.s, _pw), side = (p.x - r.x) * -t.ty + (p.y - r.y) * t.tx >= 0 ? 1 : -1, fw = Math.random() < 0.5 ? 1 : -1;
-  p.e = r.e; p.fw = fw; p.s = fw > 0 ? r.s : RE[r.e].len - r.s; p.side = side * fw;
+  p.e = r.e; p.fw = fw; p.s = fw > 0 ? r.s : RE[r.e].len - r.s; p.side = side * fw; p.jw = p.jn = p.xing = null;
 }
 function updatePeds(dt) {
   for (const p of peds) {
     if (p.dead) { p.deadT += dt; continue; }
-    if (p.knocked) continue;                                       // flying through the air (js/12c)
+    if (p.knocked || p.medic) continue;                            // flying through the air (js/12c); a paramedic at work is moved by the team (js/08h)
     if (p.stunT > 0) { p.stunT -= dt; p.vx = p.vy = 0; continue; }   // knocked down by a melee hit (js/06b)
     if (p.hostile && fightBack(p, dt)) continue;                    // armed and provoked: after you (js/08g)
     if (p.cop && copEngaged(p)) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }   // a foot patrol on the case (js/08b)
+    if (p.post && postStep(p, dt)) continue;                         // a guard at a post, a soldier on patrol (js/08j)
     if (p.combat) { p.combat = false; p.cv = null; if (!p.stroll) snapPed(p); }
     if (p.e < 0 && !p.stroll) snapPed(p);
     let mx = 0, my = 0, sp = 0;
@@ -39,10 +40,11 @@ function updatePeds(dt) {
       if (d < 8 || (p.tt -= dt) <= 0) { strollTarget(p); if (Math.random() < 0.4) p.wait = rand(1, 5); }
       else { mx = dx / d; my = dy / d; sp = p.speed * 0.85; }
     }
+    else if (p.jw) { const m = pedJunction(p, dt); mx = m.x; my = m.y; sp = m.s; }   // round a junction, over the crossings on the walk signal (js/07b)
     else if (p.e >= 0) {
       const c = sidewalkPoint(p, 14, _pw), dx = c.x - p.x, dy = c.y - p.y, d = Math.hypot(dx, dy);
       if (d < 26) p.s += p.speed * (1 + 0.3 * SKY.rain) * dt;        // keep the carrot just ahead; it only moves on once we are close to it
-      if (p.s >= RE[p.e].len) pedNext(p);
+      if (p.s >= pedEnd(p)) { const E = RE[p.e]; if (JN[p.fw > 0 ? E.b : E.a]) pedPlan(p); else pedNext(p); }
       if (d > 2) { mx = dx / d; my = dy / d; sp = p.speed * (1 + 0.3 * SKY.rain); }   // hurrying in the rain
     }
     p.vx = lerp(p.vx, mx * sp, 1 - Math.exp(-10 * dt)); p.vy = lerp(p.vy, my * sp, 1 - Math.exp(-10 * dt));
@@ -59,7 +61,7 @@ function walkAreas() {
   for (const [cx, cy, L, w, deg] of MAP.alleys || []) { const a = deg * Math.PI / 180, r = L / 2 + w; WALKA.push({ k: 'alley', cx, cy, ca: Math.cos(a), sa: Math.sin(a), hl: L / 2 - 6, hw: Math.max(4, w / 2 - 14), bb: [cx - r, cy - r, cx + r, cy + r] }); }
   for (const g of MAP.grass) WALKA.push(poly('park', g));
   for (const g of MAP.sand) WALKA.push(poly('beach', g));
-  for (const g of MAP.yards || []) if (g.k === 'p') WALKA.push(poly('promenade', g));
+  for (const g of MAP.yards || []) if (g.k === 'p' || g.k === 'pk' || g.k === 'lp') WALKA.push(poly('promenade', g));   // forecourts, promenades, park paths, the lunapark
   return WALKA;
 }
 function inArea(A, x, y) {
@@ -88,7 +90,7 @@ function spawnStroller(initial) {
 const _pp = [];
 function separatePeople() {
   _pp.length = 0;
-  for (const p of peds) if (!p.dead && !p.knocked) _pp.push(p);
+  for (const p of peds) if (!p.dead && !p.knocked && !p.medic) _pp.push(p);
   for (const o of officers) if (!o.dead && !o.knocked) _pp.push(o);
   if (!P.car && !P.dead && !P.knocked && !P.act) _pp.push(P);
   const n = _pp.length, D = 14;
@@ -134,7 +136,7 @@ function updatePickups(dt) {
   for (let k = pickups.length - 1; k >= 0; k--) {
     const p = pickups[k]; p.bob += dt * 4;
     if (p.until && gameT > p.until) { pickups.splice(k, 1); continue; }   // a dropped stack left lying too long
-    if (dist(P.x, P.y, p.x, p.y) > 26) continue;
+    if ((P.car && feat('footPickups')) || dist(P.x, P.y, p.x, p.y) > 26) continue;   // on foot only (js/01j)
     if (p.type === 'health') { if (P.hp >= 100) continue; P.hp = Math.min(100, P.hp + 40); popup(p.x, p.y - 12, '+HEALTH', '#ff6b86'); }
     else if (p.type === 'cash') addScore(p.amt || 0, p.x, p.y, 'CASH');
     else {                                                          // ammunition: as much as the weapon table says, up to what you can carry
@@ -200,7 +202,7 @@ function fillLots(initial) {
     if (d > 1500 || (!initial && d < offDist() + Math.hypot(L.w, L.d) / 2)) continue;
     L.filled = true; const cop = L.owner && L.owner.special === 'police';
     for (const p of L.stalls) {
-      if (Math.random() > (cop ? 0.75 : 0.55) || cars.some(c => Math.abs(c.x - p.x) < 40 && Math.abs(c.y - p.y) < 40)) continue;
+      if (Math.random() > (cop ? 0.75 : L.fill || 0.55) || cars.some(c => Math.abs(c.x - p.x) < 40 && Math.abs(c.y - p.y) < 40)) continue;
       const type = cop ? (pickType('chase', t => t.cop && t.chaseFrom <= 1 && t.wid <= STALL_W) || 'police') : pickType('parked', t => t.wid <= STALL_W); if (!type) continue;
       const c = makeCar(type, p.x, p.y, p.ang + rand(-0.04, 0.04), null); c.lot = L; cars.push(c);
     }
