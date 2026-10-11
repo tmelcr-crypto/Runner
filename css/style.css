@@ -577,3 +577,22 @@ button.stRow:hover,button.stRow:focus{outline:0;border-color:var(--good);box-sha
 #svFloors button.home{border-color:var(--good);color:var(--good)}
 #svFloors button.here{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
 @media (max-width:600px){#stCols{grid-template-columns:1fr}.stList{max-height:26vh}.svPad button{width:62px;height:62px}}
+
+/* ---- weapon grid (js/14b, mode weaponGrid): every weapon in its cell, the ones not found grey ---- */
+#wheel.grid{gap:10px}
+#wgTitle{font-family:var(--f-display);font-size:14px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
+#wgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(94vw,760px);max-height:72vh;overflow-y:auto;padding:4px}
+.wcell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;padding:6px 4px 7px;border:2px solid var(--line);border-radius:10px;
+  background:radial-gradient(ellipse at 50% 40%,rgba(122,60,255,.28),rgba(11,6,26,.94) 70%);color:var(--paper);font:inherit;cursor:pointer;touch-action:manipulation;
+  box-shadow:0 0 10px rgba(122,60,255,.45)}
+.wcell img{width:100%;aspect-ratio:2/1;object-fit:contain;filter:drop-shadow(0 0 6px var(--wc))}
+.wcell .wn{font-family:var(--f-display);font-size:clamp(6px,1.5vmin,9px);letter-spacing:.5px;color:var(--wc);text-align:center}
+.wcell .wa{font-family:var(--f-display);font-size:clamp(6px,1.5vmin,9px);color:var(--yellow)}
+.wcell .wk{position:absolute;top:5px;left:7px;font-family:var(--f-display);font-size:8px;color:var(--dim)}
+.wcell.on{border-color:var(--cyan);box-shadow:0 0 18px var(--cyan),inset 0 0 14px rgba(43,243,255,.3)}
+.wcell.empty .wa{color:var(--hot)}
+.wcell.locked{cursor:default;border-color:rgba(122,110,150,.4);box-shadow:none;background:rgba(14,10,24,.9)}
+.wcell.locked img{filter:grayscale(1) brightness(.42) contrast(.9)}
+.wcell.locked .wn,.wcell.locked .wa{color:var(--dim)}
+.wcell:not(.locked):active{transform:scale(.95)}
+@media (max-width:640px){ #wgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:64vh} }
