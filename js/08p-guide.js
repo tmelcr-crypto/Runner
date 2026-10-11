@@ -3,8 +3,9 @@
    While a route or an objective is on - a street race (the way to its start, then the race's own route), a vehicle job's nearest target,
    the wanted car on its way to the export bay - a faded lime line about a bike wide lies on the streets in the right-hand lane, along the
    shortest way by road (js/08o roadPath), and on the minimap and the city map. It follows you: worked out again as you go. Mode: guideLine.
-   The edge glow: the screen edge toward the guide line's target (a race's next checkpoint) and toward a ringing phone booth glows in
-   the same lime while they are off screen, pulsing, stronger the closer they are. Mode: edgeGlow. */
+   The edge glow: the screen edge toward the guide line's target (a race's next checkpoint) glows lime, and toward a ringing phone booth
+   in the booth's own colour on the maps (yellow for a fixed race, cyan), while they are off screen - the way there on the map, wherever
+   it is - pulsing, stronger the closer they are; once it is on screen the glow goes. Mode: edgeGlow. */
 const GUIDE = { pts: null, key: '', t: -9, mesh: null, mx: 0, my: 0, ri: -99, G: null, gx: 0, gy: 0 };
 const GUIDE_COL = '#b6ff3c', GUIDE_W = 9, GUIDE_FAR = 6500;
 const guideMat = new THREE.MeshBasicMaterial({ color: GUIDE_COL, transparent: true, opacity: 0.36, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
@@ -61,25 +62,29 @@ function guideBlips(g, X, Y, lw) {       // js/14: the same line on the minimap 
 
 /* ---------- the edge glow (js/14 updateHud) ---------- */
 const _eg = new THREE.Vector3();
-function edgeSpot(x, y) {                // where the line from the middle of the screen to (x, y) leaves the screen; null: (x, y) is on screen
-  _eg.set(x, 0, y).project(camera); let nx = _eg.x, ny = _eg.y;
-  if (Math.abs(nx) < 0.96 && Math.abs(ny) < 0.96) return null;
-  const s = 1 / Math.max(Math.abs(nx), Math.abs(ny), 1e-6); nx *= s; ny *= s;
-  return [(nx + 1) * 50, (1 - ny) * 50];
+function edgeSpot(x, y) {                // where on the screen's edge the way to (x, y) leaves it ([% across, % down]); null: (x, y) is on screen
+  _eg.set(x, 0, y).applyMatrix4(camera.matrixWorldInverse);
+  if (_eg.z < 0) { _eg.applyMatrix4(camera.projectionMatrix); if (Math.abs(_eg.x) < 0.96 && Math.abs(_eg.y) < 0.96) return null; }   // in front of the camera and in view
+  // off screen: the way there on the map (north up), not the camera's projection - far behind the camera it would come out mirrored
+  const dx = x - cam.x, dy = (y - cam.y) * Math.cos(CAM_TILT_DEG * Math.PI / 180), s = Math.min(VW / 2 / Math.max(Math.abs(dx), 1e-6), VH / 2 / Math.max(Math.abs(dy), 1e-6));
+  return [50 + dx * s / VW * 100, 50 + dy * s / VH * 100];
 }
-function glowTargets() {                 // the guide line's target and the ringing booth, if any
+const GLOW_LIME = [182, 255, 60];
+const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function glowTargets() {                 // the guide line's target (lime) and the ringing booth (its own colour on the maps: yellow or cyan)
   const out = [], tg = feat('guideLine') && !P.dead ? guideTarget() : null;
-  if (tg) { if (tg.route) { const t = raceTargets()[0]; if (t) out.push(t); } else out.push(tg); }
-  if (RACE.ring && RACE.ring.b) out.push(RACE.ring.b);
+  if (tg) { if (tg.route) { const t = raceTargets()[0]; if (t) out.push({ x: t.x, y: t.y, rgb: GLOW_LIME }); } else out.push({ x: tg.x, y: tg.y, rgb: GLOW_LIME }); }
+  if (RACE.ring && RACE.ring.b) out.push({ x: RACE.ring.b.x, y: RACE.ring.b.y, rgb: hexRgb(RACE.ring.fixed ? RACE_YEL : RACE_CYAN) });
   return out;
 }
 function edgeGlow(time) {
   const els = [$('edgeA'), $('edgeB')], on = state === 'play' && feat('edgeGlow') && !P.dead, list = on ? glowTargets() : [], me = P.car || P;
   els.forEach((el, k) => {
     const t = list[k], at = t ? edgeSpot(t.x, t.y) : null;
-    if (!at) { if (el.style.opacity !== '0') el.style.opacity = '0'; return; }
-    const near = clamp(1 - dist(me.x, me.y, t.x, t.y) / 4000, 0.6, 1), a = (0.58 + 0.24 * Math.sin(time * 3.2 + k)) * near;
-    el.style.background = 'radial-gradient(ellipse 34% 40% at ' + at[0].toFixed(1) + '% ' + at[1].toFixed(1) + '%, rgba(182,255,60,' + a.toFixed(2) + ') 0%, rgba(182,255,60,' + (a * 0.35).toFixed(2) + ') 45%, rgba(182,255,60,0) 100%)';
+    if (!at) { if (el.style.opacity !== '0') el.style.opacity = '0'; return; }   // on screen: no glow
+    const near = clamp(1 - dist(me.x, me.y, t.x, t.y) / 4000, 0.6, 1), a = (0.58 + 0.24 * Math.sin(time * 3.2 + k)) * near, c = t.rgb.join(',');
+    el.style.background = 'radial-gradient(ellipse 34% 40% at ' + at[0].toFixed(1) + '% ' + at[1].toFixed(1) + '%, rgba(' + c + ',' + a.toFixed(2) + ') 0%, rgba(' + c + ',' + (a * 0.35).toFixed(2) + ') 45%, rgba(' + c + ',0) 100%)';
     el.style.opacity = '1';
   });
 }
+
