@@ -287,9 +287,9 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); serviceDecor();              // landmarks; the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); serviceDecor();              // landmarks; the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 120 unique buildings (js/10n); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
-  DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
+  DRAW = BLD.filter(b => !b.fill && !b.uniq).concat(LMS, fillChunks());   // fill buildings stream as merged chunks; a unique building is its own drawable (js/10n)
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck
   const q = {};
   for (const E of RE) {

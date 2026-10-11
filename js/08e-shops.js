@@ -11,7 +11,7 @@ function pickStores() {                  // the shop buildings that become store
   const svc = [...SVC.police, ...SVC.hospital].map(s => s.r), out = [];
   const cand = [];
   for (const r of BLD) {
-    if (!r.fill || !r.shop || r.special || r.lw < 36) continue;
+    if (!r.fill || !r.shop || r.special || r.uniq || r.lw < 36) continue;
     const zx = -r.sa, zy = r.ca;
     if (zy < -0.3) continue;                                         // a front facing north would hide its door from the camera behind the building
     for (const off of [14, 20, 28]) {
