@@ -515,7 +515,30 @@ def remodel5(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5]
+# version 6: around the lunapark car park, the rest of its knob of land north of the street becomes a palm grove (grass, a sandy strip
+# along the shore), with a rocky shore and a wooden pier off the north shore where boats tie up (lunapark.grove: area, coast - the
+# shoreline, where the rocks go - pier and head - decks walked on like land, js/04 - and boats: [x, y, angle, kind]).
+def remodel6(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    cp = M['lunapark']['carpark']; cpx, cpy, cpw, cph = cp['x'], cp['y'], cp['w'], cp['h']
+    CP = box(cpx - cpw / 2, cpy - cph / 2, cpx + cpw / 2, cpy + cph / 2)
+    APRON = box(cpx + cpw / 2 - 100, cpy + cph / 2 - 5, cpx + cpw / 2, 2530)
+    KNOB = largest(LAND.intersection(box(9400, 1700, 10600, 2505)))     # north of the street
+    GROVE = KNOB.difference(CP.buffer(24, join_style=2)).difference(APRON.buffer(24)).buffer(-4)
+    shore = LineString(list(KNOB.exterior.coords)).difference(box(9400, 2470, 10600, 2600))
+    lines = [q for q in (shore.geoms if hasattr(shore, 'geoms') else [shore]) if q.length > 40]
+    SAND = unary_union([q.buffer(30) for q in lines]).intersection(GROVE)
+    M['grass'] += rings(GROVE.difference(SAND))
+    M['sand'] += rings(SAND)
+    px = cpx; sy = min(y for x, y in KNOB.exterior.coords if abs(x - px) < 40)   # the shore north of the car park's middle
+    pier = [px - 14, 1760, px + 14, round(sy) + 12]; head = [px - 80, 1726, px + 80, 1762]
+    boats = [[px - 40, 1850, 270, 'speed'], [px + 42, 1890, 90, 'fish'], [px + 40, 1800, 90, 'sail'], [px - 40, 1790, 270, 'speed'], [px - 50, 1700, 0, 'yacht'], [px + 55, 1702, 180, 'speed']]
+    M['lunapark']['grove'] = {'area': rings(GROVE), 'coast': [pts(q.simplify(4)) for q in lines], 'pier': pier, 'head': head, 'boats': boats}
+    M['remodel'] = 6
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6]
 
 
 if __name__ == '__main__':
@@ -540,5 +563,8 @@ if __name__ == '__main__':
     head = head.replace("   (lunapark.carpark: x, y, w, h, levels, dh, entry). */",
                         "   (lunapark.carpark: x, y, w, h, levels, dh, entry); version 5: the safehouse plots (safe.trailer, .bungalow, .mansion, .houseboat:\n"
                         "   x, y, w, d, a, drive; the houseboat's deck and plank). */")
+    head = head.replace("   x, y, w, d, a, drive; the houseboat's deck and plank). */",
+                        "   x, y, w, d, a, drive; the houseboat's deck and plank); version 6: the palm grove round the lunapark car park (lunapark.grove:\n"
+                        "   area, coast, pier, head, boats). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
