@@ -132,6 +132,18 @@ const Snd = {
     g.connect(this.out); o.start(t); o.stop(t + dur + 0.05); this.vq.push(t + dur);
     this.burst(dur * 0.8, 2200 * vc.k, 1200, peak * 0.12, 'bandpass', 0.01, 1.2);   // breath
   },
+  greet(vc, v) {                         // a cheerful two-note "wel-come" (the Colony's valet): up on the first, down on the second
+    if (!this.ctx || this.muted || !(v > 0.04) || !vc) return;
+    const c = this.ctx, t0 = c.currentTime + 0.01, f = vc.f * (0.95 + Math.random() * 0.1);
+    for (const [dl, dur, a, b, V] of [[0, 0.17, 1.05, 1.4, [530, 1840]], [0.21, 0.32, 1.3, 0.92, [640, 1190]]]) {
+      const t = t0 + dl, o = c.createOscillator(), g = c.createGain(), peak = 0.72 * v; o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f * a, t); o.frequency.exponentialRampToValueAtTime(f * b, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.03); g.gain.setValueAtTime(peak * 0.85, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      for (const [F, q, amp] of [[V[0] * vc.k, 7, 1], [V[1] * vc.k, 9, 0.6], [2600 * vc.k, 6, 0.18]]) { const bp = c.createBiquadFilter(), ga = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = F; bp.Q.value = q; ga.gain.value = amp; o.connect(bp); bp.connect(ga); ga.connect(g); }
+      g.connect(this.out); o.start(t); o.stop(t + dur + 0.05);
+    }
+    this.burst(0.04, 2400 * vc.k, 1200, 0.06 * v, 'bandpass', 0.175, 2);   // the k between them
+  },
   pickup() { this.tone(660, 990, 0.12, 0.15, 'square'); },
   hurt() { this.tone(220, 90, 0.16, 0.2, 'sawtooth'); },
   toggle() { this.muted = !this.muted; if (this.out) this.out.gain.value = this.muted ? 0 : 0.6; return this.muted; }

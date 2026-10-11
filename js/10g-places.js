@@ -310,6 +310,7 @@ function genPlaces() {                                            // js/04 genWo
       else genRide(r, add, solid);                                  // the rides (js/10h)
     }
   }
+  colonyValet();                                                    // the Colony's valet by its doors (js/10b)
 }
 
 /* ---------- ground, roads, markings: once, with the city (js/10) ---------- */

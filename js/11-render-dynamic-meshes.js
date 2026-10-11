@@ -214,13 +214,14 @@ function buildPerson(kind, shirt, skin) {
 }
 function syncPerson(p, kind, time, dt) {
   if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
-  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.tilt, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, 0, 25.4, 0); }   // a soldier's helmet (js/08j)
+  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.tilt, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, 0, 25.4, 0);   // a soldier's helmet (js/08j)
+    if (p.valet) { part(o.tilt, GB, mc(0xb3122a), 5.6, 2.4, 6.8, 0, 26.8, 0); part(o.tilt, GB, mc(0xffd23f), 5.7, 0.6, 6.9, 0, 25.9, 0); part(o.tilt, GB, mc(0x111111), 2.6, 0.7, 6.2, 3.4, 25.6, 0); } }   // the valet's cap, gold band, peak
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0), p.y);
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && (p.hostile || p.soldier)) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
+  if (kind === 'ped' && (p.hostile || p.soldier || (p.valet && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
   if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
@@ -231,6 +232,7 @@ function syncPerson(p, kind, time, dt) {
     o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.8; o.arms[1].rotation.z = k * 0.8;
     o.tilt.position.y = Math.abs(k) * 0.8;
     if (kind === 'ped' && p.state === 'flee') { o.arms[0].rotation.z = -2.4; o.arms[1].rotation.z = -2.4; }
+    if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
   }
   const hid = kind === 'ped' && (p.hostile || p.soldier) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }

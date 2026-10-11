@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1l. PLACES SETTINGS ----------
-   The airport gates, the military base, the port, the lunapark, the space center and the Pay 'n' Spray garages (js/08j, js/08k, js/08q, js/10g, js/10h): guards and
-   soldiers, the base's warning and stock, ship traffic, the rides. tools/settings_sheet.py exports this table to Apple Numbers or
+   The airport gates, the military base, the port, the lunapark, the space center, the Pay 'n' Spray garages and the Colony (js/08j, js/08k, js/08q, js/10g, js/10h):
+   guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet. tools/settings_sheet.py exports this table to Apple Numbers or
    Excel and writes an edited copy back:  python3 tools/settings_sheet.py places export places.numbers  /  ... places import places.numbers
    Keep the JSON between the markers valid. */
 const PLACES_TABLE = /*PLACES-JSON*/{
@@ -39,7 +39,9 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "visitors", "group": "Lunapark", "name": "Visitors around you", "unit": "count", "min": 0, "max": 80, "v": 30, "note": "People strolling inside the lunapark while you are there."},
   {"id": "wheelRpm", "group": "Lunapark", "name": "Ferris wheel turns per minute", "unit": "count", "min": 0, "max": 6, "v": 1, "note": "0 stops it."},
   {"id": "coaster", "group": "Lunapark", "name": "Coaster top speed", "unit": "km/h", "min": 20, "max": 160, "v": 75, "note": "At the bottom of the first drop; the trains speed up and slow down with the hills."},
-  {"id": "spaceGuards", "group": "Space center", "name": "Guards at the space center gate", "unit": "count", "min": 0, "max": 4, "v": 2, "note": "The gate stays shut for now: the way in comes with the story."}
+  {"id": "spaceGuards", "group": "Space center", "name": "Guards at the space center gate", "unit": "count", "min": 0, "max": 4, "v": 2, "note": "The gate stays shut for now: the way in comes with the story."},
+  {"id": "valetGreet", "group": "Colony", "name": "The valet greets you within", "unit": "m", "min": 2, "max": 30, "v": 9, "note": "On foot, or in a car going slower than 15 km/h, this close to the valet at the Colony door."},
+  {"id": "valetAgain", "group": "Colony", "name": "The valet greets you again after", "unit": "s", "min": 5, "max": 600, "v": 40, "note": "At most once in this long, and only after you have walked or driven away and come back."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */
