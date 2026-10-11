@@ -1,12 +1,12 @@
 'use strict';
 /* ---------- 7c3. THE AA LAUNCHER'S HOMING ROCKETS ----------
    (weapon table: fires homing) The AA launcher aims through the rocket launcher's sight, but only a helicopter (the police one, js/08u,
-   or the army's on its pad, js/08j), a tank or an APC can be targeted. Keep the sight on one for the lock-on time and it locks
+   or the army's on its pad, js/08j), a tank or an APC can be targeted. Keep one inside the sight's frame for the lock-on time and it locks
    (rising beeps, then a steady tone); let go while locked and the rocket is away - without a lock it does not fire (js/14b).
    The rocket leaves in a random direction, climbs, swerves about the sky and, when its flight time is up, strikes the target wherever
    it has gone: one hit destroys it. If the target is gone first, the rocket blows up where it was. */
 let homing = [];
-const _hRay = new THREE.Vector3(), _hQ = new THREE.Vector3();
+const _hQ = new THREE.Vector3();
 const isArmour = c => c.t.body === 'tank' || c.t.body === 'apc';
 function aaTargets() {                    // everything the AA launcher can lock onto: { kind, o }
   const out = [];
@@ -22,12 +22,12 @@ function aaPos(t, out) {                  // where a target is: x, y on the map,
   return out;
 }
 const aaAlive = t => t.kind === 'heli' ? heliLive() : t.kind === 'pad' ? !t.o.dead : !t.o.dead && !t.o.sunk && cars.includes(t.o);
-function aaPick(ray) {                    // the target the sight's centre is on (js/14b scopePick), or null
-  let best = null, bt = Infinity; const q = {};
+function aaPick(sx, sy, hw, hh) {         // the target inside the sight's frame nearest its centre (js/14b scopePick; the camera is placed), or null
+  let best = null, bs = Infinity; const q = {};
   for (const t of aaTargets()) {
-    aaPos(t, q); const r = t.kind === 'heli' ? 52 : t.kind === 'pad' ? 60 : t.o.t.len / 2 + 8;
-    _hQ.set(q.x, q.h, q.y); if (ray.distanceSqToPoint(_hQ) > r * r) continue;
-    const d = _hRay.copy(_hQ).sub(ray.origin).dot(ray.direction); if (d < bt) { bt = d; best = { x: q.x, y: q.y, hit: true, tgt: t }; }
+    aaPos(t, q); _hQ.set(q.x, q.h, q.y).project(camera); if (_hQ.z > 1) continue;     // behind the camera
+    const dx = Math.abs((_hQ.x + 1) / 2 * VW - sx) / hw, dy = Math.abs((1 - _hQ.y) / 2 * VH - sy) / hh, s = dx * dx + dy * dy;
+    if (dx < 0.92 && dy < 0.92 && s < bs) { bs = s; best = { x: q.x, y: q.y, hit: true, tgt: t }; }
   }
   return best;
 }

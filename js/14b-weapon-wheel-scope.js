@@ -114,7 +114,7 @@ const scopeRadius = () => Math.round(clamp(Math.min(VW, VH) * 0.21, 74, 150));
 function worldToScreen(x, y) { placeCamera(false); _sP.set(x, 0, y).project(camera); return { x: (_sP.x + 1) / 2 * VW, y: (1 - _sP.y) / 2 * VH }; }
 function scopePick(sx, sy) {            // what the crosshair is on: the nearest person or car the line of sight passes through, else the ground
   placeCamera(false); _sV.set(sx / VW * 2 - 1, -(sy / VH) * 2 + 1); _sRay.setFromCamera(_sV, camera); const ray = _sRay.ray, w = WEAPONS[P.weapon];
-  if (w.homing) return aaPick(ray) || (ray.intersectPlane(_pl, _sQ) ? { x: _sQ.x, y: _sQ.z, hit: false } : null);   // the AA launcher: only what it can lock onto (js/12f)
+  if (w.homing) return aaPick(sx, sy, SCOPE.hw, SCOPE.hh) || (ray.intersectPlane(_pl, _sQ) ? { x: _sQ.x, y: _sQ.z, hit: false } : null);   // the AA launcher: what it can lock onto, anywhere in its frame (js/12f)
   let best = null, bt = Infinity;
   const test = (x, h, y, r) => {
     _sP.set(x, h, y); if (ray.distanceSqToPoint(_sP) > r * r) return;
