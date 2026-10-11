@@ -97,7 +97,7 @@ function separatePeople() {
   for (let i = 0; i < n; i++) {
     const a = _pp[i];
     for (let j = i + 1; j < n; j++) {
-      const b = _pp[j], dx = b.x - a.x, dy = b.y - a.y; if (dx > D || dx < -D || dy > D || dy < -D) continue;
+      const b = _pp[j], dx = b.x - a.x, dy = b.y - a.y; if (dx > D || dx < -D || dy > D || dy < -D || Math.abs(zOf(a) - zOf(b)) > 15) continue;
       const d = Math.hypot(dx, dy); if (d >= D) continue;
       const ux = d > 0.01 ? dx / d : 1, uy = d > 0.01 ? dy / d : 0, k = (D - d) / 2;
       a.x -= ux * k; a.y -= uy * k; b.x += ux * k; b.y += uy * k;
@@ -107,7 +107,7 @@ function separatePeople() {
 }
 function bumpCars(o, r, h) {                  // push o out of every car it overlaps; adds the push direction to h
   for (const c of cars) {
-    if (c.sunk) continue; const reach = c.t.len / 2 + r + 2; if (Math.abs(c.x - o.x) > reach || Math.abs(c.y - o.y) > reach) continue;
+    if (c.sunk || Math.abs(zOf(c) - zOf(o)) > 15) continue; const reach = c.t.len / 2 + r + 2; if (Math.abs(c.x - o.x) > reach || Math.abs(c.y - o.y) > reach) continue;   // not a car on another deck (js/10k)
     for (const q of carCircles(c)) {
       const dx = o.x - q[0], dy = o.y - q[1], d = Math.hypot(dx, dy), rr = q[2] + r;
       if (d < rr && d > 0.001) { o.x += dx / d * (rr - d); o.y += dy / d * (rr - d); if (h) { h.nx += dx / d; h.ny += dy / d; } }
@@ -226,7 +226,7 @@ function manageSpawns(dt) {
     for (const p of peds) if (!p.dead) live++;
     const crowd = OPT.crowd;                                        // quieter or busier streets (New game options)
     if (traffic < 32 * crowd) spawnTraffic(false); else if (parked < 16 * crowd) spawnParked(false);
-    fillLots(false);
+    fillLots(false); if (feat('carPark')) cpFill();                 // the car park's decks (js/10k)
     let fc = 0; for (const q of peds) if (q.cop && !q.dead) fc++;
     if (fc < COP.footPatrols) spawnFootCop(false); else if (live < 56 * crowd) { if (Math.random() > 0.35 * (1 - SKY.rain) || !spawnStroller(false)) spawnPedNear(false); }   // nobody strolls in the rain
   }

@@ -43,7 +43,7 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { if (rc.gate && c.t.cop) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      for (const rc of _nb) { if ((rc.gate && c.t.cop) || !solidAt(rc, zOf(c))) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       nearRails(q[0], q[1], _nr);
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
@@ -67,7 +67,7 @@ function collideCars() {
     const A = cars[a];
     for (let b = a + 1; b < cars.length; b++) {
       const Bc = cars[b]; if (A.hook || Bc.hook) continue;
-      const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach) continue;
+      const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach || Math.abs(zOf(A) - zOf(Bc)) > 15) continue;   // a car on another deck (js/10k)
       let hit = false, nx = 0, ny = 0, pen = 0;
       for (const p of carCircles(A)) for (const q of carCircles(Bc)) {
         const dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), rr = p[2] + q[2];
@@ -94,7 +94,7 @@ function collideCars() {
   }
 }
 function carHitsPeds(c) {
-  const spd = carSpeed(c); if (spd < 40 || c.dead) return;
+  const spd = carSpeed(c); if (spd < 40 || c.dead || zOf(c) > 15) return;   // up a car park deck: nobody on foot up there but you (js/10k)
   const cc = carCircles(c);
   for (const p of peds) {
     if (p.dead || Math.abs(p.x - c.x) > c.t.len / 2 + 30 || Math.abs(p.y - c.y) > c.t.len / 2 + 30) continue;
@@ -253,6 +253,7 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
+    if (c.z || inCarpark(c.x, c.y, 40)) cpLift(c);                 // up the car park's ramps (js/10k)
     if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.sunk) {   // and nobody shoves them in: the shore holds them like a kerb
       const sd = shoreDist(c.x, c.y);
       if (sd < 0) { const g = shoreGrad(c.x, c.y), vin = c.vx * g[0] + c.vy * g[1]; c.x -= g[0] * sd; c.y -= g[1] * sd; if (vin < 0) { c.vx -= vin * g[0]; c.vy -= vin * g[1]; } }

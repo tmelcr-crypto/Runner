@@ -72,7 +72,7 @@ function nearRails(x, y, out) { return rHash.query(x - 40, y - 40, x + 40, y + 4
 function resolveCircle(o, r) {
   let hit = null;
   const push = h => { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; };
-  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { if (rc.gate || rc.walk || rc.barrier) continue; const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }   // people duck under gates and barriers, through turnstiles
+  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { if (rc.gate || rc.walk || rc.barrier || !solidAt(rc, zOf(o))) continue; const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }   // solidAt: a car park wall at another height (js/10k)   // people duck under gates and barriers, through turnstiles
   nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); }
   const sd = shoreDist(o.x, o.y);
   if (sd < -WADE) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
@@ -285,7 +285,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); pickFireStations(); pickSprays(); serviceDecor();              // landmarks; the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); genCarpark(); pickFireStations(); pickSprays(); serviceDecor();              // landmarks; the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

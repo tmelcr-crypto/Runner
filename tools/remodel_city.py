@@ -442,7 +442,50 @@ def remodel3(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3]
+# version 4: the Colony moves to the Sandbar beach east of the start, three times bigger (MAP.lm colony: x, y, a, w along the front, d, h),
+# facing the avenue across a paved forecourt and driveway (two frontage buildings make way), a guests' parking lot north of the drive,
+# and its own park with a fountain between the hotel and the sea (grass, paths; MAP.lm colony.park, .fountain). The old Colony lot by the
+# hospital gets its own buildings back (they were only hidden at runtime). At the lunapark the two lots north of the road (one half in
+# the water) go; a multi-storey car park takes their place (MAP.lunapark.carpark: x, y, w, h, levels, deck height, entry side).
+def remodel4(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    hx, hy, hw, hd, hh = 11700, 13050, 420, 200, 120                   # the hotel: centre, width along its front (north-south), depth, height
+    HOTEL = box(hx - hd / 2, hy - hw / 2, hx + hd / 2, hy + hw / 2)
+    DRIVE = box(11070, 12960, hx - hd / 2 + 2, 13115)                  # from the avenue's sidewalk to the front door
+    TURN = Point(hx - hd / 2, hy).buffer(120).intersection(box(hx - hd / 2 - 130, hy - 130, hx - hd / 2, hy + 130))   # the turning circle at the door
+    LOT = [11425, 12872, 300, 150, 0, 2, -1, 0.5]                       # the guests' lot
+    PARK = rbox(hx + hd / 2 + 30, 12790, 12380, 13310, 70)
+    fx, fy, fr = 12105, hy, 52                                          # the fountain
+    TERRACE = box(hx + hd / 2, hy - hw / 2 + 20, hx + hd / 2 + 30, hy + hw / 2 - 20)
+    AREA = unary_union([HOTEL.buffer(8), DRIVE, TURN, rect(*LOT[:5]).buffer(6), PARK, TERRACE])
+    assert LAND.buffer(1).contains(unary_union([HOTEL, PARK, DRIVE])), 'the Colony leaves the land'
+    gone = clear_ground(M, AREA)
+    move_services(M, gone, AREA)
+    paths = unary_union([Point(fx, fy).buffer(98).difference(Point(fx, fy).buffer(fr + 14)),             # the ring round the fountain
+                         box(hx + hd / 2, fy - 14, 12380, fy + 14), box(fx - 14, 12790, fx + 14, 13310),   # the cross: from the hotel's back door to the beach, and north-south
+                         LineString([(hx + hd / 2 + 40, 12830), (fx, fy), (12340, 13270)]).buffer(10)]).intersection(PARK)
+    M['grass'] += rings(PARK.difference(paths).difference(Point(fx, fy).buffer(fr + 14)))
+    M['yards'] += rings(paths, 'pk') + rings(unary_union([DRIVE, TURN, TERRACE, Point(fx, fy).buffer(fr + 14)]), 'p')
+    M['lots'].append(LOT)
+    M['lm'] = [L for L in M['lm'] if L['t'] != 'colony']
+    M['lm'].append({'t': 'colony', 'x': hx, 'y': hy, 'a': 180, 'w': hw, 'd': hd, 'h': hh, 'park': list(PARK.bounds), 'fountain': [fx, fy, fr],
+                    'drive': [11070, 12960, hx - hd / 2, 13115], 'lot': len(M['lots']) - 1})
+    # the lunapark's car park
+    cpx, cpy, cpw, cph = 10040, 2325, 400, 350                         # its footprint; the way in at its south-east corner, from the road
+    CP = box(cpx - cpw / 2, cpy - cph / 2, cpx + cpw / 2, cpy + cph / 2)
+    APRON = box(cpx + cpw / 2 - 100, cpy + cph / 2 - 5, cpx + cpw / 2, 2530)
+    edit_land(M, (cpx, cpy), lambda g: g.union(CP.buffer(30, join_style=2)).union(APRON))   # solid ground under all of it
+    clear_ground(M, unary_union([box(9360, 2150, 10300, 2470), CP.buffer(20), APRON]))
+    M['yards'] += rings(unary_union([CP.buffer(12, join_style=2), APRON]), 'p')
+    M['lunapark']['carpark'] = {'x': cpx, 'y': cpy, 'w': cpw, 'h': cph, 'levels': 4, 'dh': 30, 'entry': 's'}
+    LANDF = unary_union([poly(p) for p in M['land']])
+    for key in ('yards', 'grass', 'sand'):
+        M[key] = [g for g in M[key] if LANDF.intersects(poly(g))]
+    M['remodel'] = 4
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4]
 
 
 if __name__ == '__main__':
@@ -460,5 +503,9 @@ if __name__ == '__main__':
                         "   military base (base); yards lp = lunapark ground, mb = base ground; bld[8], bld[9]: a building's kind and height when set;\n"
                         "   version 3: the speedway on the Palm Heights beach (speedway: oval, grandstand, paddock, garages, booth) and two drag strips (speedway.strips: the\n"
                         "   Palm strip beside it, the Sandbar strip down the east beach, each with its booth); yards sp = their ground. */")
+    head = head.replace("   Palm strip beside it, the Sandbar strip down the east beach, each with its booth); yards sp = their ground. */",
+                        "   Palm strip beside it, the Sandbar strip down the east beach, each with its booth); yards sp = their ground;\n"
+                        "   version 4: the Colony on the Sandbar beach (lm colony: x, y, a, w, d, h, park, fountain, drive, lot) and the lunapark's car park\n"
+                        "   (lunapark.carpark: x, y, w, h, levels, dh, entry). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

@@ -54,7 +54,8 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "sprayGarage", "name": "Pay 'n' Spray garages", "free": true, "story": true, "note": "Four garages: drive in, the door shuts, pick any colour - repainted and repaired for €100 (places table); unseen going in, the police lose you. Police and army vehicles are turned away."},
   {"id": "tankRockets", "name": "The police tank fires rockets at you", "free": true, "story": true, "note": "At the top wanted level, every 4 s with a clear line, aimed a little ahead (police table: Tank and APC)."},
   {"id": "apcGun", "name": "APC turret machine gun", "free": true, "story": true, "note": "Driving an APC, FIRE shoots the turret at the nearest target ahead (belts of 100, the machine gun's reload); police APCs fire bursts at you when they see you."},
-  {"id": "edgeGlow", "name": "Lime glow on the screen edge toward a target", "free": true, "story": true, "note": "Toward a ringing phone booth, and toward the guide line's target (fare, race start or checkpoint, export bay) whenever it is off screen."}
+  {"id": "edgeGlow", "name": "Lime glow on the screen edge toward a target", "free": true, "story": true, "note": "Toward a ringing phone booth, and toward the guide line's target (fare, race start or checkpoint, export bay) whenever it is off screen."},
+  {"id": "carPark", "name": "The lunapark car park: parked cars, the barrier", "free": true, "story": true, "note": "Cars parked on every deck, and the barrier at the way in that lifts when you stop. Off: the decks stand empty and the barrier stays up."}
 ],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}

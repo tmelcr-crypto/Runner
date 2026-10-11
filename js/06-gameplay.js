@@ -104,10 +104,11 @@ function explodeCar(c) {
 function raycast(ox, oy, ang, range) {
   const dx = Math.cos(ang), dy = Math.sin(ang); let bt = range, type = null, obj = null;
   buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
-  for (const p of peds) { if (p.dead || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }
-  for (const o of officers) { if (o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
+  const up = zOf(P.car || P) > 15;                                  // shooting from a car park deck: nobody in the street below (js/10k)
+  for (const p of peds) { if (up || p.dead || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }
+  for (const o of officers) { if (up || o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
   for (const c of cars) {
-    if (P.car === c || Math.abs(c.x - ox) > range + 60 || Math.abs(c.y - oy) > range + 60) continue;
+    if (P.car === c || Math.abs(c.x - ox) > range + 60 || Math.abs(c.y - oy) > range + 60 || Math.abs(zOf(c) - zOf(P.car || P)) > 15) continue;
     for (const q of carCircles(c)) { const t = rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]); if (t < bt) { bt = t; type = 'car'; obj = c; } }
   }
   const pr = planeRay(ox, oy, dx, dy, bt); if (pr) { bt = pr.t; type = 'plane'; obj = pr.pl; }   // a plane on the ground or low in the air (js/08i)
@@ -199,7 +200,7 @@ function bulletHit(h, w, a) {                                   // one bullet: t
 }
 
 function pedBlocked(x, y) {
-  nearBuildings(x, y, _nb); for (const rc of _nb) if (!rc.gate && circleSolid(x, y, 9, rc)) return true; return false;
+  nearBuildings(x, y, _nb); for (const rc of _nb) if (!rc.gate && solidAt(rc, 0) && circleSolid(x, y, 9, rc)) return true; return false;
 }
 function exitCar(forced) {
   const c = P.car; if (!c) return;
@@ -278,7 +279,7 @@ function updatePlayer(dt, inp) {
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
     c.hb = inp.sprint; jobNitro(c, dt);                            // nitro in a taxi, the taxi job's reward (js/08n)
     raceHold(c, dt); pnsHold(c, dt);                               // a race's countdown and results, a respray hold the car still (js/08o, js/08q)
-    P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy;
+    P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; P.z = c.z || 0;
     if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '')) { }   // a race, a respray: FIRE is locked
     else if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
@@ -296,13 +297,13 @@ function updatePlayer(dt, inp) {
   const k = 1 - Math.exp(-14 * dt);
   P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
   P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;
-  resolveCircle(P, 7);
+  resolveCircle(P, 7); if (P.z || inCarpark(P.x, P.y, 40)) cpLift(P);   // on foot up the car park's ramps (js/10k)
   { const d2 = Math.max(0, -shoreDist(P.x, P.y));
     if (d2 > 0 && Math.hypot(P.vx, P.vy) > 30 && Math.random() < dt * 14) splashFx(P.x, P.y, 2);
     if (d2 > 0 && !P.wet) splashFx(P.x, P.y, 8); P.wet = d2 > 0;
     if (d2 > WADE - 12 && Math.hypot(inp.ix, inp.iy) > 0.2 && (P.deepT = (P.deepT || 0) - dt) <= 0) { P.deepT = 2.5; toast('TOO DEEP TO SWIM'); } }
   for (const c of cars) {
-    if (Math.abs(c.x - P.x) > 90 || Math.abs(c.y - P.y) > 90) continue;
+    if (Math.abs(c.x - P.x) > 90 || Math.abs(c.y - P.y) > 90 || Math.abs(zOf(c) - zOf(P)) > 15) continue;   // a car on another deck (js/10k)
     for (const q of carCircles(c)) {
       const dx = P.x - q[0], dy = P.y - q[1], d = Math.hypot(dx, dy), rr = q[2] + 7;
       if (d < rr && d > 0.001) {
