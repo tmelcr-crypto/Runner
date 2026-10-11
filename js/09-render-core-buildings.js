@@ -61,8 +61,17 @@ const glowMats = {};
 const EMI_MATS = new Set(), NEON_MATS = new Set();
 function litMat(m, set) { set.add(m); m.addEventListener('dispose', () => set.delete(m)); return m; }
 function glowMat(col, op, nightOnly) { const k = col + (op || 1) + (nightOnly ? 'n' : ''); return glowMats[k] || (glowMats[k] = Object.assign(new THREE.MeshBasicMaterial({ map: glowTex, color: col, transparent: true, opacity: op || 1, blending: THREE.AdditiveBlending, depthWrite: false }), { userData: { base: op || 1, nightOnly: !!nightOnly } })); }
+/* the ground by day (js/12d): its night purple turns toward true colours - grey streets and sidewalks, green grass, sand - as the sun
+   comes up. Flat ground (land, grass, sand, yards) changes its colour (js/10 GROUND_FLAT); vertex-coloured ground (roads, sidewalks,
+   lots, alleys, building pads) multiplies its colours in the shader, both by TRUE_DAY (0 at night, up to 1 at a clear noon) */
+const TRUE_DAY = { value: 0 }, TRUE_MUL = [1.32, 1.5, 0.74];
+const trueDay = (c, t, out) => out.setRGB(c.r * (1 + (TRUE_MUL[0] - 1) * t), c.g * (1 + (TRUE_MUL[1] - 1) * t), c.b * (1 + (TRUE_MUL[2] - 1) * t));
+function groundMat(m) {
+  m.onBeforeCompile = sh => { sh.uniforms.uTrue = TRUE_DAY; sh.fragmentShader = 'uniform float uTrue;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb *= mix(vec3(1.0), vec3(' + TRUE_MUL.map(v => v.toFixed(2)).join(', ') + '), uTrue);'); };
+  return m;
+}
 const M = { asphalt: mLam(0x1a1626), instWhite: new THREE.MeshLambertMaterial({ color: 0xffffff }), instBasic: new THREE.MeshBasicMaterial({ color: 0xffffff }),
-  wall: mLam(0x2b3060), red: mBas(0xff3b5c) };
+  instGround: groundMat(new THREE.MeshLambertMaterial({ color: 0xffffff })), wall: mLam(0x2b3060), red: mBas(0xff3b5c) };
 
 /* merged-geometry helper (used for buildings) */
 function GeoBuilder() { this.pos = []; this.nor = []; this.uv = []; this.col = []; }

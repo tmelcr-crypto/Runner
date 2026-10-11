@@ -2,7 +2,9 @@
 /* ---------- 7e. DAY, NIGHT & WEATHER ----------
    A clock runs with the game: a whole day lasts SKYP.dayMinutes real minutes. Dawn and dusk are the hour and a half around sunrise
    and sunset. The light (colour, strength and where the sun stands), the fog, the sea, the lit windows, the neon, the street lights
-   and the headlights all follow the hour: a hazy blue day, a pink dawn, a purple dusk, the neon night.
+   and the headlights all follow the hour: a bright, warm, sunny day in true colours (the ground's purple turns to grey streets, green
+   grass and sand; sharp building shadows), an orange-pink dawn and dusk, and a dark night in deep blue where only the lamps, lit
+   windows, neon and headlights shine (mode: dayNight; off, the old look: a hazy blue day, a purple dusk, the neon night).
    Every few minutes the weather may change (chances in js/01d), blending in over SKYP.blend seconds:
      clear;  cloudy - a weaker sun, greyer light;  rain - falling streaks and splashes, roads that get wet (and shine with the lights
      at night), less grip, slower traffic, people under umbrellas, the hiss of rain;  storm - a wind-driven downpour, lightning and
@@ -41,17 +43,21 @@ function updateSky(dt) {
 const SKY_P = (bg, sky, gnd, hi, sun, si, water) => ({ bg: new THREE.Color(bg), sky: new THREE.Color(sky), gnd: new THREE.Color(gnd), hi, sun: new THREE.Color(sun), si, water: new THREE.Color(water) });
 const SKY_NIGHT = SKY_P(0x08030f, 0x8a7cff, 0x2a1245, 0.95, 0x9fc4ff, 0.6, 0x1d5fe0), SKY_DAY = SKY_P(0x86b4e0, 0xe8eeff, 0x6a5a80, 0.5, 0xfff0d8, 0.62, 0x2f86e8);
 const SKY_DAWN = SKY_P(0xc87a8a, 0xffc0a8, 0x5a3a6a, 0.72, 0xffa070, 0.65, 0x4a6ad8), SKY_DUSK = SKY_P(0x8a3a72, 0xff9ab8, 0x4a2060, 0.75, 0xff7a48, 0.65, 0x3a4ac8);
+const SKY_LOOK = {                          // dayNight: the sunny day and the dark night (SKYP.nightLight: how much light the night keeps)
+  night: SKY_P(0x04020c, 0x3a4cb0, 0x120a26, 0.9 * SKYP.nightLight, 0x7090d0, 0.45 * SKYP.nightLight, 0x0c2a6a), day: SKY_P(0x8ec4ec, 0xfff4e4, 0x7a7064, 0.5, 0xfff2d6, 0.64, 0x2a8ae0),
+  dawn: SKY_P(0xd88a7a, 0xffc0a0, 0x5a4050, 0.5, 0xff9a60, 0.62, 0x4a6ad0), dusk: SKY_P(0xb04a6a, 0xff9a90, 0x4a2a50, 0.46, 0xff7038, 0.62, 0x3a4ac0) };
 const SKY_CUR = SKY_P(0, 0, 0, 0, 0, 0, 0), _sc = new THREE.Color(), MOON = new THREE.Vector3(-600, 1000, -400), _sv = new THREE.Vector3();
 const GREY_D = new THREE.Color(0xb8c0cc), GREY_N = new THREE.Color(0x2a2a38), FOG_D = new THREE.Color(0xc8ced8), FOG_N = new THREE.Color(0x2a2438), STORM_C = new THREE.Color(0x3a3f4a), FLASH_C = new THREE.Color(0xe8eeff);
-let LIGHT_POOL_M = null, ROAD_M = null;       // set by js/10: the street-light pools, the road surface
-function mixPalette(h) {
+let LIGHT_POOL_M = null, ROAD_M = null, SHADOW_M = null;   // set by js/10: the street-light pools, the road surface, the buildings' shadows
+function mixPalette(h, look) {
   const d = dayness(h), bell = (c, x) => Math.max(0, 1 - Math.abs(x - c) / 1.1), dawn = bell(SKYP.sunrise, h) * 0.75, dusk = bell(SKYP.sunset, h) * 0.75, C = SKY_CUR;
-  for (const k of ['bg', 'sky', 'gnd', 'sun', 'water']) { C[k].copy(SKY_NIGHT[k]).lerp(SKY_DAY[k], d).lerp(SKY_DAWN[k], dawn).lerp(SKY_DUSK[k], dusk); }
-  for (const k of ['hi', 'si']) C[k] = lerp(lerp(lerp(SKY_NIGHT[k], SKY_DAY[k], d), SKY_DAWN[k], dawn), SKY_DUSK[k], dusk);
+  const N = look ? SKY_LOOK.night : SKY_NIGHT, D = look ? SKY_LOOK.day : SKY_DAY, A = look ? SKY_LOOK.dawn : SKY_DAWN, U = look ? SKY_LOOK.dusk : SKY_DUSK;
+  for (const k of ['bg', 'sky', 'gnd', 'sun', 'water']) { C[k].copy(N[k]).lerp(D[k], d).lerp(A[k], dawn).lerp(U[k], dusk); }
+  for (const k of ['hi', 'si']) C[k] = lerp(lerp(lerp(N[k], D[k], d), A[k], dawn), U[k], dusk);
   return C;
 }
 function applySky(dt) {                       // every frame: lights, fog, sea, glows, wet roads, rain, lightning
-  const C = mixPalette(SKY.hour), n = SKY.night, day = 1 - n;
+  const look = feat('dayNight'), C = mixPalette(SKY.hour, look), n = SKY.night, day = 1 - n;
   const grey = _sc.copy(GREY_N).lerp(GREY_D, day);
   C.bg.lerp(grey, 0.5 * SKY.cloud).lerp(STORM_C, 0.55 * SKY.storm * day); C.sky.lerp(grey, 0.45 * SKY.cloud);
   SKY.flash = Math.max(0, SKY.flash - dt * 3.2); const fl = SKY.flash > 0.55 || (SKY.flash > 0.15 && SKY.flash < 0.3) ? SKY.flash : SKY.flash * 0.3;   // a double flicker
@@ -68,7 +74,10 @@ function applySky(dt) {                       // every frame: lights, fog, sea, 
   for (const m of EMI_MATS) m.emissiveIntensity = win;
   for (const m of NEON_MATS) m.color.setScalar(neon);
   for (const k in glowMats) { const m = glowMats[k]; m.opacity = m.userData.base * (m.userData.nightOnly ? n : neon) * shine; }
-  if (LIGHT_POOL_M) LIGHT_POOL_M.opacity = 0.55 * n * shine;
+  if (LIGHT_POOL_M) LIGHT_POOL_M.opacity = (look ? 0.85 : 0.55) * n * shine;
+  const tru = look ? SKYP.dayTrue * day * (1 - 0.35 * SKY.cloud) : 0;                                     // the ground in its daylight colours
+  if (Math.abs(tru - TRUE_DAY.value) > 0.002 || !SKY.flatSet) { TRUE_DAY.value = tru; SKY.flatSet = true; for (const g of GROUND_FLAT) g.m.color.copy(g.n).lerp(g.d, tru); }
+  if (SHADOW_M) SHADOW_M.opacity = look ? lerp(0.07, SKYP.dayShadow, day * (1 - 0.6 * SKY.cloud)) : 0.26;   // sharp shadows in the sun, hardly any at night
   if (ROAD_M) ROAD_M.color.setScalar(1 - 0.35 * SKY.wet);
   drawRain(dt);
   const fo = fl > 0.05 ? (fl * 0.35).toFixed(2) : '0'; if (fo !== SKY.fo) { SKY.fo = fo; $('flashFx').style.opacity = fo; }   // the screen lights up

@@ -202,9 +202,10 @@ function buildPerson(kind, shirt, skin) {
     const lp = new THREE.Group(); lp.position.set(0, 9, s * 2.5); part(lp, GB, pm, 3.2, 9, 3.4, 0, -4.5, 0); tilt.add(lp); o.legs.push(lp);
     const ap = new THREE.Group(); ap.position.set(0, 19.5, s * 5.8); part(ap, GB, sm, 3, 8.5, 2.8, 0, -4, 0); tilt.add(ap); o.arms.push(ap);
   }
-  o.head = part(tilt, GSph, km, 3.9, 3.9, 3.9, 0.5, 23, 0);
-  if (kind === 'officer') { part(tilt, GB, mc(0x1a2a6a), 5.4, 2.2, 7.6, 0.4, 26, 0); part(tilt, GB, mc(0x111111), 2.4, 0.8, 6, 3.2, 25, 0); }
-  else o.hair = part(tilt, GSph, mc(kind === 'player' ? 0x3a2a1a : 0x2a2018), 4.1, 3.3, 4.1, -0.4, 24, 0);
+  const hg = o.headG = new THREE.Group(); hg.position.set(0.5, 21.5, 0); tilt.add(hg);          // the head turns on the neck (hats and glasses with it, js/11c)
+  o.head = part(hg, GSph, km, 3.9, 3.9, 3.9, 0, 1.5, 0);
+  if (kind === 'officer') { part(hg, GB, mc(0x1a2a6a), 5.4, 2.2, 7.6, -0.1, 4.5, 0); part(hg, GB, mc(0x111111), 2.4, 0.8, 6, 2.7, 3.5, 0); }
+  else o.hair = part(hg, GSph, mc(kind === 'player' ? 0x3a2a1a : 0x2a2018), 4.1, 3.3, 4.1, -0.9, 2.5, 0);
   if (kind !== 'ped') { o.gun = part(tilt, GB, E.black, kind === 'officer' ? 9 : 10, 2.4, 2.4, 8, 14, 3.6); }
   else {                                     // an umbrella, up when it rains
     const u = new THREE.Group(); u.position.set(1, 0, 3.5); u.visible = false; tilt.add(u);
@@ -214,8 +215,8 @@ function buildPerson(kind, shirt, skin) {
 }
 function syncPerson(p, kind, time, dt) {
   if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
-  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.tilt, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, 0, 25.4, 0);   // a soldier's helmet (js/08j)
-    if (p.valet) { part(o.tilt, GB, mc(0xb3122a), 5.6, 2.4, 6.8, 0, 26.8, 0); part(o.tilt, GB, mc(0xffd23f), 5.7, 0.6, 6.9, 0, 25.9, 0); part(o.tilt, GB, mc(0x111111), 2.6, 0.7, 6.2, 3.4, 25.6, 0); } }   // the valet's cap, gold band, peak
+  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.headG, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, -0.5, 3.9, 0);   // a soldier's helmet (js/08j)
+    if (p.valet) { part(o.headG, GB, mc(0xb3122a), 5.6, 2.4, 6.8, -0.5, 5.3, 0); part(o.headG, GB, mc(0xffd23f), 5.7, 0.6, 6.9, -0.5, 4.4, 0); part(o.headG, GB, mc(0x111111), 2.6, 0.7, 6.2, 2.9, 4.1, 0); } }   // the valet's cap, gold band, peak
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
@@ -227,10 +228,16 @@ function syncPerson(p, kind, time, dt) {
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
     g.scale.setScalar(p.dead ? clamp((bodyTime(p) + 1 - p.deadT) / 6, 0.01, 1) : 1);   // a body shrinks away at the end (later while an ambulance is coming)
   } else {
-    if (o.tilt.rotation.z) o.tilt.rotation.z = 0;
-    const k = Math.sin(p.bob * 3) * Math.min(1, sp / 60) * 0.8;
-    o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.8; o.arms[1].rotation.z = k * 0.8;
-    o.tilt.position.y = Math.abs(k) * 0.8;
+    const live = feat('liveWalk'), run = live ? clamp((sp - 30) / 45, 0, 1) : 0, k = Math.sin(p.bob * 3) * Math.min(1, sp / 60) * 0.8, ak = live ? 1.05 : 0.8;
+    o.legs[0].rotation.z = k * (1 + 0.25 * run); o.legs[1].rotation.z = -k * (1 + 0.25 * run); o.arms[0].rotation.z = -k * ak; o.arms[1].rotation.z = k * ak;
+    o.tilt.rotation.z = -0.2 * run; o.tilt.rotation.y = live ? k * 0.12 : 0;                    // liveWalk: a lean when running, a sway with each step
+    for (const a of o.arms) a.rotation.x = -Math.sign(a.position.z) * 0.18 * run;              // the arms out a little when running
+    o.tilt.position.y = Math.abs(k) * (0.8 + 1.2 * run);
+    if (live) {                                                     // the head bobs with the step; it looks about, or glances at you close by
+      p.hs = p.hs || rand(1, 20); const dP = dist(p.x, p.y, P.x, P.y);
+      const look = dP < 140 && !P.dead && p.state !== 'flee' ? -clamp(angDiff(p.h3, Math.atan2(P.y - p.y, P.x - p.x)), -1, 1) : sp < 4 ? 0.75 * Math.sin(time * 0.5 + p.hs) * Math.sin(time * 0.23 + p.hs * 2) : 0.22 * Math.sin(time * 0.35 + p.hs);
+      o.headG.rotation.y += (look - o.headG.rotation.y) * Math.min(1, dt * 4); o.headG.rotation.z = -Math.abs(k) * 0.1;
+    } else if (o.headG.rotation.y || o.headG.rotation.z) o.headG.rotation.set(0, 0, 0);
     if (kind === 'ped' && p.state === 'flee') { o.arms[0].rotation.z = -2.4; o.arms[1].rotation.z = -2.4; }
     if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
   }
@@ -253,10 +260,13 @@ function syncPlayer(time, dt) {
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over'; P3.mesh.visible = vis; if (!vis) return;
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
   P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
-  const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8;
-  o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
+  const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8, live = feat('liveWalk'), run = live ? clamp((sp - 30) / 50, 0, 1) : 0;
+  o.legs[0].rotation.z = k * (1 + 0.25 * run); o.legs[1].rotation.z = -k * (1 + 0.25 * run); o.arms[0].rotation.z = -k * (live ? 0.9 : 0.5); o.arms[1].rotation.z = 0;
+  o.arms[0].rotation.x = 0.18 * run; o.tilt.position.y = Math.abs(k) * (0.8 + 1.2 * run); o.tilt.rotation.y = live ? k * 0.1 : 0;
+  if (live) { P3.hs = (P3.hs || 0) + dt; const look = sp < 4 && !P.swing ? 0.5 * Math.sin(P3.hs * 0.45) * Math.sin(P3.hs * 0.21 + 1) : 0; o.headG.rotation.y += (look - o.headG.rotation.y) * Math.min(1, dt * 3); o.headG.rotation.z = -Math.abs(k) * 0.1; }   // liveWalk: looking about while standing
+  else if (o.headG.rotation.y || o.headG.rotation.z) o.headG.rotation.set(0, 0, 0);
   o.torso.material = P.hurtT > 0 ? P3.red : o.topMat;
-  if (P.busted) { o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; } else o.tilt.rotation.z = 0;      // knocked flat
+  if (P.busted) { o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; } else o.tilt.rotation.z = -0.22 * run;      // knocked flat; a lean when running
   const w = WEAPONS[P.weapon];                                       // the weapon in your hand (js/11b); a melee weapon rests on the shoulder and swings
   if (P3.heldId !== w.id) {
     if (P3.held) o.tilt.remove(P3.held); P3.held = new THREE.Group(); P3.held.add(weaponModel(w.id)); P3.held.position.set(5, 14, 3.6); o.tilt.add(P3.held);

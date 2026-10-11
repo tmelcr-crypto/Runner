@@ -26,7 +26,10 @@ const SKY_TABLE = /*SKY-JSON*/{
   {"id": "sightRain", "group": "Police", "name": "Police see in the rain", "unit": "%", "min": 10, "max": 100, "v": 85, "note": "Share of their sight range in rain (a storm counts as heavy rain and fog together)."},
   {"id": "sightFog", "group": "Police", "name": "Police see in fog", "unit": "%", "min": 10, "max": 100, "v": 50, "note": "Share of their sight range in thick fog."},
   {"id": "dayWindows", "group": "Look", "name": "Lit windows by day", "unit": "%", "min": 0, "max": 100, "v": 12, "note": "How much the window lights still glow in daylight (100 = as at night)."},
-  {"id": "dayGlow", "group": "Look", "name": "Neon by day", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "How bright neon signs, trims and underglow stay in daylight. Street lights and headlights are off by day."}
+  {"id": "dayGlow", "group": "Look", "name": "Neon by day", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "How bright neon signs, trims and underglow stay in daylight. Street lights and headlights are off by day."},
+  {"id": "nightLight", "group": "Look", "name": "Moonlight: the city at night", "unit": "%", "min": 5, "max": 100, "v": 40, "note": "How bright streets and buildings are at night (100 = as bright as the old neon night). Lamps, lit windows, neon and headlights glow the same. Mode: dayNight."},
+  {"id": "dayTrue", "group": "Look", "name": "True colours by day", "unit": "%", "min": 0, "max": 100, "v": 100, "note": "At a clear noon, how far streets, sidewalks, grass and sand turn from the night's purple to grey, green and sand. 0: purple all day."},
+  {"id": "dayShadow", "group": "Look", "name": "Building shadows by day", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "How dark the shadows of buildings are in the sun (at night they almost vanish)."}
 ]
 }/*END-SKY-JSON*/;
 /* SKYP: the same settings in game units: minutes become seconds, % a fraction, hours stay hours */

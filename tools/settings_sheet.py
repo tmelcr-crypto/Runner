@@ -166,7 +166,8 @@ TIPS_SKY = [('ID column', 'How the game finds each row. Do not change it; rows m
             ('Clock', 'The clock runs while you play: a whole day lasts the set number of real minutes. Dawn and dusk are the hour and a half around sunrise and sunset.', None),
             ('Weather', 'After each spell of weather the next one is picked by the five chances. A change blends in over the set seconds.', None),
             ('Rain', 'Wet roads give less grip (your car and traffic alike) and traffic slows down; at night the roads shine with the lights.', None),
-            ('Police', 'At night and in rain or fog the police see less far than their normal sight range (police table).', None)]
+            ('Police', 'At night and in rain or fog the police see less far than their normal sight range (police table).', None),
+            ('Look', 'By day the ground turns from the night\'s purple to grey streets, green grass and sand, and buildings throw dark shadows; at night the city keeps only the moonlight set here, so lamps, windows, neon and headlights stand out.', None)]
 TIPS_AIRPORT = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Speeds in km/h, distances in metres (a car is 4.5 m long, the runway about 400 m), times in seconds, angles in degrees.', None),
             ('Traffic', 'One plane moves at a time: it lands and taxis to a free gate, or it is pushed back, taxis out and takes off. The next one starts the set seconds after the last one started (or as soon as it is done).', None),

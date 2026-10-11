@@ -139,7 +139,7 @@ function drawYards() {
     const ang = a[4] * Math.PI / 180, ca = Math.cos(ang), sa = Math.sin(ang), w = (x, z) => [a[0] + ca * x - sa * z, a[1] + sa * x + ca * z], L = a[2] / 2, W = a[3] / 2;
     T.quad(w(-L, -W), w(L, -W), w(L, W), w(-L, W), 0.35, c); T.quad(w(-L, -1.5), w(L, -1.5), w(L, 1.5), w(-L, 1.5), 0.4, g);
   }
-  if ((MAP.alleys || []).length) T.mesh(new THREE.MeshLambertMaterial({ vertexColors: true })).frustumCulled = false;
+  if ((MAP.alleys || []).length) T.mesh(groundMat(new THREE.MeshLambertMaterial({ vertexColors: true }))).frustumCulled = false;
 }
 /* the clutter as instanced boxes, cylinders, spheres and flat discs, merged with the street furniture */
 function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {

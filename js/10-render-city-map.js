@@ -101,10 +101,13 @@ function randomIn(p, ok) {                                       // a random poi
   for (let t = 0; t < 12; t++) { const x = rand(x0, x1), y = rand(y0, y1); if (inPoly(x, y, p) && ok(x, y)) return [x, y]; }
   return null;
 }
+const GROUND_FLAT = [], DAY_COL = { '#0d3a3c': '#3d7a3a', '#5a4470': '#bfa87c', '#123f3a': '#4a7c3e', '#143e36': '#4f7a44' };   // grass, sand, the airfield, the space center's lawns by day
 function shapeMesh(polys, h, col) {
   const shapes = polys.map(p => { const s = new THREE.Shape(p.o.map(q => new THREE.Vector2(q[0], -q[1]))); for (const r of p.h) s.holes.push(new THREE.Path(r.map(q => new THREE.Vector2(q[0], -q[1])))); return s; });
   const g = new THREE.ShapeGeometry(shapes); g.rotateX(-Math.PI / 2); g.translate(0, h, 0);
-  const m = new THREE.Mesh(g, mLam(col)); cityGroup.add(m); return m;
+  const m = new THREE.Mesh(g, mLam(col)), n = new THREE.Color(col); cityGroup.add(m);
+  GROUND_FLAT.push({ m: m.material, n, d: DAY_COL[col] ? new THREE.Color(DAY_COL[col]) : trueDay(n, 1, new THREE.Color()) });   // its colour by night and by day (js/12d)
+  return m;
 }
 
 function buildCity() {
@@ -165,7 +168,7 @@ function buildCity() {
       box(Mk, -L.w / 2 + 10, e - 65 * s, -L.w / 2 + 10 + n * 30, e - 66.6 * s, 0.9, stall);
     }
   }
-  const roadMat = ROAD_M = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  const roadMat = ROAD_M = groundMat(new THREE.MeshLambertMaterial({ vertexColors: true })), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   for (const t of roadT.values()) t.mesh(roadMat);
   for (const t of markT.values()) t.mesh(markMat);
   // bridge rails: glowing low walls along the outer edge of the bridge sidewalks
@@ -273,14 +276,14 @@ function buildCity() {
   drawAirport(fb, fg, fc, poles, heads, pools);                    // the airfield: runway, taxiways, markings, lights (js/10f)
   drawPlaces(fb, fg, fc, fs, poles, heads, pools);                 // the base, the port, the lunapark, the space center: ground, roads, markings (js/10g)
   drawFences(fc);                                                  // every fence (js/10f)
-  chunked(GB, M.instWhite, pads); chunked(GB, M.instWhite, slabs);
+  chunked(GB, M.instGround, pads); chunked(GB, M.instWhite, slabs);
   chunked(GSphLo, M.instWhite, fs); chunked(GCirc, M.instBasic, fp);
   chunked(GCyl, M.instWhite, trunks); chunked(GSph, M.instWhite, crowns); chunked(GPINE, M.instWhite, pines); chunked(GTUFT, M.instWhite, tufts);
   chunked(GCyl, M.instWhite, poles); chunked(GB, M.instBasic, heads);
   chunked(GB, M.instWhite, fb); chunked(GB, M.instBasic, fg); chunked(GCyl, M.instWhite, fc);
   chunked(GP, LIGHT_POOL_M = new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }), pools);   // lit at night only (js/12d)
   const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(shadowTris, 3));
-  const sh = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));
+  const sh = new THREE.Mesh(sg, SHADOW_M = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }));   // darker by day (js/12d)
   sh.frustumCulled = false; cityGroup.add(sh);
 }
 function solidCorners(r) { return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => { const lx = u * r.lw / 2, ly = v * r.lh / 2; return [r.cx + r.ca * lx - r.sa * ly, r.cy + r.sa * lx + r.ca * ly]; }); }
