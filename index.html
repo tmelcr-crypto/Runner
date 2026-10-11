@@ -50,7 +50,7 @@
   <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
   <button id="safeBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11.5h3V21h5v-6h4v6h5v-9.5h3z"/></svg></span><b></b><span class="go">GO IN</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
-  <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
+  <div id="wheel" hidden><div id="wgTitle" hidden>WEAPONS</div><div id="wgrid" hidden></div><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
   <div id="wasted">WASTED</div>
   <div id="bigmap" hidden><canvas id="bigCv"></canvas><span class="lbl">TAB OR TAP TO CLOSE</span><button id="mapMenu" type="button">MENU</button></div>
 </div>
@@ -159,7 +159,7 @@
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> punch, swing, shoot (hold for automatics)</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>GRENADES</b> hold CLICK and drag the opposite way, let go to throw (J: hold to wind up)</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves); at a safehouse: buy it or go in, and inside sleep, the wardrobe, the stash</li></ul></div>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon grid (the game waits; grey ones not found yet), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves); at a safehouse: buy it or go in, and inside sleep, the wardrobe, the stash</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>SHIFT or N</b> nitro in a taxi (the taxi job's reward)</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK / J</b> with a pistol, revolver, SMG or machine gun: a drive-by at the nearest target ahead; otherwise grenades go into your hand and drop out of the window; in the tank: rockets; in the fire engine: the water cannon</li></ul>
@@ -470,6 +470,7 @@
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>
 <script src="js/11d-figure-hd.js"></script>
+<script src="js/11e-weapon-hd.js"></script>
 <script src="js/12-render-effects.js"></script>
 <script src="js/12b-rockets.js"></script>
 <script src="js/12c-blast.js"></script>

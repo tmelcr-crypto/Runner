@@ -82,7 +82,7 @@ function handleKeys() {
     if (pressed.Escape || pressed.KeyP) { if (!$('svLift').hidden) $('svLift').hidden = true; else pauseGame(); }
   }
   else if (state === 'play') {
-    const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
+    const dig = [1, 2, 3, 4, 5, 6, 7, 8, 9].findIndex(n => pressed['Digit' + n]);
     if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
       if (dig >= 0 && dig < owned().length) pickWeapon(owned()[dig]); else if (pressed.KeyQ || pressed.Escape || pressed.Tab) toggleWheel(false);
     } else {

@@ -1,6 +1,8 @@
 'use strict';
 /* ---------- 8b. WEAPON WHEEL AND RIFLE SCOPE ----------
-   The weapon button opens a wheel with every weapon, its picture and its ammo; the game waits until you tap one (tap outside to go back).
+   The weapon button opens a grid with every weapon in the game, its detailed picture (js/11e) and its ammo - the ones you have not found
+   grey, with where to get them (mode: weaponGrid; off, the old wheel with only the weapons you have); the game waits until you tap one
+   (tap outside to go back).
    The sniper rifle aims through a scope: hold FIRE and drag. The scope sits above your finger, so the finger does not cover it, and shows
    what is under its centre at 4x; everything outside it is blurred. Let go to shoot - only standing still, with a round chambered.
    The game keeps running while you aim. With a mouse the scope is on the pointer; with the J key the arrow keys move it.
@@ -38,6 +40,29 @@ const WICON_CLASS = { handgun: 'pistol', automatic: 'mg', shotgun: 'shotgun', ri
 const wIcon = w => WICON[w.id] || WICON[WICON_CLASS[w.cls]] || WICON.pistol;   // a weapon's picture, or one for its class
 
 
+/* ---------- the grid (mode: weaponGrid): every weapon in its cell, its detailed picture (js/11e); the ones you have not found grey ---------- */
+function weaponWhere(w) {                // where a weapon you have not found can be had
+  const at = STORES_DEF.filter(s => (s.sells || []).includes(w.id)).map(s => s.name);
+  return at.length ? 'SOLD AT ' + at.join(', ') : w.start ? '' : 'HIDDEN SOMEWHERE IN THE CITY';
+}
+function buildGrid() {
+  const gd = $('wgrid'), own = owned(); gd.innerHTML = '';
+  WEAPONS.forEach((w, i) => {
+    const has = !!P.has[i], k = own.indexOf(i), b = document.createElement('button'), mel = isMelee(w);
+    b.type = 'button'; b.dataset.w = i; b.className = 'wcell' + (has ? '' : ' locked') + (i === P.weapon ? ' on' : '') + (has && !mel && P.mag[i] + P.ammo[i] <= 0 ? ' empty' : ''); b.style.setProperty('--wc', w.color);
+    b.innerHTML = '<img alt=""><span class="wn"></span><span class="wa"></span><span class="wk"></span>';
+    b.querySelector('img').src = weaponPic(w.id); b.querySelector('.wn').textContent = w.name;
+    b.querySelector('.wa').textContent = has ? (mel ? '' : pad(P.mag[i], 2) + ' / ' + pad(P.ammo[i], 3)) : 'NOT FOUND';
+    b.querySelector('.wk').textContent = has && k < 9 ? k + 1 : '';
+    const info = () => { $('wHow').textContent = has ? (w.howTo || '') : w.name + ' - ' + (weaponWhere(w) || 'NOT FOUND YET'); };
+    b.addEventListener('click', e => { e.stopPropagation(); if (has) pickWeapon(i); else { info(); Snd.tone(200, 160, 0.06, 0.06, 'square'); } });
+    b.addEventListener('pointerenter', info);
+    b.addEventListener('pointerleave', () => { $('wHow').textContent = WEAPONS[P.weapon].howTo || ''; });
+    gd.appendChild(b);
+  });
+}
+$('wgrid').addEventListener('click', e => e.stopPropagation());
+
 /* ---------- the wheel ---------- */
 let wheelOpen = false;
 function buildWheel() {                  // only the weapons you have, each in its own colour; slots shrink as the collection grows
@@ -65,6 +90,8 @@ function toggleWheel(on) {
   $('wheel').hidden = !wheelOpen;
   if (!wheelOpen) return;
   SCOPE.on = false; TA.on = false; if (bigOpen) toggleBigMap(false);
+  const grid = feat('weaponGrid'); $('wgrid').hidden = $('wgTitle').hidden = !grid; $('wring').hidden = grid; $('wheel').classList.toggle('grid', grid);
+  if (grid) { buildGrid(); $('wHow').textContent = WEAPONS[P.weapon].howTo || ''; Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.tone(520, 760, 0.06, 0.1, 'square'); return; }
   buildWheel();
   for (const b of document.querySelectorAll('.wslot')) {
     const i = +b.dataset.w, mel = isMelee(WEAPONS[i]); b.classList.toggle('on', i === P.weapon); b.classList.toggle('empty', !mel && P.mag[i] + P.ammo[i] <= 0);

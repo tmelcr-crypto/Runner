@@ -62,7 +62,8 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "dayNight", "name": "A sunny day and a dark night", "free": true, "story": true, "note": "Day: warm sun, true colours on the ground, sharp shadows. Night: dark deep blue, lit by lamps, windows, neon and headlights (sky table: Look). Off: the old neon look all day."},
   {"id": "shopFigure", "name": "A detailed figure in the clothes shops", "free": true, "story": true, "note": "Rounded, with a face, hands and the clothes' details, on a lit turntable (the shops and the safehouse wardrobes). Off: the small blocky figure."},
   {"id": "liveWalk", "name": "Livelier walking", "free": true, "story": true, "note": "You and the people: arms swing with the step, a lean and a bounce when running, a sway, heads that bob, look about and glance at you. Off: the stiffer walk."},
-  {"id": "moreFrenzies", "name": "Thirty more kill frenzies", "free": true, "story": false, "note": "Rampages r21 to r50 (rampage table, Modes: free). Free roam only: in story mode only the first twenty are there."}
+  {"id": "moreFrenzies", "name": "Thirty more kill frenzies", "free": true, "story": false, "note": "Rampages r21 to r50 (rampage table, Modes: free). Free roam only: in story mode only the first twenty are there."},
+  {"id": "weaponGrid", "name": "The weapon grid", "free": true, "story": true, "note": "Every weapon in a grid with a detailed picture; the ones not found yet grey with where to get them. Off: the old wheel with only your weapons."}
 ],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}
