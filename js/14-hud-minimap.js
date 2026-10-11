@@ -64,6 +64,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   if (feat('rampages')) for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
   jobIcons(g, X, Y, q, inView);                                     // taxi ranks and fire stations (js/08n)
   raceIcons(g, X, Y, q, inView);                                    // a ringing phone booth, the speedway and the drag strip (js/08o)
+  pnsIcons(g, X, Y, q, inView);                                     // the Pay 'n' Spray garages: a spray can (js/08q)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
@@ -151,7 +152,7 @@ function updateHud(time) {
   { const rh = raceHint(); if (rh && !P.act && (RACE.on || !hint)) hint = rh; }   // a race: what to do now (js/08o)
   { const nz = nitroHere(c), nb = $('bNitro'); if (nb.hidden === nz) nb.hidden = !nz; if (nz) nb.classList.toggle('wait', JOB.nitroCd > 0); }   // NITRO in a taxi, once earned
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
-  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && ((!c.t.weapon && !drop && !canDriveBy()) || raceLocked()); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
+  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && ((!c.t.weapon && !drop && !canDriveBy()) || raceLocked() || pnsLocked()); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
   const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }

@@ -166,6 +166,7 @@ function spawnPedNear(initial) {
 }
 function kerbFits(x, y, ang, type) {           // the whole car stands in the parking lane: on a bend it would poke into traffic or onto the sidewalk
   const t = CAR_TYPES[type], o = t.len * 0.5 - (t.wid * 0.5 + 1), fx = Math.cos(ang), fy = Math.sin(ang);
+  if (pnsKerb(x, y)) return false;                                // not across a spray garage's door (js/10j)
   for (const k of [-1, 0, 1]) { const r = nearestRoad(x + fx * o * k, y + fy * o * k, ROAD_HALF + 10); if (!r || Math.abs(r.d - PARK_OFF) > 2.5) return false; }
   return true;
 }

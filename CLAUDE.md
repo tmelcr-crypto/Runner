@@ -13,6 +13,7 @@
 - Two modes: FREE ROAM (the game as it is) and STORY (to be built; shown as COMING SOON while `ready` is false in the modes table). Saved games keep their mode.
 - Tables: police, sky, airport, places, streets and jobs (`tools/settings_sheet.py`), vehicles, weapons, rampages, clothes, economy (every price, across tables), modes.
 - Agreed places to build next are listed in the README (Next steps); ask about each before building.
+- `docs/PLAN.md` holds the owner's detailed answers for the next steps (safehouses, Colony, car park, showroom, junkyard, roadblocks and helicopter, stats): build them in that order without asking again, and merge each finished step (the owner's choice, October 2026).
 - The city map (`js/00-map-data.js`) is generated, but the reference image is not kept: change the layout in place with `tools/remodel_city.py` (bump its version for a new remodel).
 - Keep the README and the in-game Help in step with every feature.
 

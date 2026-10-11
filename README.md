@@ -8,7 +8,7 @@ Run it: serve the folder (`python3 -m http.server`) and open `http://localhost:8
 
 **NEW GAME** first asks how you want to play: **FREE ROAM** - the city as it is, no story, everything below - or **STORY**, missions told as a story, which is built later and shows as *COMING SOON* until then. Free roam then goes on to its options. A saved game keeps its mode (the save list and the pause menu show it); saves from before the modes are free roam.
 
-Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines, paramedics with stretchers, blasts tearing people apart, irregular blood marks, pickups only on foot, planes landing and taking off, the airport gate barriers and guards, the military base, cargo ships and cranes, the lunapark rides, the space center guards, traffic lights and the rules of the road, sirens going through red, the heat reducer on the road, the heat reducers in back alleys, heat reducers taken from a car, the drive-by, grenades in a car, the water cannon, the clothes shops, car delivery at the docks - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. A second sheet holds numbers that differ by mode: story mode hides 30% as many weapons, ammo and items around the city as free roam (`pickups`). What is kept for story mode - like the way into the space center - is written down in `docs/STORY.md`. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
+Which features each mode has is a table, `js/01j-mode-data.js`: one row per feature - police and wanted levels, hidden weapons, hidden items, the stores, rampages, cash stacks in town, cash in cars, loot from the dead, armed passers-by, hidden vehicles, ambulances and fire engines, paramedics with stretchers, blasts tearing people apart, irregular blood marks, pickups only on foot, planes landing and taking off, the airport gate barriers and guards, the military base, cargo ships and cranes, the lunapark rides, the space center guards, traffic lights and the rules of the road, sirens going through red, the heat reducer on the road, the heat reducers in back alleys, heat reducers taken from a car, the drive-by, grenades in a car, the water cannon, the clothes shops, car delivery at the docks, the Pay 'n' Spray garages - with yes / no for free roam and for story (story has everything for now). The game asks the table before using a feature, and every new feature gets a row. A second sheet holds numbers that differ by mode: story mode hides 30% as many weapons, ammo and items around the city as free roam (`pickups`). What is kept for story mode - like the way into the space center - is written down in `docs/STORY.md`. `tools/mode_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back:
 
 ```
 python3 tools/mode_sheet.py export modes.numbers      # or modes.xlsx
@@ -106,7 +106,7 @@ Heron Key grew into the bay to make room for a lunapark in the spirit of the big
 
 Gravel Flats is the Bay Space Center, behind a security fence: the launch pad with a rocket and its boosters beside a red and white tower, lightning masts, the fuel spheres and a water tower, the crawlerway with the crawler-transporter parked on it, the huge assembly building with its flag, launch control, offices with a car park and a rocket garden by the gate. The gate is shut and guarded: the way in - with permission, or in certain clothes - comes with the story (`docs/STORY.md`).
 
-Every number for the gates, the base, the port, the lunapark and the space center is in `js/01l-places-data.js`: `python3 tools/settings_sheet.py places export places.numbers` / `... places import places.numbers`.
+Every number for the gates, the base, the port, the lunapark, the space center (and the Pay 'n' Spray garages) is in `js/01l-places-data.js`: `python3 tools/settings_sheet.py places export places.numbers` / `... places import places.numbers`.
 
 Every number of the airport is in `js/01k-airport-data.js` (how often, gates, taxi, take-off and landing speeds, the take-off run and landing roll, the climb angle, plane health, blast distance, explosion radius, burn time, the speed above which a plane kills, the heat, and the fence): `python3 tools/settings_sheet.py airport export airport.numbers` / `... airport import airport.numbers`. The mode table's `planes` row turns the movements off (the planes then only stand at their gates).
 
@@ -120,6 +120,7 @@ The police only know what they see or hear, and they come in small numbers.
 - **1 star, a stop order**: a cop near you shouts STOP. Stand still - on foot or in your car - for 3 s and you pay a fine of 250 and the stars go. Keep moving for 3 s while they can see you and it is 2 stars.
 - **2 stars, an arrest**: police cars follow you and pull up beside you when you stop; the crew gets out, and a cop who holds you for a second (on foot, or beside your car while it does under 12 km/h) arrests you. Drive away and the crew runs back to their car and carries on. No shooting unless you fired a gun where they could see or hear it, rammed a police car or hurt a cop.
 - **3 stars and up**: police cars ram your car; cops on foot shout a warning, then shoot from up to 27 m, more often missing the further away you are, and never with a passer-by in the line of fire. From 3 stars an armoured APC may come too, at 5 stars a tank that drives straight at you, on foot or not.
+- **Ways out**: stay out of sight, pay the fine at 1 star, take a heat reducer (Items and stores), change your clothes (Clothes shops) or drive into a Pay 'n' Spray unseen (it loses them at any level).
 - **Busted or wasted** is not the end: you start again at the door of the nearest police station (bail: 10% of your score, and they keep every weapon you found - only your fists are left) or hospital (the bill: 10%); see Hospitals and police stations above.
 
 Every one of these numbers is in one table, `js/01b-police-data.js`, in everyday units. `tools/settings_sheet.py` turns it into an Apple Numbers file or an Excel workbook and reads an edited copy (either kind) back (needs numbers-parser for `.numbers`, openpyxl for `.xlsx`):
@@ -330,6 +331,21 @@ On the south-east corner of the port quay is the **export bay**: yellow lines wi
 - **The next car** is wanted 2 minutes later (the board says *NOTHING WANTED - COME BACK LATER* meanwhile). While a car is wanted, 30% of the cars of that kind that appear come in the wanted colour, so one can be found.
 - The wanted car is kept in saved games. The timings and shares are in the places table (*Car delivery*); the prices in the vehicle table and the economy sheet. Modes: `carDelivery`.
 
+## Pay 'n' Spray
+
+Four paint shops, spread over the city (the first a short drive from the start, the others in Palm Heights and Seaview): low white workshops with neon bands, a roller door to the street between yellow and black posts, PAY 'N' SPRAY and a giant spray can on the roof. Each is a spray can on a pink square on the minimap and the city map. Mode: `sprayGarage`.
+
+- **Driving in**: come up to the door in a car it takes and the door rolls up (a green lamp beside it); drive in, stop in the bay and it comes down behind you. On foot the door stays down (unless you are already inside).
+- **Inside**: while you are in, the roof turns see-through and you see the workshop - the spray bay between yellow lines under a gantry of nozzles, shelves of paint, a workbench and a compressor, a car up on the lift, a tool chest, drums and tyres - and the painter in white overalls. It is the first building you go inside; the top-down kind of interior (others, and rooms of their own, come later).
+- **The colours**: a card at the bottom of the screen, the car in view above it. First the kind's own paints, then any colour - 12 hues, each light, bright and dark, then white, greys and black. The car shows each colour as you tap it (one is picked to start with); **SPRAY** pays €100, **LEAVE** (or Esc, E) puts the old colour back, pays nothing and opens the door.
+- **The respray**: the door shuts and the painter walks round the car with his gun in a cloud of the new colour; 4 seconds later it comes out fully repaired - a burning car is put out - in the new colour (you cannot get out or fire meanwhile). Autosaved.
+- **The police**: if no cop saw you at the door or going in, they lose you, at any wanted level. Seen: you are repaired and repainted, and still wanted (*THEY SAW YOU GO IN*).
+- **Who it takes**: cars, trucks, bikes, the sports car, the limo - repainted. Taxis, buses, ambulances, fire engines and trash trucks are repaired and keep their livery (*REPAIR €100*). Police cars, the tank and the APC are turned away, and so is a vehicle too big for the bay (a bus in the shorter ones) or a driver with less than €100 - the door stays down and a red line says why. No respray during a race.
+- **The car wanted at the docks**: its colour is a name (pink, blue...) - spray a car of the wanted kind that colour and the dockers take it.
+- **Never in the way**: no lamps, trees, bins or parked cars across a garage's door; no street junk inside.
+
+The count, the price, how long spraying and the door take, the stars a respray loses and the number of hues are in the places table (*Spray garages*): `python3 tools/settings_sheet.py places export places.numbers`; the price is in the economy sheet too.
+
 ## Clothes shops
 
 Ten clothes shops, each with its own range, take shop buildings spread over the city (always the same ones, clear of the six weapon stores). Each is a coat hanger in its colour on the minimap and the city map; at the door a ring of light, a turning shirt and the shop's name. Walk up on foot and tap **SHOP** (or press **E**).
@@ -441,7 +457,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01i-economy-data.js` | where cash comes from (cars, the dead, stacks in town; amounts and ranges, drop time); every price in the game is in `tools/economy_sheet.py` |
 | `js/01j-mode-data.js` | the game modes (free roam, story) and which features each has; `feat(id)` |
 | `js/01k-airport-data.js` | the airport settings in everyday units (edit by hand or with `tools/settings_sheet.py airport`), converted to `AIRP` |
-| `js/01l-places-data.js` | the airport gates, the military base, the port, the lunapark and the space center in everyday units (`tools/settings_sheet.py places`), converted to `PLC` |
+| `js/01l-places-data.js` | the airport gates, the military base, the port, the lunapark, the space center and the spray garages in everyday units (`tools/settings_sheet.py places`), converted to `PLC` |
 | `js/01m-streets-data.js` | traffic lights, drivers, pedestrians, sirens and the heat reducers on the road and in the alleys, in everyday units (`tools/settings_sheet.py streets`), converted to `STR` |
 | `js/01n-clothes-data.js` | the ten clothes shops, every piece of clothing (slot, style, colours, price) and the clothes' police settings (`tools/clothes_sheet.py`) |
 | `js/01o-jobs-data.js` | the vehicle jobs: dispatch points, levels, the clock, pay, rewards, nitro (`tools/settings_sheet.py jobs`) |
@@ -460,6 +476,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/08n-vehicle-jobs.js` | the vehicle jobs: taxi ranks, fire stations, dispatch markers and the START card, levels, the clock, fares, patients, fires, criminals, rewards, nitro, the job's markers and map dots |
 | `js/08o-races.js` | the races: the phone booths and their calls, routes along the streets, the race card, rivals' driving, checkpoints, laps, the drag strip's lights, results, records, the race's markers and map dots |
 | `js/08p-guide.js` | the lime guide line: where to (a race's start or route, a job's nearest target, the export bay), the shortest way by road, the line on the streets and the maps |
+| `js/08q-spray.js` | the Pay 'n' Spray garages at work: who the door opens for, the colour card (the kind's paints, any colour), the respray and repair, losing the police, the painter's walk, the door, roof, lamp and sign, the map icons |
 | `js/08-pedestrians-pickups-spawning.js` | sidewalk pedestrians, pickups, spawning |
 | `js/08b-police.js` | the police: who sees you, crime reports, the search, sending cars, police driving, cops on foot (stop order, arrest, shooting), busted and wasted, starting again |
 | `js/08c-services.js` | trash truck stops at bins, ambulance and fire engine calls, the hidden tank, the tank's rockets |
@@ -480,6 +497,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10g-places.js` | the base, the space center, the port's yards and the lunapark's gate, stands, village, piazza and booths: models, collision boxes, ground, roads and markings, the barriers' booms |
 | `js/10h-lunapark.js` | the rides: coaster tracks and trains, the Ferris wheel, flume, drop tower, swings, carousel, pirate ship, sky ride, park train |
 | `js/10i-speedway.js` | the speedway: the oval (and `ovalAt` / `ovalU` along it), walls, grandstand, garages, race booth, pylon; the two drag strips (`stripPt` / `stripAlong` along them) with their fences, start lights, timing boards and booths; ground and markings, the map picture |
+| `js/10j-spray-garage.js` | the spray garages: which buildings (well spread, the first near the start), their walls and door as solids, the workshop model - bay, gantry, shelves of paint, bench, lift, the roof that fades, the roller door, the painter |
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending) |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
 | `js/11b-weapon-models.js` | small 3D models of every weapon, an ammo box and the items (health, armor, heat reducer), for your hand, the pickups and the stores |
@@ -504,12 +522,13 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
+What comes next, in order and with every detail agreed with the owner (safehouses, the Colony on the beach, the lunapark car park, the showroom and tuning, the junkyard, roadblocks and the police helicopter, stats and 100%, and a few fixes): **`docs/PLAN.md`**. The list below is the older, rougher one.
+
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
 3. Convert the scripts to ES modules once the globals are untangled.
 4. Police, later: roadblocks, spike strips and a helicopter at 4-5 stars.
-5. **New places, agreed with the owner, to build next** (each will be asked about in detail first):
-   - *Spray garages*: drive in for a respray and repair; unseen, the police lose you. A few around the city.
+5. **New places, agreed with the owner, to build next** (each will be asked about in detail first; the spray garages are built - see Pay 'n' Spray):
    - *Car showroom and your garage*: buy cars; tune them - spoilers, wheel colours, paint colours you do not see on the road; a garage near the start keeps the cars you park in it, saved with the game.
    - *Prison island*: busted, you walk out of its gate; walls, towers, guards; breakouts for the story.
    - *Construction site*: a half-built tower with cranes, ramps and scaffolding for stunt jumps.
@@ -523,3 +542,10 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
    - *Houses to buy*: 10 across the city, each one unique; a garage keeps your cars safe and a wardrobe holds every piece of clothing you bought.
    - *Stats and a 100% screen*: everything found and done, with a completion percentage.
 7. **Building interiors, later** (agreed with the owner; each kind will be asked about in detail first): two kinds - in the current top-down view for storages, hangars, warehouses and the like; and a 2D side-on view (like a platform game) with hallways and elevators up to the higher floors.
+8. **Flying, later** (agreed with the owner; will be asked about in detail first - which aircraft, free roam or story, how hard to fly): a new vehicle type that leaves the ground, seen from above with its shadow on the ground and the camera pulling back as it climbs. Ideas to choose from:
+   - *Helicopters*: the military helicopter on the base's helipad made flyable; a police or news helicopter on a rooftop pad; hovering, landing on roofs and pads.
+   - *Planes*: steal one of the airliners at the gates or a small plane from a hangar, take off from the runway, land again on it (or crash).
+   - *Seaplane*: at the marina, taking off from and landing on the water.
+   - *Smaller ones*: a parachute to jump out with, a jetpack or a hang glider from the tall towers.
+   - Open points: the police chasing you in the air (their own helicopter, at 4-5 stars), what you can do from up there (shoot, drop bombs), running out of fuel, and the airport's own plane movements around you.
+9. **People with real lives, later** (agreed with the owner; to be asked about in detail first): passers-by with a day of their own - from home to their car, to a shop, to the gas station... and back to a parking lot and home.

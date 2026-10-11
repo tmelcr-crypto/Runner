@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 1l. PLACES SETTINGS ----------
-   The airport gates, the military base, the port, the lunapark and the space center (js/08j, js/08k, js/10g, js/10h): guards and
+   The airport gates, the military base, the port, the lunapark, the space center and the Pay 'n' Spray garages (js/08j, js/08k, js/08q, js/10g, js/10h): guards and
    soldiers, the base's warning and stock, ship traffic, the rides. tools/settings_sheet.py exports this table to Apple Numbers or
    Excel and writes an edited copy back:  python3 tools/settings_sheet.py places export places.numbers  /  ... places import places.numbers
    Keep the JSON between the markers valid. */
@@ -30,6 +30,12 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "deliveryNext", "group": "Car delivery", "name": "After a delivery the next car is wanted in", "unit": "s", "min": 0, "max": 1800, "v": 120, "note": "Meanwhile the board at the export bay says NOTHING WANTED."},
   {"id": "deliveryDamage", "group": "Car delivery", "name": "A damaged car pays less by this share of its damage", "unit": "%", "min": 0, "max": 100, "v": 50, "note": "50: a car 40% damaged pays 20% less. The prices are in the vehicle table (Delivery price)."},
   {"id": "deliveryBias", "group": "Car delivery", "name": "Cars of the wanted kind come in the wanted colour", "unit": "%", "min": 0, "max": 100, "v": 30, "note": "Of those that appear in traffic or parked while it is wanted (the rest in their usual mix), so it can be found."},
+  {"id": "sprayCount", "group": "Spray garages", "name": "Pay 'n' Spray garages", "unit": "count", "min": 1, "max": 8, "v": 4, "note": "Spread over the city, the first near the start. Each takes a street-front building deep enough for a bus."},
+  {"id": "sprayPrice", "group": "Spray garages", "name": "A respray and full repair costs", "unit": "€", "min": 0, "max": 100000, "v": 100, "note": "Paid when the painter starts. Not enough cash: the door stays shut."},
+  {"id": "sprayTime", "group": "Spray garages", "name": "Spraying takes", "unit": "s", "min": 1, "max": 30, "v": 4, "note": "The door is shut and you cannot drive meanwhile."},
+  {"id": "sprayDoor", "group": "Spray garages", "name": "The roller door opens or shuts in", "unit": "s", "min": 0.3, "max": 10, "v": 1.2, "note": ""},
+  {"id": "sprayLose", "group": "Spray garages", "name": "Unseen going in, the police lose you up to", "unit": "stars", "min": 0, "max": 5, "v": 5, "note": "A cop who sees you drive in (or through the open door) is not fooled: you are repaired and repainted, and still wanted. 0: a respray never loses them."},
+  {"id": "sprayHues", "group": "Spray garages", "name": "Colours to choose from: hues", "unit": "count", "min": 4, "max": 24, "v": 12, "note": "Each in a light, a bright and a dark shade, plus white, greys and black. The car kind's own paints come first."},
   {"id": "visitors", "group": "Lunapark", "name": "Visitors around you", "unit": "count", "min": 0, "max": 80, "v": 30, "note": "People strolling inside the lunapark while you are there."},
   {"id": "wheelRpm", "group": "Lunapark", "name": "Ferris wheel turns per minute", "unit": "count", "min": 0, "max": 6, "v": 1, "note": "0 stops it."},
   {"id": "coaster", "group": "Lunapark", "name": "Coaster top speed", "unit": "km/h", "min": 20, "max": 160, "v": 75, "note": "At the bottom of the first drop; the trains speed up and slow down with the hills."},

@@ -265,7 +265,7 @@ function buildCity() {
   // buildings stand on raised pavement; pads and shadows are static, the buildings themselves stream in near the player
   const pads = [], shadowTris = [];
   for (const r of BLD) {
-    pads.push({ x: r.cx, y: SIDE_H / 2, z: r.cy, sx: r.lw + 2 * PAD, sy: SIDE_H, sz: r.lh + 2 * PAD, ry: -r.a, c: COL.pad });
+    if (!r.own) pads.push({ x: r.cx, y: SIDE_H / 2, z: r.cy, sx: r.lw + 2 * PAD, sy: SIDE_H, sz: r.lh + 2 * PAD, ry: -r.a, c: COL.pad });
     const cs = solidCorners(r), ox = r.H * 0.38, oz = r.H * 0.5, hull = convexHull(cs.concat(cs.map(([x, y]) => [x + ox, y + oz])));
     for (let k = 1; k < hull.length - 1; k++) for (const v of [hull[0], hull[k], hull[k + 1]]) shadowTris.push(v[0], 1.2, v[1]);
   }
