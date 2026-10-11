@@ -166,7 +166,7 @@ function spawnPedNear(initial) {
 }
 function kerbFits(x, y, ang, type) {           // the whole car stands in the parking lane: on a bend it would poke into traffic or onto the sidewalk
   const t = CAR_TYPES[type], o = t.len * 0.5 - (t.wid * 0.5 + 1), fx = Math.cos(ang), fy = Math.sin(ang);
-  if (pnsKerb(x, y)) return false;                                // not across a spray garage's door (js/10j)
+  if (pnsKerb(x, y) || safeKerb(x, y)) return false;              // not across a spray garage's door (js/10j), not in a safehouse's reserved space (js/10l)
   for (const k of [-1, 0, 1]) { const r = nearestRoad(x + fx * o * k, y + fy * o * k, ROAD_HALF + 10); if (!r || Math.abs(r.d - PARK_OFF) > 2.5) return false; }
   return true;
 }
@@ -203,7 +203,7 @@ function fillLots(initial) {
     if (d > 1500 || (!initial && d < offDist() + Math.hypot(L.w, L.d) / 2)) continue;
     L.filled = true; const cop = L.owner && L.owner.special === 'police';
     for (const p of L.stalls) {
-      if (Math.random() > (cop ? 0.75 : L.fill || 0.55) || cars.some(c => Math.abs(c.x - p.x) < 40 && Math.abs(c.y - p.y) < 40)) continue;
+      if (p.reserved || Math.random() > (cop ? 0.75 : L.fill || 0.55) || cars.some(c => Math.abs(c.x - p.x) < 40 && Math.abs(c.y - p.y) < 40)) continue;
       const type = cop ? (pickType('chase', t => t.cop && t.chaseFrom <= 1 && t.wid <= STALL_W) || 'police') : pickType('parked', t => t.wid <= STALL_W); if (!type) continue;
       const c = makeCar(type, p.x, p.y, p.ang + rand(-0.04, 0.04), null); c.lot = L; cars.push(c);
     }

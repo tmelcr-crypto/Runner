@@ -534,3 +534,46 @@ button.clRow.on{border-color:var(--cyan)}
 
 /* the lime edge glow toward a ringing phone or an off-screen target (js/08p) */
 .edge{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s}
+
+/* ---- safehouses (js/08s): the buy card, the stash, sleeping; the side-on view inside a tower (js/08t) ---- */
+#safeCard{max-width:520px}
+#safeCard .tag{color:#ff6f8a;font-size:12px;margin:0 0 8px}
+#sfPic{display:block;width:min(360px,100%);aspect-ratio:9/5;margin:10px auto 0;background:#120a24;border:3px solid var(--line);object-fit:cover}
+#safeCard .stats{margin:14px 0}
+#stashCard{max-width:620px}
+#stashCard .tag{color:var(--good);font-size:12px;margin:0 0 8px}
+#stCols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0 4px;text-align:left}
+#stCols .lab{font-family:var(--f-display);font-size:8px;color:var(--dim);margin:0 0 8px;letter-spacing:1px}
+.stList{display:flex;flex-direction:column;gap:6px;max-height:42vh;overflow:auto}
+.stList .small{margin:4px 0}
+button.stRow{--wc:var(--yellow);display:grid;grid-template-columns:12px 1fr;gap:2px 10px;align-items:center;text-align:left;font:inherit;color:var(--paper);background:rgba(16,6,36,.82);
+  border:3px solid var(--line);padding:6px 10px;cursor:pointer;touch-action:manipulation}
+button.stRow i{grid-row:span 2;width:12px;height:100%;min-height:26px;background:var(--wc);box-shadow:0 0 8px var(--wc)}
+button.stRow b{font-weight:400;font-size:20px;line-height:1}
+button.stRow small{font-size:16px;color:var(--dim);line-height:1}
+button.stRow:hover,button.stRow:focus{outline:0;border-color:var(--good);box-shadow:0 0 12px rgba(88,224,138,.45)}
+#sleepFx{position:fixed;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#05030c;transition:none;pointer-events:auto}
+#sleepFx b{font-family:var(--f-display);font-size:18px;letter-spacing:4px;color:#c9b3ff;text-shadow:0 0 14px #a259ff}
+#sleepFx i{font-family:var(--f-display);font-style:normal;font-size:30px;color:var(--yellow);text-shadow:0 0 16px var(--yellow)}
+#sleepFx .moon{width:54px;height:54px;border-radius:50%;box-shadow:-12px 6px 0 0 #ffe9a8;transform:translate(10px,-4px)}
+#sideView{position:fixed;inset:0;z-index:25;background:#05030c;touch-action:none;overflow:hidden}
+#svCv{position:absolute;left:0;top:0;display:block}
+#svTop{position:absolute;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center;gap:10px}
+#svTitle{font-family:var(--f-display);font-weight:400;font-size:10px;letter-spacing:1px;color:var(--paper);text-shadow:2px 2px 0 #000}
+#svMenu{font-family:var(--f-display);font-size:9px;color:var(--cyan);background:rgba(11,6,26,.8);border:2px solid var(--cyan);padding:8px 10px;cursor:pointer;touch-action:manipulation}
+#svHint{position:absolute;left:0;right:0;bottom:118px;margin:0;text-align:center;font-family:var(--f-display);font-size:11px;color:var(--good);text-shadow:2px 2px 0 #000;pointer-events:none}
+.svPad{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));display:flex;gap:14px}
+#svPadL{left:max(16px,env(safe-area-inset-left))}
+#svPadR{right:max(16px,env(safe-area-inset-right))}
+.svPad button{width:72px;height:72px;border-radius:50%;border:3px solid rgba(241,234,210,.55);background:rgba(20,12,40,.6);color:var(--paper);font-size:26px;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none}
+.svPad button:active{background:rgba(63,224,255,.3);border-color:var(--cyan)}
+#svU{border-color:var(--good);color:var(--good)}
+.svKeys{position:absolute;left:0;right:0;bottom:100px;margin:0;text-align:center;font-family:var(--f-display);font-size:7px;color:var(--dim);opacity:.7;pointer-events:none}
+.touch-on .svKeys{display:none}
+#svLift{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 32px));max-height:80vh;overflow:auto;background:rgba(14,8,30,.95);border:3px solid var(--yellow);box-shadow:0 0 24px rgba(255,210,63,.4);padding:14px;text-align:center;box-sizing:border-box}
+#svLift .tag{margin:0 0 10px;color:var(--yellow)}
+#svFloors{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
+#svFloors button{height:46px;font-family:var(--f-display);font-size:12px;color:var(--paper);background:#241a44;border:2px solid var(--line);border-radius:23px;cursor:pointer;touch-action:manipulation}
+#svFloors button.home{border-color:var(--good);color:var(--good)}
+#svFloors button.here{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
+@media (max-width:600px){#stCols{grid-template-columns:1fr}.stList{max-height:26vh}.svPad button{width:62px;height:62px}}

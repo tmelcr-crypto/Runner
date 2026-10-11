@@ -48,6 +48,7 @@
   <div id="jobHud" hidden title="Stop the job"><span class="rl" id="jobHudName">JOB</span><span class="lv" id="jobLevel">LEVEL 1</span><b id="jobCount">0 / 0</b><i id="jobClock">0:00</i><span class="jx">✕</span></div>
   <div id="rampHud" hidden><span id="rampIcoHud"></span><span class="rl">RAMPAGE</span><b id="rampCount">0 / 0</b><span id="rampWhat"></span><i id="rampClock">0:00</i></div>
   <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
+  <button id="safeBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11.5h3V21h5v-6h4v6h5v-9.5h3z"/></svg></span><b></b><span class="go">GO IN</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
   <div id="wheel" hidden><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
   <div id="wasted">WASTED</div>
@@ -79,6 +80,17 @@
   <button id="pvR" class="big alt" type="button">&#10227;</button>
   <span id="pvInfo"></span>
 </div>
+
+<div id="sideView" hidden>
+  <canvas id="svCv"></canvas>
+  <div id="svTop"><b id="svTitle"></b><button id="svMenu" type="button">MENU</button></div>
+  <p id="svHint"></p>
+  <div class="svPad" id="svPadL"><button id="svL" type="button" aria-label="Walk left">&#9664;</button><button id="svR" type="button" aria-label="Walk right">&#9654;</button></div>
+  <div class="svPad" id="svPadR"><button id="svD" type="button" aria-label="Down">&#9660;</button><button id="svU" type="button" aria-label="Up">&#9650;</button></div>
+  <p class="svKeys">ARROWS OR A / D WALK · W OR E: UP · S: DOWN · ESC: MENU</p>
+  <div id="svLift" hidden><p class="tag">ELEVATOR</p><div id="svFloors"></div><button id="svLiftX" class="big alt" type="button">CLOSE</button></div>
+</div>
+<div id="sleepFx" hidden><span class="moon"></span><b>SLEEPING</b><i id="sleepClock">00:00</i></div>
 
 <div id="overlay">
   <div class="card" id="startCard">
@@ -132,6 +144,7 @@
       <button id="resumeBtn" class="big pri" type="button">RESUME</button>
       <button id="saveBtn" class="big alt" type="button">SAVE GAME</button>
       <p class="warn" id="saveWhy" hidden></p>
+      <p class="sub" id="sleepNote" hidden>TO SAVE, SLEEP IN A SAFEHOUSE (THE GAME ALSO SAVES ITSELF)</p>
       <button id="pLoadBtn" class="big alt" type="button">LOAD GAME</button>
       <button id="pNewBtn" class="big alt" type="button">NEW GAME</button>
       <button id="pHelpBtn" class="big alt" type="button">HELP</button>
@@ -146,18 +159,19 @@
     <div class="ctl page" data-tab="ctl">
       <div><h3>ON FOOT</h3><ul>
         <li><b>WASD / ARROWS</b> move, <b>SHIFT</b> walk</li><li><b>FACING</b> is your aim</li><li><b>CLICK / J</b> punch, swing, shoot (hold for automatics)</li><li><b>RIFLE / ROCKETS</b> stand still, hold CLICK, aim in the sight, let go to shoot</li><li><b>GRENADES</b> hold CLICK and drag the opposite way, let go to throw (J: hold to wind up)</li><li><b>R</b> reload</li>
-        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves)</li></ul></div>
+        <li><b>SPACE</b> sprint</li><li><b>Q</b> weapon wheel (the game waits), <b>1 - 9</b> pick</li><li><b>E or F</b> enter / exit car; at a store's door: go in; at a rampage's skull: its screen (E or ESC leaves); at a safehouse: buy it or go in, and inside sleep, the wardrobe, the stash</li></ul></div>
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>SHIFT or N</b> nitro in a taxi (the taxi job's reward)</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK / J</b> with a pistol, revolver, SMG or machine gun: a drive-by at the nearest target ahead; otherwise grenades go into your hand and drop out of the window; in the tank: rockets; in the fire engine: the water cannon</li></ul>
-        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: save, load, help</li><li><b>M</b> sound on / off</li></ul></div>
+        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: load, help (you save by sleeping in a safehouse)</li><li><b>INSIDE A TOWER</b> arrows or A / D walk, <b>W or E</b> up at a door, the stairs or the elevator, <b>S</b> down the stairs</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>GEAR LEVER</b> (in a car, above FIRE; on a phone held sideways, left of BRAKE) up: reverse, down: drive - each vehicle has its own</li><li><b>IN A CAR</b> steer with the left thumb; <b>BRAKE</b> and <b>FIRE</b> sit side by side for the right thumb</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades and pipe bombs: FIRE turns into a little stick - hold it and drag toward where it should land (to the edge for the full range), let go to throw; drag back to the middle to keep it</li>
-        <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> / <b>RAMPAGE</b> button: shows by you at a store's door or a rampage's skull</li><li><b>DASH</b> button on foot, <b>BRAKE</b> in a car</li><li><b>NITRO</b> button in a taxi, once the taxi job's reward is yours</li><li><b>WEAPON</b> icon (top left, under your cash, health and armor) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map; <b>MENU</b> is up in its corner; tap the map to close</li><li><b>RADIO</b> icon next to the weapon in a car. Sound: your device's volume</li><li>No car health bar: smoke, then flames from the bonnet tell you the car is going</li></ul></div>
+        <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> / <b>RAMPAGE</b> / <b>BUY</b> / <b>GO IN</b> button: shows by you at a store's door, a rampage's skull or a safehouse; inside one, <b>SLEEP</b>, <b>WARDROBE</b> and <b>STASH</b></li><li><b>INSIDE A TOWER</b> the arrow buttons (or a drag on the screen) walk; <b>▲</b> at a door, the stairs or the elevator, <b>▼</b> down the stairs; MENU top right</li><li><b>DASH</b> button on foot, <b>BRAKE</b> in a car</li><li><b>NITRO</b> button in a taxi, once the taxi job's reward is yours</li><li><b>WEAPON</b> icon (top left, under your cash, health and armor) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map; <b>MENU</b> is up in its corner; tap the map to close</li><li><b>RADIO</b> icon next to the weapon in a car. Sound: your device's volume</li><li>No car health bar: smoke, then flames from the bonnet tell you the car is going</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
         <li><b>FREE ROAM</b>: no missions, the city is yours. Steal cars, cause trouble, collect cash and stay alive. <b>STORY</b> mode is coming later.</li>
+        <li>You start at the door of your room at the Colony hotel; your car waits in its reserved space in the guests' lot.</li>
         <li><b>POINTS</b> <span id="helpPoints"></span></li></ul></div>
       <div><h3>CARS</h3><ul>
         <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
@@ -199,6 +213,11 @@
         <li>Four paint shops (a spray can on the maps). Drive up in a car and the door rolls up; drive in and stop - the door comes down and the roof turns see-through.</li>
         <li>Tap a colour - its own paints or any colour - and the car shows it. <b>SPRAY</b>: €100, repaired and repainted. <b>LEAVE</b>: nothing paid.</li>
         <li>No cop saw you go in: the police lose you, at any level. Taxis, buses, ambulances, fire and trash trucks are repaired only; police and army vehicles are turned away.</li></ul></div>
+      <div><h3>SAFEHOUSES</h3><ul>
+        <li>Ten places to own: the Colony room is yours; the others carry a <b>FOR SALE</b> sign - walk up and <b>BUY</b> (€3,000 to €150,000). A house on the maps: green yours, white with a € for sale.</li>
+        <li>Towers: <b>GO IN</b> and you see the building from the side - lobby, stairs, elevator, neighbours, your door. Houses: the doors open for you and the roof turns see-through.</li>
+        <li><b>SLEEP</b>: saves in a slot, full health and armour, wake at 8:00 or 20:00. <b>WARDROBE</b>: all your clothes. <b>STASH</b>: put weapons away - kept even when wasted or busted.</li>
+        <li>Leave a car in your garage or your reserved space and it stays there, saved. Going in unseen loses the police.</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>€</b> in its own colour on the maps and a ring of light at its door. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>Walk up to the door: tap <b>SHOP</b> or press <b>E</b>. The game waits while you shop. Your score is your cash.</li></ul></div>
@@ -224,11 +243,11 @@
         <li>Get out of sight. While they search, the stars blink and a red circle on the map shows where they are looking.</li>
         <li>Stay unseen long enough (12 s at 1 star, 50 s at 5) and they give up - it takes longer inside the circle.</li>
         <li>A <b>HEAT REDUCER</b> takes a star off - even driving through it. From 3 stars one lies on the road ahead of you.</li>
-        <li>A <b>PAY 'N' SPRAY</b> loses them at any level - if no cop sees you go in. New clothes lose them up to 3 stars.</li></ul></div>
+        <li>A <b>PAY 'N' SPRAY</b> or one of your <b>SAFEHOUSES</b> loses them at any level - if no cop sees you go in. New clothes lose them up to 3 stars.</li></ul></div>
     </div>
     <div class="ctl page" data-tab="city" hidden>
       <div><h3>THE MAP</h3><ul>
-        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores (€), the clothes shops (hangers), the Pay 'n' Spray garages (spray cans), the rampages you have found (skulls), the speedway and the drag strips (chequered flags), a ringing phone and where the police search.</li>
+        <li><b>TAB</b> or a tap on the minimap shows the whole city: hospitals (red cross), police stations (blue), the six stores (€), the clothes shops (hangers), the Pay 'n' Spray garages (spray cans), the safehouses (houses: green yours, white with a € for sale), the car park (P), the rampages you have found (skulls), the speedway and the drag strips (chequered flags), a ringing phone and where the police search.</li>
         <li>The district's name shows as you drive into it.</li></ul></div>
       <div><h3>TRAFFIC</h3><ul>
         <li>Every junction has traffic lights. Cars stop on red, give way when turning across traffic and stop for people crossing; people cross at the zebras on the walk signal.</li>
@@ -256,7 +275,7 @@
         <li>Blasts tear people apart: no body is left, only pieces and blood. Every blood mark has its own shape.</li></ul></div>
       <div><h3>SAVING</h3><ul>
         <li>The game saves itself every minute while no police are after you. <b>CONTINUE</b> picks up the latest save.</li>
-        <li>In the pause menu: three save slots, and a save file to download - open it on another device to carry on there.</li></ul></div>
+        <li><b>SLEEP</b> in a safehouse to save in one of three slots (not while you are wanted); there too a save file to download - open it on another device (Load game) to carry on there.</li></ul></div>
     </div>
     <div class="row"><button class="big alt back pri" type="button">BACK</button></div>
   </div>
@@ -319,6 +338,28 @@
     <p class="keys">TAP A COLOUR · ENTER SPRAYS · ESC OR E LEAVES</p>
   </div>
 
+  <div class="card" id="safeCard" hidden>
+    <p class="tag" id="sfTag">FOR SALE</p>
+    <h2 id="sfName">SAFEHOUSE</h2>
+    <p class="sub" id="sfSub"></p>
+    <img id="sfPic" alt="">
+    <div class="stats"><span>PRICE</span><span id="sfPrice"></span><span>CARS</span><span id="sfCars"></span><span>INSIDE</span><span id="sfIn"></span></div>
+    <p class="sub rampRules" id="sfNote"></p>
+    <p class="sub rampRules">A safehouse: SLEEP to save and heal, a wardrobe, a weapon stash, your cars kept. Going in unseen loses the police.</p>
+    <p class="warn" id="sfMsg"></p>
+    <div class="menu"><button id="sfBuy" class="big pri" type="button">BUY</button><button id="sfNo" class="big alt back" type="button">NOT NOW</button></div>
+    <p class="keys">ENTER BUYS · ESC OR E LEAVES</p>
+  </div>
+
+  <div class="card" id="stashCard" hidden>
+    <p class="tag">WEAPON STASH · <span id="stName">HOME</span></p>
+    <p class="sub">THE SAME STASH IN EVERY SAFEHOUSE · KEPT WHEN YOU ARE BUSTED OR WASTED</p>
+    <div id="stCols"><div><p class="lab">ON YOU</p><div class="stList" id="stOn"></div></div><div><p class="lab">IN THE STASH</p><div class="stList" id="stIn"></div></div></div>
+    <p class="warn ok" id="stMsg"></p>
+    <div class="menu"><button id="stDone" class="big alt back pri" type="button">DONE</button></div>
+    <p class="keys">TAP A WEAPON TO PUT IT AWAY OR TAKE IT · ESC OR E LEAVES</p>
+  </div>
+
   <div class="card" id="jobStopCard" hidden>
     <p class="tag">JOB</p>
     <h2 id="jsName">STOP THE JOB?</h2>
@@ -377,6 +418,7 @@
 <script src="js/01n-clothes-data.js"></script>
 <script src="js/01o-jobs-data.js"></script>
 <script src="js/01p-races-data.js"></script>
+<script src="js/01q-safehouse-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/03-input.js"></script>
@@ -404,6 +446,8 @@
 <script src="js/08p-guide.js"></script>
 <script src="js/08q-spray.js"></script>
 <script src="js/08r-heavy-guns.js"></script>
+<script src="js/08s-safehouses.js"></script>
+<script src="js/08t-sideview.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -416,6 +460,7 @@
 <script src="js/10i-speedway.js"></script>
 <script src="js/10j-spray-garage.js"></script>
 <script src="js/10k-carpark.js"></script>
+<script src="js/10l-safehouses.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>
