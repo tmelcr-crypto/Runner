@@ -66,6 +66,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   raceIcons(g, X, Y, q, inView);                                    // a ringing phone booth, the speedway and the drag strip (js/08o)
   pnsIcons(g, X, Y, q, inView);                                     // the Pay 'n' Spray garages: a spray can (js/08q)
   cpIcons(g, X, Y, q, inView);                                      // the lunapark car park: a P (js/10k)
+  safeIcons(g, X, Y, q, inView);                                    // safehouses: a green house for yours, a white one with a € for sale (js/08s)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();
@@ -143,7 +144,7 @@ function updateHud(time) {
   } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
   else if (RAMP.on) hint = RAMP.on.name + ': ' + goalText(RAMP.on) + (RAMP.on.target === 'cars' ? ' - THEY COUNT WHEN THEY CATCH FIRE' : '');
   else { const n = nearestCar(), s = shopKey(), r = rampKey(), rk = raceKey(); if (rk) { vinfo = rk.kind === 'phone' ? 'A RINGING PHONE' : rk.kind === 'drag' ? rk.S.name : 'THE RACE BOOTH'; hint = touchMode ? (rk.kind === 'phone' ? 'TAP ANSWER' : 'TAP RACE') : (rk.kind === 'phone' ? 'PRESS E TO ANSWER THE PHONE' : rk.kind === 'drag' ? 'BRING A CAR - OR PRESS E TO SEE THE STRIP' : 'PRESS E FOR THE NASCAR RACE'); } else if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
-  storeUi(); rampUi(); raceUi(); rampHudUpdate(); jobHudUpdate(); raceHudUpdate(); edgeGlow(time);   // the lime edge glow (js/08p)   // the SHOP, RAMPAGE, ANSWER and RACE buttons by you, the rampage's, the job's and the race's panel (js/08e, 08f, 08n, 08o)
+  storeUi(); safeUi(); rampUi(); raceUi(); rampHudUpdate(); jobHudUpdate(); raceHudUpdate(); edgeGlow(time);   // the lime edge glow (js/08p)   // the SHOP, RAMPAGE, ANSWER and RACE buttons by you, the rampage's, the job's and the race's panel (js/08e, 08f, 08n, 08o)
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
   const inCar = !!c; if (H.car !== c) {                            // getting in or out: the RADIO button, the touch layout, DASH or BRAKE, the car's name for a moment
     H.car = c; $('radioBtn').hidden = !inCar; document.documentElement.classList.toggle('in-car', inCar); $('bDash').innerHTML = inCar ? 'BRAKE' : 'DASH';

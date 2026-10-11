@@ -23,4 +23,4 @@
 
 ## Reminders for the owner
 - When work on STORY mode starts, bring up the open items in `docs/STORY.md` before building anything (first: the space center's entry - with permission or in certain clothes).
-- Building interiors are planned for later, in two kinds: (1) in the current top-down view, for storages, hangars, warehouses and the like; (2) a 2D side-on view (like Mario) with hallways and elevators up to the higher floors. Remind the owner of this before building anything you go inside (first: the houses to buy), when STORY mode starts, and whenever the owner asks what is next.
+- Building interiors come in two kinds, both built now: (1) top-down with a see-through roof (the Pay 'n' Spray, the safehouse houses); later also storages, hangars, warehouses and the like; (2) the 2D side-on view (like Mario) with hallways, stairs and elevators (the safehouse towers, `js/08t-sideview.js`). Remind the owner of this before building anything else you go inside, when STORY mode starts, and whenever the owner asks what is next.

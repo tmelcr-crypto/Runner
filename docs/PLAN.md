@@ -7,7 +7,7 @@ modes table (`js/01j-mode-data.js`) - all of these are for **both** free roam an
 ## 1. Pay 'n' Spray - done
 Four garages, see-through roof, any colour, €100, police lose you unseen. See the README.
 
-## 2. Fixes and small items
+## 2. Fixes and small items - done
 - **Pipe bombs** sometimes missing from the weapon wheel after picking them up: find and fix.
 - **Police tank at 5 stars** fires rockets: one every 4 s, only at you, only with a clear line, up to about 60 m, leading a moving car
   a little; the blast is the rocket launcher's (cars and people near it too).
@@ -16,7 +16,7 @@ Four garages, see-through roof, any colour, €100, police lose you unseen. See 
 - **Edge glow**: a lime glow (the guide line's colour) on the screen edge toward a ringing phone booth, and toward the guide line's
   target (job fare, race start, export bay, next checkpoint) whenever it is off screen; it pulses gently, stronger as you get close.
 
-## 3. The Colony on the beach, the lunapark car park
+## 3. The Colony on the beach, the lunapark car park - done
 - **The Colony hotel** is rebuilt on the Sandbar beach east of the start, between the Bay Wheel and the lighthouse: three times
   bigger, solid (the old one by the hospital had see-through faces; its lot becomes ordinary buildings), with its own park and a
   fountain between the hotel and the sea, a driveway from the avenue. Its free room is the first safehouse (see 4).
@@ -24,7 +24,7 @@ Four garages, see-through roof, any colour, €100, police lose you unseen. See 
   to 3 decks and an open roof deck; the decks above you turn see-through so you always see your floor; parked cars on every deck;
   a pay booth with a barrier at the entrance. Map remodel version 4 (`tools/remodel_city.py`).
 
-## 4. Safehouses
+## 4. Safehouses - done
 - **What they give**: SLEEP (save to a slot, full health and armour, skip to 8:00 at night or 20:00 by day), a garage or parking
   spaces for your cars, a wardrobe (any clothes you own) and a weapon stash (kept even when busted or wasted). Not a respawn point.
 - **Saving**: the autosave stays; the three save slots are only chosen when you SLEEP in a safehouse (the pause menu's SAVE goes).

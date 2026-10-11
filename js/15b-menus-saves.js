@@ -58,7 +58,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns'); ov.classList.toggle('low', id === 'pnsCard'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'safe' || state === 'sleep'); ov.classList.toggle('low', id === 'pnsCard'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -72,6 +72,8 @@ function back() {
   else if (id === 'jobCard' || id === 'jobStopCard') closeJob();
   else if (id === 'raceCard') closeRaceCard();
   else if (id === 'pnsCard') closePns(false);
+  else if (id === 'safeCard' || id === 'stashCard') closeSafeCard();
+  else if (id === 'slotCard' && SAFEST.slotRet) closeSleepSave();     // the save slots after sleeping (js/08s)
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
 function closeMenus() { cardStack = []; $('overlay').hidden = true; $('overlay').classList.remove('dim', 'low'); document.documentElement.classList.remove('menus'); }
@@ -84,7 +86,7 @@ function paintTitle() {
   $('newBtn').classList.toggle('alt', !!d);                       // with a save to continue, CONTINUE is the main button
   $('bestLine').textContent = best > 0 ? 'MOST CASH ' + money(best) : 'Steal a car, make trouble, outrun the police.';
 }
-function showTitle() { state = 'menu'; $('hud').hidden = true; $('shifter').hidden = true; hush(); showCard('startCard', true); }
+function showTitle() { svReset(); state = 'menu'; $('hud').hidden = true; $('shifter').hidden = true; hush(); showCard('startCard', true); }
 $('contBtn').addEventListener('click', () => { const d = latestSave(); if (d) loadGame(d); });
 $('newBtn').addEventListener('click', () => showCard('modeCard'));
 $('goBtn').addEventListener('click', newGame);
@@ -93,15 +95,17 @@ $('helpBtn').addEventListener('click', () => showCard('helpCard'));
 
 /* the pause menu */
 function hush() { Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRain(0); }
-function pauseGame() {
-  if (state !== 'play') return;
-  toggleBigMap(false); toggleWheel(false); state = 'pause'; hush(); showCard('pauseCard', true);
-  snapReq.push(t => { lastThumb = t; });                          // a picture for the save, taken from the next frame
+let pauseRet = 'play';
+function pauseGame() {                               // from the street, or from inside a tower (the side-on view, js/08t)
+  if (state !== 'play' && state !== 'side') return;
+  pauseRet = state; toggleBigMap(false); toggleWheel(false); state = 'pause'; hush(); showCard('pauseCard', true);
+  if (SV.on) lastThumb = svThumb(); else snapReq.push(t => { lastThumb = t; });   // a picture for the save, taken from the next frame
 }
-function resumeGame() { if (state !== 'pause') return; state = 'play'; closeMenus(); }
+function resumeGame() { if (state !== 'pause') return; state = pauseRet; closeMenus(); }
 function paintPause() {
   $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length : '');
-  const why = saveBlock(); $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why;
+  const why = saveBlock(), sh = feat('safehouses'); $('saveBtn').hidden = sh; $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why || sh;   // with safehouses you save by sleeping in one (js/08s)
+  $('sleepNote').hidden = !sh;
 }
 function quitToTitle() {
   if (!saveBlock()) putSave('auto', makeSave(lastThumb));
@@ -117,7 +121,7 @@ $('pNewBtn').addEventListener('click', () => showCard('modeCard'));
 $('pHelpBtn').addEventListener('click', () => showCard('helpCard'));
 $('quitBtn').addEventListener('click', quitToTitle);
 document.addEventListener('visibilitychange', () => {           // switching to another app or tab: pause, and keep the game safe
-  if (document.hidden && state === 'play') { if (!saveBlock()) putSave('auto', makeSave(lastThumb)); pauseGame(); }
+  if (document.hidden && (state === 'play' || state === 'side')) { if (!saveBlock()) putSave('auto', makeSave(lastThumb)); pauseGame(); }
   else if (document.hidden && state === 'shop' && shopBought && !saveBlock()) putSave('auto', makeSave(lastThumb));   // in a store: keep what you bought
 });
 
@@ -160,7 +164,7 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe] },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(),
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -196,6 +200,7 @@ function applySave(sv) {                             // called by resetGame (js/
   gameT = n(sv.gameT, 0, 1e9, 0);
   const rp = sv.ramp || {}, ids = v => Array.isArray(v) ? v.filter(id => RAMPAGES.some(r => r.id === id)) : [];   // rampages found and passed (js/08f)
   raceLoad(sv.races);                                             // best times and wins (js/08o)
+  safeLoad(sv.safe);                                              // safehouses owned, the stash, cars kept (js/08s)
   rampFound = new Set(ids(rp.found)); rampDone = new Set(ids(rp.done)); for (const id of rampDone) rampFound.add(id);
   const s = sv.sky;
   if (s) {

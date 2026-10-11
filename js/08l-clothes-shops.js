@@ -68,7 +68,8 @@ function nearClothes() {                 // the clothes shop whose door you stan
 /* ---------- inside: the figure, the shop's range or your wardrobe ---------- */
 const CL_SLOT_NAME = { hat: 'HAT', glasses: 'GLASSES', top: 'TOP', bottoms: 'BOTTOMS', shoes: 'SHOES' };
 function openClothes(s) {
-  CLS.at = s; CLS.tab = 'shop'; CLS.sel = null; CLS.bought = false; CLS.entry = Object.assign({}, P.outfit); CLS.seen = P.stars > 0 && PS.seen;   // seen going in: new clothes will not fool them
+  CLS.at = s; CLS.tab = s.home ? 'ward' : 'shop'; CLS.sel = null; CLS.bought = false; CLS.entry = Object.assign({}, P.outfit); CLS.seen = P.stars > 0 && PS.seen;   // seen going in: new clothes will not fool them
+  CLS.ret = state === 'side' ? 'side' : 'play'; $('clTabs').hidden = !!s.home;   // a safehouse's wardrobe (js/08s): what you own, no shop; back to the side-on view after
   state = 'shop'; toggleBigMap(false); toggleWheel(false); hush(); $('shopBtn').hidden = true;
   $('clName').textContent = s.name; $('clName').style.color = s.color; clSay(s.theme || '');
   showCard('clothesCard', true); paintClothes(); preview(P.outfit, true);
@@ -77,7 +78,7 @@ function clSay(t, ok) { $('clMsg').textContent = t; $('clMsg').classList.toggle(
 function closeClothes() {                // back on the street: new clothes may lose the police; what you bought is saved
   if (state !== 'shop' || !CLS.at) return;
   const changed = CL_SLOTS.some(sl => P.outfit[sl] !== CLS.entry[sl]);
-  state = 'play'; CLS.at = null; previewStop(); closeMenus();
+  state = CLS.ret || 'play'; CLS.at = null; previewStop(); closeMenus();
   if (changed && P.stars > 0 && !CLS.seen && feat('police')) {
     if (P.stars <= CL.loseUpTo) clearWanted('NEW LOOK - THEY LOST YOU');
     else if (P.stars > CL.dropTo) { lowerWanted(P.stars - CL.dropTo); toast('NEW LOOK - WANTED LEVEL ' + P.stars); }

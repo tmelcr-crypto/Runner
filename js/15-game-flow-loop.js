@@ -10,21 +10,24 @@ function streetIn(name) {                   // a random street, in district `nam
   return ok.length ? pick(ok) : startSpot();
 }
 function resetGame(sv) {                     // a new game with the options in OPT, or the saved game sv (js/15b)
-  genWorld(); buildMiniMap(); buildCity(); clearDynamic();
+  genWorld(); buildMiniMap(); buildCity(); clearDynamic(); svReset();
   clearRockets(); resetBlast(); cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
+  safeReset();                                                     // the safehouses: the free room yours, nothing else (a saved game says more, js/08s)
   const e = OPT.start === 'usual' ? startSpot() : streetIn(OPT.start === 'random' ? null : OPT.start), E = RE[e], s0 = E.len / 2;
   const at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
   let sp = at(s0 - 60, SIDEWALK); if (pedBlocked(sp.x, sp.y) || shoreDist(sp.x, sp.y) < 8) sp = at(s0 - 60, -SIDEWALK);
   const side = sp.x === at(s0 - 60, SIDEWALK).x ? 1 : -1, load = sv ? saveSpot(sv) : null;   // a saved game puts you back where you were
-  if (load) sp = load;
+  const home = !sv && OPT.start === 'usual' ? safeStart() : null;  // a new game: at the Colony's door (js/08s)
+  if (load) sp = load; else if (home) sp = home;
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
     heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false, carSwap: null,
     outfit: CL_START(), wardrobe: CLOTHES_TABLE.items.filter(i => !i.shop).map(i => i.id) }); updateGearUi();   // the clothes you start in (js/01n)
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   if (load && load.car) { const c = load.car; c.searched = true; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
-  else if (!sv) {                                                  // starter cars in the parking lane on the player's side
+  else if (!sv) {                                                  // starter cars in the parking lane on the player's side - at the Colony, one in your space
     const kerb = PARK_OFF, kerbT = Object.keys(CAR_TYPES).filter(k => CAR_TYPES[k].parked > 0 && CAR_TYPES[k].wid <= KERB_W).sort((a, b) => CAR_TYPES[b].parked - CAR_TYPES[a].parked);
-    for (const [ds, type, col] of [[-60, kerbT[0], '#d94f4f'], [50, kerbT[1] || kerbT[0], '#3fe0ff'], [160, kerbT[0], '#3d6fb0']])
+    if (home && home.h.spots.length) home.h.keep[0] = { type: kerbT[0], color: '#d94f4f' };
+    else for (const [ds, type, col] of [[-60, kerbT[0], '#d94f4f'], [50, kerbT[1] || kerbT[0], '#3fe0ff'], [160, kerbT[0], '#3d6fb0']])
       for (const dd of [0, 20, -20, 40, 60]) { const q = at(s0 + ds + dd, kerb * side); if (kerbFits(q.x, q.y, q.ang, type)) { cars.push(makeCar(type, q.x, q.y, q.ang, null, col)); break; } }
   }
   placeJobs();                                                     // the taxi ranks and the job markers, before any car is parked (js/08n)
@@ -72,6 +75,12 @@ function handleKeys() {
   else if (state === 'job') { if (pressed.KeyE || pressed.KeyF) closeJob(); }     // and a job's START card (js/08n)
   else if (state === 'race') { if (pressed.KeyE || pressed.KeyF) closeRaceCard(); }   // and a race's card (js/08o)
   else if (state === 'pns') { if (pressed.KeyE || pressed.KeyF) closePns(false); }     // and the spray garage's colours (js/08q)
+  else if (state === 'safe') { if (pressed.KeyE || pressed.KeyF) closeSafeCard(); }    // a safehouse's FOR SALE card, the stash (js/08s)
+  else if (state === 'side') {                                     // inside a tower (js/08t): UP at doors, the stairs, the elevator; DOWN takes the stairs down
+    if (pressed.ArrowUp || pressed.KeyW || pressed.KeyE || pressed.KeyF) svPress('up');
+    if (pressed.ArrowDown || pressed.KeyS) svPress('down');
+    if (pressed.Escape || pressed.KeyP) { if (!$('svLift').hidden) $('svLift').hidden = true; else pauseGame(); }
+  }
   else if (state === 'play') {
     const dig = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].findIndex(k => pressed[k]);
     if (wheelOpen) {                                              // the weapon wheel is up and the game waits: a number picks, Q / Esc / Tab closes
@@ -86,7 +95,7 @@ function handleKeys() {
       if (!lock && pressed.KeyQ && !bigOpen) toggleWheel(true);
       if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
       if ((pressed.KeyE || pressed.KeyF || pressed.Enter || pressed.NumpadEnter) && RACE.res) closeRaceRes();   // the race's results (js/08o)
-      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (s) openShop(s); else tryEnterExit(); }   // at a store's door E goes in, at a skull the rampage's screen
+      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(), h = safeKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (h) safeUse(h); else if (s) openShop(s); else tryEnterExit(); }   // a safehouse's door, bed, wardrobe or stash (js/08s)   // at a store's door E goes in, at a skull the rampage's screen
     }
   }
   if (pressed.KeyM) Snd.toggle();
@@ -114,7 +123,7 @@ function update(dt, idle) {
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
-  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); jobTick(dt); raceTick(dt); pnsTick(dt); }   // vehicle jobs (js/08n)   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
+  if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); jobTick(dt); raceTick(dt); pnsTick(dt); safeTick(dt); }   // safehouse doors and kept cars (js/08s)   // vehicle jobs (js/08n)   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
   updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
   placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
@@ -136,9 +145,11 @@ function frame(ts) {
   const rdt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016); lastTs = ts;
   handleKeys();
   if (state === 'preview') { pvFrame(); return; }
+  if (state === 'sleep' && SAFEST.sleeping) sleepTick(rdt);                // sleeping in a safehouse: the clock runs on (js/08s)
+  if (SV.on) { if (state === 'side') sideFrame(rdt, ts / 1000); Radio.update(rdt); return; }   // inside a tower: the side-on view instead of the city (js/08t)
   if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race' && state !== 'pns') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
+  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race' && state !== 'pns' && state !== 'safe' && state !== 'sleep') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
   Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);

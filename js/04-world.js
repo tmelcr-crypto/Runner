@@ -116,6 +116,7 @@ function buildShoreField() {
   const c = document.createElement('canvas'); c.width = FW; c.height = FH; const g = c.getContext('2d', { willReadFrequently: true });
   g.fillStyle = '#000'; g.fillRect(0, 0, FW, FH); g.setTransform(1 / FR, 0, 0, 1 / FR, SEA / FR, SEA / FR); g.fillStyle = '#fff';
   for (const p of MAP.land) { g.beginPath(); traceRing(g, p.o); for (const h of p.h) traceRing(g, h); g.fill('evenodd'); }
+  for (const s of Object.values(MAP.safe || {})) for (const b of [s.deck, s.plank]) if (b) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the houseboat's deck and gangplank: walked on like land (js/10l)
   const px = g.getImageData(0, 0, FW, FH).data, n = FW * FH, land = new Uint8Array(n);
   for (let i = 0; i < n; i++) land[i] = px[i * 4] > 127 ? 1 : 0;
   const toOther = cls => {                                     // chamfer distance (cells) from each cell to the nearest cell not of class cls
@@ -285,7 +286,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); genCarpark(); pickFireStations(); pickSprays(); serviceDecor();              // landmarks; the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); genSpeedway(); genCarpark(); pickFireStations(); pickSprays(); placeSafes(); serviceDecor();              // landmarks; the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill).concat(LMS, fillChunks());       // fill buildings stream as merged chunks
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

@@ -485,7 +485,37 @@ def remodel4(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4]
+# version 5: plots for the safehouses that are houses (js/01q, js/08s, js/10l). MAP.safe.<id> = {x, y, w, d, a, drive}: the plot's centre,
+# its width along the street and its depth, the way its front faces (degrees: 0 east, 90 south, 180 west, 270 north; the mansion's 45:
+# south-east) and the driveway from the plot's front to the street [x, y, length, width]. The trailer takes a gravel yard and two shops
+# on a Coral Shore street; the bungalow a plot on Heron Key's east shore with a new beach beyond it; the mansion a corner of the golf
+# links by the diagonal street; the houseboat lies at the port's west quay (MAP.safe.houseboat.deck and .plank: walked on like land, js/04).
+def remodel5(M):
+    safe = {}
+    def plot(key, cx, cy, w, d, a, drive, kind):                       # drive: [x, y, length, width] from the front to the street
+        B = rect(cx, cy, d, w, a); D = rect(drive[0], drive[1], drive[2], drive[3], a)
+        safe[key] = {'x': cx, 'y': cy, 'w': w, 'd': d, 'a': a, 'drive': drive}
+        gone = clear_ground(M, unary_union([B, D]).buffer(4)); move_services(M, gone, B)
+        M[kind[0]] += rings(B, kind[1]) if kind[1] else rings(B)
+        M['yards'] += rings(D, 'p')
+    plot('trailer', 9324, 13820, 170, 288, 0, [9487, 13862, 38, 64], ('yards', 'y'))       # a fenced gravel yard facing the street to the east
+    edit_land(M, (10350, 2800), lambda g: g.union(rbox(10380, 2610, 10600, 2970, 60)))      # Heron Key: a beach of its own east of the bungalow
+    M['sand'] += rings(rbox(10470, 2620, 10600, 2960, 50).intersection(unary_union([poly(p) for p in M['land']])))
+    plot('bungalow', 10370, 2790, 300, 220, 180, [10243, 2860, 34, 80], ('grass', None))    # a lawn facing the street to the west
+    plot('mansion', 10098, 6738, 420, 380, 45, [10243, 6883, 34, 80], ('grass', None))      # lawns, a pool, a garage for four, a gated drive
+    safe['houseboat'] = {'x': 4950, 'y': 14550, 'w': 200, 'd': 60, 'a': 0, 'drive': None, 'deck': [4920, 14450, 4980, 14650], 'plank': [4980, 14540, 5006, 14560]}
+    M['safe'] = safe
+    for L in M['lm']:                                                 # the Colony's guests' lot: its index went stale when version 4 removed lots after adding it
+        if L['t'] == 'colony' and L.get('lot') is not None:
+            L['lot'] = min(range(len(M['lots'])), key=lambda k: math.hypot(M['lots'][k][0] - 11575, M['lots'][k][1] - 12947))
+    LANDF = unary_union([poly(p) for p in M['land']])
+    for key in ('yards', 'grass', 'sand'):
+        M[key] = [g for g in M[key] if LANDF.intersects(poly(g))]
+    M['remodel'] = 5
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5]
 
 
 if __name__ == '__main__':
@@ -507,5 +537,8 @@ if __name__ == '__main__':
                         "   Palm strip beside it, the Sandbar strip down the east beach, each with its booth); yards sp = their ground;\n"
                         "   version 4: the Colony on the Sandbar beach (lm colony: x, y, a, w, d, h, park, fountain, drive, lot) and the lunapark's car park\n"
                         "   (lunapark.carpark: x, y, w, h, levels, dh, entry). */")
+    head = head.replace("   (lunapark.carpark: x, y, w, h, levels, dh, entry). */",
+                        "   (lunapark.carpark: x, y, w, h, levels, dh, entry); version 5: the safehouse plots (safe.trailer, .bungalow, .mansion, .houseboat:\n"
+                        "   x, y, w, d, a, drive; the houseboat's deck and plank). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
