@@ -49,30 +49,32 @@ function dressPerson(o, outfit) {          // o: a figure from buildPerson; outf
     else if (ss === 'loafers') { add(lp, s1, 4.4, 1.4, 3.5, 0.6, -8.3, 0); add(lp, s2 || '#1a1a1a', 4.5, 0.5, 3.6, 0.6, -9.05, 0); }
     else if (ss === 'cowboy') { add(lp, s1, 3.8, 4.4, 3.8, 0.3, -6.8, 0); add(lp, s1, 4.8, 1.6, 3.6, 0.9, -8.4, 0); add(lp, s2 || '#2a1a10', 1.2, 1.2, 3, -1.2, -9.2, 0); }
   });
+  // the hat and glasses: on the head's group (it turns, js/11), in the figure's own coordinates
+  const H = o.headG || T, hx = o.headG ? o.headG.position.x : 0, hy = o.headG ? o.headG.position.y : 0, addH = (col, sx, sy, sz, x, y, z, geo, glow) => add(H, col, sx, sy, sz, x - hx, y - hy, z, geo, glow);
   // the hat: the head is a ball of 3.9 at (0.5, 23)
   if (hat) {
     const h1 = hat.c1, h2 = hat.c2 || hat.c1, hs = hat.style;
-    if (hs === 'cap') { add(T, h1, 4.3, 2.6, 4.3, 0.3, 25.8, 0, GSph); add(T, h2, 3.8, 0.5, 4.6, 4.6, 25.4, 0); }
-    else if (hs === 'beanie') { add(T, h1, 4.4, 3.6, 4.4, 0.1, 25.4, 0, GSph); add(T, h2, 4.45, 1.2, 4.45, 0.1, 24.2, 0, GCyl); }
-    else if (hs === 'bucket') { add(T, h1, 4, 2.6, 4, 0.3, 26.6, 0, GCyl); add(T, h1, 6.2, 0.4, 6.2, 0.3, 25.3, 0, GCyl); add(T, h2, 4.05, 0.8, 4.05, 0.3, 25.9, 0, GCyl); }
-    else if (hs === 'fedora') { add(T, h1, 3.8, 3.4, 3.8, 0.3, 27.4, 0, GCyl); add(T, h2, 3.85, 0.9, 3.85, 0.3, 26.1, 0, GCyl); add(T, h1, 6.4, 0.4, 6.4, 0.3, 25.6, 0, GCyl); }
+    if (hs === 'cap') { addH(h1, 4.3, 2.6, 4.3, 0.3, 25.8, 0, GSph); addH(h2, 3.8, 0.5, 4.6, 4.6, 25.4, 0); }
+    else if (hs === 'beanie') { addH(h1, 4.4, 3.6, 4.4, 0.1, 25.4, 0, GSph); addH(h2, 4.45, 1.2, 4.45, 0.1, 24.2, 0, GCyl); }
+    else if (hs === 'bucket') { addH(h1, 4, 2.6, 4, 0.3, 26.6, 0, GCyl); addH(h1, 6.2, 0.4, 6.2, 0.3, 25.3, 0, GCyl); addH(h2, 4.05, 0.8, 4.05, 0.3, 25.9, 0, GCyl); }
+    else if (hs === 'fedora') { addH(h1, 3.8, 3.4, 3.8, 0.3, 27.4, 0, GCyl); addH(h2, 3.85, 0.9, 3.85, 0.3, 26.1, 0, GCyl); addH(h1, 6.4, 0.4, 6.4, 0.3, 25.6, 0, GCyl); }
     else if (hs === 'cowboy') {
-      add(T, h1, 3.6, 3.8, 3.6, 0.3, 27.6, 0, GCyl); add(T, h2, 3.65, 0.9, 3.65, 0.3, 26.2, 0, GCyl); add(T, h1, 8.4, 0.4, 7.2, 0.3, 25.6, 0, GCyl);
-      for (const z of [-6.8, 6.8]) { const m = add(T, h1, 12, 0.4, 2.4, 0.3, 26.2, z); m.rotation.x = z > 0 ? 0.6 : -0.6; }   // the brim curled up at the sides
+      addH(h1, 3.6, 3.8, 3.6, 0.3, 27.6, 0, GCyl); addH(h2, 3.65, 0.9, 3.65, 0.3, 26.2, 0, GCyl); addH(h1, 8.4, 0.4, 7.2, 0.3, 25.6, 0, GCyl);
+      for (const z of [-6.8, 6.8]) { const m = addH(h1, 12, 0.4, 2.4, 0.3, 26.2, z); m.rotation.x = z > 0 ? 0.6 : -0.6; }   // the brim curled up at the sides
     }
-    else if (hs === 'hardhat') { add(T, h1, 4.6, 3.8, 4.6, 0.3, 25.6, 0, GSph); add(T, h1, 5.9, 0.4, 5.9, 0.3, 25, 0, GCyl); add(T, hat.c2 || '#ffffff', 8.6, 0.8, 0.9, 0.3, 29.1, 0); }
-    else if (hs === 'beret') { const m = add(T, h1, 4.7, 1.5, 4.7, 0, 27.1, 0.6, GSph); m.rotation.x = -0.25; add(T, h2, 0.4, 1, 1, 4.1, 26.6, -1.2); }
-    else if (hs === 'bandana') { add(T, h1, 4.25, 1.7, 4.25, 0.3, 25.2, 0, GCyl); add(T, h2, 1.5, 1.5, 1.5, -4, 25, 0); }
-    else if (hs === 'headband') add(T, h1, 4.15, 0.9, 4.15, 0.4, 25, 0, GCyl);
+    else if (hs === 'hardhat') { addH(h1, 4.6, 3.8, 4.6, 0.3, 25.6, 0, GSph); addH(h1, 5.9, 0.4, 5.9, 0.3, 25, 0, GCyl); addH(hat.c2 || '#ffffff', 8.6, 0.8, 0.9, 0.3, 29.1, 0); }
+    else if (hs === 'beret') { const m = addH(h1, 4.7, 1.5, 4.7, 0, 27.1, 0.6, GSph); m.rotation.x = -0.25; addH(h2, 0.4, 1, 1, 4.1, 26.6, -1.2); }
+    else if (hs === 'bandana') { addH(h1, 4.25, 1.7, 4.25, 0.3, 25.2, 0, GCyl); addH(h2, 1.5, 1.5, 1.5, -4, 25, 0); }
+    else if (hs === 'headband') addH(h1, 4.15, 0.9, 4.15, 0.4, 25, 0, GCyl);
   }
   // glasses: the face at x 4.4, the eyes at about y 23.5
   if (gl) {
     const g1 = gl.c1, g2 = gl.c2 || gl.c1, gs = gl.style;
-    const temples = col => { for (const z of [-3.3, 3.3]) add(T, col, 4.4, 0.4, 0.4, 2.2, 23.9, z); };
-    if (gs === 'shades') { add(T, g1, 0.7, 1.3, 6.4, 4.2, 23.6, 0); add(T, g2, 0.75, 0.35, 6.5, 4.22, 24.3, 0); temples(g1); }
-    else if (gs === 'aviators') { for (const z of [-1.45, 1.45]) add(T, g1, 0.6, 1.7, 2.5, 4.25, 23.4, z); add(T, g2, 0.7, 0.35, 6.4, 4.28, 24.35, 0); temples(g2); }
-    else if (gs === 'round') { for (const z of [-1.5, 1.5]) add(T, g1, 0.5, 1.25, 1.25, 4.3, 23.6, z, GSph); add(T, g2, 0.6, 0.3, 6.2, 4.32, 23.7, 0); temples(g2); }
-    else if (gs === 'visor') add(T, g1, 0.8, 1.8, 7.6, 4.05, 23.8, 0, GB, true);
+    const temples = col => { for (const z of [-3.3, 3.3]) addH(col, 4.4, 0.4, 0.4, 2.2, 23.9, z); };
+    if (gs === 'shades') { addH(g1, 0.7, 1.3, 6.4, 4.2, 23.6, 0); addH(g2, 0.75, 0.35, 6.5, 4.22, 24.3, 0); temples(g1); }
+    else if (gs === 'aviators') { for (const z of [-1.45, 1.45]) addH(g1, 0.6, 1.7, 2.5, 4.25, 23.4, z); addH(g2, 0.7, 0.35, 6.4, 4.28, 24.35, 0); temples(g2); }
+    else if (gs === 'round') { for (const z of [-1.5, 1.5]) addH(g1, 0.5, 1.25, 1.25, 4.3, 23.6, z, GSph); addH(g2, 0.6, 0.3, 6.2, 4.32, 23.7, 0); temples(g2); }
+    else if (gs === 'visor') addH(g1, 0.8, 1.8, 7.6, 4.05, 23.8, 0, GB, true);
   }
   return o;
 }

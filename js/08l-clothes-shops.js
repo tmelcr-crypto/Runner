@@ -134,17 +134,24 @@ function preview(outfit, start) {
   const cv = $('clFig');
   if (!CLP.r) {
     CLP.r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); CLP.r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    CLP.scene = new THREE.Scene(); CLP.scene.add(new THREE.HemisphereLight(0xffffff, 0x50406a, 0.95));
-    const d = new THREE.DirectionalLight(0xffffff, 0.75); d.position.set(40, 60, 50); CLP.scene.add(d);
+    CLP.scene = new THREE.Scene(); CLP.hemi = new THREE.HemisphereLight(0xffffff, 0x50406a, 0.95); CLP.scene.add(CLP.hemi);
+    const d = CLP.dir = new THREE.DirectionalLight(0xffffff, 0.75); d.position.set(40, 60, 50); CLP.scene.add(d);
     CLP.floor = new THREE.Mesh(new THREE.CircleGeometry(15, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25 })); CLP.scene.add(CLP.floor);
     CLP.cam = new THREE.PerspectiveCamera(30, 1, 1, 500); CLP.cam.position.set(0, 19, 68); CLP.cam.lookAt(0, 14.5, 0);
+    CLP.stage = new THREE.Group(); CLP.scene.add(CLP.stage);                                  // shopFigure: a lit turntable (js/11d)
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(13, 14, 2, 48), new THREE.MeshStandardMaterial({ color: 0x1a1428, roughness: 0.35, metalness: 0.4 })); plat.position.y = -1.02; CLP.stage.add(plat);
+    CLP.ring = new THREE.Mesh(new THREE.TorusGeometry(13.4, 0.32, 8, 64).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff })); CLP.ring.position.y = 0.02; CLP.stage.add(CLP.ring);
+    CLP.key2 = new THREE.DirectionalLight(0xfff2e0, 0.95); CLP.key2.position.set(-30, 50, 60); CLP.rim = new THREE.DirectionalLight(0xffffff, 0.8); CLP.rim.position.set(20, 40, -60);
+    CLP.fill = new THREE.DirectionalLight(0xa0c8ff, 0.35); CLP.fill.position.set(60, 10, 20); CLP.stage.add(CLP.key2, CLP.rim, CLP.fill);
   }
-  const k = outfitKey(outfit);
+  const hd = feat('shopFigure'), k = outfitKey(outfit) + (hd ? '+' : '');
   if (CLP.key !== k) {
-    if (CLP.fig) CLP.scene.remove(CLP.fig);
-    const o = buildPerson('player', '#ffd23f', SKIN); dressPerson(o, outfit); if (o.gun) o.gun.visible = false; CLP.fig = o.g; CLP.scene.add(o.g); CLP.key = k;
+    if (CLP.fig) { CLP.scene.remove(CLP.fig); if (CLP.hd) CLP.fig.traverse(m => { if (m.geometry) m.geometry.dispose(); if (m.material) { if (m.material.map) m.material.map.dispose(); m.material.dispose(); } }); }   // the detailed figure's own geometry, materials and prints
+    if (hd) { const f = buildFigureHD(outfit); CLP.fig = f.g; CLP.parts = f; }
+    else { const o = buildPerson('player', '#ffd23f', SKIN); dressPerson(o, outfit); if (o.gun) o.gun.visible = false; CLP.fig = o.g; CLP.parts = null; }
+    CLP.scene.add(CLP.fig); CLP.key = k; CLP.hd = hd; CLP.stage.visible = hd; CLP.floor.visible = !hd; CLP.hemi.intensity = hd ? 0.42 : 0.95; CLP.dir.intensity = hd ? 0 : 0.75;
   }
-  if (CLS.at) CLP.floor.material.color.set(CLS.at.color);
+  if (CLS.at) { CLP.floor.material.color.set(CLS.at.color); CLP.ring.material.color.set(CLS.at.color); CLP.rim.color.set(CLS.at.color); }
   if (start && !CLP.on) { CLP.on = true; CLP.last = performance.now(); requestAnimationFrame(previewTick); }
 }
 function previewTick(now) {
@@ -152,7 +159,9 @@ function previewTick(now) {
   const cv = $('clFig'), w = cv.clientWidth, h = cv.clientHeight;
   if (w && h) {
     if (cv.width !== Math.round(w * CLP.r.getPixelRatio())) { CLP.r.setSize(w, h, false); CLP.cam.aspect = w / h; CLP.cam.updateProjectionMatrix(); }
-    CLP.ang += Math.min(0.1, (now - CLP.last) / 1000) * 0.9; CLP.fig.rotation.y = CLP.ang; CLP.r.render(CLP.scene, CLP.cam);
+    CLP.ang += Math.min(0.1, (now - CLP.last) / 1000) * 0.9; CLP.fig.rotation.y = CLP.ang;
+    const f = CLP.parts, t = now / 1000; if (f) { f.arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * (0.11 + 0.025 * Math.sin(t * 1.6 + i)); }); f.head.rotation.y = 0.18 * Math.sin(t * 0.5); f.head.rotation.x = 0.04 * Math.sin(t * 0.8); }   // at ease: the arms sway, the head looks about
+    CLP.r.render(CLP.scene, CLP.cam);
   }
   CLP.last = now; requestAnimationFrame(previewTick);
 }

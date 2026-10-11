@@ -148,7 +148,7 @@ function drawAirport(fb, fg, fc, poles, heads, pools) {
   { const wx = RX + hw + 160, wy = rw.y0 + 500;                     // the windsock
     poles.push({ x: wx, y: 14, z: wy, sx: 1.2, sy: 28, sz: 1.2, c: '#d8d2ee' });
     for (let k = 0; k < 4; k++) fc.push({ x: wx + 4 + k * 5, y: 27, z: wy + k * 2, sx: 3.2 - k * 0.5, sy: 5, sz: 3.2 - k * 0.5, c: k % 2 ? '#f1f1ee' : '#ff7a3d' }); }
-  const roadMat = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  const roadMat = groundMat(new THREE.MeshLambertMaterial({ vertexColors: true })), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   R.mesh(roadMat).frustumCulled = false; Mk.mesh(markMat).frustumCulled = false;
 }
 function drawFences(fc) {                                         // js/10, once: every place's fence - posts, a see-through net (or railings), a top wire, barbed wire

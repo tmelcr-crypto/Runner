@@ -361,7 +361,7 @@ function drawPlaces(fb, fg, fc, fs, poles, heads, pools) {
     for (let x = x0 + 120; x < x1; x += 240) for (let y = y0 + 120; y < y1; y += 240) if (inPoly(x, y, A) && !pedBlocked(x, y) && !inLandmark(x, y)) lamp(x, y, 34, pick(['#ff2bd6', '#2bf3ff', '#ffe14a']), 160);
   }
   drawSpeedway(R, Mk, rect, road, lamp, fb);                       // the oval, the pit lane, the drag strip (js/10i)
-  const roadMat = new THREE.MeshLambertMaterial({ vertexColors: true }), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  const roadMat = groundMat(new THREE.MeshLambertMaterial({ vertexColors: true })), markMat = new THREE.MeshBasicMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
   R.mesh(roadMat).frustumCulled = false; Mk.mesh(markMat).frustumCulled = false;
 }
 
