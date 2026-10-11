@@ -101,7 +101,7 @@ function carHitsPeds(c) {
     for (const q of cc) {
       const d = Math.hypot(p.x - q[0], p.y - q[1]);
       if (d < q[2] + 6) {
-        if (spd > 100) { personHit(p, 'car', true); killPed(p, 'car', c.driver === 'player'); c.vx *= 0.98; c.vy *= 0.98; }
+        if (spd > 100) { killPed(p, 'car', c.driver === 'player'); Snd.thud(120); c.vx *= 0.98; c.vy *= 0.98; }
         else { p.x += (p.x - q[0]) / Math.max(d, 1) * 3; p.y += (p.y - q[1]) / Math.max(d, 1) * 3; }
         break;
       }

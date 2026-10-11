@@ -94,7 +94,7 @@ function valetStep(p, dt) {
   if (po.away && d < PLC.valetGreet && !P.dead && (!P.car || carSpeed(P.car) < 15 * KMH) && gameT - po.greetT > PLC.valetAgain) {
     po.away = false; po.greetT = gameT; p.waveT = 1.8;
     pops.push({ x: p.x, y: p.y, txt: valetLine(), col: '#9fe8ff', life: 2.2 });
-    Snd.greet(voiceOf(p), hearV(p.x, p.y));
+    Snd.greet(hearV(p.x, p.y));
   }
   return true;
 }

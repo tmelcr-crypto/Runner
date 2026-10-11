@@ -29,11 +29,10 @@ function inArc(x, y, R, half, rr) {      // is something of radius rr at (x, y) 
   if (d > R + rr) return false; if (d < BODY_R + rr) return true;    // pressed against you: always
   return Math.abs(angDiff(P.ang, Math.atan2(dy, dx))) <= half + Math.atan2(rr, d);
 }
-const MELEE_HIT = { fists: 'punch', bat: 'bat', golf: 'golf', knife: 'stab', machete: 'chop' };   // how a hit sounds on a person (js/02 Snd.hitBody)
 function meleeHits(w) {
-  const R = BODY_R + w.reach, half = w.arc / 2; let hit = 0, hitP = 0;
-  for (const p of peds) if (!p.dead && !p.knocked && inArc(p.x, p.y, R, half, 7)) { hitPerson(p, w, false); hit++; hitP++; }
-  for (const o of officers) if (!o.dead && !o.knocked && inArc(o.x, o.y, R, half, 7)) { hitPerson(o, w, true); hit++; hitP++; }
+  const R = BODY_R + w.reach, half = w.arc / 2; let hit = 0;
+  for (const p of peds) if (!p.dead && !p.knocked && inArc(p.x, p.y, R, half, 7)) { hitPerson(p, w, false); hit++; }
+  for (const o of officers) if (!o.dead && !o.knocked && inArc(o.x, o.y, R, half, 7)) { hitPerson(o, w, true); hit++; }
   for (const c of cars) {
     if (c.dead || c === P.car || Math.abs(c.x - P.x) > R + 60 || Math.abs(c.y - P.y) > R + 60) continue;
     const q = carCircles(c).find(q => inArc(q[0], q[1], R, half, q[2])); if (!q) continue;
@@ -54,12 +53,11 @@ function meleeHits(w) {
     addP({ x: P.x + Math.cos(a) * r, y: P.y + Math.sin(a) * r, z: 13, vz: 0, grav: 0, vx: Math.cos(a) * 30, vy: Math.sin(a) * 30, life: 0.16, max: 0.16, s0: 3.2, s1: 1, col: w.color, drag: 2, alpha: 0.9 });
   }
   alertPeds(P.x, P.y, w.panic);
-  if (hit && !hitP) Snd.melee(w.sound, true);   // people hit make their own sound (js/06 personHit)
-  if (hit) { cam.shake = Math.max(cam.shake, w.shake); reportCrime(w.heat * COP.crime.gunfire, w.hear, P.x, P.y, false); }
+  if (hit) { Snd.melee(w.sound, true); cam.shake = Math.max(cam.shake, w.shake); reportCrime(w.heat * COP.crime.gunfire, w.hear, P.x, P.y, false); }
 }
 function hitPerson(p, w, officer) {
   const a = Math.atan2(p.y - P.y, p.x - P.x), nx = Math.cos(a), ny = Math.sin(a), fly = w.push > 3 * MPS;
-  bloodFx(p.x, p.y, w.dmg >= 30 ? 6 : 2, a); p.hp -= w.dmg; personHit(p, MELEE_HIT[w.id] || 'punch', p.hp <= 0);
+  bloodFx(p.x, p.y, w.dmg >= 30 ? 6 : 2, a); p.hp -= w.dmg;
   if (p.hp <= 0) { if (officer) killOfficer(p, true); else killPed(p, 'melee', true, a); }
   else if (officer || p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; }
   else if (!provoke(p)) { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; }   // armed: hits back (js/08g)
