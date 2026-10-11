@@ -61,7 +61,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
     g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q);
     g.strokeStyle = '#0b0614'; g.lineWidth = Math.max(1.2, q * 0.22); g.beginPath(); g.moveTo(x, y - q * 0.25); g.lineTo(x - q * 0.7, y + q * 0.5); g.lineTo(x + q * 0.7, y + q * 0.5); g.closePath();
     g.moveTo(x, y - q * 0.25); g.lineTo(x, y - q * 0.45); g.arc(x, y - q * 0.62, q * 0.17, Math.PI / 2, -Math.PI * 0.9, true); g.stroke(); }
-  if (feat('rampages')) for (const r of RAMPAGES) { if (!r.placed || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
+  if (feat('rampages')) for (const r of RAMPAGES) { if (!rampOn(r) || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
   jobIcons(g, X, Y, q, inView);                                     // taxi ranks and fire stations (js/08n)
   raceIcons(g, X, Y, q, inView);                                    // a ringing phone booth, the speedway and the drag strip (js/08o)
   pnsIcons(g, X, Y, q, inView);                                     // the Pay 'n' Spray garages: a spray can (js/08q)

@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 6c4. RAMPAGES ----------
-   Twenty rampages (js/01h) in hiding places near a street, spread over the city: a skull facing you over a red ring, the rampage's
+   Fifty rampages (js/01h; thirty of them free roam only - moreFrenzies) in hiding places near a street, spread over the city: a skull facing you over a red ring, the rampage's
    weapon circling it. Come near one and it is found: from then on it is on the minimap and the city map (a skull; green once passed).
    On foot at the skull a RAMPAGE button appears by you (or press E): it shows the goal, the weapon, the time and the reward, and
    START begins it - never while you are wanted. During a rampage the weapon is locked in your hand with endless spare ammo (reloads
@@ -21,11 +21,12 @@ function pickRampages() {               // once, when the hiding places are buil
   while (chosen.length < RAMPAGES.length) {
     let best = null, bd = -1;
     for (const c of cand) { const d = Math.min(...chosen.map(o => dist(o.x, o.y, c.x, c.y))); if (d > bd) { bd = d; best = c; } }
-    if (!best || bd < 400) break; chosen.push(best);
+    if (!best || bd < (chosen.length < 20 ? 400 : 220)) break; chosen.push(best);   // the first twenty as far apart as before; the free-roam thirty fill the gaps
   }
   RAMPAGES.forEach((r, i) => { const s = chosen[i]; r.placed = !!s; if (s) { r.x = s.x; r.y = s.y; s.ramp = true; } });
 }
-const rampsHere = () => RAMPAGES.filter(r => r.placed);
+const rampOn = r => r.placed && (r.mode !== 'free' || feat('moreFrenzies'));   // the thirty free-roam frenzies are not there in story mode
+const rampsHere = () => RAMPAGES.filter(rampOn);
 function rampReset() {                  // a new game (js/15): nothing found, nothing passed, none running (a saved game fills them in again)
   RAMP.on = null; rampAt = null; rampFound = new Set(); rampDone = new Set(); $('rampHud').hidden = true; $('rampBtn').hidden = true;
 }
@@ -35,7 +36,7 @@ const rampTimeText = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s /
 /* ---------- finding them, the button by you, the screen before you start ---------- */
 function nearRamp() {                    // the rampage whose skull you stand at, on foot
   if (RAMP.on || JOB.on || RACE.on || P.car || P.dead || P.act || state !== 'play' || !feat('rampages')) return null;   // not during a vehicle job (js/08n)
-  for (const r of RAMPAGES) if (r.placed && Math.abs(r.x - P.x) < RAMP_R && Math.abs(r.y - P.y) < RAMP_R && dist(r.x, r.y, P.x, P.y) < RAMP_R) return r;
+  for (const r of RAMPAGES) if (rampOn(r) && Math.abs(r.x - P.x) < RAMP_R && Math.abs(r.y - P.y) < RAMP_R && dist(r.x, r.y, P.x, P.y) < RAMP_R) return r;
   return null;
 }
 function rampKey() { const r = nearRamp(); if (!r) return null; const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(r.x, r.y, P.x, P.y) ? null : r; }
@@ -49,7 +50,7 @@ $('rampBtn').addEventListener('click', e => { e.stopPropagation(); const r = nea
 function openRamp(r) {
   rampAt = r; state = 'ramp'; toggleBigMap(false); toggleWheel(false); hush(); $('rampBtn').hidden = true;
   const w = WEAPONS[r.wi], done = rampDone.has(r.id), wanted = P.stars > 0;
-  $('rampName').textContent = r.name; $('rampSub').textContent = 'RAMPAGE ' + r.n + ' OF ' + RAMPAGES.length + '  ·  PASSED ' + rampDone.size;
+  $('rampName').textContent = r.name; const here = rampsHere(); $('rampSub').textContent = 'RAMPAGE ' + (here.indexOf(r) + 1) + ' OF ' + here.length + '  ·  PASSED ' + here.filter(q => rampDone.has(q.id)).length;
   $('rampIco').innerHTML = wIcon(w); $('rampIco').style.color = w.color; $('rampWname').textContent = w.name; $('rampWname').style.color = w.color;
   $('rampGoal').textContent = goalText(r); $('rampTime').textContent = rampTimeText(r.time);
   $('rampReward').textContent = done ? 'NONE - PASSED BEFORE' : money(r.reward) + (w.start ? '' : ' + THE ' + w.name);
@@ -93,7 +94,7 @@ function rampEnd(ok, why) {
 }
 function rampTick(dt) {                  // every frame of play (js/15)
   if (!feat('rampages')) return;                                   // a mode without rampages (js/01j)
-  for (const r of RAMPAGES) if (r.placed && !rampFound.has(r.id) && Math.abs(r.x - P.x) < RAMP_SEE && Math.abs(r.y - P.y) < RAMP_SEE && dist(r.x, r.y, P.x, P.y) < RAMP_SEE) {
+  for (const r of RAMPAGES) if (rampOn(r) && !rampFound.has(r.id) && Math.abs(r.x - P.x) < RAMP_SEE && Math.abs(r.y - P.y) < RAMP_SEE && dist(r.x, r.y, P.x, P.y) < RAMP_SEE) {
     rampFound.add(r.id); if (!RAMP.on) toast('RAMPAGE FOUND!');
   }
   const r = RAMP.on; if (!r) return;
@@ -156,7 +157,7 @@ function syncRampages(time) {            // js/13: the skulls near the camera (f
   if (RAMP.on || !feat('rampages')) return;
   const R = visRadius() * 1.25, tilt = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180) * 0.75;
   for (const r of RAMPAGES) {
-    if (!r.placed || Math.abs(r.x - cam.x) > R || Math.abs(r.y - cam.y) > R) continue;
+    if (!rampOn(r) || Math.abs(r.x - cam.x) > R || Math.abs(r.y - cam.y) > R) continue;
     const done = rampDone.has(r.id);
     if (!r.mesh || r.mesh.userData.done !== done) {
       if (r.mesh) scene.remove(r.mesh);

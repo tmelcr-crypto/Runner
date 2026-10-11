@@ -103,7 +103,7 @@ function pauseGame() {                               // from the street, or from
 }
 function resumeGame() { if (state !== 'pause') return; state = pauseRet; closeMenus(); }
 function paintPause() {
-  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampDone.size + '/' + RAMPAGES.length : '');
+  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampsHere().filter(r => rampDone.has(r.id)).length + '/' + rampsHere().length : '');
   const why = saveBlock(), sh = feat('safehouses'); $('saveBtn').hidden = sh; $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why || sh;   // with safehouses you save by sleeping in one (js/08s)
   $('sleepNote').hidden = !sh;
 }
