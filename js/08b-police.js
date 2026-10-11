@@ -44,6 +44,7 @@ function reportCrime(n, hear, ix, iy, armed) {
     else if (ix !== undefined && dist(x, y, ix, iy) < COP.impactHear) w = true;
     else if (unitSees(u, x, y, face)) w = true;
   });
+  if (PH.sees) w = true;                                          // in the helicopter's searchlight (js/08u)
   if (w) { addHeat(n); if (armed) PS.armedT = gameT; }
   return w;
 }
@@ -65,7 +66,7 @@ function updatePolice(dt) {
     if (P.heat > 0 && P.sinceCrime > 5) { P.heat = Math.max(0, P.heat - COP.coolBelow * dt); updateStars(); }
     PS.grab = 0; PS.bustT = 0; return;
   }
-  let seen = false; forCops((u, x, y, face) => { if (unitSees(u, x, y, face)) seen = true; });
+  let seen = PH.sees; forCops((u, x, y, face) => { if (unitSees(u, x, y, face)) seen = true; });   // the helicopter's light counts too (js/08u)
   if (seen) { PS.seen = true; policeKnow(P.x, P.y); }
   else {
     PS.seen = false; PS.r = Math.min(COP.lv.searchMax[lv], PS.r + COP.searchGrow * dt);

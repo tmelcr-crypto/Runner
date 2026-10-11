@@ -63,7 +63,9 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "shopFigure", "name": "A detailed figure in the clothes shops", "free": true, "story": true, "note": "Rounded, with a face, hands and the clothes' details, on a lit turntable (the shops and the safehouse wardrobes). Off: the small blocky figure."},
   {"id": "liveWalk", "name": "Livelier walking", "free": true, "story": true, "note": "You and the people: arms swing with the step, a lean and a bounce when running, a sway, heads that bob, look about and glance at you. Off: the stiffer walk."},
   {"id": "moreFrenzies", "name": "Thirty more kill frenzies", "free": true, "story": false, "note": "Rampages r21 to r50 (rampage table, Modes: free). Free roam only: in story mode only the first twenty are there."},
-  {"id": "weaponGrid", "name": "The weapon grid", "free": true, "story": true, "note": "Every weapon in a grid with a detailed picture; the ones not found yet grey with where to get them. Off: the old wheel with only your weapons."}
+  {"id": "weaponGrid", "name": "The weapon grid", "free": true, "story": true, "note": "Every weapon in a grid with a detailed picture; the ones not found yet grey with where to get them. Off: the old wheel with only your weapons."},
+  {"id": "policeHeli", "name": "The police helicopter", "free": true, "story": true, "note": "From 3 stars one helicopter looks for you with a searchlight; from 4 a machine-gun burst every 6 s; at 5 pipe bombs too (police table: Helicopter). Only the sniper rifle or the AA launcher brings it down, and the next comes 10 min later. Off: no helicopter."},
+  {"id": "blackMarket", "name": "The black market at the docks", "free": true, "story": true, "note": "A store in a Dockside warehouse selling the AA launcher (EUR 25,000) and its rockets (EUR 5,000 each). Off: not there; the AA launcher is only hidden in the city."}
 ],
 "settings": [
   {"id": "pickups", "name": "Hidden weapons, ammo and items on the map", "unit": "%", "min": 0, "max": 100, "free": 100, "story": 30, "note": "Share of the weapon and item tables' map counts (onMap, ammoMap) hidden around the city. Cash stacks and loot are not counted."}

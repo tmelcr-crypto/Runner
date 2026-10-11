@@ -80,7 +80,7 @@ function buildRocketMesh(r) {
   r.glow = new THREE.Mesh(GP, RK_M.glow); r.glow.scale.set(110, 1, 110); scene.add(r.glow);
 }
 function dropRocketMesh(r) { if (r.mesh) { scene.remove(r.mesh); scene.remove(r.glow); r.mesh = r.glow = null; } }
-function clearRockets() { for (const r of rockets) dropRocketMesh(r); rockets = []; }
+function clearRockets() { for (const r of rockets) dropRocketMesh(r); rockets = []; clearHoming(); }   // the AA launcher's too (js/12f)
 function gfxRockets(time) {
   let lit = null;
   for (const r of rockets) {

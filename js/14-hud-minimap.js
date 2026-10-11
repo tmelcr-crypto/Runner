@@ -46,6 +46,7 @@ function drawMini(time) {
   jobBlips(mctx, mxp, myp, size, 6, ph);                          // where the job sends you, an arrow at the edge if it is off the minimap (js/08n)
   guideBlips(mctx, mxp, myp, 3); raceBlips(mctx, mxp, myp, size, 6, ph);   // the guide line (js/08p); a race's rivals and checkpoints (js/08o)
   if (P.stars > 0 && !PS.seen) searchRing(mctx, mxp(PS.lx), myp(PS.ly), PS.r * sc, ph, 2);
+  if (heliLive() || PH.mode === 'fall') heliMapIcon(mctx, clamp(mxp(PH.x), 8, size - 8), clamp(myp(PH.y), 8, size - 8), 5, time);   // the police helicopter (js/08u), at the edge when off it
   mctx.save(); mctx.translate(size / 2, size / 2); mctx.rotate(P.ang);
   mctx.fillStyle = '#ffd23f'; mctx.beginPath(); mctx.moveTo(11, 0); mctx.lineTo(-8, -7); mctx.lineTo(-4, 0); mctx.lineTo(-8, 7); mctx.fill(); mctx.restore();
 }
@@ -55,7 +56,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
     g.fillStyle = '#ffffff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#e0364f'; g.fillRect(x - q * 0.75, y - q * 0.25, q * 1.5, q * 0.5); g.fillRect(x - q * 0.25, y - q * 0.75, q * 0.5, q * 1.5); }
   for (const s of SVC.police) { const x = X(s.r.cx), y = Y(s.r.cy); if (!inView(x, y)) continue;
     g.fillStyle = '#3f6bff'; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#ffffff'; g.fillText('\u2605', x, y + q * 0.08); }
-  for (const s of (feat('stores') && STORES) || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
+  for (const s of (feat('stores') && STORES) || []) { const x = X(s.x), y = Y(s.y); if (!storeOn(s) || !inView(x, y)) continue;   // stores (js/08e): a $ on the store's colour, at the door
     g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q); g.fillStyle = '#0b0614'; g.fillText('€', x, y + q * 0.08); }
   for (const s of (feat('clothes') && CSHOPS) || []) { const x = X(s.x), y = Y(s.y); if (!inView(x, y)) continue;   // clothes shops (js/08l): a coat hanger on the shop's colour
     g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = s.color; g.fillRect(x - q, y - q, 2 * q, 2 * q);
@@ -76,7 +77,7 @@ function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for 
 let bigOpen = false;
 function toggleBigMap(on) {
   bigOpen = on === undefined ? !bigOpen : on; $('bigmap').hidden = !bigOpen;
-  if (bigOpen) { Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); }
+  if (bigOpen) { Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRotor(0); }
 }
 function drawBigMap(time) {
   const c = $('bigCv'), pr = Math.min(2, DPR), size = Math.floor(Math.min(VW, VH - 40) * 0.94);
@@ -94,6 +95,7 @@ function drawBigMap(time) {
   planeIcons(g, X, Y, k * 1.6, () => true); shipIcons(g, X, Y, k, () => true); svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
+  if (heliLive() || PH.mode === 'fall') heliMapIcon(g, X(PH.x), Y(PH.y), 5 * pr, time);   // the police helicopter (js/08u)
   jobBlips(g, X, Y, 0, 6 * pr, ph);                                 // the job's targets (js/08n)
   guideBlips(g, X, Y, 2.5 * pr); raceBlips(g, X, Y, 0, 6 * pr, ph);   // the guide line (js/08p), a race (js/08o)
   g.save(); g.translate(X(P.x), Y(P.y)); g.rotate(P.ang); g.scale(pr * 1.4, pr * 1.4);

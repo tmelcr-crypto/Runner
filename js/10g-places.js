@@ -267,7 +267,7 @@ function genPlaces() {                                            // js/04 genWo
     const SA = B.armoury.ring, ax0 = Math.min(...SA.map(p => p[0])), ax1 = Math.max(...SA.map(p => p[0])), ay0 = Math.min(...SA.map(p => p[1])), ay1 = Math.max(...SA.map(p => p[1]));
     const am = B.ammo.ring, mx0 = Math.min(...am.map(p => p[0])), mx1 = Math.max(...am.map(p => p[0])), my0 = Math.min(...am.map(p => p[1])), my1 = Math.max(...am.map(p => p[1]));
     const heavy = ['rocket', 'lmg', 'sniper', 'shotgun', 'smg', 'grenade', 'pipebomb'].map(id => WEAPONS.findIndex(w => w.id === id)).filter(i => i >= 0);
-    const guns = WEAPONS.map((w, i) => i).filter(i => !isMelee(WEAPONS[i]) && WEAPONS[i].maxAmmo > 0);
+    const guns = WEAPONS.map((w, i) => i).filter(i => !isMelee(WEAPONS[i]) && WEAPONS[i].maxAmmo > 0 && !WEAPONS[i].homing);   // not the AA launcher's rockets: only the black market has them (js/01g)
     const wsp = []; for (let x = ax0 + 50; x <= ax1 - 40; x += 58) wsp.push([x, ay0 + 45]); for (let y = ay0 + 110; y <= ay1 - 60; y += 70) { wsp.push([ax0 + 50, y]); wsp.push([ax1 - 50, y]); }
     for (let k = 0; k < Math.min(PLC.armWeapons, wsp.length); k++) { const [x, y] = wsp[k]; ARMS.push({ x, y, wi: heavy[k % heavy.length], ammo: false }); add(x, y - 18, 18, 6, makeRack); }
     const asp = []; for (let y = my0 + 30; y <= my1 - 25; y += 36) for (let x = mx0 + 28; x <= mx1 - 25; x += 36) if (Math.abs(x - bx) > bw / 2 + 14 || Math.abs(y - by) > bh / 2 + 14) asp.push([x, y]);

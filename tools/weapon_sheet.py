@@ -14,8 +14,8 @@ import json, os, re, sys
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01f-weapon-data.js')
 A, B = '/*WEAPON-JSON*/', '/*END-WEAPON-JSON*/'
 USES = ['tap', 'hold', 'scope', 'swing', 'throw', 'new']
-FIRES = ['bullet', 'rocket', 'grenade', 'melee', 'new']
-BUILT_USE, BUILT_FIRES = ['tap', 'hold', 'scope', 'swing', 'throw'], ['bullet', 'rocket', 'melee', 'grenade']   # the mechanics the game has today
+FIRES = ['bullet', 'rocket', 'homing', 'grenade', 'melee', 'new']
+BUILT_USE, BUILT_FIRES = ['tap', 'hold', 'scope', 'swing', 'throw'], ['bullet', 'rocket', 'homing', 'melee', 'grenade']   # the mechanics the game has today
 CLASSES = ['handgun', 'automatic', 'shotgun', 'rifle', 'launcher', 'melee', 'thrown', 'other']
 SOUNDS = ['pistol', 'revolver', 'mg', 'lmg', 'shotgun', 'sniper', 'rocket', 'punch', 'swing', 'stab', 'throw', 'new']
 SIGHTS = ['none', 'round', 'rect']
@@ -33,7 +33,7 @@ ROWS = [
      'tap: one shot per tap of FIRE. hold: keeps firing while FIRE is held. scope: stand still, hold FIRE, aim in a scope or sight, let go to shoot. '
      'swing: a melee swing at whoever is in front of you. throw: hold FIRE and drag the opposite way, let go to throw. new: a way that does not exist yet - describe it in How it works.', 'pick from the list'),
     ('fires', 'What it fires', 'choice', FIRES,
-     'bullet: hits at once along a line. rocket: a flying explosive. grenade: thrown, (bounces,) blows up when the fuse runs out. '
+     'bullet: hits at once along a line. rocket: a flying explosive. homing: a rocket that locks onto a helicopter, tank or APC and always strikes it. grenade: thrown, (bounces,) blows up when the fuse runs out. '
      'melee: hits by contact in an arc. new: describe it in How it works.', 'pick from the list'),
     ('sound', 'Sound', 'choice', SOUNDS, 'Which synthesized sound it makes. new: a sound still to be made - describe it in Look / sound / ideas.', 'pick from the list'),
     ('color', 'Bubble colour (#hex)', 'colour', None, 'Its own colour: the bubble its pickups and its ammo float in. Every weapon needs a different one.', '#RRGGBB'),
@@ -75,7 +75,7 @@ ROWS = [
     ('blur', 'Blur around the sight: yes / no', 'yesno', None, 'yes: the rest of the screen is blurred; no: darkened.', 'yes or no'),
     ('los', 'Needs clear line of sight: yes / no', 'yesno', None, 'yes: it fires only when nothing is in the way.', 'yes or no'),
     ('hold', 'Sight stays up between shots: yes / no', 'yesno', None, 'yes: the sight stays open while the next round is chambered.', 'yes or no'),
-    ('#', 'EXPLOSIVES', 'For rockets and grenades.'),
+    ('#', 'EXPLOSIVES', 'For rockets, homing rockets and grenades.'),
     ('blast', 'Blast radius (m)', 'num', (0, 50), 'Everyone inside is thrown and killed; cars inside take heavy damage. A rocket: 10.8 m.', 'metres'),
     ('blastThrow', 'Blast throw (%)', 'num', (0, 300), 'How hard its blast throws cars, people (you too), props and pickups: 100 = full strength, 40 = 60% less. The damage and the look of the blast stay the same.', '%, empty = 100'),
     ('speed', 'Flight speed (km/h)', 'num', (0, 2000), 'Top speed of a rocket; how fast a grenade leaves your hand (it needs about 60 km/h to reach 30 m).', 'km/h'),
@@ -84,6 +84,8 @@ ROWS = [
     ('fuse', 'Fuse (s)', 'num', (0, 30), 'Grenade: time from the throw to the blast.', 'seconds'),
     ('throw', 'Throw range (m)', 'num', (0, 200), 'Grenade: the furthest you can throw it (dragging all the way).', 'metres'),
     ('bounce', 'Bounces: yes / no', 'yesno', None, 'Grenade: yes - bounces off walls and cars and rolls; no - stops where it lands.', 'yes or no'),
+    ('lock', 'Lock-on time (s)', 'num', (0, 30), 'Homing: how long the sight must stay on a helicopter, tank or APC before it locks. Without a lock it does not fire.', 'seconds'),
+    ('flight', 'Homing flight (s)', 'num', (0, 30), 'Homing: how long the rocket swerves about the sky before it strikes the target - always, and one hit destroys it.', 'seconds'),
     ('#', 'MELEE', 'For How you use it: swing.'),
     ('reach', 'Reach (m)', 'num', (0, 10), 'How far beyond your body a swing hits.', 'metres'),
     ('arc', 'Swing arc (degrees)', 'num', (0, 360), 'How wide the swing sweeps: 90 = a quarter circle in front of you.', 'degrees'),
@@ -94,7 +96,7 @@ SETTINGS = [r for r in ROWS if r[0] != '#']
 ROW = {r[0]: r for r in SETTINGS}
 ORDER = ['id', 'name', 'short', 'status', 'class', 'use', 'fires', 'sound', 'color', 'howTo', 'mechanic', 'dmg', 'pellets', 'spread', 'range', 'rate', 'carDmg', 'pierce',
          'mag', 'ammo', 'maxAmmo', 'pickup', 'onMap', 'ammoMap', 'carry', 'reload', 'start', 'keep', 'driveBy', 'price', 'ammoPrice', 'heat', 'hear', 'panic', 'shake', 'zoom', 'sight', 'blur', 'los', 'hold',
-         'blast', 'blastThrow', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'reach', 'arc', 'knock', 'push', 'notes']
+         'blast', 'blastThrow', 'speed', 'stray', 'strayDeg', 'fuse', 'throw', 'bounce', 'lock', 'flight', 'reach', 'arc', 'knock', 'push', 'notes']
 assert sorted(ORDER) == sorted(ROW)
 # a row label in a returned file is recognised by how it starts (lowercase), most specific first
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('status', 'status'), ('class', 'class'), ('use', 'how you use'), ('fires', 'what it fires'),
@@ -103,7 +105,7 @@ MATCH = [('id', 'id'), ('name', 'name on screen'), ('short', 'short name'), ('st
          ('ammo', 'spare rounds'), ('maxAmmo', 'most spare'), ('pickup', 'rounds per'), ('onMap', 'weapon pickups'), ('ammoMap', 'ammo pickups'), ('carry', 'carried by'), ('reload', 'reload'),
          ('start', 'have it'), ('keep', 'kept when'), ('driveBy', 'fires from a car'), ('price', 'price in'), ('ammoPrice', 'ammo price'), ('heat', 'heat'), ('hear', 'heard'), ('panic', 'people flee'), ('shake', 'screen shake'), ('zoom', 'zoom'),
          ('sight', 'sight:'), ('blur', 'blur'), ('los', 'needs clear'), ('hold', 'sight stays'), ('blastThrow', 'blast throw'), ('blast', 'blast'), ('speed', 'flight speed'), ('stray', 'dud chance'),
-         ('strayDeg', 'dud goes'), ('fuse', 'fuse'), ('throw', 'throw range'), ('bounce', 'bounces'), ('reach', 'reach'), ('arc', 'swing arc'), ('knock', 'knockdown'),
+         ('strayDeg', 'dud goes'), ('fuse', 'fuse'), ('throw', 'throw range'), ('bounce', 'bounces'), ('lock', 'lock-on'), ('flight', 'homing flight'), ('reach', 'reach'), ('arc', 'swing arc'), ('knock', 'knockdown'),
          ('push', 'push')]
 LONG = ('howTo', 'mechanic', 'notes')
 

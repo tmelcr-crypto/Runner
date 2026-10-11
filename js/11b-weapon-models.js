@@ -17,6 +17,8 @@ const WMODEL = {
     for (const s of [-1, 1]) { const b = wbox(g, WM_DARK, 0.5, 4, 0.5, 15, -0.6, s * 0.8); b.rotation.x = s * 0.4; } },
   sniper: g => { wbox(g, WM_DARK, 12, 2, 1.4, 4, 1.2, 0); wcyl(g, WM_DARK, 10, 0.45, 14.5, 1.5, 0); wcyl(g, '#2a2410', 6, 0.9, 4.5, 3.4, 0); wbox(g, WM_WOOD, 5, 2.4, 1.3, -3.5, 0.6, 0); },
   rocket: g => { wcyl(g, '#3d4528', 18, 1.5, 6, 2.5, 0); wcyl(g, '#2a2d22', 3, 1.9, -2.6, 2.5, 0); const h = part(g, GCone || GSph, wmat('#5a6a3a'), 2.6, 4, 2.6, 16.5, 2.5, 0); h.rotation.z = -Math.PI / 2; wbox(g, WM_DARK, 1.4, 3, 1.2, 4, 0, 0); },
+  aa: g => { wcyl(g, '#56623e', 22, 1.15, 6.5, 2.6, 0); wcyl(g, '#e8ecf2', 1.2, 1.2, 17.8, 2.6, 0); wcyl(g, '#2a2d22', 2, 1.45, -4.2, 2.6, 0); wbox(g, WM_DARK, 3.2, 1.6, 1.1, 3.5, 4.5, 0);
+    wbox(g, '#8a9098', 0.3, 3.6, 3.4, 9.5, 4.8, 0); wbox(g, WM_DARK, 1.3, 3, 1.1, 2.5, 0, 0); wbox(g, WM_DARK, 1.1, 2.6, 1.1, 8, 0.3, 0); wcyl(g, WM_DARK, 3, 0.7, 5, 0.5, 1.6); },
   bat: g => { wcyl(g, WM_WOOD, 5, 0.45, 2.5, 0, 0); wcyl(g, '#a8784a', 9, 0.85, 9.5, 0, 0); wcyl(g, '#5a3a22', 0.6, 0.7, 0, 0, 0); },
   knife: g => { wbox(g, '#14161c', 3, 1.1, 0.8, 1.3, 0, 0); wbox(g, WM_STEEL, 4.5, 1.2, 0.25, 5, 0.1, 0, true); },
   machete: g => { wbox(g, '#14161c', 3, 1.1, 0.8, 1.3, 0, 0); wbox(g, WM_STEEL, 9, 2, 0.25, 7.5, 0.3, 0, true); },
