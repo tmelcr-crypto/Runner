@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 JS = os.path.join(HERE, '..', 'js', '01h-rampage-data.js'); WJS = os.path.join(HERE, '..', 'js', '01f-weapon-data.js')
 A, B = '/*RAMPAGE-JSON*/', '/*END-RAMPAGE-JSON*/'
 TARGETS = ['people', 'cars']
-MAX_N = 40
+MAX_N = 60
 
 
 def weapons():                              # the weapons in the game: id -> name
@@ -32,9 +32,10 @@ COLS = [
     ('time', 'Time (s)', 'int', (10, 900), 'How long you have. The clock stops while the game waits (pause, map).', 'seconds'),
     ('reward', 'Reward (€)', 'int', (0, 1000000), 'Cash for passing it the first time (your score is your cash). Played again: no reward.', 'euros'),
     ('notes', 'Notes', 'long', None, 'Anything else - not used by the game.', 'free text'),
+    ('mode', 'Modes', 'choice', ['both', 'free'], 'both: in free roam and in story mode. free: free roam only (the modes table\'s row moreFrenzies).', 'pick from the list'),
 ]
 KEYS = [c[0] for c in COLS]; COL = {c[0]: c for c in COLS}
-MATCH = [('id', 'id'), ('name', 'name'), ('weapon', 'weapon'), ('target', 'target'), ('count', 'how many'), ('time', 'time'), ('reward', 'reward'), ('notes', 'notes')]
+MATCH = [('id', 'id'), ('name', 'name'), ('weapon', 'weapon'), ('target', 'target'), ('count', 'how many'), ('time', 'time'), ('reward', 'reward'), ('notes', 'notes'), ('mode', 'modes')]
 TIPS = [('Yellow cells', 'What you type in. One row per rampage. Weapon and Target are lists to pick from.', 'tap a cell and type'),
         ('Order', 'The first row is the rampage nearest to where you start (make it an easy one); the game spreads the others over the city.', ''),
         ('New rampage', 'Fill the next empty row and give it a new ID. Up to %d.' % MAX_N, ''),
@@ -68,7 +69,7 @@ def export_xlsx(path, t):
     F = 'Arial'; f_in = PatternFill('solid', fgColor='FFF7CC'); f_head = PatternFill('solid', fgColor='2B2442'); f_lab = PatternFill('solid', fgColor='E4E0F2'); f_calc = PatternFill('solid', fgColor='EDEDED')
     thin = Side(style='thin', color='C9C9C9'); box = Border(left=thin, right=thin, top=thin, bottom=thin)
     rs = t['rampages']; NR = max(MAX_N, len(rs)); wb = Workbook(); sh = wb.active; sh.title = 'Rampages'
-    widths = {'id': 8, 'name': 26, 'weapon': 14, 'target': 11, 'count': 11, 'time': 10, 'reward': 13, 'notes': 46}
+    widths = {'id': 8, 'name': 26, 'weapon': 14, 'target': 11, 'count': 11, 'time': 10, 'reward': 13, 'notes': 46, 'mode': 10}
     heads = [c[1] for c in COLS] + ['Calc: seconds each', 'Calc: Check']
     for j, h in enumerate(heads, start=1):
         c = sh.cell(row=1, column=j, value=h); c.font = Font(name=F, size=10, bold=True, color='FFFFFF'); c.fill = f_head; c.border = box; c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
@@ -192,6 +193,7 @@ def build(rows, present, old):
             if r.get(key) in (None, ''): errors.append('%s: %s is missing' % (where, COL[key][1]))
         if r.get('reward') is None: r['reward'] = 0
         if r.get('notes') is None: r['notes'] = ''
+        if r.get('mode') in (None, ''): r['mode'] = 'both'
         if r.get('target') and r.get('count') and r.get('time'):
             each = r['time'] / r['count']
             if (r['target'] == 'people' and each < 3) or (r['target'] == 'cars' and each < 8):
