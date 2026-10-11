@@ -14,6 +14,7 @@
 <div id="flashFx"></div>
 
 <div id="hud" hidden>
+  <div class="edge" id="edgeA"></div><div class="edge" id="edgeB"></div>
   <div id="popLayer"></div>
   <div class="hud-tl">
     <div class="box"><span class="lbl">CASH</span><span id="score">€0</span></div>
@@ -164,6 +165,7 @@
         <li>A damaged car shows it: white wisps, then thick grey smoke, then black smoke and flames from the bonnet. On fire all over, bail out - it blows.</li>
         <li><b>DRIVE-BY</b>: with a pistol, revolver, SMG or machine gun in hand, FIRE in a car shoots at the nearest target ahead. Otherwise you get in with grenades in hand, to drop out of the window.</li>
         <li><b>FIRE ENGINE</b>: FIRE sprays the water cannon - it knocks people down and puts out burning cars.</li>
+        <li><b>APC</b>: hold FIRE - the turret machine gun turns to the nearest target ahead; a belt of 100, then a reload (shown under the speed). <b>TANK</b>: FIRE launches rockets.</li>
         <li>Most cars have the radio on: <b>R</b> or <b>RADIO</b> tunes to the next station.</li>
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>JOBS</h3><ul>
@@ -179,7 +181,8 @@
         <li><b>SPEEDWAY</b> on the Palm Heights beach: at the race booth in the paddock tap <b>RACE</b> - you are put in a NASCAR special on the grid, 5 laps against 7 others. A NASCAR special also stands in the paddock to take.</li>
         <li><b>DRAG STRIPS</b>: the Palm strip beside the speedway (201 m) and the long Sandbar strip on the east beach (600 m). Stop by a strip's booth in a car: <b>RACE</b> a rival, or a free <b>TEST RUN</b> for your top speed, 0-100 and split times. Three ambers, then green - go.</li>
         <li>A faded <b>LIME LINE</b> on the streets shows the way during a street race, a job, or with the car wanted at the docks.</li>
-        <li>The results show for 10 s: close them with <b>CLOSE</b>, <b>E</b> or <b>ENTER</b>.</li></ul></div>
+        <li>The results show for 10 s: close them with <b>CLOSE</b>, <b>E</b> or <b>ENTER</b>.</li>
+        <li>A <b>LIME GLOW</b> on the screen edge points to a ringing phone, and to your next target when it is off screen.</li></ul></div>
       <div><h3>PICKUPS</h3><ul>
         <li><b>CASH</b> stacks lie on sidewalks around town, not on the maps; the dead drop cash too, and every car has some inside.</li>
         <li><b>ARMED PEOPLE</b> some passers-by carry a pistol or a melee weapon: hurt them, or someone next to them, and they fight back. They drop it when killed.</li>
@@ -216,7 +219,7 @@
       <div><h3>THE STARS</h3><ul>
         <li><b>1 STAR</b> a cop shouts STOP: stand still for 3 s and pay a fine. Keep going and it is 2 stars.</li>
         <li><b>2 STARS</b> they come to arrest you. No shooting unless you fired, rammed a police car or hurt a cop.</li>
-        <li><b>3 STARS AND UP</b> cars ram you and cops shoot. An armoured APC from 3 stars, a tank at 5.</li></ul></div>
+        <li><b>3 STARS AND UP</b> cars ram you and cops shoot. An armoured APC from 3 stars - its turret gun fires bursts at you - and at 5 a tank that fires rockets.</li></ul></div>
       <div><h3>LOSING THEM</h3><ul>
         <li>Get out of sight. While they search, the stars blink and a red circle on the map shows where they are looking.</li>
         <li>Stay unseen long enough (12 s at 1 star, 50 s at 5) and they give up - it takes longer inside the circle.</li>
@@ -399,6 +402,7 @@
 <script src="js/08o-races.js"></script>
 <script src="js/08p-guide.js"></script>
 <script src="js/08q-spray.js"></script>
+<script src="js/08r-heavy-guns.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

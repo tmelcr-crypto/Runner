@@ -191,6 +191,7 @@ function applySave(sv) {                             // called by resetGame (js/
     if (Array.isArray(p.mag)) P.mag = WEAPONS.map((w, i) => Math.round(n(p.mag[i], 0, w.mag, w.mag)));
   }
   if (!(p.arms && typeof p.arms === 'object')) P.has = WEAPONS.map((w, i) => w.start || P.mag[i] + P.ammo[i] > 0);   // a save from before weapons had to be found
+  P.has = P.has.map((h, i) => h || (isThrown(WEAPONS[i]) && P.mag[i] + P.ammo[i] > 0));   // bombs picked up as ammo before that counted (they were missing from the wheel)
   if (!P.has[P.weapon]) P.weapon = Math.max(0, P.has.indexOf(true));
   gameT = n(sv.gameT, 0, 1e9, 0);
   const rp = sv.ramp || {}, ids = v => Array.isArray(v) ? v.filter(id => RAMPAGES.some(r => r.id === id)) : [];   // rampages found and passed (js/08f)

@@ -115,6 +115,7 @@ function updateWeaponPicks(dt) {
     if (p.ammo) {                                                    // ammo: kept even before you have the gun
       if (P.ammo[i] >= w.maxAmmo) continue;
       const n = Math.min(w.pickup, w.maxAmmo - P.ammo[i]); P.ammo[i] += n; popup(p.x, p.y - 12, '+' + n + ' ' + w.short, col);
+      if (isThrown(w) && !P.has[i]) { P.has[i] = true; toast(w.name + ': ' + w.howTo); }   // bombs and grenades are their own ammo: now in the wheel
     } else if (isMelee(w)) {                                         // melee: only if you do not carry it; it stays where it is
       if (P.has[i]) continue;
       P.has[i] = true; popup(p.x, p.y - 12, '+' + w.name, col); toast(w.name + ': ' + w.howTo);

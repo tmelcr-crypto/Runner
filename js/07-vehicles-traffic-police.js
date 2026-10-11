@@ -238,7 +238,7 @@ function updateCars(dt) {
     if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
     else if (c.driver === 'ai') aiDrive(c, dt);
-    else if (c.driver === 'cop') copDrive(c, dt);
+    else if (c.driver === 'cop') { copDrive(c, dt); copHeavy(c, dt); }   // a tank's rockets, an APC's turret gun (js/08r)
     else if (c.driver === 'race') raceDrive(c, dt);                // a race's rivals (js/08o)
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
     if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);

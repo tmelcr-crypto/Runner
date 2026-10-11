@@ -116,7 +116,7 @@ function shopRows(s) {                   // what this store sells, as rows: weap
     if (!mel && w.ammoPrice != null && w.pickup > 0)
       rows.push({ icon: wIcon(w), col: w.color, ammo: true, name: thr ? '+' + w.pickup + ' ' + many : w.short + ' AMMO +' + w.pickup,
         info: thr ? 'YOU HAVE ' + (P.mag[i] + P.ammo[i]) + ' / ' + (w.mag + w.maxAmmo) : 'LOADED ' + P.mag[i] + ' · SPARE ' + P.ammo[i] + ' / ' + w.maxAmmo, price: w.ammoPrice,
-        why: P.ammo[i] >= w.maxAmmo ? 'FULL' : '', buy: () => { P.ammo[i] = Math.min(w.maxAmmo, P.ammo[i] + w.pickup); } });
+        why: P.ammo[i] >= w.maxAmmo ? 'FULL' : '', buy: () => { P.ammo[i] = Math.min(w.maxAmmo, P.ammo[i] + w.pickup); if (thr) P.has[i] = true; } });
   }
   return rows;
 }

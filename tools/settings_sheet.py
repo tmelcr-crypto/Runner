@@ -208,7 +208,8 @@ TIPS_POLICE = [('ID column', 'How the game finds each row. Do not change it; row
         ('Stop order', 'Levels with Stop order and fine = YES: a cop near you orders you to stop. Stand still (on foot or in your car) for the fine; ignore it and you get the next level.', None),
         ('Arrest', 'Other levels: cars pull up beside you (or ram you where Cars ram you = YES), the crew gets out and a cop who holds you long enough arrests you. Drive away and they run back to their car.', None),
         ('Shooting', 'Only on levels with Shoot on sight = YES, or Shoot back if attacked = YES after you fired, rammed a police car or hurt a cop. They shout a warning first and never shoot with a passer-by in the way.', None),
-        ('Busted / wasted', 'With Carry on after busted or wasted = YES you start again at the nearest police station or hospital and lose a share of your score (and your weapons, if set).', None)]
+        ('Busted / wasted', 'With Carry on after busted or wasted = YES you start again at the nearest police station or hospital and lose a share of your score (and your weapons, if set).', None),
+        ('Tank and APC', 'At the top wanted level the tank fires rockets at you; a police APC fires its turret gun in bursts when it sees you. The APC belt is also yours when you drive one (vehicle table: Weapon mg).', None)]
 
 
 def exact_numbers():
@@ -327,7 +328,7 @@ def do_import(path, dry):
         v = num(raw)
         if v is None: errors.append('%s: "%s" is not a number' % (where, raw)); return None
         if v < r['min'] or v > r['max']: errors.append('%s: %s is outside %s to %s' % (where, fmt(v), fmt(r['min']), fmt(r['max']))); return None
-        if r['unit'] in ('count', 'stars', 'level', 'points') and not float(v).is_integer(): errors.append('%s: %s must be a whole number' % (where, fmt(v))); return None
+        if r['unit'] in ('count', 'stars', 'level') and not float(v).is_integer(): errors.append('%s: %s must be a whole number' % (where, fmt(v))); return None
         return v
     show = lambda r, v: yn(v) if r['unit'] == 'yes/no' else fmt(v)
     for key, title in SHEETS.items():
