@@ -522,6 +522,8 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
+What comes next, in order and with every detail agreed with the owner (safehouses, the Colony on the beach, the lunapark car park, the showroom and tuning, the junkyard, roadblocks and the police helicopter, stats and 100%, and a few fixes): **`docs/PLAN.md`**. The list below is the older, rougher one.
+
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
 3. Convert the scripts to ES modules once the globals are untangled.
@@ -546,3 +548,4 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
    - *Seaplane*: at the marina, taking off from and landing on the water.
    - *Smaller ones*: a parachute to jump out with, a jetpack or a hang glider from the tall towers.
    - Open points: the police chasing you in the air (their own helicopter, at 4-5 stars), what you can do from up there (shoot, drop bombs), running out of fuel, and the airport's own plane movements around you.
+9. **People with real lives, later** (agreed with the owner; to be asked about in detail first): passers-by with a day of their own - from home to their car, to a shop, to the gas station... and back to a parking lot and home.
