@@ -101,6 +101,38 @@ The Colony Hotel stands on the Sandbar beach east of the start - the white Strea
 
 **The valet.** By the doors, beside the valet stand, a valet in a red jacket and cap turns to watch you come. Walk up, or roll up slower than 15 km/h, and the valet waves and greets you - GOOD EVENING, WELCOME TO THE COLONY, NICE RIDE... - in a cheerful two-note hello, once, until you have been away and come back (the places table: `valetGreet`, 9 m; `valetAgain`, 40 s). Only a greeting, for now. Trouble scares the valet off like anyone else; then back to the door. Mode: `valet`. Behind it, between the hotel and the sea, its own park: lawns, paths, palms, flower beds, benches and lamps round a three-tier fountain. Its free room is your first safehouse, yours from the start: new games begin at its door (*Safehouses*).
 
+## 120 unique buildings
+
+All over the city, 120 buildings are one of a kind. Each has its own model, its own colours and its name in neon, the way the Colony first stood on its lot (the unique buildings table, `js/01r-buildings-data.js`). A Miami mix:
+
+- **Art Deco hotels** (28, the SEA BREEZE among them, on the building by the old start whose sign it was): a terrace with umbrellas at the front, eyebrows over every row of windows, a finned centre tower with a ziggurat top and the name down it.
+- **Streamline hotels** (14): rounded front corners, racing bands, a glass-block lobby under a curved canopy, the name on a pylon over the roof.
+- **MiMo motels** (12): two floors of rooms off open walkways, a cheese-hole screen, a pool and loungers in front, a boomerang sign with VACANCY.
+- **Mediterranean villas** (12): stucco, red tile roofs, arched windows, a tower, a courtyard with a fountain and palms.
+- **Diners** (8): stainless steel with rounded ends and a coloured stripe, the long lit window, OPEN 24H, their own little car park.
+- **Cinemas** (8): the marquee with chasing lights and NOW SHOWING, a tall blade sign, the ticket booth, posters.
+- **Banks** (6): steps, columns, a pediment, bronze doors.
+- **Churches** (6): a mission gable, a rose window, a bell tower with a cross, a lawn round them.
+- **Nightclubs** (8): dark boxes striped with neon, a canopy of bulbs, a velvet rope, a neon frame round the roof.
+- **Shops** (12): a striped awning, lit windows, and something that says what they sell. Surfboards, an ice-cream cone, a green cross, flowers, café umbrellas, a diamond, an arcade's lights, a camera, a record or a pile of books.
+- **Offices** (6): sun-shade fins, a glass lobby, the name on the crown.
+
+**Where they stand.**
+- Each one takes the lot of an ordinary building that faces a street (a villa or a hotel set back from the road faces the nearest one), and stands where that building stood. The lot must suit the kind (its size and its district), and its front must be one the camera can see (not facing north).
+- Every district with a lot that suits has at least one; the busiest give one up where needed.
+- Hotels, motels, clubs and diners go to the beachfront first: within 80 m of a sand beach, and three hotels in four. The rest stand anywhere.
+- No two stand closer than 25 m.
+- Where a model leaves part of its lot open (a diner's car park, a motel's pool court, a villa's courtyard, a church's lawn), only what stands is solid.
+- The lots are picked once with the city and are always the same.
+- Scenery: both modes.
+
+The table holds each building's id, name, kind, wall colour and neon colour, and the settings: the spacing, the beachfront distance, and the share of hotels on the beachfront. `tools/buildings_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back, checking every value (kinds, colours as #RRGGBB, names of up to 24 letters, each name used once):
+
+```
+python3 tools/buildings_sheet.py export buildings.numbers   # or .xlsx
+python3 tools/buildings_sheet.py import buildings.numbers [--dry-run]
+```
+
 ## The lunapark
 
 Heron Key grew into the bay to make room for a lunapark in the spirit of the big European-village parks. The street runs round its north and east side, outside the railings; the multi-storey car park is across the street (below). Only people get in: a grand arch with ticket booths and turnstiles (free entry); cars stop at the turnstiles.
@@ -515,6 +547,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01o-jobs-data.js` | the vehicle jobs: dispatch points, levels, the clock, pay, rewards, nitro (`tools/settings_sheet.py jobs`) |
 | `js/01p-races-data.js` | the races: phone booths, street races and their five fixed routes, the NASCAR race, the drag strip, results (`tools/settings_sheet.py races`) |
 | `js/01q-safehouse-data.js` | the ten safehouses (kind, district, price, cars, floors) and their settings (`tools/safehouse_sheet.py`), `SAFE`, `SAFE_HOUSES` |
+| `js/01r-buildings-data.js` | the 120 unique buildings (name, kind, wall and neon colours) and where they go (`tools/buildings_sheet.py`), `UNIQUE_TABLE`, `UNIQ` |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch, shifter |
@@ -557,6 +590,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10l-safehouses.js` | the safehouses: the towers chosen (their door on the street, reserved spaces in the parking lane), the house plans (walls, doors, rooms, furniture, garage bays, the bed, wardrobe and safe), their solids and models, the FOR SALE signs, door rings and painted spaces |
 | `js/10k-carpark.js` | the lunapark car park: decks, ramps and the heights (`z`) they give, walls by height, the barrier and booth, parked cars on every deck, the model by level and the decks above you fading, its map icon |
 | `js/10m-grove.js` | the palm grove by the car park: the palms and rocks (placed once, solid, streamed in pieces), the pier with its T-head, the moored boats and their bobbing |
+| `js/10n-unique.js` | the unique buildings: the lots chosen (size, district, the beachfront, spacing), the solids where a model leaves its lot open, the eleven model families with their neon names |
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending) |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
 | `js/11b-weapon-models.js` | small 3D models of every weapon, an ammo box and the items (health, armor, heat reducer), for your hand, the pickups and the stores |
@@ -581,7 +615,7 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
-What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet; next: 120 unique buildings, the showroom and tuning, the junkyard, roadblocks and the police helicopter, stats and 100%, and a few fixes): **`docs/PLAN.md`**. The list below is the older, rougher one.
+What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings; next: the showroom and tuning, the junkyard, roadblocks and the police helicopter, stats and 100%, and a few fixes): **`docs/PLAN.md`**. The list below is the older, rougher one.
 
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.

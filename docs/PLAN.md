@@ -44,7 +44,7 @@ Four garages, see-through roof, any colour, €100, police lose you unseen. See 
 - **Buying**: a FOR SALE sign at the door; a card with the price, the cars it keeps and a picture; BUY. Map icons: a green house
   for yours, a white house with € for one for sale. Going in unseen loses the police (like the Pay 'n' Spray).
 
-## 4b. Before the showroom (asked October 2026; both modes, each part merged when done)
+## 4b. Before the showroom (asked October 2026; both modes, each part merged when done) - done
 - **Sounds**: hitting and breaking street objects sounds different for each kind, made in the game like the other sounds: cardboard
   thump, bag rustle, wood crack (crates, pallets, benches), metal clang (bins, barrels, meters, newspaper boxes), the hydrant's clank
   and water hiss, glass shattering (phone box), a pot smashing (planter), leaves (bush), an umbrella flapping. People: a different

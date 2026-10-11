@@ -11,7 +11,7 @@ const CLS = { at: null, tab: 'shop', sel: null, entry: null, seen: false, bought
 function pickClothes() {                 // shop buildings for the clothes shops: well spread, clear of the weapon stores, the first near the start
   const svc = [...SVC.police, ...SVC.hospital].map(s => s.r), used = new Set((STORES || []).map(s => s.r)), cand = [];
   for (const r of BLD) {
-    if (!r.fill || !r.shop || r.special || r.lw < 30 || used.has(r)) continue;
+    if (!r.fill || !r.shop || r.special || r.uniq || r.lw < 30 || used.has(r)) continue;
     const zx = -r.sa, zy = r.ca; if (zy < -0.3) continue;            // the door must face the camera
     for (const off of [14, 20, 28]) {
       const x = r.cx + zx * (r.lh / 2 + off), y = r.cy + zy * (r.lh / 2 + off);
