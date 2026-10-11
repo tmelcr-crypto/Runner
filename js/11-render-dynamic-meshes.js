@@ -115,11 +115,13 @@ function buildCar(c) {                       // parts that never move on their o
     axle(L * 0.34, 5.5); axle(-L * 0.2, 5.5); axle(-L * 0.36, 5.5);
     lamps(8, 3, 8, 3, 5);
   } else if (B === 'tank') {                 // tracks, a low hull, the turret and its long gun
-    merged('b', body, [[GB, L * 0.9, 7, Wd - 12, 0, 9.5, 0], [GB, L * 0.12, 4, Wd - 12, L * 0.45, 10, 0], [GB, L * 0.42, 6.5, Wd * 0.58, -L * 0.06, 16.25, 0]]);
+    merged('b', body, [[GB, L * 0.9, 7, Wd - 12, 0, 9.5, 0], [GB, L * 0.12, 4, Wd - 12, L * 0.45, 10, 0]]);
     merged('k', E.tire, [[GB, L, 8, 7, 0, 5, Wd / 2 - 3.5], [GB, L, 8, 7, 0, 5, -(Wd / 2 - 3.5)]]);
     for (let k = 0; k < 5; k++) for (const s of [-1, 1]) wheels.push([GCylZ, 3, 3, 1, -L * 0.4 + k * L * 0.2, 3.5, s * (Wd / 2 + 0.2)]);
-    const gun = part(tilt, GCyl, mc(0x3a4428), 1.6, L * 0.6, 1.6, L * 0.45, 16.5, 0); gun.rotation.z = -Math.PI / 2;
-    part(tilt, GB, mc(0x2b3320), 3, 2.6, 2.6, L * 0.75, 16.5, 0); part(tilt, GB, mc(0x2b3320), 5, 1, 5, -L * 0.12, 19.9, 0);
+    const tur = new THREE.Group(); tur.position.x = -L * 0.06; tilt.add(tur); m.tur = tur;      // the turret turns (js/08r)
+    part(tur, GB, body, L * 0.42, 6.5, Wd * 0.58, 0, 16.25, 0);
+    const gun = part(tur, GCyl, mc(0x3a4428), 1.6, L * 0.6, 1.6, L * 0.51, 16.5, 0); gun.rotation.z = -Math.PI / 2;
+    part(tur, GB, mc(0x2b3320), 3, 2.6, 2.6, L * 0.81, 16.5, 0); part(tur, GB, mc(0x2b3320), 5, 1, 5, -L * 0.06, 19.9, 0);
     merged('h', E.headL, [[GB, 1, 2, 3, L * 0.5, 11, Wd / 2 - 9], [GB, 1, 2, 3, L * 0.5, 11, -(Wd / 2 - 9)]]);
   } else if (B === 'apc') {                  // an armoured hull with a sloped nose, slit windows, a light bar
     merged('b', body, [[GB, L, 12, Wd, 0, 9, 0], [GB, L * 0.78, 8, Wd - 4, -L * 0.06, 19, 0]]);
@@ -127,6 +129,9 @@ function buildCar(c) {                       // parts that never move on their o
     m.cabin = merged('g', E.glass, [[GB, L * 0.05, 2.2, Wd - 8, L * 0.33, 20, 0], [GB, L * 0.2, 2, Wd - 3.6, L * 0.12, 20.5, 0]]);
     part(tilt, GB, E.white, L * 0.9, 2.2, Wd + 0.3, 0, 11, 0);
     bar(-L * 0.1, 24.2, 'police');
+    const tur = new THREE.Group(); tur.position.set(L * 0.15, 0, 0); tilt.add(tur); m.tur = tur;   // the turret machine gun (js/08r)
+    part(tur, GCyl, mc(0x2b2f3a), 4.2, 2.6, 4.2, 0, 24.3, 0); part(tur, GB, mc(0x3a3f4c), 3.4, 4, 6, 1.5, 26.6, 0);
+    const mg = part(tur, GCyl, E.black, 0.8, 13, 0.8, 9, 26.4, 0); mg.rotation.z = -Math.PI / 2; part(tur, GB, E.black, 4, 2, 1.6, 4, 25.4, 0);
     for (const x of [L * 0.36, L * 0.12, -L * 0.12, -L * 0.36]) axle(x, 5.5);
     lamps(9, 2.6, 9, 2.6, 5);
   } else if (B === 'bike') {                 // a motorbike: wheels, engine, tank, seat, fairing - and its rider, out in the open
@@ -178,6 +183,7 @@ function syncCar(c, time, dt) {
     if (glow >= 0) { m.body.emissive.setRGB(glow, glow * (c.burn > 0 ? 0.38 : 0.06), 0); c.glowing = true; }
     else if (c.glowing) { c.glowing = false; m.body.emissive.copy(c.baseCol).multiplyScalar(0.22); }
   }
+  if (m.tur) m.tur.rotation.y = -(c.turA || 0);                     // a tank's or an APC's turret (js/08r)
   const brake = !c.dead && c.driver && c.thr < 0; if (brake !== c.tailOn) { c.tailOn = brake; for (const l of m.tail) l.material = brake ? E.tailOn : E.tailOff; }
   if (m.bar.length) {                       // light bars: police while crewed, ambulance and fire engine on a call, the trash truck's beacon at a bin
     const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task || !!c.medics), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;

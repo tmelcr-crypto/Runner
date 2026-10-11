@@ -531,3 +531,6 @@ button.clRow.on{border-color:var(--cyan)}
 #pnsCard .menu button{flex:1;padding:14px 10px}
 #pnsCard .keys{margin:10px 0 0}
 @media (max-height:560px){ #pnsCard .sub,#pnsCard .keys{display:none} #pnsCard .lab{margin:4px 0 2px} .sws{grid-template-columns:repeat(18,1fr);gap:3px} }
+
+/* the lime edge glow toward a ringing phone or an off-screen target (js/08p) */
+.edge{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s}

@@ -130,10 +130,11 @@ function placeHidden() {
   }
 }
 
-/* ---------- vehicle weapons: rockets from the tank, straight ahead, one every 1.5 s, no ammo needed; the fire engine's water cannon ---------- */
+/* ---------- vehicle weapons: rockets from the tank, straight ahead, one every 1.5 s, no ammo needed; the fire engine's water cannon; the APC's turret gun (js/08r) ---------- */
 function vehicleGun(c, inp, dt) {
   c.gunT = (c.gunT || 0) - dt;
   if (c.t.weapon === 'water') { if (feat('waterCannon')) waterCannon(c, inp, dt); return; }
+  if (c.t.weapon === 'mg') { if (feat('apcGun')) apcPlayerGun(c, inp, dt); return; }   // the APC's turret gun (js/08r)
   if (!inp.fire || c.gunT > 0 || c.t.weapon !== 'rockets') return;
   const w = WEAPONS.find(q => q.rocket) || RK_DEF, a = c.ang; c.gunT = 1.5;
   launchRocket({ x: c.x + Math.cos(a) * 900, y: c.y + Math.sin(a) * 900 }, w, c); Snd.rocket();
