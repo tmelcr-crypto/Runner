@@ -38,7 +38,7 @@ function blastTargets(x, y, R, src) {                              // js/06 expl
 }
 
 /* ---------- guard posts ---------- */
-function addPost(o) { POSTS.push(Object.assign({ ped: null, deadAt: 0, i: 0 }, o)); }   // o: { x, y, a, kind: cop | soldier, arm, patrol, need() }
+function addPost(o) { POSTS.push(Object.assign({ ped: null, deadAt: 0, i: 0 }, o)); }   // o: { x, y, a, kind: cop | soldier | valet, arm, patrol, need() }
 function makeSoldier(po) {
   const p = makePed(po.x, po.y); Object.assign(p, { soldier: true, arm: po.arm, hp: PLC.soldierHp, shirt: '#4a5a32', umb: false, speed: 1.3 * MPS, cool: rand(0.3, 1), ang: po.a, state: 'post' });
   return p;
@@ -50,12 +50,13 @@ function postsTick() {                                            // js/15: guar
     if (p && p.dead && !po.deadAt) po.deadAt = gameT;
     if (p && peds.includes(p) && !p.dead) continue;
     if (d > 1250 || (po.deadAt && (gameT - po.deadAt < (po.kind === 'soldier' ? PLC.soldierBack : 90) || d < 900))) continue;
-    const q = po.kind === 'cop' ? makeFootCop(po.x, po.y) : makeSoldier(po);
+    const q = po.kind === 'cop' ? makeFootCop(po.x, po.y) : po.kind === 'valet' ? makeValet(po) : makeSoldier(po);
     q.post = po; q.e = -1; q.ang = q.hd = po.a; po.ped = q; po.deadAt = 0; peds.push(q);
   }
 }
 function postStep(p, dt) {                                        // js/08 updatePeds: someone at a post, when not busy otherwise; true when handled
   if (p.soldier) { soldierStep(p, dt); return true; }
+  if (p.valet) return valetStep(p, dt);
   const po = p.post;                                                // a cop at a post: back to it, then stand facing the road
   if (walkTo(p, po.x, po.y, WALK, dt) < 6) { p.ang = p.hd = po.a; p.vx = p.vy = 0; }
   return true;
@@ -72,6 +73,30 @@ function soldierStep(p, dt) {
   if (po.patrol) {                                                  // on patrol: from one point to the next
     const w = po.patrol[po.i % po.patrol.length]; if (walkTo(p, w[0], w[1], WALK, dt) < 10) po.i++;
   } else if (walkTo(p, po.x, po.y, WALK, dt) < 6) { p.ang = p.hd = po.a; p.vx = p.vy = 0; }
+}
+/* the Colony's valet (js/10b): stands by the doors, turns to you as you come, waves and greets you - once, until you have been away and
+   come back (places table: valetGreet, valetAgain); runs from trouble like anyone, then goes back to the door */
+function makeValet(po) {
+  const p = makePed(po.x, po.y); Object.assign(p, { valet: true, arm: -1, shirt: '#b3122a', umb: false, speed: 1.3 * MPS, waveT: 0 });
+  return p;
+}
+function valetLine() {
+  if (P.car && Math.random() < 0.4) return pick(['NICE RIDE!', 'SHALL I PARK IT?', 'LOVELY CAR!']);
+  const h = SKY.hour; return pick([h < 5 || h >= 18 ? 'GOOD EVENING!' : h < 12 ? 'GOOD MORNING!' : 'GOOD AFTERNOON!', 'WELCOME TO THE COLONY!', 'ENJOY YOUR STAY!']);
+}
+function valetStep(p, dt) {
+  if (p.state === 'flee') return false;                             // scared: the usual flight (js/08), then back here
+  const po = p.post, tgt = P.car || P, d = dist(p.x, p.y, tgt.x, tgt.y);
+  if (p.waveT > 0) p.waveT -= dt;
+  if (walkTo(p, po.x, po.y, WALK, dt) >= 6) return true;
+  p.vx = p.vy = 0; p.ang = p.hd = d < PLC.valetGreet * 3 && !P.dead ? Math.atan2(tgt.y - p.y, tgt.x - p.x) : po.a;
+  if (d > PLC.valetGreet * 2.5) po.away = true;
+  if (po.away && d < PLC.valetGreet && !P.dead && (!P.car || carSpeed(P.car) < 15 * KMH) && gameT - po.greetT > PLC.valetAgain) {
+    po.away = false; po.greetT = gameT; p.waveT = 1.8;
+    pops.push({ x: p.x, y: p.y, txt: valetLine(), col: '#9fe8ff', life: 2.2 });
+    Snd.greet(voiceOf(p), hearV(p.x, p.y));
+  }
+  return true;
 }
 function stepInside(p, mx, my, sp, dt) { const ox = p.x, oy = p.y; stepCop(p, mx, my, sp, dt); if (!inBase(p.x, p.y)) { p.x = ox; p.y = oy; p.vx = p.vy = 0; } }
 function soldierShoot(p, tgt, d) {

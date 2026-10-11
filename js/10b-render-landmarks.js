@@ -305,6 +305,64 @@ function makeColonyPark(L) {             // its park: lawns (map grass), paths (
   return lmMesh(T, G);
 }
 
+
+/* ---------- the Colony's ring drive and its valet: the forecourt off the avenue is a loop round a planted island - a lawn, three
+   palms, flower beds, lights - that ends in front of the doors, driven like any hotel loop (in on the right, round, out again).
+   The island is solid but low: you see and shoot over it. By the doors, beside the sign pylon, the valet stands at the valet stand (js/08j). */
+function colonyRing(L) {                 // the ring in world terms: its centre, the hotel's front direction u and v across it, straight half-length, radii
+  const c = COLONY, [dx0, dy0, dx1, dy1] = L.drive, ux = c.ca, uy = c.sa, vx = -uy, vy = ux;
+  const lz = ((dx0 + dx1) / 2 - c.cx) * vx + ((dy0 + dy1) / 2 - c.cy) * vy;                              // the drive's middle, across the hotel's front
+  const half = Math.abs(ux) > 0.5 ? (dy1 - dy0) / 2 : (dx1 - dx0) / 2, ro = half - 3, ri = ro - 46, hl = 70, lx = c.lw / 2 + 86 + ro + hl;
+  return { x: c.cx + ux * lx + vx * lz, y: c.cy + uy * lx + vy * lz, ux, uy, vx, vy, hl, ri, ro, a: c.a };
+}
+const colonyAt = (lx, lz) => [COLONY.cx + COLONY.ca * lx - COLONY.sa * lz, COLONY.cy + COLONY.sa * lx + COLONY.ca * lz];   // hotel-local to world
+const VALET_AT = [COLONY_BIG_SIGN + 22, -62], VALET_STAND = [COLONY_BIG_SIGN + 12, -84];               // by the doors, out from under the sign's bar (out from the front, across it)
+function makeColonyRing(R) {
+  const T = new GeoBuilder(), G = new GeoBuilder(), N = 14;
+  const ring = r => { const o = []; for (const [c0, t0] of [[R.hl, -Math.PI / 2], [-R.hl, Math.PI / 2]]) for (let k = 0; k <= N; k++) { const t = t0 + k / N * Math.PI; o.push([c0 + Math.cos(t) * r, Math.sin(t) * r]); } return o; };
+  const W = (u, v, y) => [u * R.ux + v * R.vx, y, u * R.uy + v * R.vy];
+  const band = (gb, r0, r1, y, col) => { const A = ring(r0), B = ring(r1); for (let k = 0; k < A.length; k++) { const j = (k + 1) % A.length; face(gb, [W(A[k][0], A[k][1], y), W(A[j][0], A[j][1], y), W(B[j][0], B[j][1], y), W(B[k][0], B[k][1], y)], [0, 1, 0], col); } };
+  band(T, R.ri, R.ro, 0.9, _C('#2e2a3c'));                                                                // the asphalt loop
+  band(T, R.ro - 3.5, R.ro - 1.5, 1.1, _C('#e8e4f0'));                                                    // its edge line
+  { const A = ring(R.ri); for (let k = 0; k < A.length; k++) {                                            // the island's kerb, white with a turquoise band like the hotel
+    const j = (k + 1) % A.length, a = W(A[k][0], A[k][1], 0), b = W(A[j][0], A[j][1], 0), ex = b[0] - a[0], ez = b[2] - a[2], el = Math.hypot(ex, ez) || 1, sg = ez * (a[0] + b[0]) - ex * (a[2] + b[2]) < 0 ? -1 : 1, n = [sg * ez / el, 0, -sg * ex / el];
+    face(T, [[a[0], 0, a[2]], [b[0], 0, b[2]], [b[0], 3, b[2]], [a[0], 3, a[2]]], n, _C('#ece8f4')); face(T, [[a[0], 3, a[2]], [b[0], 3, b[2]], [b[0], 4.6, b[2]], [a[0], 4.6, a[2]]], n, _C('#35c9c0'));
+  } }
+  band(T, R.ri - 2.5, R.ri, 4.6, _C('#ece8f4')); band(T, 0, R.ri - 2.5, 4.4, _C('#1f7a46'));               // the kerb's top, the lawn
+  const arrow = (u, v, du, dv) => {                                                                       // a painted arrow on the lane
+    const su = -dv, sv = du, P = (a, b) => W(u + du * a + su * b, v + dv * a + sv * b, 1.2), wh = _C('#e8e4f0');
+    face(T, [P(-12, -1.6), P(-3, -1.6), P(-3, 1.6), P(-12, 1.6)], [0, 1, 0], wh);
+    T.tri(P(7, 0), P(-3, -5.5), P(-3, 5.5), [0, 1, 0], wh);
+  };
+  const rm = (R.ri + R.ro) / 2;                                                                           // in on the right: round the island the far way and out
+  for (const u of [-R.hl * 0.6, R.hl * 0.6]) { arrow(u, -rm, -1, 0); arrow(u, rm, 1, 0); }
+  arrow(-R.hl - rm, 0, 0, 1); arrow(R.hl + rm, 0, 0, -1);
+  for (const [k, u] of [[0, -R.hl * 0.75], [1, 0], [2, R.hl * 0.75]]) {                                   // three palms down the middle, lit from below at night
+    const [x, , z] = W(u, (k - 1) * 4, 0); grovePalm(T, x, z, 46 + k % 2 * 8, 0.08, k * 2.1);
+    box5(G, x + 5, 4.4, z - 1.2, x + 7.4, 5.6, z + 1.2, _C('#fff3b0'));
+  }
+  for (const s of [-1, 1]) for (let k = 0; k < 16; k++) {                                                 // flower beds at the ends
+    const t = rand(-1.2, 1.2), r = rand(4, R.ri - 7), [x, , z] = W(s * R.hl + s * Math.cos(t) * r * 0.9, Math.sin(t) * r, 0);
+    T.prism(x, z, 2.6, 4.4, 7.4, _C(pick(['#ff4d8d', '#ffe14a', '#ff7a3d', '#c77dff', '#ffffff'])), 6, 2.6, true);
+  }
+  for (const u of [-R.hl * 0.38, R.hl * 0.38]) { const [x, , z] = W(u, 0, 0); for (let k = 0; k < 5; k++) T.prism(x + rand(-10, 10), z + rand(-10, 10), rand(4, 6), 4.4, rand(8, 11), _C(pick(['#2e8b57', '#3a9e4a', '#23b38a'])), 7, 3, true); }   // low bushes
+  const [sx, sy] = colonyAt(COLONY.lw / 2 + VALET_STAND[0], VALET_STAND[1]), ox = sx - R.x, oz = sy - R.y;   // the valet stand: a lectern with the key box on it
+  box5(T, ox - 4, 0, oz - 5, ox + 4, 11, oz + 5, _C('#5a3a26')); box5(T, ox - 3, 11, oz - 4, ox + 3, 15, oz + 4, _C('#c9a24a')); box5(G, ox - 3.4, 13, oz - 4.4, ox + 3.4, 13.6, oz + 4.4, _C('#ffe9a8'));
+  const m = lmMesh(T, G), sg = signMesh('VALET', '#ffd23f', 22, 6); sg.position.set(ox, 22, oz); sg.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180) * 0.6; m.add(sg); m.userData.own.push(sg.material);
+  return m;
+}
+function genColonyRing(L) {              // the island's solids (low: soft), the stand's, the drawable
+  const R = colonyRing(L); COLONY.ring = R;
+  makeSolid(R.x, R.y, 2 * R.hl, 2 * R.ri, R.a, { soft: true });
+  for (const s of [-1, 1]) for (let k = 0; k < 4; k++) makeSolid(R.x + s * R.ux * R.hl, R.y + s * R.uy * R.hl, R.ri * 1.55, R.ri * 1.55, R.a + k * Math.PI / 8, { soft: true });   // round ends: four turned squares
+  const [sx, sy] = colonyAt(COLONY.lw / 2 + VALET_STAND[0], VALET_STAND[1]); makeSolid(sx, sy, 9, 11, R.a, { soft: true });
+  LMS.push({ cx: R.x, cy: R.y, a: 0, rad: Math.max(Math.hypot(sx - R.x, sy - R.y), R.hl + R.ro) + 40, make: () => withSeed(5160, () => makeColonyRing(R)), mesh: null });
+}
+function colonyValet() {                 // js/10g genPlaces: the valet's post by the doors, facing the avenue
+  if (!COLONY || !COLONY.big) return;
+  const [x, y] = colonyAt(COLONY.lw / 2 + VALET_AT[0], VALET_AT[1]); addPost({ x, y, a: COLONY.a, kind: 'valet', need: () => feat('valet'), greetT: -1e9, away: true });
+}
+
 /* ---------- props ---------- */
 function makeCrane() {                                           // gantry crane; the boom (+x) reaches out over the water
   const T = new GeoBuilder(), G = new GeoBuilder(), yel = _C('#ffb02e'), red = _C('#ff4d4d'), dark = _C('#2b2e38');
@@ -599,6 +657,7 @@ function genLandmarks() {
       makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {}); solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_BIG_SIGN / 2, 0, COLONY_BIG_SIGN + 4, 54, true);   // the hotel and its sign pylon
       for (let k = 0; k < 3; k++) makeSolid(fx, fy, fr * 1.7, fr * 1.7, k * Math.PI / 6, {});        // the fountain's basin (three turned squares: near enough round)
       add(c.cx, c.cy, c.a, Math.hypot(c.lw, c.lh) / 2 + 60, makeColonyBig, c.lw / 2 + 50, c.lh / 2 + 10);
+      genColonyRing(L);                                                                              // the ring drive in front of the doors
       LMS.push({ cx: (px0 + px1) / 2, cy: (py0 + py1) / 2, a: 0, rad: Math.hypot(px1 - px0, py1 - py0) / 2, make: () => withSeed(5150, () => makeColonyPark(L)), mesh: null });
       LM_CLEAR.push([(px0 + px1) / 2, (py0 + py1) / 2, (px1 - px0) / 2 + 10, (py1 - py0) / 2 + 10], [(dx0 + dx1) / 2 - 15, (dy0 + dy1) / 2, (dx1 - dx0) / 2 + 45, (dy1 - dy0) / 2 + 10]);
     }
