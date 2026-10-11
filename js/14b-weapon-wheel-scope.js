@@ -19,6 +19,8 @@ const WICON = {
   sniper: '<svg viewBox="0 0 96 40" fill="currentColor"><path d="M2 16l28-3 2 11H21l-9 7H2z"/><rect x="28" y="13" width="28" height="9" rx="1"/><rect x="55" y="15.5" width="39" height="3"/>' +
     '<rect x="91" y="14" width="4" height="6"/><rect x="33" y="4" width="22" height="6" rx="3"/><rect x="31" y="5" width="3" height="4"/><rect x="38" y="10" width="3" height="3"/><rect x="47" y="10" width="3" height="3"/>' +
     '<rect x="41" y="22" width="7" height="7"/><path d="M30 22h7l-3 10h-6z"/><path d="M78 18l-5 13M79 18l5 13" stroke="currentColor" stroke-width="2"/></svg>',
+  aa: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="6" y="15" width="74" height="8" rx="2"/><rect x="2" y="13" width="7" height="12" rx="1"/><path d="M80 15h5a4 4 0 0 1 0 8h-5z"/>' +
+    '<rect x="26" y="8" width="12" height="7" rx="1"/><path d="M52 4h2v11h-2zM47 4h12v2H47zM47 8h12v2H47zM47 12h12v2H47z"/><path d="M20 23h7l-2 11h-7z"/><path d="M40 23h6l-1 8h-6z"/><rect x="66" y="14" width="2" height="10" fill="#0b0618" opacity=".55"/></svg>',
   rocket: '<svg viewBox="0 0 96 40" fill="currentColor"><rect x="10" y="13" width="62" height="10" rx="2"/><rect x="4" y="11" width="8" height="14" rx="1"/><path d="M72 11.5h6l13 6.5-13 6.5h-6z"/>' +
     '<rect x="38" y="6" width="10" height="7" rx="1"/><rect x="41" y="4" width="4" height="3"/><path d="M28 23h7l-2 11h-7z"/><path d="M50 23h6l-1 8h-6z"/><rect x="60" y="12" width="2" height="12" fill="#0b0618" opacity=".55"/></svg>'
 };
@@ -42,7 +44,7 @@ const wIcon = w => WICON[w.id] || WICON[WICON_CLASS[w.cls]] || WICON.pistol;   /
 
 /* ---------- the grid (mode: weaponGrid): every weapon in its cell, its detailed picture (js/11e); the ones you have not found grey ---------- */
 function weaponWhere(w) {                // where a weapon you have not found can be had
-  const at = STORES_DEF.filter(s => (s.sells || []).includes(w.id)).map(s => s.name);
+  const at = STORES_DEF.filter(s => (s.sells || []).includes(w.id) && storeOn(s)).map(s => s.name + (s.at ? ' AT THE DOCKS' : ''));
   return at.length ? 'SOLD AT ' + at.join(', ') : w.start ? '' : 'HIDDEN SOMEWHERE IN THE CITY';
 }
 function buildGrid() {
@@ -91,14 +93,14 @@ function toggleWheel(on) {
   if (!wheelOpen) return;
   SCOPE.on = false; TA.on = false; if (bigOpen) toggleBigMap(false);
   const grid = feat('weaponGrid'); $('wgrid').hidden = $('wgTitle').hidden = !grid; $('wring').hidden = grid; $('wheel').classList.toggle('grid', grid);
-  if (grid) { buildGrid(); $('wHow').textContent = WEAPONS[P.weapon].howTo || ''; Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.tone(520, 760, 0.06, 0.1, 'square'); return; }
+  if (grid) { buildGrid(); $('wHow').textContent = WEAPONS[P.weapon].howTo || ''; Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRotor(0); Snd.tone(520, 760, 0.06, 0.1, 'square'); return; }
   buildWheel();
   for (const b of document.querySelectorAll('.wslot')) {
     const i = +b.dataset.w, mel = isMelee(WEAPONS[i]); b.classList.toggle('on', i === P.weapon); b.classList.toggle('empty', !mel && P.mag[i] + P.ammo[i] <= 0);
     b.querySelector('.wa').textContent = mel ? '' : pad(P.mag[i], 2) + ' / ' + pad(P.ammo[i], 3);
   }
   $('wcName').textContent = WEAPONS[P.weapon].name; $('wHow').textContent = WEAPONS[P.weapon].howTo || '';   // how to use it (weapon table)
-  Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.tone(520, 760, 0.06, 0.1, 'square');
+  Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRotor(0); Snd.tone(520, 760, 0.06, 0.1, 'square');
 }
 function pickWeapon(i) {
   if (i !== P.weapon) { P.weapon = i; Snd.tone(330, 660, 0.08, 0.14, 'square'); }
@@ -111,7 +113,8 @@ const _sRay = new THREE.Raycaster(), _sV = new THREE.Vector2(), _sP = new THREE.
 const scopeRadius = () => Math.round(clamp(Math.min(VW, VH) * 0.21, 74, 150));
 function worldToScreen(x, y) { placeCamera(false); _sP.set(x, 0, y).project(camera); return { x: (_sP.x + 1) / 2 * VW, y: (1 - _sP.y) / 2 * VH }; }
 function scopePick(sx, sy) {            // what the crosshair is on: the nearest person or car the line of sight passes through, else the ground
-  placeCamera(false); _sV.set(sx / VW * 2 - 1, -(sy / VH) * 2 + 1); _sRay.setFromCamera(_sV, camera); const ray = _sRay.ray;
+  placeCamera(false); _sV.set(sx / VW * 2 - 1, -(sy / VH) * 2 + 1); _sRay.setFromCamera(_sV, camera); const ray = _sRay.ray, w = WEAPONS[P.weapon];
+  if (w.homing) return aaPick(sx, sy, SCOPE.hw, SCOPE.hh) || (ray.intersectPlane(_pl, _sQ) ? { x: _sQ.x, y: _sQ.z, hit: false } : null);   // the AA launcher: what it can lock onto, anywhere in its frame (js/12f)
   let best = null, bt = Infinity;
   const test = (x, h, y, r) => {
     _sP.set(x, h, y); if (ray.distanceSqToPoint(_sP) > r * r) return;
@@ -120,6 +123,10 @@ function scopePick(sx, sy) {            // what the crosshair is on: the nearest
   for (const p of peds) if (!p.dead) test(p.x, 14, p.y, 10);
   for (const o of officers) if (!o.dead) test(o.x, 14, o.y, 10);
   for (const c of cars) if (c !== P.car && !c.sunk) for (const q of carCircles(c)) test(q[0], 9, q[1], q[2] + 2);
+  if (!w.rocket && heliLive()) {                                   // the rifle reaches the police helicopter overhead (js/08u)
+    _sP.set(PH.x, PH.h - 4, PH.y); const t = _sQ.copy(_sP).sub(ray.origin).dot(ray.direction);
+    if (ray.distanceSqToPoint(_sP) < 34 * 34 && t < bt) { bt = t; best = { x: PH.x, y: PH.y, hit: true, heli: true }; }
+  }
   if (best) return best;
   return ray.intersectPlane(_pl, _sQ) ? { x: _sQ.x, y: _sQ.z, hit: false } : null;
 }
@@ -143,11 +150,12 @@ function updateScope(inp, dt) {         // called from updatePlayer while a scop
   SCOPE.aim = scopePick(SCOPE.sx, SCOPE.sy); SCOPE.hit = !!(SCOPE.aim && SCOPE.aim.hit);
   if (SCOPE.aim) P.ang = Math.atan2(SCOPE.aim.y - P.y, SCOPE.aim.x - P.x);
   const still = Math.hypot(P.vx, P.vy) < 12 && (SCOPE.by === 'key' || inp.mag <= 0.4);   // a stick pushed only far enough to turn you still counts as standing
+  if (w.homing) { homingSight(w, held, still, dt); return; }
   let tag = 'READY', ready = false;
   if (P.relW === P.weapon) tag = 'RELOADING ' + Math.max(0, w.reload - P.rel).toFixed(1) + 'S';
   else if (P.mag[P.weapon] <= 0) tag = P.ammo[P.weapon] > 0 ? 'RELOADING' : 'NO AMMO';
   else if (P.cool > 0) tag = 'NEXT ROUND ' + P.cool.toFixed(1) + 'S';
-  else if (sc.los && SCOPE.aim && !losClear(P.x, P.y, SCOPE.aim.x, SCOPE.aim.y, true)) tag = 'NO LINE OF SIGHT';   // a building is in the way
+  else if (sc.los && SCOPE.aim && !SCOPE.aim.heli && !losClear(P.x, P.y, SCOPE.aim.x, SCOPE.aim.y, true)) tag = 'NO LINE OF SIGHT';   // a building is in the way (not up at the helicopter)
   else if (!still) tag = 'STAND STILL TO SHOOT';
   else ready = true;
   SCOPE.ready = ready;
@@ -161,6 +169,29 @@ function updateScope(inp, dt) {         // called from updatePlayer while a scop
       if (sc.hold) { if (P.mag[P.weapon] > 0) Snd.bolt(); SCOPE.hold = true; SCOPE.ready = SCOPE.hit = false; }   // the rifle's scope stays up for the bolt time
       else SCOPE.on = false;                                     // the launcher's sight goes at once
     } else { SCOPE.on = false; Snd.tone(120, 90, 0.06, 0.12, 'square'); }
+  }
+}
+function homingSight(w, held, still, dt) {   // the AA launcher: keep the sight on a helicopter, a tank or an APC until it locks, then let go (js/12f)
+  const t = SCOPE.aim && SCOPE.aim.tgt, q = t ? aaPos(t, {}) : null, far = !!q && dist(P.x, P.y, q.x, q.y) > w.range;
+  if (t && !far && SCOPE.lock && SCOPE.lock.o === t.o) SCOPE.lockT += dt; else { SCOPE.lock = t && !far ? t : null; SCOPE.lockT = 0; SCOPE.beep = 0; }
+  const locked = !!SCOPE.lock && SCOPE.lockT >= w.lock, loaded = P.mag[P.weapon] > 0 && P.relW !== P.weapon;
+  let tag, ready = false;
+  if (P.relW === P.weapon) tag = 'RELOADING ' + Math.max(0, w.reload - P.rel).toFixed(1) + 'S';
+  else if (P.mag[P.weapon] <= 0) tag = P.ammo[P.weapon] > 0 ? 'RELOADING' : 'NO ROCKETS';
+  else if (P.cool > 0) tag = 'NEXT ROCKET ' + P.cool.toFixed(1) + 'S';
+  else if (!t) tag = 'NO TARGET';
+  else if (far) tag = 'OUT OF RANGE';
+  else if (!locked) tag = 'LOCKING ' + Math.max(0, w.lock - SCOPE.lockT).toFixed(1) + 'S';
+  else if (!still) tag = 'STAND STILL TO SHOOT';
+  else { ready = true; tag = 'LOCKED ' + Math.round(dist(P.x, P.y, q.x, q.y) / MPS) + ' M'; }
+  if (SCOPE.lock && loaded && (SCOPE.beep -= dt) <= 0) {           // the lock tone: beeps that quicken and rise, then a steady note
+    const k = Math.min(1, SCOPE.lockT / w.lock);
+    if (locked) { SCOPE.beep = 0.1; Snd.tone(1760, 1760, 0.1, 0.045, 'square'); } else { SCOPE.beep = lerp(0.32, 0.1, k); Snd.tone(880 + 700 * k, 880 + 700 * k, 0.05, 0.06, 'square'); }
+  }
+  SCOPE.ready = ready; SCOPE.hit = locked; SCOPE.tag = tag;
+  if (!held) {                                                   // let go: away, if it is locked
+    if (ready) fireWeapon(SCOPE.aim); else { Snd.tone(120, 90, 0.06, 0.12, 'square'); if (t && loaded && !locked) toast('NO LOCK'); }
+    SCOPE.on = false; SCOPE.lock = null; SCOPE.lockT = 0;
   }
 }
 const scopeLive = () => SCOPE.on && state === 'play' && !P.car && !P.act && !P.dead && !P.knocked && !bigOpen && !wheelOpen && !!WEAPONS[P.weapon].scope;

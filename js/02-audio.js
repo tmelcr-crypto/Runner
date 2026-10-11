@@ -29,6 +29,11 @@ const Snd = {
       const so = c.createOscillator(); so.type = 'triangle'; so.frequency.value = 800;
       const sgn = c.createGain(); sgn.gain.value = 0; so.connect(sgn); sgn.connect(this.out); so.start();
       this.sir = { o: so, g: sgn };
+      // the police helicopter's rotor: low noise chopped by the blades
+      const ro = c.createBufferSource(); ro.buffer = buf; ro.loop = true; const rl = c.createBiquadFilter(); rl.type = 'lowpass'; rl.frequency.value = 360;
+      const am = c.createGain(); am.gain.value = 0.55; const lfo = c.createOscillator(); lfo.frequency.value = 12.5; const lg = c.createGain(); lg.gain.value = 0.45;
+      const rg2 = c.createGain(); rg2.gain.value = 0; lfo.connect(lg); lg.connect(am.gain); ro.connect(rl); rl.connect(am); am.connect(rg2); rg2.connect(this.out); ro.start(); lfo.start();
+      this.rot = { g: rg2 };
     } catch (e) { this.ctx = null; }
     if (typeof Radio !== 'undefined') Radio.init();                // the car radio (js/02b)
   },
@@ -38,6 +43,7 @@ const Snd = {
     e.lp.frequency.setTargetAtTime(260 + spd * 1100, t, 0.08);
     e.g.gain.setTargetAtTime(on ? 0.07 + 0.06 * Math.abs(thr) + 0.05 * spd : 0, t, 0.08);
   },
+  setRotor(v) { if (this.ctx) this.rot.g.gain.setTargetAtTime(v * 0.7, this.ctx.currentTime, 0.2); },   // the police helicopter (js/08u)
   setRain(v) { if (this.ctx) this.rain.g.gain.setTargetAtTime(v * 0.11, this.ctx.currentTime, 0.5); },
   thunder() { this.burst(2.8, 700, 40, 0.8); this.tone(52, 26, 2.2, 0.45, 'sine'); },
   setScreech(a) { if (this.ctx) this.scr.g.gain.setTargetAtTime(a * 0.13, this.ctx.currentTime, 0.04); },

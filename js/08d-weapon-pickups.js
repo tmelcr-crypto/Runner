@@ -50,7 +50,7 @@ function freeSpot(rnd, away, key) {      // an unused hiding place, not too clos
 function placeWeapons() {                // a new game: melee in their fixed places, the rest at random
   if (!WSPOTS) { WSPOTS = withSeed(1979, buildSpots); pickRampages(); }   // the rampages take some of the hiding places (js/08f)
   for (const s of WSPOTS) s.used = null; WPICKS = []; wpQ = [];
-  const K = modeVal('pickups', 100) / 100, cnt = n => Math.round((n || 0) * K);   // the mode's share of the map counts
+  const K = modeVal('pickups', 100) / 100, cnt = n => n > 0 && K > 0 ? Math.max(1, Math.round(n * K)) : 0;   // the mode's share of the map counts; whatever lies hidden at all, at least once (the one AA launcher)
   if (feat('hiddenWeapons')) withSeed(2024, () => {                // melee weapons: the same places every game (modes: js/01j)
     WEAPONS.forEach((w, wi) => { if (isMelee(w)) for (let k = 0; k < cnt(w.onMap); k++) putPick(freeSpot(Math.random, null, 'w' + wi), wi, false, true); });
   });

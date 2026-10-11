@@ -7,6 +7,7 @@
    Your score is your cash. Weapons you have are marked OWNED; ammo, health and armor stop at what you can carry. */
 let STORES = null, shopGroup = null, shopAt = null, shopBought = false;
 const STORE_R = 26;
+const storeOn = s => !s.at || feat('blackMarket');   // the black market at the docks has its own mode row (js/01j)
 function pickStores() {                  // the shop buildings that become stores: well spread, the first one near where you start
   const svc = [...SVC.police, ...SVC.hospital].map(s => s.r), out = [];
   const cand = [];
@@ -21,19 +22,36 @@ function pickStores() {                  // the shop buildings that become store
     }
   }
   if (!cand.length) return [];
+  const town = STORES_DEF.filter(d => !d.at);                     // the stores on shopping streets; the others stand in their own district
   let first = cand[0]; for (const c of cand) if (dist(c.x, c.y, MAP.start[0], MAP.start[1]) < dist(first.x, first.y, MAP.start[0], MAP.start[1])) first = c;
   const chosen = [first];
-  while (chosen.length < STORES_DEF.length) {                     // farthest-point: each next store as far as can be from the others
+  while (chosen.length < town.length) {                           // farthest-point: each next store as far as can be from the others
     let best = null, bd = -1;
     for (const c of cand) { const d = Math.min(...chosen.map(o => dist(o.x, o.y, c.x, c.y))); if (d > bd) { bd = d; best = c; } }
     if (!best || bd < 300) break; chosen.push(best);
   }
-  chosen.forEach((c, i) => out.push(Object.assign({}, STORES_DEF[i], { r: c.r, x: c.x, y: c.y, zx: c.zx, zy: c.zy, where: districtAt(c.x, c.y) || '' })));
+  chosen.forEach((c, i) => out.push(Object.assign({}, town[i], { r: c.r, x: c.x, y: c.y, zx: c.zx, zy: c.zy, where: districtAt(c.x, c.y) || '' })));
+  for (const d of STORES_DEF) if (d.at) { const c = storeIn(d.at, out); if (c) out.push(Object.assign({}, d, { r: c.r, x: c.x, y: c.y, zx: c.zx, zy: c.zy, where: d.at })); }
   return out;
+}
+function storeIn(district, taken) {      // a store with "at" (the black market): a warehouse door in that district, near the middle of its warehouses
+  const cand = [];
+  for (const r of BLD) {
+    if (r.special || r.uniq || r.lw < 36 || districtAt(r.cx, r.cy) !== district) continue;
+    const zx = -r.sa, zy = r.ca; if (zy < -0.3) continue;
+    for (const off of [14, 20, 28]) {
+      const x = r.cx + zx * (r.lh / 2 + off), y = r.cy + zy * (r.lh / 2 + off);
+      if (pedBlocked(x, y) || shoreDist(x, y) < 10 || inLandmark(x, y) || taken.some(o => dist(o.x, o.y, x, y) < 300)) continue;   // the port's sheds face its lanes, not a street
+      cand.push({ r, x, y, zx, zy, w: r.kind === 'warehouse' ? 0 : 400 }); break;
+    }
+  }
+  if (!cand.length) return null;
+  const mx = cand.reduce((a, c) => a + c.x, 0) / cand.length, my = cand.reduce((a, c) => a + c.y, 0) / cand.length;
+  return cand.reduce((b, c) => dist(c.x, c.y, mx, my) + c.w < dist(b.x, b.y, mx, my) + b.w ? c : b);
 }
 function placeStores() {                 // the first game: find the stores and put up their markers (they stay for every game after)
   $('shopBtn').hidden = true; shopAt = null;
-  if (shopGroup) { shopGroup.visible = feat('stores'); return; }
+  if (shopGroup) { shopGroup.visible = feat('stores'); for (const s of STORES) if (s.g) s.g.visible = storeOn(s); return; }
   STORES = pickStores(); shopGroup = new THREE.Group(); scene.add(shopGroup);
   for (const s of STORES) {
     const g = new THREE.Group(); g.position.set(s.x, groundH(s.x, s.y), s.y);
@@ -50,6 +68,7 @@ function placeStores() {                 // the first game: find the stores and 
     g.userData = { icon, ring }; s.g = g; shopGroup.add(g);
   }
   shopGroup.visible = feat('stores');                               // a mode without stores (js/01j)
+  for (const s of STORES) s.g.visible = storeOn(s);
 }
 function euroTex(col) {                // the € painted in front of a store's door
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
@@ -63,7 +82,7 @@ function gfxStores(time) {
 }
 function nearStore() {                   // the store whose door you stand at, on foot
   if (!STORES || P.car || P.dead || P.act || RAMP.on || state !== 'play' || !feat('stores')) return null;
-  for (const s of STORES) if (Math.abs(s.x - P.x) < STORE_R && Math.abs(s.y - P.y) < STORE_R && dist(s.x, s.y, P.x, P.y) < STORE_R) return s;
+  for (const s of STORES) if (storeOn(s) && Math.abs(s.x - P.x) < STORE_R && Math.abs(s.y - P.y) < STORE_R && dist(s.x, s.y, P.x, P.y) < STORE_R) return s;
   return null;
 }
 function shopKey() {                    // E at a store's door (or a clothes shop's, js/08l): the shop, unless a car stands closer to you than the door
@@ -114,7 +133,7 @@ function shopRows(s) {                   // what this store sells, as rows: weap
     rows.push({ icon: wIcon(w), col: w.color, name: w.name, info: mel ? w.howTo : thr ? (w.mag + w.ammo) + ' ' + many : w.mag + (w.mag > 1 ? ' ROUNDS' : ' LOADED') + ' + ' + w.ammo + ' SPARE', price: w.price, why: P.has[i] ? 'OWNED' : '',
       buy: () => { P.has[i] = true; if (!mel) { P.mag[i] = Math.max(P.mag[i], w.mag); P.ammo[i] = Math.min(Math.max(w.maxAmmo, P.ammo[i]), P.ammo[i] + w.ammo); } P.weapon = i; } });
     if (!mel && w.ammoPrice != null && w.pickup > 0)
-      rows.push({ icon: wIcon(w), col: w.color, ammo: true, name: thr ? '+' + w.pickup + ' ' + many : w.short + ' AMMO +' + w.pickup,
+      rows.push({ icon: wIcon(w), col: w.color, ammo: true, name: thr ? '+' + w.pickup + ' ' + many : w.homing ? '+' + w.pickup + ' AA ROCKET' + (w.pickup > 1 ? 'S' : '') : w.short + ' AMMO +' + w.pickup,
         info: thr ? 'YOU HAVE ' + (P.mag[i] + P.ammo[i]) + ' / ' + (w.mag + w.maxAmmo) : 'LOADED ' + P.mag[i] + ' · SPARE ' + P.ammo[i] + ' / ' + w.maxAmmo, price: w.ammoPrice,
         why: P.ammo[i] >= w.maxAmmo ? 'FULL' : '', buy: () => { P.ammo[i] = Math.min(w.maxAmmo, P.ammo[i] + w.pickup); if (thr) P.has[i] = true; } });
   }

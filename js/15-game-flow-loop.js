@@ -11,7 +11,7 @@ function streetIn(name) {                   // a random street, in district `nam
 }
 function resetGame(sv) {                     // a new game with the options in OPT, or the saved game sv (js/15b)
   genWorld(); buildMiniMap(); buildCity(); clearDynamic(); svReset();
-  clearRockets(); resetBlast(); cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
+  clearRockets(); resetBlast(); heliReset(); cars = []; peds = []; officers = []; pickups = []; parts = []; decals = []; pops = []; tracers = []; skids = []; pickupQ = [];
   safeReset();                                                     // the safehouses: the free room yours, nothing else (a saved game says more, js/08s)
   const e = OPT.start === 'usual' ? startSpot() : streetIn(OPT.start === 'random' ? null : OPT.start), E = RE[e], s0 = E.len / 2;
   const at = (s, off) => { const q = edgeAt(e, clamp(s, 20, E.len - 20), {}); return { x: q.x - q.ty * off, y: q.y + q.tx * off, ang: Math.atan2(q.ty, q.tx) }; };
@@ -62,7 +62,7 @@ function showOver() {
   const s = Math.floor(gameT), mm = Math.floor(s / 60), ss = String(s % 60).padStart(2, '0');
   $('oScore').textContent = money(P.score); $('oBest').textContent = money(best); $('oKills').textContent = P.kills;
   $('oStars').textContent = P.maxStars; $('oTime').textContent = mm + ':' + ss;
-  Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0);
+  Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRotor(0);
   $('overCard').querySelector('h1').textContent = P.busted ? 'BUSTED' : 'WASTED';
   $('shifter').hidden = true; showCard('overCard', true); $('hud').hidden = true;
   $('wasted').style.display = 'none';
@@ -121,14 +121,14 @@ function updateCam(dt, idle) {
 function update(dt, idle) {
   gameT += dt; updateSky(dt);                                          // the clock and the weather (js/12d)
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
-  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
+  for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updateHoming(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
   updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
   if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); jobTick(dt); raceTick(dt); pnsTick(dt); safeTick(dt); }   // safehouse doors and kept cars (js/08s)   // vehicle jobs (js/08n)   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
   updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
   placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
-  if (!idle) updatePolice(dt);                                      // who sees you, the search, the stop order, sending cars (js/08b)
+  if (!idle) { updatePolice(dt); updateHeli(dt); }                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }

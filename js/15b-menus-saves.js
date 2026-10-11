@@ -94,7 +94,7 @@ $('loadBtn').addEventListener('click', () => openSlots('load'));
 $('helpBtn').addEventListener('click', () => showCard('helpCard'));
 
 /* the pause menu */
-function hush() { Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRain(0); }
+function hush() { Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRotor(0); Snd.setRain(0); }
 let pauseRet = 'play';
 function pauseGame() {                               // from the street, or from inside a tower (the side-on view, js/08t)
   if (state !== 'play' && state !== 'side') return;

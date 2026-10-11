@@ -3,9 +3,10 @@
    items: what else lies hidden around the city besides weapons (js/08d), each in a bubble of its own colour, placed and coming back
    like the guns: onMap of each. amount: what one gives (health and armor points; stars for the heat reducer); max: the most you can
    have; price: what it costs in a store that sells it (empty: never sold). Your score is your cash.
-   stores: the six stores (js/08e), each with its own colour and its own things to sell - weapon ids from the weapon table (js/01f;
+   stores: the stores (js/08e), each with its own colour and its own things to sell - weapon ids from the weapon table (js/01f;
    ammo for every gun and bomb it sells comes with it, at the weapon's Ammo price) and items. They stand on shopping streets spread
-   over the city, always the same buildings; each is marked on the map and has a marker at its door.
+   over the city, always the same buildings; a store with "at" takes a building in that district instead (the black market: a
+   warehouse at the docks). Each is marked on the map and has a marker at its door.
    Keep the JSON between the markers valid. */
 const SHOP_TABLE = /*SHOP-JSON*/{
 "items": [
@@ -19,7 +20,8 @@ const SHOP_TABLE = /*SHOP-JSON*/{
   {"id": "guns", "name": "BULLSEYE GUNS", "color": "#2bf3ff", "sells": ["pistol", "smg", "shotgun", "health", "armor"]},
   {"id": "surplus", "name": "ARMY SURPLUS", "color": "#5dff4f", "sells": ["lmg", "grenade", "machete", "armor"]},
   {"id": "hunting", "name": "TROPHY HUNT & FISH", "color": "#ffe14a", "sells": ["sniper", "shotgun", "revolver", "health"]},
-  {"id": "black", "name": "BACK ROOM DEALS", "color": "#ff2bd6", "sells": ["rocket", "pipebomb", "grenade", "lmg", "armor"]}
+  {"id": "black", "name": "BACK ROOM DEALS", "color": "#ff2bd6", "sells": ["rocket", "pipebomb", "grenade", "lmg", "armor"]},
+  {"id": "market", "name": "BLACK MARKET", "color": "#5a8cff", "at": "DOCKSIDE", "sells": ["aa"]}
 ]
 }/*END-SHOP-JSON*/;
 const ITEMS = SHOP_TABLE.items, ITEM = Object.fromEntries(ITEMS.map(i => [i.id, i])), STORES_DEF = SHOP_TABLE.stores;

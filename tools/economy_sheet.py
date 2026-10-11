@@ -38,7 +38,13 @@ def block(f):                               # (file text, start, end, parsed JSO
     i, j = s.index(a) + len(a), s.index(b); return s, i, j, json.loads(s[i:j])
 
 
-def nice(n): return n if len(n) <= 3 else n.capitalize()   # SMG stays SMG
+ABBR = ('AA', 'SMG', 'APC', 'MG')         # stay in capitals
+
+
+def nice(n):                                # 'SNIPER RIFLE' -> 'Sniper rifle', 'AA LAUNCHER' -> 'AA launcher'
+    ws = [w if w in ABBR else w.lower() for w in n.split()]
+    if ws and ws[0] not in ABBR: ws[0] = ws[0].capitalize()
+    return ' '.join(ws)
 
 
 def rows():
@@ -75,7 +81,7 @@ def rows():
     out.append(('#', 'STORE: AMMO', 'One pack: the rounds of one ammo pickup. Sold where its weapon is sold.'))
     for w in W.values():
         if w.get('start') or not (w.get('pickup') or 0) or w.get('use') == 'swing': continue
-        lab = ('%s +%d' % (nice(w['name']) + 's', w['pickup'])) if w.get('use') == 'throw' else ('%ss +%d' % (nice(w['short']), w['pickup'])) if w.get('class') == 'launcher' \
+        lab = ('%s +%d' % (nice(w['name']) + 's', w['pickup'])) if w.get('use') == 'throw' else ('%s rockets +%d' % (nice(w['short']), w['pickup'])) if w.get('fires') == 'homing' else ('%ss +%d' % (nice(w['short']), w['pickup'])) if w.get('class') == 'launcher' \
             else '%s ammo +%d rounds' % (nice(w['name']), w['pickup'])
         out.append(dict(key='ammo.' + w['id'], label=lab, value=w.get('ammoPrice'), unit=USD, note=where(w['id']), file='weapon', id=w['id'], field='ammoPrice', lo=0, hi=1000000, empty_ok=True))
     cl = block('clothes')[3]; shops = {x['id']: x['name'] for x in cl['shops']}

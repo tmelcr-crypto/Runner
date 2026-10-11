@@ -111,7 +111,7 @@ function updateGrenades(dt) {
     g.fuse -= dt; g.blink = Math.max(0, g.blink - dt);
     if (!g.rest) {
       g.vz -= GR_G * dt;
-      const nx = g.x + g.vx * dt, ny = g.y + g.vy * dt, low = g.z < 80;
+      const nx = g.x + g.vx * dt, ny = g.y + g.vy * dt, low = g.z < (g.cop ? 12 : 80);   // a bomb dropped from the helicopter falls past the walls (js/08u)
       if (low && wallAtPt(nx, g.y)) { g.vx *= -0.4; g.vy *= 0.8; clink(g); } else g.x = nx;     // off a wall, each axis on its own
       if (low && wallAtPt(g.x, ny)) { g.vy *= -0.4; g.vx *= 0.8; clink(g); } else g.y = ny;
       if (g.z < 16) for (const c of cars) {                          // off a car
@@ -123,7 +123,7 @@ function updateGrenades(dt) {
       }
       if (!g.hitP && g.z < 22 && Math.hypot(g.vx, g.vy) > 60) for (const p of peds) {   // a direct hit hurts a little
         if (p.dead || Math.abs(p.x - g.x) > 9 || Math.abs(p.y - g.y) > 9) continue;
-        g.hitP = true; g.vx *= -0.3; g.vy *= -0.3; p.hp -= g.w.dmg; if (p.hp <= 0) killPed(p, 'blast', true); else { p.state = 'flee'; p.fl = 4; p.fx = p.x - g.x; p.fy = p.y - g.y; } break;
+        g.hitP = true; g.vx *= -0.3; g.vy *= -0.3; p.hp -= g.w.dmg; if (p.hp <= 0) killPed(p, 'blast', !g.cop); else { p.state = 'flee'; p.fl = 4; p.fx = p.x - g.x; p.fy = p.y - g.y; } break;
       }
       g.z += g.vz * dt; g.rot += g.spin * dt;
       if (g.z <= 0) {
@@ -136,7 +136,8 @@ function updateGrenades(dt) {
     }
     if ((g.beep -= dt) <= 0) { g.beep = clamp(g.fuse * 0.22, 0.07, 0.5); g.blink = 0.06; if (dist(g.x, g.y, P.x, P.y) < 450) Snd.tone(1700, 1700, 0.025, 0.05, 'square'); }
     if (g.fuse <= 0) {
-      g.dead = true; explosion(g.x, g.y, g.w.blast, RK_SRC, g.w.blastThrow); alertPeds(g.x, g.y, Math.max(g.w.panic, 500)); reportCrime(COP.crime.blast, COP.blastHear, g.x, g.y, true);
+      g.dead = true; explosion(g.x, g.y, g.w.blast, g.cop ? RK_COP : RK_SRC, g.w.blastThrow); alertPeds(g.x, g.y, Math.max(g.w.panic, 500));   // the helicopter's bombs (cop) are not your crime
+      if (!g.cop) reportCrime(COP.crime.blast, COP.blastHear, g.x, g.y, true);
     }
   }
   if (grenades.some(g => g.dead)) { for (const g of grenades) if (g.dead && g.mesh) scene.remove(g.mesh); grenades = grenades.filter(g => !g.dead); }

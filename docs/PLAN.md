@@ -59,7 +59,7 @@ Four garages, see-through roof, any colour, €100, police lose you unseen. See 
   offices. Spread over every district, the most along the beachfront (Sandbar, Sunstrip, Coral Shore), each replacing ordinary
   buildings on its lot. The SEA BREEZE (the hotel by the old start) becomes one of them.
 
-## 4c. Figures and the time of day (asked October 2026; both modes, each part merged when done)
+## 4c. Figures and the time of day (asked October 2026; both modes, each part merged when done) - done
 - **The shop figure**: the big preview in the clothes shops (and the wardrobes) gets a rounded, detailed figure - neck, shaped
   torso and hips, tapered arms and legs, hands, shoes with soles, a face (eyes, brows, nose, mouth), ears, hair - with the clothes'
   details (collars, buttons, prints, belts) on a lit stage that turns slowly.
@@ -71,19 +71,19 @@ Four garages, see-through roof, any colour, €100, police lose you unseen. See 
 
 ## 4d. The owner's next round (asked October 2026; build in this order, each part merged when done)
 All of these are for **both** modes except the kill frenzies (free roam only).
-1. **Finish 4c** and merge it (day and night, the shop figure, livelier walking).
+1. **Finish 4c** and merge it (day and night, the shop figure, livelier walking). - done
 2. **People sound back to arcade**: hits and kills on people go back to the old arcade thud - no grunts, cries or screams, no
-   impact per weapon. The street junk keeps its own sounds.
+   impact per weapon. The street junk keeps its own sounds. - done
 3. **30 more kill frenzies** (free roam only): the same two goals as the 20 (kill so many people, or wreck so many vehicles, with
-   the weapon given, before the clock runs out), new skulls where there are none yet, every weapon used, rewards scaled.
+   the weapon given, before the clock runs out), new skulls where there are none yet, every weapon used, rewards scaled. - done
 4. **Weapon grid** instead of the wheel: every weapon in its cell with a refined model (the models are refined only for the grid);
-   ones you don't have are grey and dim with their name. It opens the way the wheel does (Q, holding the weapon button).
+   ones you don't have are grey and dim with their name. It opens the way the wheel does (Q, holding the weapon button). - done
 5. **The police helicopter** (replaces the helicopter of step 7): one helicopter, and after it is lost the next only 10 minutes
    later. From 3 stars it looks for you with a searchlight; from 4 stars a short machine-gun burst every 6 s; at 5 stars it also
    drops pipe bombs toward you. Only a sniper rifle or the **AA launcher** (new) can bring it down. The AA launcher aims like the
    rocket launcher, locks on after 2 s on a target, and only a helicopter, a tank or an APC can be targeted; its rocket flies off
    in a random direction, swerves, and after 4 s hits the target - one shot kills. Carry 3 rockets at most. Very rare: one hidden
-   pickup (with one rocket), and the **black market** (new shop at the docks) sells it for EUR 25,000 and EUR 5,000 a rocket.
+   pickup (with one rocket), and the **black market** (new shop at the docks) sells it for EUR 25,000 and EUR 5,000 a rocket. - done
 6. **The airport**: flights to Prague and Norfolk (both COMING SOON) and a **scenic flight** for EUR 5,000: a cinematic - you walk
    to the plane through the terminal hall (its roof see-through), the plane taxis to the runway, then 2 minutes flying round the
    city seen from your seat through an oval window; a random time of day and weather each time; the only button is LAND (skip).

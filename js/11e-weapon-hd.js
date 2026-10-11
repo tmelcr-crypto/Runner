@@ -91,6 +91,17 @@ const WHD_MODEL = {
     whBox(g, WH_GUN(), 3, 2, 1.2, 7, 5, -1.4); whBox(g, whM('#ffb02e', { emissive: '#8a4a00' }), 0.3, 1, 0.8, 8.6, 5, -1.4);   // the sight with its amber glass
     whShape(g, WH_RUBBER(), [[0, 0], [2.2, 0], [1.6, -4.4], [-0.4, -4.4]], 1.8, 2, 0.6, 0); whShape(g, WH_RUBBER(), [[0, 0], [2, 0], [1.6, -3.6], [0, -3.6]], 1.8, 10, 0.6, 0);
   },
+  aa(g) {                                 // the anti-aircraft launcher: a long ribbed tube, the missile's white nose, the antenna grid, the gripstock
+    const tube = whM('#56623e', { metalness: 0.2, roughness: 0.65 }), dk = whM('#2a3020', { metalness: 0.25 });
+    whCyl(g, tube, 30, 1.7, 1.7, 7, 2.6, 0, 24); whCyl(g, dk, 2.6, 2.1, 2.3, -8.6, 2.6, 0, 24); whCyl(g, dk, 1.4, 1.9, 1.9, 21.4, 2.6, 0, 24);   // the tube, its end caps
+    for (const x of [-2, 4, 10, 16]) whCyl(g, dk, 0.6, 1.82, 1.82, x, 2.6, 0, 24);                       // the ribs
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(1.5, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), whM('#eef2f8', { metalness: 0.3, roughness: 0.3 })); nose.rotation.z = -Math.PI / 2; nose.position.set(22.1, 2.6, 0); g.add(nose);
+    whBox(g, WH_GUN(), 5, 2.4, 1.6, 3, 5.4, -0.6); whBox(g, whM('#5ab0ff', { emissive: '#103a6a', metalness: 0.6, roughness: 0.15 }), 0.3, 1.4, 1.1, 5.6, 5.4, -0.6);   // the sight, blue glass
+    const grid = new THREE.Group(); grid.position.set(12, 5.4, 0); g.add(grid);                            // the antenna: a folded grid on a post
+    whBox(grid, WH_STEEL(), 0.5, 2.4, 0.5, 0, -0.6, 0); for (let k = -2; k <= 2; k++) { whBox(grid, WH_STEEL(), 0.25, 4.6, 0.25, 0, 2.6, k * 1.1); whBox(grid, WH_STEEL(), 0.25, 0.25, 4.6, 0, 1 + (k + 2) * 0.8, 0); }
+    whShape(g, WH_RUBBER(), [[0, 0], [2.2, 0], [1.6, -4.6], [-0.4, -4.6]], 1.8, 1, 1, 0); whShape(g, WH_RUBBER(), [[0, 0], [2, 0], [1.5, -3.6], [0, -3.6]], 1.8, 9, 1, 0);   // the grips
+    whCyl(g, whM('#3a3f30', { metalness: 0.3 }), 4.5, 1, 1, 5, 0.6, 2.2, 16);                            // the battery under the tube
+  },
   grenade(g) {
     const pts = []; for (let k = 0; k <= 12; k++) { const t = k / 12, a = t * Math.PI; pts.push(new THREE.Vector2(Math.sin(a) * (3.2 + 0.25 * Math.cos(t * 6 * Math.PI)), -Math.cos(a) * 4)); }
     const geo = new THREE.LatheGeometry(pts, 8); const body = new THREE.Mesh(geo, whM('#4a6a32', { metalness: 0.2, roughness: 0.6, flatShading: true })); g.add(body);   // the pineapple: 8 facets, ribbed

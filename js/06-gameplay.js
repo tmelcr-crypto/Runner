@@ -158,6 +158,14 @@ function fireWeapon(aim) {                                      // aim: a point 
   P.dry = false; P.cool = w.rate; P.mag[P.weapon]--; P.flash = 0.06;
   const a = aim ? Math.atan2(aim.y - P.y, aim.x - P.x) : P.ang + rand(-w.spread, w.spread);
   if (aim) P.ang = a;
+  if (w.homing) {                                                // the AA launcher: locked on, its rocket swerves about and then strikes (js/12f)
+    if (aim && aim.tgt) launchHoming(aim.tgt, w); Snd.rocket();
+    alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true); cam.shake = Math.max(cam.shake, w.shake); return;
+  }
+  if (aim && aim.heli) {                                         // the rifle at the police helicopter overhead (js/08u)
+    tracers.push({ x1: P.x + Math.cos(a) * 12, y1: P.y + Math.sin(a) * 12, x2: PH.x, y2: PH.y, z2: PH.h, life: 0.08 }); heliShot();
+    Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true); cam.shake = Math.max(cam.shake, w.shake); return;
+  }
   if (w.rocket) {                                                // a rocket: it flies on its own (js/12b) and blows up on whatever it hits
     launchRocket(aim || { x: P.x + Math.cos(a) * 400, y: P.y + Math.sin(a) * 400 }, w); Snd.rocket();
     alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true); cam.shake = Math.max(cam.shake, w.shake); return;

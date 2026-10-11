@@ -27,7 +27,7 @@ const MAXT = 48, tGeo = new THREE.BufferGeometry(), tPos = new Float32Array(MAXT
 tGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3).setUsage(THREE.DynamicDrawUsage));
 const tracerMesh = new THREE.LineSegments(tGeo, new THREE.LineBasicMaterial({ color: 0xfff3a0 })); tracerMesh.frustumCulled = false; scene.add(tracerMesh);
 function gfxTracers() {
-  let n = 0; for (const t of tracers) { if (n >= MAXT) break; tPos.set([t.x1, 13, t.y1, t.x2, 13, t.y2], n * 6); n++; }
+  let n = 0; for (const t of tracers) { if (n >= MAXT) break; tPos.set([t.x1, t.z1 || 13, t.y1, t.x2, t.z2 || 13, t.y2], n * 6); n++; }
   tGeo.setDrawRange(0, n * 2); tGeo.attributes.position.needsUpdate = true;
 }
 const MAXD = 170, decalMesh = new THREE.InstancedMesh(GCirc, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }), MAXD);
