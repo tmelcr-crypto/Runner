@@ -99,50 +99,9 @@ const Snd = {
     else if (k === 'barrel') { this.metal(140 * j, 0.7, 0.18 * v); this.tone(90 * j, 70, 0.4, 0.2 * v, 'sine'); this.burst(0.08, 1500, 400, 0.26 * v); }   // a deep oil-drum boom
     else { this.metal(380 * j, 0.32, 0.12 * v); this.burst(0.1, 1800, 400, 0.24 * v); this.burst(0.18, 1200, 400, 0.08 * v, 'bandpass', 0.05, 1.5); }   // a street bin: a tinny clang, trash spilling
   },
-  /* people: a different impact for each weapon, and voices - a buzzing source through two vowel formants, every person their own pitch */
-  hitBody(k, v) {                        // k: punch, bat, golf, stab, chop, bullet, car; v: 1 close by
-    if (!this.ctx || this.muted || !(v > 0.02)) return;
-    const j = 0.9 + Math.random() * 0.2;
-    if (k === 'punch') { this.burst(0.03, 3000 * j, 1500, 0.2 * v, 'bandpass', 0, 2); this.burst(0.09, 800 * j, 140, 0.4 * v); this.tone(150 * j, 70, 0.08, 0.26 * v, 'sine'); }   // skin slap and a dull thud
-    else if (k === 'bat') { this.burst(0.03, 2600 * j, 1400, 0.3 * v, 'bandpass', 0, 4); this.burst(0.14, 600 * j, 100, 0.5 * v); this.tone(110 * j, 50, 0.14, 0.34 * v, 'sine'); }   // wood on a body: a crack and a heavy thump
-    else if (k === 'golf') { this.metal(1500 * j, 0.25, 0.06 * v); this.burst(0.12, 700, 120, 0.4 * v); this.tone(130 * j, 60, 0.1, 0.25 * v, 'sine'); }   // a ping and a thump
-    else if (k === 'stab') { this.burst(0.07, 1500 * j, 500, 0.55 * v, 'bandpass', 0, 3); this.burst(0.12, 450, 110, 0.45 * v, 'lowpass', 0.03); }   // a short wet stab
-    else if (k === 'chop') { this.burst(0.06, 2600 * j, 900, 0.3 * v, 'bandpass', 0, 2); this.burst(0.14, 700, 120, 0.38 * v, 'lowpass', 0.02); this.tone(120 * j, 60, 0.08, 0.2 * v, 'sine', 0.02); }   // a blade biting in
-    else if (k === 'bullet') { this.burst(0.03, 3400 * j, 1600, 0.45 * v, 'bandpass', 0, 3); this.burst(0.08, 500, 110, 0.55 * v); }   // a sharp thwack
-    else if (k === 'car') { this.burst(0.22, 900 * j, 80, 0.6 * v); this.tone(85 * j, 35, 0.22, 0.42 * v, 'sine'); this.burst(0.1, 3200, 900, 0.2 * v, 'bandpass', 0.02, 2); }   // a body against the bonnet
-  },
-  voice(vc, kind, v) {                   // vc: { f: pitch, k: formant scale }; kind: hit (a grunt) or die (a cry, a groan or a scream)
-    if (!this.ctx || this.muted || !(v > 0.04) || !vc) return;
-    const now = this.ctx.currentTime; this.vq = (this.vq || []).filter(t => t > now); if (this.vq.length >= 3) return;   // never more than three voices at once
-    const c = this.ctx, t = now + 0.01, o = c.createOscillator(); o.type = 'sawtooth';
-    const style = kind === 'hit' ? 'hit' : Math.random() < 0.45 ? 'scream' : Math.random() < 0.5 ? 'cry' : 'groan';
-    const dur = style === 'hit' ? 0.14 + Math.random() * 0.14 : style === 'scream' ? 0.6 + Math.random() * 0.45 : 0.45 + Math.random() * 0.4, f = vc.f * (0.9 + Math.random() * 0.22);
-    const fr = o.frequency;
-    if (style === 'hit') { fr.setValueAtTime(f * 1.3, t); fr.exponentialRampToValueAtTime(f * 0.8, t + dur); }
-    else if (style === 'scream') { fr.setValueAtTime(f * 1.7, t); fr.exponentialRampToValueAtTime(f * 2.4, t + dur * 0.25); fr.exponentialRampToValueAtTime(f * 1.3, t + dur); }
-    else if (style === 'cry') { fr.setValueAtTime(f * 1.5, t); fr.exponentialRampToValueAtTime(f * 1.9, t + 0.08); fr.exponentialRampToValueAtTime(f * 0.7, t + dur); }
-    else { fr.setValueAtTime(f * 1.1, t); fr.exponentialRampToValueAtTime(f * 0.55, t + dur); }
-    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 5 + Math.random() * 3; lg.gain.value = f * (style === 'scream' ? 0.06 : 0.025); lfo.connect(lg); lg.connect(fr); lfo.start(t); lfo.stop(t + dur + 0.05);   // the voice wavers
-    const V = [[730, 1090], [570, 840], [660, 1700], [490, 1350], [300, 870]][Math.floor(Math.random() * 5)];   // ah, aw, ae, uh, oo
-    const g = c.createGain(), peak = (style === 'hit' ? 0.62 : style === 'scream' ? 0.66 : 0.56) * v;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.025); g.gain.setValueAtTime(peak * 0.8, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    for (const [F, q, a] of [[V[0] * vc.k, 7, 1], [V[1] * vc.k, 9, 0.6], [2600 * vc.k, 6, 0.18]]) {
-      const bp = c.createBiquadFilter(), ga = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = F; bp.Q.value = q; ga.gain.value = a; o.connect(bp); bp.connect(ga); ga.connect(g);
-    }
-    g.connect(this.out); o.start(t); o.stop(t + dur + 0.05); this.vq.push(t + dur);
-    this.burst(dur * 0.8, 2200 * vc.k, 1200, peak * 0.12, 'bandpass', 0.01, 1.2);   // breath
-  },
-  greet(vc, v) {                         // a cheerful two-note "wel-come" (the Colony's valet): up on the first, down on the second
-    if (!this.ctx || this.muted || !(v > 0.04) || !vc) return;
-    const c = this.ctx, t0 = c.currentTime + 0.01, f = vc.f * (0.95 + Math.random() * 0.1);
-    for (const [dl, dur, a, b, V] of [[0, 0.17, 1.05, 1.4, [530, 1840]], [0.21, 0.32, 1.3, 0.92, [640, 1190]]]) {
-      const t = t0 + dl, o = c.createOscillator(), g = c.createGain(), peak = 0.72 * v; o.type = 'sawtooth';
-      o.frequency.setValueAtTime(f * a, t); o.frequency.exponentialRampToValueAtTime(f * b, t + dur);
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.03); g.gain.setValueAtTime(peak * 0.85, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      for (const [F, q, amp] of [[V[0] * vc.k, 7, 1], [V[1] * vc.k, 9, 0.6], [2600 * vc.k, 6, 0.18]]) { const bp = c.createBiquadFilter(), ga = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = F; bp.Q.value = q; ga.gain.value = amp; o.connect(bp); bp.connect(ga); ga.connect(g); }
-      g.connect(this.out); o.start(t); o.stop(t + dur + 0.05);
-    }
-    this.burst(0.04, 2400 * vc.k, 1200, 0.06 * v, 'bandpass', 0.175, 2);   // the k between them
+  greet(v) {                             // the Colony's valet says hello: a bright arcade ding-dong
+    if (!this.ctx || this.muted || !(v > 0.04)) return;
+    this.tone(1318, 1318, 0.12, 0.14 * v, 'square'); this.tone(988, 988, 0.22, 0.14 * v, 'square', 0.13); this.tone(1976, 1976, 0.08, 0.05 * v, 'triangle');
   },
   pickup() { this.tone(660, 990, 0.12, 0.15, 'square'); },
   hurt() { this.tone(220, 90, 0.16, 0.2, 'sawtooth'); },

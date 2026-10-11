@@ -27,22 +27,15 @@ function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away
   }
 }
 const hearV = (x, y) => clamp(1 - dist(x, y, P.x, P.y) / 800, 0, 1);   // how loud something sounds from where you are
-function voiceOf(p) {                    // each person's own voice: a lower or a higher one (js/02 Snd.voice)
-  if (!p.voice) { const hi = Math.random() < 0.45; p.voice = hi ? { f: rand(190, 270), k: rand(1.1, 1.22) } : { f: rand(90, 150), k: rand(0.92, 1.04) }; }
-  return p.voice;
-}
-function personHit(p, k, kill) {         // the impact, and a grunt (or, dying, a cry) - js/02
-  const v = hearV(p.x, p.y); Snd.hitBody(k, v); if (!kill && feat('voices')) Snd.voice(voiceOf(p), 'hit', v);
-}
 function killPed(p, how, byPlayer, ang) {
-  if (p.dead) return; p.dead = true; p.deadT = 0; if (feat('voices')) Snd.voice(voiceOf(p), 'die', hearV(p.x, p.y) * (how === 'blast' ? 0.7 : 1)); if (p.soldier && byPlayer) raiseAlarm();   // a soldier killed: the base is on alert (js/08j)
+  if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm();   // a soldier killed: the base is on alert (js/08j)
   if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
   if (byPlayer) { P.kills++; if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else if (!p.crim) reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }   // a criminal of the vigilante job: no crime (js/08n)
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
   alertPeds(p.x, p.y, 300, !byPlayer, 160); if (!p.gibbed) callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
 }
 function killOfficer(o, byPlayer, how, ang) {
-  if (o.dead) return; o.dead = true; o.deadT = 0; if (feat('voices')) Snd.voice(voiceOf(o), 'die', hearV(o.x, o.y) * (how === 'blast' ? 0.7 : 1));
+  if (o.dead) return; o.dead = true; o.deadT = 0;
   if (how === 'blast' && feat('gibs')) gibPerson(o, ang); else bloodFx(o.x, o.y, 16);
   crewLost(o); if (!o.gibbed) callFor('ambulance', o.x, o.y, o);
   dropLoot(o, true);                                               // cash and the officer's pistol (js/08g)
@@ -198,8 +191,8 @@ function driveBy(c, inp) {
 function bulletHit(h, w, a) {                                   // one bullet: the tracer, and what it hit
   const mx = P.x + Math.cos(P.ang) * 18, my = P.y + Math.sin(P.ang) * 18;
   tracers.push({ x1: mx, y1: my, x2: h.x, y2: h.y, life: w.scope ? 0.2 : 0.06 });
-  if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; personHit(p, 'bullet', p.hp <= 0); if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } else if (!provoke(p)) { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
-  else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; personHit(o, 'bullet', o.hp <= 0); if (o.hp <= 0) killOfficer(o, true); else { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } }
+  if (h.type === 'ped') { const p = h.obj; bloodFx(h.x, h.y, 6, a); p.hp -= w.dmg; if (p.hp <= 0) killPed(p, 'gun', true, a); else if (p.cop) { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } else if (!provoke(p)) { p.state = 'flee'; p.fl = 5; p.fx = p.x - P.x; p.fy = p.y - P.y; } }
+  else if (h.type === 'officer') { const o = h.obj; bloodFx(h.x, h.y, 5, a); o.hp -= w.dmg; if (o.hp <= 0) killOfficer(o, true); else { addHeat(COP.crime.hurtCop); PS.armedT = gameT; } }
   else if (h.type === 'car') { spark(h.x, h.y, 5); damageCar(h.obj, w.dmg * w.carDmg, true); }
   else if (h.type === 'plane') { spark(h.x, h.y, 5); damagePlane(h.obj, w.dmg * w.carDmg, true); }   // js/08i
   else if (h.type === 'target') { spark(h.x, h.y, 5); damageTarget(h.obj, w.dmg * w.carDmg, true); }   // js/08j
