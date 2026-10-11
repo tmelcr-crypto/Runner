@@ -204,10 +204,10 @@ function buildCity() {
       else if (r < pr + 0.2) { fc.push({ x: bx, y: 4.5, z: by, sx: 3.2, sy: 9, sz: 3.2, c: pick(['#2f6f4f', '#3a3f5c']) }); thr = [bx, by, 0.6, 'bin']; BINS.push({ x: bx, y: by, t: -999 }); }   // a bin: the trash truck stops here (js/08c)
       else if (r < pr + 0.25) { fc.push({ x: kx, y: 3.5, z: ky, sx: 2.4, sy: 7, sz: 2.4, c: '#e0364f' }); thr = [kx, ky, 1.6, 'hydrant']; }
       else if (r < pr + 0.28) { fb.push({ x: bx, y: 11, z: by, sx: 8, sy: 22, sz: 8, ry: yaw, c: '#2a4aa8' }); fb.push({ x: bx, y: 23, z: by, sx: 8.4, sy: 2, sz: 8.4, ry: yaw, c: '#3fe0ff' }); thr = [bx, by, 1.4, 'booth']; }   // a phone box: the glass shatters
-      else if (r < pr + 0.31) { fb.push({ x: bx, y: 4, z: by, sx: 5, sy: 8, sz: 5, ry: yaw, c: pick(['#e0364f', '#2f6fd6', '#ffb02e', '#2fbf71']) }); thr = [bx, by, 0.8, 'bin']; }
+      else if (r < pr + 0.31) { fb.push({ x: bx, y: 4, z: by, sx: 5, sy: 8, sz: 5, ry: yaw, c: pick(['#e0364f', '#2f6fd6', '#ffb02e', '#2fbf71']) }); thr = [bx, by, 0.8, 'news']; }   // a newspaper box
       else if (r < pr + 0.45) { const px = bx - rx * 2, py = by - ry * 2; boxPile(fb, px, py, yaw, c.tx, c.ty, randi(1, 4)); thr = [px, py, 0.4, 'box']; }   // cardboard boxes put out by the shops
       else if (r < pr + 0.56) { const px = bx - rx * 2, py = by - ry * 2; bagHeap(fs, px, py, randi(2, 4)); thr = [px, py, 0.5, 'bag']; }               // garbage bags
-      else if (r < pr + 0.63) { wheelie(fb, bx, by, yaw); thr = [bx, by, 0.8, 'bin']; BINS.push({ x: bx, y: by, t: -999 }); }                         // a wheelie bin
+      else if (r < pr + 0.63) { wheelie(fb, bx, by, yaw); thr = [bx, by, 0.8, 'wheelie']; BINS.push({ x: bx, y: by, t: -999 }); }                         // a wheelie bin
       else if (r < pr + 0.71 && METERED[districtAt(c.x, c.y)]) { fc.push({ x: kx, y: 4.5, z: ky, sx: 0.8, sy: 9, sz: 0.8, c: '#55586a' }); fb.push({ x: kx, y: 10, z: ky, sx: 2.4, sy: 3.6, sz: 1.8, ry: yaw, c: '#c8ccd4' }); fb.push({ x: kx, y: 10.6, z: ky, sx: 2.6, sy: 1.2, sz: 1.9, ry: yaw, c: '#ffd23f' }); thr = [kx, ky, 0.3, 'meter']; }   // a parking meter at the kerb
       if (thr) registerThrow(thr[0], thr[1], partsSince(furn, mark), null, thr[2], thr[3]);
     }

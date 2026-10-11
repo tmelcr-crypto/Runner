@@ -46,16 +46,16 @@ const Snd = {
     this.sir.o.frequency.setTargetAtTime(740 + 260 * Math.sin(time * 7), t, 0.02);
     this.sir.g.gain.setTargetAtTime(v * 0.05, t, 0.1);
   },
-  burst(dur, f0, f1, vol, type) {
-    if (!this.ctx || this.muted) return; const c = this.ctx, t = c.currentTime;
+  burst(dur, f0, f1, vol, type, dl, q) {        // filtered noise; dl: start this much later (s); q: the filter's Q
+    if (!this.ctx || this.muted || !(vol > 0.002)) return; const c = this.ctx, t = c.currentTime + (dl || 0);
     const s = c.createBufferSource(); s.buffer = this.noise;
-    const fl = c.createBiquadFilter(); fl.type = type || 'lowpass';
+    const fl = c.createBiquadFilter(); fl.type = type || 'lowpass'; if (q) fl.Q.value = q;
     fl.frequency.setValueAtTime(f0, t); fl.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
     const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     s.connect(fl); fl.connect(g); g.connect(this.out); s.start(t, Math.random() * 0.5, dur + 0.05);
   },
-  tone(f0, f1, dur, vol, type) {
-    if (!this.ctx || this.muted) return; const c = this.ctx, t = c.currentTime;
+  tone(f0, f1, dur, vol, type, dl) {            // a sweeping oscillator; dl: start this much later (s)
+    if (!this.ctx || this.muted || !(vol > 0.002)) return; const c = this.ctx, t = c.currentTime + (dl || 0);
     const o = c.createOscillator(); o.type = type || 'square';
     o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
     const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
@@ -78,17 +78,59 @@ const Snd = {
   bolt() { this.tone(900, 500, 0.05, 0.12, 'square'); setTimeout(() => this.tone(600, 1100, 0.06, 0.12, 'square'), 380); },
   boom() { this.burst(1.3, 1400, 60, 0.9); this.tone(90, 28, 0.9, 0.7, 'sine'); },
   thud(v) { this.burst(0.12, 500, 120, Math.min(0.5, 0.1 + v * 0.002)); },
-  smash(k, v) {                          // a car through street junk (js/12e); v: 1 close by, 0 far away
-    if (k === 'box') { this.burst(0.14, 1400, 250, 0.32 * v); this.burst(0.08, 300, 90, 0.3 * v); }                 // cardboard: a dull crumple
-    else if (k === 'bag') { this.burst(0.2, 700, 140, 0.36 * v); this.burst(0.06, 2400, 900, 0.12 * v, 'bandpass'); } // a soft burst
-    else if (k === 'crate' || k === 'pallet') { this.burst(0.12, 3000, 700, 0.4 * v, 'bandpass'); this.tone(180, 90, 0.08, 0.14 * v, 'square'); }   // splintering wood
-    else if (k === 'booth') { this.burst(0.35, 7000, 2500, 0.32 * v, 'highpass'); this.tone(2400, 1800, 0.12, 0.08 * v, 'triangle'); }   // glass shattering
-    else if (k === 'bush') { this.burst(0.25, 2500, 900, 0.22 * v, 'bandpass'); }                                       // a rustle
-    else if (k === 'planter') { this.burst(0.15, 900, 200, 0.4 * v); this.tone(160, 80, 0.1, 0.15 * v, 'sine'); }         // a crack and a thud
-    else if (k === 'bench') { this.burst(0.14, 2600, 600, 0.38 * v, 'bandpass'); this.tone(150, 80, 0.1, 0.15 * v, 'square'); }   // wood
-    else if (k === 'umbrella') { this.burst(0.18, 1200, 400, 0.2 * v, 'bandpass'); }
-    else if (k === 'hydrant') { this.tone(620, 380, 0.3, 0.2 * v, 'square'); this.burst(2.4, 5000, 3000, 0.16 * v, 'highpass'); }   // a clang, then the hiss of water
-    else { this.tone(460, 260, 0.22, 0.17 * v, 'square'); this.burst(0.1, 1800, 400, 0.25 * v); }                   // a bin: a hollow clang
+  metal(f, dur, vol, dl) {               // struck metal: a few out-of-tune partials ringing down
+    for (const [r, a] of [[1, 1], [2.76, 0.55], [5.4, 0.3], [8.93, 0.16]]) this.tone(f * r, f * r * 0.992, dur / (1 + r * 0.12), vol * a, 'sine', dl);
+  },
+  smash(k, v) {                          // street junk hit by a car or a swing (js/12e, js/06b); v: 1 close by, 0 far away. Every kind its own sound, never quite the same twice
+    if (!this.ctx || this.muted || !(v > 0.02)) return;
+    const j = 0.9 + Math.random() * 0.22, r = () => Math.random();
+    if (k === 'box') { this.burst(0.05, 2200 * j, 900, 0.32 * v, 'bandpass', 0, 2); this.burst(0.16, 900 * j, 160, 0.5 * v); this.burst(0.09, 260, 80, 0.42 * v, 'lowpass', 0.02); }   // cardboard: a hollow papery thump as it folds
+    else if (k === 'bag') { this.burst(0.22, 600 * j, 120, 0.46 * v); for (let n = 0; n < 4; n++) this.burst(0.05, 3200 * j, 1600, 0.1 * v, 'bandpass', 0.03 + n * 0.05 + r() * 0.02, 3); this.burst(0.12, 380, 90, 0.18 * v, 'lowpass', 0.08); }   // a heavy plastic burst, its rustle, the squelch inside
+    else if (k === 'crate' || k === 'pallet') { for (let n = 0; n < 3; n++) this.burst(0.04, 3800 * j, 1800, 0.34 * v, 'bandpass', n * 0.035 + r() * 0.015, 5); this.tone(k === 'crate' ? 190 * j : 240 * j, 110, 0.1, 0.18 * v, 'triangle'); }   // slats splintering crack-crack-crack
+    else if (k === 'bench') { this.burst(0.05, 3200 * j, 1500, 0.32 * v, 'bandpass', 0, 4); this.tone(170 * j, 90, 0.12, 0.2 * v, 'triangle'); this.metal(310 * j, 0.35, 0.07 * v, 0.03); }   // the slats crack, the iron frame rings
+    else if (k === 'booth') { this.burst(0.06, 4000, 2000, 0.3 * v, 'bandpass', 0, 2); this.burst(0.5, 9000, 4000, 0.3 * v, 'highpass'); for (let n = 0; n < 6; n++) this.tone(2600 + r() * 2600, 2400, 0.08, 0.06 * v, 'sine', 0.05 + r() * 0.35); }   // glass: the crack, the shatter, shards tinkling down
+    else if (k === 'planter') { this.burst(0.04, 2600 * j, 1200, 0.3 * v, 'bandpass', 0, 6); this.tone(620 * j, 560, 0.12, 0.12 * v, 'sine'); this.burst(0.2, 700, 120, 0.3 * v, 'lowpass', 0.03); for (let n = 0; n < 3; n++) this.tone(1300 + r() * 900, 1200, 0.05, 0.05 * v, 'sine', 0.1 + r() * 0.2); }   // a clay pot: the crack, its ring, the earth spilling, bits
+    else if (k === 'bush') { for (let n = 0; n < 5; n++) this.burst(0.09, 2800 * j, 1200, 0.2 * v, 'bandpass', n * 0.04 + r() * 0.02, 1.5); this.burst(0.06, 1400, 500, 0.2 * v, 'bandpass', 0.05, 6); }   // leaves thrashing, a twig snapping
+    else if (k === 'umbrella') { this.burst(0.18, 300 * j, 900, 0.32 * v, 'lowpass'); this.burst(0.12, 1500, 500, 0.14 * v, 'bandpass', 0.12, 2); this.metal(820 * j, 0.12, 0.04 * v, 0.02); }   // the canvas whumps and flaps, the pole rattles
+    else if (k === 'hydrant') { this.metal(240 * j, 0.6, 0.16 * v); this.burst(0.08, 1800, 500, 0.3 * v); this.burst(2.6, 600, 2400, 0.18 * v, 'bandpass', 0.06, 0.7); this.burst(2.6, 5200, 3000, 0.13 * v, 'highpass', 0.1); }   // a heavy clank, then the gush and hiss of water
+    else if (k === 'meter') { this.metal(1100 * j, 0.3, 0.1 * v); this.burst(0.05, 2400, 1000, 0.2 * v, 'bandpass', 0, 3); for (let n = 0; n < 5; n++) this.metal(2400 + r() * 1800, 0.07, 0.03 * v, 0.08 + n * 0.05 + r() * 0.03); }   // a thin ping, then coins jingling out
+    else if (k === 'news') { this.metal(520 * j, 0.25, 0.1 * v); this.burst(0.1, 1600, 500, 0.24 * v); this.burst(0.25, 3000, 1400, 0.1 * v, 'bandpass', 0.06, 1.2); }   // a sheet-metal box bangs, newspapers flutter out
+    else if (k === 'wheelie') { this.burst(0.14, 700 * j, 160, 0.38 * v); this.tone(130 * j, 70, 0.14, 0.26 * v, 'triangle'); this.burst(0.08, 1400, 600, 0.12 * v, 'bandpass', 0.06, 2); }   // a hollow plastic bonk, the lid slapping
+    else if (k === 'barrel') { this.metal(140 * j, 0.7, 0.18 * v); this.tone(90 * j, 70, 0.4, 0.2 * v, 'sine'); this.burst(0.08, 1500, 400, 0.26 * v); }   // a deep oil-drum boom
+    else { this.metal(380 * j, 0.32, 0.12 * v); this.burst(0.1, 1800, 400, 0.24 * v); this.burst(0.18, 1200, 400, 0.08 * v, 'bandpass', 0.05, 1.5); }   // a street bin: a tinny clang, trash spilling
+  },
+  /* people: a different impact for each weapon, and voices - a buzzing source through two vowel formants, every person their own pitch */
+  hitBody(k, v) {                        // k: punch, bat, golf, stab, chop, bullet, car; v: 1 close by
+    if (!this.ctx || this.muted || !(v > 0.02)) return;
+    const j = 0.9 + Math.random() * 0.2;
+    if (k === 'punch') { this.burst(0.03, 3000 * j, 1500, 0.2 * v, 'bandpass', 0, 2); this.burst(0.09, 800 * j, 140, 0.4 * v); this.tone(150 * j, 70, 0.08, 0.26 * v, 'sine'); }   // skin slap and a dull thud
+    else if (k === 'bat') { this.burst(0.03, 2600 * j, 1400, 0.3 * v, 'bandpass', 0, 4); this.burst(0.14, 600 * j, 100, 0.5 * v); this.tone(110 * j, 50, 0.14, 0.34 * v, 'sine'); }   // wood on a body: a crack and a heavy thump
+    else if (k === 'golf') { this.metal(1500 * j, 0.25, 0.06 * v); this.burst(0.12, 700, 120, 0.4 * v); this.tone(130 * j, 60, 0.1, 0.25 * v, 'sine'); }   // a ping and a thump
+    else if (k === 'stab') { this.burst(0.07, 1500 * j, 500, 0.55 * v, 'bandpass', 0, 3); this.burst(0.12, 450, 110, 0.45 * v, 'lowpass', 0.03); }   // a short wet stab
+    else if (k === 'chop') { this.burst(0.06, 2600 * j, 900, 0.3 * v, 'bandpass', 0, 2); this.burst(0.14, 700, 120, 0.38 * v, 'lowpass', 0.02); this.tone(120 * j, 60, 0.08, 0.2 * v, 'sine', 0.02); }   // a blade biting in
+    else if (k === 'bullet') { this.burst(0.03, 3400 * j, 1600, 0.45 * v, 'bandpass', 0, 3); this.burst(0.08, 500, 110, 0.55 * v); }   // a sharp thwack
+    else if (k === 'car') { this.burst(0.22, 900 * j, 80, 0.6 * v); this.tone(85 * j, 35, 0.22, 0.42 * v, 'sine'); this.burst(0.1, 3200, 900, 0.2 * v, 'bandpass', 0.02, 2); }   // a body against the bonnet
+  },
+  voice(vc, kind, v) {                   // vc: { f: pitch, k: formant scale }; kind: hit (a grunt) or die (a cry, a groan or a scream)
+    if (!this.ctx || this.muted || !(v > 0.04) || !vc) return;
+    const now = this.ctx.currentTime; this.vq = (this.vq || []).filter(t => t > now); if (this.vq.length >= 3) return;   // never more than three voices at once
+    const c = this.ctx, t = now + 0.01, o = c.createOscillator(); o.type = 'sawtooth';
+    const style = kind === 'hit' ? 'hit' : Math.random() < 0.45 ? 'scream' : Math.random() < 0.5 ? 'cry' : 'groan';
+    const dur = style === 'hit' ? 0.14 + Math.random() * 0.14 : style === 'scream' ? 0.6 + Math.random() * 0.45 : 0.45 + Math.random() * 0.4, f = vc.f * (0.9 + Math.random() * 0.22);
+    const fr = o.frequency;
+    if (style === 'hit') { fr.setValueAtTime(f * 1.3, t); fr.exponentialRampToValueAtTime(f * 0.8, t + dur); }
+    else if (style === 'scream') { fr.setValueAtTime(f * 1.7, t); fr.exponentialRampToValueAtTime(f * 2.4, t + dur * 0.25); fr.exponentialRampToValueAtTime(f * 1.3, t + dur); }
+    else if (style === 'cry') { fr.setValueAtTime(f * 1.5, t); fr.exponentialRampToValueAtTime(f * 1.9, t + 0.08); fr.exponentialRampToValueAtTime(f * 0.7, t + dur); }
+    else { fr.setValueAtTime(f * 1.1, t); fr.exponentialRampToValueAtTime(f * 0.55, t + dur); }
+    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 5 + Math.random() * 3; lg.gain.value = f * (style === 'scream' ? 0.06 : 0.025); lfo.connect(lg); lg.connect(fr); lfo.start(t); lfo.stop(t + dur + 0.05);   // the voice wavers
+    const V = [[730, 1090], [570, 840], [660, 1700], [490, 1350], [300, 870]][Math.floor(Math.random() * 5)];   // ah, aw, ae, uh, oo
+    const g = c.createGain(), peak = (style === 'hit' ? 0.62 : style === 'scream' ? 0.66 : 0.56) * v;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.025); g.gain.setValueAtTime(peak * 0.8, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    for (const [F, q, a] of [[V[0] * vc.k, 7, 1], [V[1] * vc.k, 9, 0.6], [2600 * vc.k, 6, 0.18]]) {
+      const bp = c.createBiquadFilter(), ga = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = F; bp.Q.value = q; ga.gain.value = a; o.connect(bp); bp.connect(ga); ga.connect(g);
+    }
+    g.connect(this.out); o.start(t); o.stop(t + dur + 0.05); this.vq.push(t + dur);
+    this.burst(dur * 0.8, 2200 * vc.k, 1200, peak * 0.12, 'bandpass', 0.01, 1.2);   // breath
   },
   pickup() { this.tone(660, 990, 0.12, 0.15, 'square'); },
   hurt() { this.tone(220, 90, 0.16, 0.2, 'sawtooth'); },

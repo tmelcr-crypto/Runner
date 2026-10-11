@@ -44,6 +44,21 @@ Four garages, see-through roof, any colour, €100, police lose you unseen. See 
 - **Buying**: a FOR SALE sign at the door; a card with the price, the cars it keeps and a picture; BUY. Map icons: a green house
   for yours, a white house with € for one for sale. Going in unseen loses the police (like the Pay 'n' Spray).
 
+## 4b. Before the showroom (asked October 2026; both modes, each part merged when done)
+- **Sounds**: hitting and breaking street objects sounds different for each kind, made in the game like the other sounds: cardboard
+  thump, bag rustle, wood crack (crates, pallets, benches), metal clang (bins, barrels, meters, newspaper boxes), the hydrant's clank
+  and water hiss, glass shattering (phone box), a pot smashing (planter), leaves (bush), an umbrella flapping. People: a different
+  impact for fists, bats, knives, bullets and being run over, a short pained grunt on a hit and a cry when someone dies - higher and
+  lower voices, never twice the same.
+- **The Colony**: an O-ring drive in front of the entrance (a loop round a planted island) and a valet in uniform at the door who greets
+  you - scenery only.
+- **The lunapark car park**: a palm forest around it, a rocky coast, and one wooden pier with a few moored boats (scenery now; the
+  boats you can drive, when they come, tie up there).
+- **120 unique buildings**, each its own model, colours and neon name, like the original Colony on its lot - a Miami mix: Art Deco and
+  Streamline hotels on the beach streets, MiMo motels, Mediterranean villas, diners, cinemas, banks, churches, nightclubs, shops and
+  offices. Spread over every district, the most along the beachfront (Sandbar, Sunstrip, Coral Shore), each replacing ordinary
+  buildings on its lot. The SEA BREEZE (the hotel by the old start) becomes one of them.
+
 ## 5. Car showroom and tuning (Sunstrip)
 - A glass showroom on a main street in Sunstrip, cars on turntables: every car kind plus three rare ones sold only there (a
   supercar, a classic convertible, a muscle car). A bought car is delivered to a safehouse garage or parking space you choose.
