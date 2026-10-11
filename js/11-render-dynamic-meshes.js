@@ -168,7 +168,8 @@ function syncCar(c, time, dt) {
   if (!c.mesh) buildCar(c); track(c);
   const gy = groundH(c.x, c.y); c.gy = c.gy === undefined ? gy : c.gy + (gy - c.gy) * Math.min(1, dt * 14);
   if (c.sunk) { c.mesh.visible = c.sinkT < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, c.sinkT * c.sinkT * 9 + c.sinkT * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, c.sinkT * 0.3); return; }
-  c.mesh.position.set(c.x, c.gy + (c.air || 0), c.y); c.mesh.rotation.y = -c.ang;
+  c.mesh.position.set(c.x, c.gy + (c.air || 0) + (c.z || 0), c.y); c.mesh.rotation.y = -c.ang;   // z: up a car park deck (js/10k)
+  c.tilt.rotation.z = c.zg ? Math.atan(c.zg * Math.sin(c.ang)) : 0;               // nose up or down a ramp
   const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), bike = c.t.body === 'bike';
   const want = c.air > 0 ? clamp(c.av * 0.07, -0.6, 0.6) : bike ? (c.driver ? clamp(c.av * vf / 260, -0.55, 0.55) : 0.22) : -clamp(c.av * vf / 450, -0.12, 0.12);   // rolls a little (in the air: a lot); a bike leans into the bend, parked it stands on its stand
   c.roll += (want - c.roll) * Math.min(1, dt * 8); c.tilt.rotation.x = c.roll;
@@ -249,7 +250,7 @@ function syncPlayer(time, dt) {
   }
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over'; P3.mesh.visible = vis; if (!vis) return;
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
-  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
+  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8;
   o.legs[0].rotation.z = k; o.legs[1].rotation.z = -k; o.arms[0].rotation.z = -k * 0.5; o.arms[1].rotation.z = 0; o.tilt.position.y = Math.abs(k) * 0.8;
   o.torso.material = P.hurtT > 0 ? P3.red : o.topMat;

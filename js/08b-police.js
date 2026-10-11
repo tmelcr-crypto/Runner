@@ -17,6 +17,7 @@ function resetPolice() {
 
 /* ---------- seeing and hearing ---------- */
 function copSees(ex, ey, face, px, py, wide) {
+  if (zOf(P.car || P) > 15) return false;                           // up on a car park deck: out of sight from the street (js/10k)
   const d = dist(ex, ey, px, py); if (d > COP.sight * SKY.vis) return false;   // less far at night, in rain and fog (js/12d)
   if (!wide && d > 1 && Math.abs(angDiff(face, Math.atan2(py - ey, px - ex))) > COP.fov / 2) return false;
   return losClear(ex, ey, px, py);

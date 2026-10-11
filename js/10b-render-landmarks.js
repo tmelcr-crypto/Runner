@@ -161,6 +161,7 @@ let COLONY = null;
 const COLONY_SIGN = 14;                                          // how far the sign stands out from the front
 function colonySpot() {
   COLONY = null; const L = MAP.lm.find(l => l.t === 'colony'); if (!L) return null;
+  if (L.w) { const a = L.a * Math.PI / 180; return (COLONY = { cx: L.x, cy: L.y, a, ca: Math.cos(a), sa: Math.sin(a), lw: L.d, lh: L.w, H: L.h, big: L }); }   // the map's own lot (remodel 4): on the beach
   const r = nearestRoad(L.x, L.y, 500); if (!r) return null;
   const q = edgeAt(r.e, r.s, {}); let nx = -q.ty, ny = q.tx; if (nx > 0) { nx = -nx; ny = -ny; }   // the side away from the beach
   let back = 260;                                                 // the lot runs back until the sidewalk of the next street
@@ -224,6 +225,84 @@ function makeColony() {
   sign(neonSign('COLONY', true, 14, 64), (x1 - 2 + F) / 2, 58, -11.5, Math.PI);
   sign(neonSign('HOTEL', false, 70, 6.4), F + 0.5, 18, 0, Math.PI / 2);                                 // HOTEL across the bar
   return m;
+}
+
+/* ---------- the Colony on the beach (remodel 4): the same Streamline Moderne hotel, three times the size - seven floors, rounded front
+   corners, eyebrow ledges wrapping them, turquoise bands, a stepped parapet, the inverted-T sign (COLONY down a pylon, HOTEL across the
+   bar over the door) and a board on the roof that faces the camera; balconies over its park at the back, a pool on the roof.
+   Local +x is the front, toward the avenue. */
+const COLONY_BIG_SIGN = 30;
+function makeColonyBig() {
+  const T = new GeoBuilder(), G = new GeoBuilder(), D = COLONY.lw, W = COLONY.lh, H = COLONY.H, x0 = -D / 2, x1 = D / 2, z0 = -W / 2, z1 = W / 2, R = 26;
+  const white = _C('#f2efe6'), turq = _C('#35c9c0'), glass = _C('#1d2f4a'), blue = _C('#2f9bff'), warm = _C('#ffd98a'), rail = _C('#bfe9ff');
+  const front = (gb, y0, y1, za, zb, col, dx) => face(gb, [[x1 + (dx || 0.3), y0, za], [x1 + (dx || 0.3), y0, zb], [x1 + (dx || 0.3), y1, zb], [x1 + (dx || 0.3), y1, za]], [1, 0, 0], col);
+  const side = (gb, sz, y0, y1, xa, xb, col) => face(gb, [[xa, y0, sz * (z1 + 0.3)], [xb, y0, sz * (z1 + 0.3)], [xb, y1, sz * (z1 + 0.3)], [xa, y1, sz * (z1 + 0.3)]], [0, 0, sz], col);
+  const back = (gb, y0, y1, za, zb, col) => face(gb, [[x0 - 0.3, y0, za], [x0 - 0.3, y0, zb], [x0 - 0.3, y1, zb], [x0 - 0.3, y1, za]], [-1, 0, 0], col);
+  box5(T, x0 - 4, 0, z0 - 4, x1 + 6, 3, z1 + 4, _C('#3a3150'));                                      // the plinth
+  box5(T, x0, 3, z0, x1 - R, H, z1, white); box5(T, x1 - R, 3, z0 + R, x1, H, z1 - R, white);         // the block, its front corners rounded off -
+  for (const sz of [-1, 1]) T.prism(x1 - R, sz * (W / 2 - R), R, 3, H, white, 16, R, true);           // solid, capped quarter-rounds
+  front(T, 3, 9, z0 + R, z1 - R, turq);
+  front(G, 10, 27, -70, 70, warm);                                                                      // the lit lobby behind the glass
+  for (const zc of [-170, -140, -110, 110, 140, 170]) front(T, 10, 26, zc - 11, zc + 11, glass);
+  const floors = []; for (let y = 34; y < H - 10; y += 14) floors.push(y);
+  for (const y of floors) {                                                                             // window rows on every floor
+    for (let zc = z0 + R + 14; zc < z1 - R - 10; zc += 26) if (Math.abs(zc) > 44) front(T, y, y + 9, zc - 9, zc + 9, glass);
+    for (const sz of [-1, 1]) { for (let xc = x0 + 18; xc < x1 - R - 20; xc += 26) side(T, sz, y, y + 9, xc - 9, xc + 9, glass); side(T, sz, y, y + 9, x1 - R - 34, x1 - R - 4, glass); }
+    box5(T, x1, y - 3, z0 + R, x1 + 10, y - 1.2, z1 - R, white);                                       // eyebrows over each row, wrapping the corners
+    for (const sz of [-1, 1]) { box5(T, x1 - R - 60, y - 3, sz > 0 ? z1 : z0 - 10, x1 - R, y - 1.2, sz > 0 ? z1 + 10 : z0, white); T.prism(x1 - R, sz * (W / 2 - R), R + 10, y - 3, y - 1.2, white, 16, R + 10, true); }
+    front(T, y - 6, y - 3, z0 + R, z1 - R, turq);
+    box5(G, x1 + 9.4, y - 2.2, z0 + R + 4, x1 + 10.2, y - 1.6, z1 - R - 4, blue);                    // blue neon under each ledge
+    for (let zc = z0 + 30; zc < z1 - 20; zc += 60) {                                                    // balconies over the park at the back
+      box5(T, x0 - 12, y - 4, zc - 22, x0, y - 2.4, zc + 22, white); box5(G, x0 - 12, y - 2.4, zc - 22, x0 - 11, y + 4, zc + 22, rail);
+      back(T, y, y + 10, zc - 16, zc + 16, glass);
+    }
+  }
+  back(G, 10, 26, -60, 60, warm);                                                                       // the doors to the terrace
+  front(T, H - 9, H - 4, z0 + R, z1 - R, turq);
+  box5(T, x1 - 100, H, -120, x1, H + 18, 120, white); box5(T, x1 - 70, H + 18, -78, x1, H + 33, 78, white);   // the stepped parapet
+  front(T, H + 12, H + 17, -120, 120, turq, 0.4); front(T, H + 27, H + 32, -78, 78, turq, 0.4);
+  box5(T, x0 + 14, H, z0 + 30, x0 + 104, H + 2, z0 + 150, _C('#d8d2c4')); box5(G, x0 + 22, H + 2, z0 + 38, x0 + 96, H + 2.6, z0 + 142, _C('#3fd0ff'));   // the rooftop pool
+  for (let k = 0; k < 6; k++) box5(T, x0 + 22 + k * 13, H + 2, z0 + 156, x0 + 30 + k * 13, H + 4, z0 + 172, _C(k % 2 ? '#ff7ab6' : '#ffe14a'));   // loungers
+  for (const [ax, az] of [[x0 + 30, 60], [x0 + 30, 120], [x0 + 70, 160]]) box5(T, ax, H, az, ax + 22, H + 10, az + 22, _C('#9aa0ab'));
+  const F = x1 + COLONY_BIG_SIGN;
+  box5(T, x1 + 6, 32, -140, F, 52, 140, white);                                                        // the bar of the T, over the door
+  for (const [a, b] of [[32, 33.6], [50.4, 52]]) box5(G, F - 0.6, a, -140, F + 0.6, b, 140, blue);
+  box5(T, x1 - 4, 52, -26, F, H + 80, 26, white);                                                      // the stem: a pylon standing out from the front, high over the roof
+  for (const sz of [-1, 1]) box5(G, F - 0.6, 52, sz * 26 - 0.6, F + 0.6, H + 80, sz * 26 + 0.6, blue);
+  box5(G, x1 - 4, H + 80, -26.6, F + 0.6, H + 82, 26.6, blue);
+  const m = lmMesh(T, G), own = m.userData.own, put = (mesh, x, y, z, ry) => { mesh.position.set(x, y, z); mesh.rotation.y = ry; m.add(mesh); own.push(mesh.material); };
+  put(neonSign('COLONY', true, 42, 150), F + 0.8, 120, 0, Math.PI / 2);                                // down the face of the pylon
+  for (const sz of [-1, 1]) put(neonSign('COLONY', true, 34, 150), (x1 - 4 + F) / 2, 120, sz * 26.8, sz > 0 ? 0 : Math.PI);
+  put(neonSign('HOTEL', false, 220, 15), F + 0.8, 42, 0, Math.PI / 2);
+  const board = neonSign('COLONY HOTEL', false, 190, 32); board.rotation.order = 'YXZ';                // a board on the roof the camera can read, whichever way the hotel faces (beside the pylon, not over it)
+  board.rotation.set(-(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180), COLONY.a, 0); board.position.set(x1 - 60, H + 46, -COLONY.ca * 125); m.add(board); own.push(board.material);
+  return m;
+}
+function makeColonyPark(L) {             // its park: lawns (map grass), paths (map yards), the fountain, palms, flower beds, benches, lamps
+  const T = new GeoBuilder(), G = new GeoBuilder(), [px0, py0, px1, py1] = L.park, cx = (px0 + px1) / 2, cy = (py0 + py1) / 2, [fx0, fy0, fr] = L.fountain, fx = fx0 - cx, fz = fy0 - cy;
+  const stone = _C('#e6e0f0'), wood = _C('#7a5a3a'), water = _C('#3fe8ff'), spray = _C('#bff6ff'), hw = (px1 - px0) / 2, hh = (py1 - py0) / 2;
+  T.prism(fx, fz, fr, 0, 7, stone, 28, fr, true); disc(G, fx, fz, fr - 5, 7.2, water, 28);             // the basin
+  T.prism(fx, fz, 16, 7, 16, stone, 16, 16, true); T.prism(fx, fz, 26, 16, 19, stone, 18, 30, true); disc(G, fx, fz, 26, 19.2, water, 18);   // the tiers
+  T.prism(fx, fz, 5, 19, 34, stone, 10); T.prism(fx, fz, 12, 34, 36.5, stone, 14, 13, true); disc(G, fx, fz, 11, 36.7, water, 14);
+  G.prism(fx, fz, 2.4, 36.5, 62, spray, 8, 0.4, true);                                                 // the jet
+  for (let k = 0; k < 8; k++) { const a = k * TAU / 8; G.prism(fx + Math.cos(a) * (fr - 10), fz + Math.sin(a) * (fr - 10), 1.2, 7, 20, spray, 6, 0.3, true); }   // and the ring of small ones
+  for (let k = 0; k < 16; k++) {                                                                       // palms round the edge
+    const t = k / 16, onX = k % 2, x = onX ? -hw + 24 + t * (2 * hw - 48) : (k % 4 < 2 ? -hw + 22 : hw - 22), z = onX ? (k % 4 === 1 ? -hh + 22 : hh - 22) : -hh + 30 + t * (2 * hh - 60);
+    palm(T, x, z, rand(34, 46));
+  }
+  for (const [x, z] of [[fx - 120, fz - 120], [fx + 120, fz - 120], [fx - 120, fz + 120], [fx + 120, fz + 120]]) {   // flower beds in the lawns
+    box5(T, x - 34, 0, z - 22, x + 34, 3, z + 22, stone); flat(T, x - 32, z - 20, x + 32, z + 20, 3.2, _C('#2f8f4e'));
+    for (let k = 0; k < 14; k++) T.prism(x + rand(-28, 28), z + rand(-16, 16), 3, 3, 7, _C(pick(['#ff4d8d', '#ffe14a', '#ff7a3d', '#c77dff', '#ffffff'])), 6, 3, true);
+  }
+  for (let k = 0; k < 8; k++) {                                                                        // benches round the fountain, facing it
+    const a = k * TAU / 8 + TAU / 16, r = fr + 34, bx = fx + Math.cos(a) * r, bz = fz + Math.sin(a) * r, ux = -Math.sin(a), uz = Math.cos(a), P = (u, v, y) => [bx + ux * u + Math.cos(a) * v, y, bz + uz * u + Math.sin(a) * v];
+    face(T, [P(-9, -2.5, 4), P(9, -2.5, 4), P(9, 2.5, 4), P(-9, 2.5, 4)], [0, 1, 0], wood);
+    face(T, [P(-9, 2.5, 4), P(9, 2.5, 4), P(9, 2.5, 9.5), P(-9, 2.5, 9.5)], [Math.cos(a), 0, Math.sin(a)], wood);
+  }
+  for (const [x, z] of [[-hw + 60, 0], [hw - 60, 0], [fx, -hh + 60], [fx, hh - 60], [fx - 140, fz - 40], [fx + 140, fz + 40]]) {   // lamps along the paths
+    T.prism(x + 20, z + 20, 1, 0, 30, _C('#14102a'), 6); box5(G, x + 17, 30, z + 17, x + 23, 33, z + 23, _C('#fff3b0'));
+  }
+  return lmMesh(T, G);
 }
 
 /* ---------- props ---------- */
@@ -515,6 +594,14 @@ function genLandmarks() {
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeTerminal(L), L.w / 2, L.h / 2);
     } else if (L.t === 'tower') { makeSolid(L.x, L.y, 50, 50, 0, {}); add(L.x, L.y, 0, 60, makeTower); }
     else if (L.t === 'hangars') { makeSolid(L.x, L.y, L.w - 40, L.h - 20, 0, {}); add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeHangars(L), L.w / 2, L.h / 2); }
+    else if (L.t === 'colony' && COLONY && COLONY.big) {                                              // the Colony on the beach, its park and fountain
+      const c = COLONY, [fx, fy, fr] = L.fountain, [px0, py0, px1, py1] = L.park, [dx0, dy0, dx1, dy1] = L.drive;
+      makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {}); solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_BIG_SIGN / 2, 0, COLONY_BIG_SIGN + 4, 54, true);   // the hotel and its sign pylon
+      for (let k = 0; k < 3; k++) makeSolid(fx, fy, fr * 1.7, fr * 1.7, k * Math.PI / 6, {});        // the fountain's basin (three turned squares: near enough round)
+      add(c.cx, c.cy, c.a, Math.hypot(c.lw, c.lh) / 2 + 60, makeColonyBig, c.lw / 2 + 50, c.lh / 2 + 10);
+      LMS.push({ cx: (px0 + px1) / 2, cy: (py0 + py1) / 2, a: 0, rad: Math.hypot(px1 - px0, py1 - py0) / 2, make: () => withSeed(5150, () => makeColonyPark(L)), mesh: null });
+      LM_CLEAR.push([(px0 + px1) / 2, (py0 + py1) / 2, (px1 - px0) / 2 + 10, (py1 - py0) / 2 + 10], [(dx0 + dx1) / 2 - 15, (dy0 + dy1) / 2, (dx1 - dx0) / 2 + 45, (dy1 - dy0) / 2 + 10]);
+    }
     else if (L.t === 'colony' && COLONY) {
       const c = COLONY; makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {});
       solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_SIGN / 2, 0, COLONY_SIGN + 2, 22, true);                  // the sign pylon

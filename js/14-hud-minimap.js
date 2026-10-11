@@ -65,6 +65,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   jobIcons(g, X, Y, q, inView);                                     // taxi ranks and fire stations (js/08n)
   raceIcons(g, X, Y, q, inView);                                    // a ringing phone booth, the speedway and the drag strip (js/08o)
   pnsIcons(g, X, Y, q, inView);                                     // the Pay 'n' Spray garages: a spray can (js/08q)
+  cpIcons(g, X, Y, q, inView);                                      // the lunapark car park: a P (js/10k)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();

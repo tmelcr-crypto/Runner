@@ -82,14 +82,14 @@ function soldierShoot(p, tgt, d) {
 }
 
 /* ---------- gate barriers ---------- */
-function addBarrier(o) {                                          // o: { x, y, a (deg, along the boom), w, mode: stop | shut, gate: posts that watch it }
+function addBarrier(o) {                                          // o: { x, y, a (deg, along the boom), w, mode: stop | shut | ticket (the car park's), gate: posts that watch it }
   const a = o.a * Math.PI / 180; Object.assign(o, { ar: a, open: 0, up: false, stopT: 0, broken: 0 });
   o.s = makeSolid(o.x, o.y, o.w, 6, a, { barrier: o }); BARRIERS.push(o); return o;
 }
 const guardsAt = b => POSTS.some(po => po.gate === b && po.ped && peds.includes(po.ped) && !po.ped.dead);
 function barrierHit(rc, c) {                                      // js/07: a car against a boom - true when it goes through (lifted, or broken)
   const b = rc.barrier;
-  if (b.mode === 'stop' && c.t.cop) return true;                    // the police are always let through
+  if (b.mode !== 'shut' && c.t.cop) return true;                    // the police are always let through
   if (carSpeed(c) < 15 * KMH) return false;
   b.broken = 30; b.open = 0; b.up = false; rc.off = true; spark(b.x, b.y, 10); c.vx *= 0.92; c.vy *= 0.92;
   for (let k = 0; k < 8; k++) { const a = c.ang + rand(-0.8, 0.8), s = carSpeed(c) * rand(0.3, 0.8); addP({ x: b.x, y: b.y, z: rand(8, 16), vz: rand(40, 110), grav: 300, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.6, 1.2), max: 1.2, s0: 3, s1: 2, col: pick(['#ff3b5c', '#f1f1ee']), drag: 2 }); }
@@ -105,6 +105,10 @@ function barriersTick(dt) {
       if (near && carSpeed(c) < 1.5 * MPS && guardsAt(b)) b.stopT += dt; else if (!near) b.stopT = 0;
       if (b.stopT >= PLC.gateStop || cop) b.up = true;
       else if (b.up && !near && !cop) b.up = false;
+    } else if (b.mode === 'ticket') {                                // the car park's barrier (js/10k): stop, take a ticket, it lifts; it lets you out too
+      const at = near && dist(c.x, c.y, b.x, b.y) < 90 && !zOf(c);
+      if (!feat('carPark')) b.up = true;
+      else { if (at && carSpeed(c) < 1.5 * MPS) b.stopT += dt; else if (!at) b.stopT = 0; if (b.stopT >= PLC.gateStop || cop) b.up = true; else if (b.up && !near && !cop) b.up = false; }
     } else b.up = b.mode === 'stop';                                // no guards in this mode: the boom stays up
     b.open = clamp(b.open + (b.up ? 1.6 : -1.2) * dt, 0, 1); b.s.off = b.open > 0.6;
   }
