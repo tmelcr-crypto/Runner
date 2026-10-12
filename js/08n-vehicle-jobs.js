@@ -29,8 +29,8 @@ const jobKind = c => { if (!c) return null; for (const k in JOBK) if (JOBK[k].fi
 const jobOn = k => feat(JOBK[k].feat);
 const typeOf = f => Object.keys(CAR_TYPES).find(id => f(CAR_TYPES[id])) || null;
 const jobCount = L => JB.firstCount + (L - 1) * JB.moreCount;
-const hpMax = () => 100 + (JOB.rew.has('medic') && jobOn('medic') ? JB.medHealth : 0);                   // the paramedic's reward
-const armorMax = () => (ITEM.armor ? ITEM.armor.max : 100) + (JOB.rew.has('vigilante') && jobOn('vigilante') ? JB.vigArmor : 0);   // the vigilante's
+const hpMax = () => Math.max(100 + (JOB.rew.has('medic') && jobOn('medic') ? JB.medHealth : 0), statTop('hp'));   // the paramedic's reward; 100% (js/08zs)
+const armorMax = () => Math.max((ITEM.armor ? ITEM.armor.max : 100) + (JOB.rew.has('vigilante') && jobOn('vigilante') ? JB.vigArmor : 0), statTop('armor'));   // the vigilante's; 100%
 const blastHurt = () => JOB.rew.has('fire') && jobOn('fire') ? JB.fireproof : 1;                       // the firefighter's: fireproof
 const stationCar = c => JB.stationFree && jobOn('vigilante') && !!c.lot && !!c.lot.owner && c.lot.owner.special === 'police'   // js/06 enterCar: taking it is no crime
   && dist(c.x, c.y, c.lot.cx, c.lot.cy) < Math.hypot(c.lot.w, c.lot.d) / 2;

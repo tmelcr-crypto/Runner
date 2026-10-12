@@ -147,12 +147,22 @@
       <button id="saveBtn" class="big alt" type="button">SAVE GAME</button>
       <p class="warn" id="saveWhy" hidden></p>
       <p class="sub" id="sleepNote" hidden>TO SAVE, SLEEP IN A SAFEHOUSE (THE GAME ALSO SAVES ITSELF)</p>
+      <button id="pStatsBtn" class="big alt" type="button">STATS</button>
       <button id="pLoadBtn" class="big alt" type="button">LOAD GAME</button>
       <button id="pNewBtn" class="big alt" type="button">NEW GAME</button>
       <button id="pHelpBtn" class="big alt" type="button">HELP</button>
       <button id="quitBtn" class="big alt" type="button">QUIT TO TITLE</button>
     </div>
     <p class="keys">ESC OR P CARRIES ON</p>
+  </div>
+
+  <div class="card" id="statsCard" hidden>
+    <h2>STATS</h2>
+    <div class="tabs" id="ssTabs"><button type="button" class="on" data-t="pct">100%</button><button type="button" data-t="num">STATS</button><button type="button" data-t="rec">RECORDS</button></div>
+    <div id="ss_pct"></div>
+    <div id="ss_num" class="stats ssList" hidden></div>
+    <div id="ss_rec" class="stats ssList" hidden></div>
+    <div class="row"><button class="big alt back pri" type="button">BACK</button></div>
   </div>
 
   <div class="card" id="helpCard" hidden>
@@ -478,6 +488,7 @@
 <script src="js/01q-safehouse-data.js"></script>
 <script src="js/01r-buildings-data.js"></script>
 <script src="js/01s-parks-data.js"></script>
+<script src="js/01t-stats-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/02c-music.js"></script>
@@ -516,6 +527,7 @@
 <script src="js/08y-tuning.js"></script>
 <script src="js/08z-salvage.js"></script>
 <script src="js/08zr-roadblocks.js"></script>
+<script src="js/08zs-stats.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

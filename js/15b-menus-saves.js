@@ -105,7 +105,8 @@ function pauseGame() {                               // from the street, or from
 }
 function resumeGame() { if (state !== 'pause') return; state = pauseRet; closeMenus(); }
 function paintPause() {
-  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampsHere().filter(r => rampDone.has(r.id)).length + '/' + rampsHere().length : '');
+  $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampsHere().filter(r => rampDone.has(r.id)).length + '/' + rampsHere().length : '') + (statOn() ? '  ·  ' + statPct() + '% DONE' : '');
+  $('pStatsBtn').hidden = !statOn(); $('pStatsBtn').textContent = 'STATS · ' + statPct() + '%';   // js/08zs
   const why = saveBlock(), sh = feat('safehouses'); $('saveBtn').hidden = sh; $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why || sh;   // with safehouses you save by sleeping in one (js/08s)
   $('sleepNote').hidden = !sh;
 }
@@ -166,7 +167,7 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe], boostH: P.boostH || 0 },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio, tune: c.tune || undefined } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(),
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -183,7 +184,7 @@ function saveSpot(sv) {                              // where a saved game puts 
 }
 function applySave(sv) {                             // called by resetGame (js/15) once the city is set up again
   const p = sv.P, n = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? clamp(v, lo, hi) : d;
-  jobLoad(sv.jobs);                                                 // job levels and rewards first: they raise the top of health and armor (js/08n)
+  jobLoad(sv.jobs); statLoad(sv.stats);                             // job levels and rewards first: they raise the top of health and armor (js/08n), so does 100% (js/08zs)
   P.boostH = n(p.boostH, 0, 240, 0);                               // hours left of the scenic flight's speed (js/08v)
   P.hp = n(p.hp, 1, hpMax(), 100); P.armor = n(p.armor, 0, armorMax(), 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
   if (Array.isArray(p.wardrobe)) for (const id of p.wardrobe) if (CLOTH[id] && !P.wardrobe.includes(id)) P.wardrobe.push(id);   // clothes by id (js/01n); unknown ones are dropped
@@ -201,6 +202,7 @@ function applySave(sv) {                             // called by resetGame (js/
   if (!(p.arms && typeof p.arms === 'object')) P.has = WEAPONS.map((w, i) => w.start || P.mag[i] + P.ammo[i] > 0);   // a save from before weapons had to be found
   P.has = P.has.map((h, i) => h || (isThrown(WEAPONS[i]) && P.mag[i] + P.ammo[i] > 0));   // bombs picked up as ammo before that counted (they were missing from the wheel)
   if (!P.has[P.weapon]) P.weapon = Math.max(0, P.has.indexOf(true));
+  if (!sv.stats) statOld();                                       // a save from before the stats (js/08zs)
   gameT = n(sv.gameT, 0, 1e9, 0);
   const rp = sv.ramp || {}, ids = v => Array.isArray(v) ? v.filter(id => RAMPAGES.some(r => r.id === id)) : [];   // rampages found and passed (js/08f)
   raceLoad(sv.races);                                             // best times and wins (js/08o)

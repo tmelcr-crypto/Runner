@@ -65,7 +65,7 @@ function jyDone(k) {                      // a cube on the pile, the money in yo
   const pay = jyPay(k), [kx, ky] = SALV.crusher, i = cars.indexOf(k);
   if (i >= 0) cars.splice(i, 1); if (k.mesh) { scene.remove(k.mesh); if (k.m && k.m.body) k.m.body.dispose(); k.mesh = null; }
   JYR.cubes.push(k.color); while (JYR.cubes.length > PLC.junkCubes) JYR.cubes.shift();
-  addScore(pay, kx, ky, 'SCRAP ' + k.t.name); Snd.pickup(); Snd.thud(90);
+  addScore(pay, kx, ky, 'SCRAP ' + k.t.name); Snd.pickup(); Snd.thud(90); STAT.crushed++;
   if (JYR.crime) addHeat(COP.crime.stealCop);                          // a cop saw the police car go in
   JYR.car = null; JYR.phase = 'back'; JYR.t = 0; JYR.calmT = gameT + 15;   // a paying customer: the dog is held back a while
 }

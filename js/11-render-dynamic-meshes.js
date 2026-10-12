@@ -29,7 +29,8 @@ const BAR = { police: [E.redOn, E.redOff, E.blueOn, E.blueOff], ambulance: [E.re
 const PLAYER_SHIRT = mc(0xffd23f);
 function buildCar(c) {                       // parts that never move on their own are merged: one mesh per material
   const t = c.t, L = t.len, Wd = t.wid, B = t.body, g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
-  const body = new THREE.MeshLambertMaterial({ color: c.color }), m = { body, tail: [], bar: [], barM: null, cabin: null, drv: null, rider: null };
+  const body = c.type === 'gold' ? new THREE.MeshPhongMaterial({ color: c.color, specular: 0xfff0c0, shininess: 38 }) : new THREE.MeshLambertMaterial({ color: c.color }),   // the gold car shines (js/08zs)
+    m = { body, tail: [], bar: [], barM: null, cabin: null, drv: null, rider: null };
   const merged = (key, mat, parts) => { const o = new THREE.Mesh(mergedGeo(c.type + key, parts), mat); tilt.add(o); return o; };
   const wheels = [], wheel = (x, z, r, w) => wheels.push([GCylZ, r, r, w || 3.6, x, r, z]), axle = (x, r) => { for (const s of [-1, 1]) wheel(x, s * (Wd / 2 + 0.3), r); };
   const lamps = (yT, hT, yH, hH, inset) => { const lp = (x, y, h) => [-1, 1].map(s => [GB, 1.4, h, 5, x, y, s * (Wd / 2 - (inset || 4))]);
