@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 7): see the comment above each remodelN below.
+  - Later versions (2 to 8): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -571,7 +571,43 @@ def remodel7(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7]
+# version 8: three streets that made no sense, rerouted (map overhaul 7g). The long east-west avenue south of the bay no longer dips round
+# a block in a U between x 7021 and 7620: it runs straight on, the buildings in its way gone and the U's ground a lawn. The road along the
+# military base's south side ends just past the base gate instead of running on to the shore. At the south tip of Coral Shore the coast
+# road's zigzags go: the loop east of the last street closes into a rectangular block, the road along the bottom runs straight with one
+# 45-degree bend, and the land between it and the sea is a beach.
+def remodel8(M):
+    LAND = unary_union([poly(p) for p in M['land']]); N = M['nodes']
+    def node(x, y): return next(k for k, n in enumerate(N) if abs(n[0] - x) < 1 and abs(n[1] - y) < 1)
+    def edge(p, q):
+        a, b = node(*p), node(*q); return next(e for e in M['edges'] if {e['a'], e['b']} == {a, b})
+    def reroute(e, pts):                                               # a street's new line (from its a end to its b end); what stands in its way goes
+        if N[e['a']] != pts[0]: pts = pts[::-1]
+        old = LineString(e['p']); e['p'] = pts; corr = LineString(pts).buffer(RH + SW + 4)
+        hit = [rect(*b[:5]) for b in M['bld'] if rect(*b[:5]).intersects(corr)] + [rect(*L[:5]) for L in M['lots'] if rect(*L[:5]).intersects(corr)]
+        move_services(M, clear_ground(M, unary_union([corr] + hit).buffer(2)))
+        return old.buffer(RH + SW).difference(corr)
+    # the avenue: straight on
+    e = edge((7021, 9900), (8812, 9900)); reroute(e, [[7021, 9900], [8812, 9900]])
+    roads = unary_union([LineString(q['p']).buffer(RH + SW) for q in M['edges']])
+    U = LAND.intersection(box(7021 - RH - SW, 9900 + RH + SW, 7620 + RH + SW, 10239 + RH + SW)).difference(roads)      # the U's ground, and the strip left north of the avenue
+    STRIP = LAND.intersection(box(7021 + RH + SW, 9630 + RH + SW, 7560, 9900 - RH - SW)).difference(roads)
+    for G in (U, STRIP): move_services(M, clear_ground(M, G)); M['grass'] += rings(G)
+    # the base road: ends past the gate
+    e = edge((3228, 9900), (1500, 9630)); N[node(1500, 9630)] = [1880, 9630]; e['p'] = [[3228, 9900], [3228, 9630], [1880, 9630]] if N[e['a']] == [3228, 9900] else [[1880, 9630], [3228, 9630], [3228, 9900]]
+    # the south tip: a rectangular block, a straight coast road, a beach below it
+    reroute(edge((11120, 14823), (11120, 15461)), [[11120, 14823], [11254, 14957], [11742, 14957], [11742, 15461], [11120, 15461]])
+    reroute(edge((11120, 15461), (10469, 15334)), [[11120, 15461], [10596, 15461], [10469, 15334]])
+    roads = unary_union([LineString(q['p']).buffer(RH + SW + 6) for q in M['edges']])
+    BEACH = LAND.intersection(box(10380, 15461 + RH + SW, 11900, 16400)).difference(roads)
+    move_services(M, clear_ground(M, BEACH)); M['sand'] += rings(BEACH)
+    BLOCK = box(11120 + RH + SW, 14957 + RH + SW, 11742 - RH - SW, 15461 - RH - SW)        # the new block: the old road's ground in it a service yard
+    M['yards'] = [y for y in M['yards'] if not poly(y).intersects(BLOCK)]; M['yards'] += rings(BLOCK, 'y')
+    M['remodel'] = 8
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8]
 
 
 if __name__ == '__main__':
@@ -602,5 +638,8 @@ if __name__ == '__main__':
     head = head.replace("   area, coast, pier, head, boats). */",
                         "   area, coast, pier, head, boats); version 7: Gravel Flats' cement works on the space center's south-east corner (gravel.factory)\n"
                         "   and the yard by the street corner kept for the junkyard (gravel.junk). */")
+    head = head.replace("   and the yard by the street corner kept for the junkyard (gravel.junk). */",
+                        "   and the yard by the street corner kept for the junkyard (gravel.junk); version 8: three streets rerouted - the avenue straight\n"
+                        "   on where it dipped round a block, the base road ending at the base gate, the south tip's coast road straightened. */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
