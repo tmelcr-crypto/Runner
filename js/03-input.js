@@ -78,25 +78,6 @@ $('mute').addEventListener('click', () => { pressed.KeyM = true; });
 $('mini').addEventListener('click', () => { if (!bigOpen) pressed.Tab = true; });   // tap the minimap for the city map; tap the map to close it
 $('radioBtn').addEventListener('click', () => { pressed.radio = true; });
 $('bigmap').addEventListener('click', () => { pressed.Tab = true; });
-function updateGearUi() {
-  $('gD').classList.toggle('on', P.gear === 'D'); $('gR').classList.toggle('on', P.gear === 'R');
-  $('shifter').dataset.g = P.gear;                                // no letters: the lever's place (up R, down D) and its glow (css)
-}
-function setGear(g) {                       // like the real dial: only shifts when you are nearly stopped
-  if (P.gear === g || !P.car) return; const c = P.car;
-  if (Math.abs(c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang)) > 20 * KMH) { toast('SLOW DOWN TO SHIFT', true); return; }
-  P.gear = g; updateGearUi(); Snd.tone(320, 180, 0.06, 0.12, 'square');
-}
-bindBtn($('gR'), () => setGear('R')); bindBtn($('gD'), () => setGear('D'));
-(function () {                              // drag or tap the stick up for R, down for D
-  const slot = $('slot'), lever = $('lever'); let drag = false;
-  const aim = e => { const r = slot.getBoundingClientRect(); setGear((e.clientY - r.top) / r.height < 0.5 ? 'R' : 'D'); };
-  slot.addEventListener('pointerdown', e => { drag = true; try { slot.setPointerCapture(e.pointerId); } catch (err) { } lever.classList.add('down'); aim(e); e.preventDefault(); });
-  slot.addEventListener('pointermove', e => { if (drag) aim(e); });
-  const end = () => { drag = false; lever.classList.remove('down'); };
-  slot.addEventListener('pointerup', end); slot.addEventListener('pointercancel', end);
-})();
-
 function readInput() {
   let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
   let iy = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);

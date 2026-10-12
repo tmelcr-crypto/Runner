@@ -20,8 +20,8 @@ function resetGame(sv) {                     // a new game with the options in O
   const home = !sv && OPT.start === 'usual' ? safeStart() : null;  // a new game: at the Colony's door (js/08s)
   if (load) sp = load; else if (home) sp = home;
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: Math.max(0, WEAPONS.findIndex(w => w.start)), has: startHas(), ammo: startAmmo(), mag: startMag(), swing: null, rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
-    heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, gear: 'D', busted: false, carSwap: null, boostH: 0,
-    outfit: CL_START(), wardrobe: CLOTHES_TABLE.items.filter(i => !i.shop).map(i => i.id) }); updateGearUi();   // the clothes you start in (js/01n)
+    heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, busted: false, carSwap: null, boostH: 0,
+    outfit: CL_START(), wardrobe: CLOTHES_TABLE.items.filter(i => !i.shop).map(i => i.id) });   // the clothes you start in (js/01n)
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; gameT = 0; H.zone = ''; streamCity(true);
   if (load && load.car) { const c = load.car; c.searched = true; c.driver = 'player'; c.mode = 'player'; cars.push(c); P.car = c; }   // back in the car you saved in
   else if (!sv) {                                                  // starter cars in the parking lane on the player's side - at the Colony, one in your space
@@ -64,7 +64,7 @@ function showOver() {
   $('oStars').textContent = P.maxStars; $('oTime').textContent = mm + ':' + ss;
   Snd.setEngine(false, 0, 0); Snd.setScreech(0); Snd.setSiren(0, 0); Snd.setRotor(0);
   $('overCard').querySelector('h1').textContent = P.busted ? 'BUSTED' : 'WASTED';
-  $('shifter').hidden = true; showCard('overCard', true); $('hud').hidden = true;
+  showCard('overCard', true); $('hud').hidden = true;
   $('wasted').style.display = 'none';
 }
 

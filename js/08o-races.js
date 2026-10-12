@@ -390,7 +390,7 @@ function nascarStart(o) {
   for (let k = 0; k < n; k++) if (k !== me) { const s = spot(k); rivals.push(addRival(R, 'nascar', s.d, s.off, RC.nascarPace, 0.7, cols[k % cols.length])); }
   const s = spot(me), c = makeCar('nascar', s.x, s.y, s.ang, 'player', cols[me % cols.length]);
   c.searched = true; c.keep = true; c.radio = -1; c.mode = 'player'; cars.push(c);
-  P.act = null; P.car = c; P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = P.vy = 0; P.gear = 'D'; P.carSwap = null; updateGearUi(); cam.x = c.x; cam.y = c.y;
+  P.act = null; P.car = c; P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = P.vy = 0; P.carSwap = null; cam.x = c.x; cam.y = c.y;
   RACE.on = { kind: 'nascar', name: 'PALM 200', R, rivals, phase: 'count', t: RC.nascarCount, T: 0, car: c, me: { R, i: routeAt(R, s.d), d: s.d }, laps: Math.round(RC.nascarLaps), lap: 0, lapT: 0, bestLap: 0,
     fee: o.fee, prizes: o.prizes, crash: 0, hp: c.hp, crashCd: 0, top: 0, lateT: 30, beep: Math.ceil(RC.nascarCount) + 1 };
   raceHudOn(); toast('THE NASCAR RACE: ' + RC.nascarLaps + ' LAPS'); Snd.tone(523, 784, 0.2, 0.14, 'square');

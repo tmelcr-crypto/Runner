@@ -140,7 +140,7 @@ function updateHud(time) {
   if (Snd.muted !== H.mute) { H.mute = Snd.muted; $('mute').textContent = Snd.muted ? 'MUTED' : 'SND'; }
   const c = P.car; let vname = 'ON FOOT', vinfo = '', hint = '';
   if (c) {
-    vname = c.t.name; vinfo = (touchMode ? P.gear + '  ' : '') + Math.round(carSpeed(c) / KMH) + ' KM/H';
+    vname = c.t.name; vinfo = Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.t.weapon === 'mg' && feat('apcGun')) vinfo += '  ·  ' + apcBeltText(c);   // the turret's belt (js/08r)
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
     else if (c.t.weapon) hint = (touchMode ? 'FIRE: ' : 'CLICK OR J: ') + (c.t.weapon === 'water' ? 'WATER CANNON' : 'ROCKETS');
@@ -151,7 +151,7 @@ function updateHud(time) {
   if (PS.stopOn && P.stars > 0 && !P.dead) hint = PS.holdT > 0 ? 'STAY STILL FOR THE FINE' : 'POLICE: STOP! STAND STILL FOR A FINE';
   const inCar = !!c; if (H.car !== c) {                            // getting in or out: the RADIO button, the touch layout, DASH or BRAKE, the car's name for a moment
     H.car = c; $('radioBtn').hidden = !inCar; document.documentElement.classList.toggle('in-car', inCar); $('bDash').innerHTML = inCar ? 'BRAKE' : 'DASH';
-    if (inCar) { $('shifter').dataset.k = c.t.shifter; const n = $('carName'); n.textContent = c.t.name; n.className = ''; void n.offsetWidth; n.className = 'show'; }
+    if (inCar) { const n = $('carName'); n.textContent = c.t.name; n.className = ''; void n.offsetWidth; n.className = 'show'; }
   }
   { const dh = deliveryHint(); if (dh && !P.act && !(PS.stopOn && P.stars > 0)) hint = dh; }   // at the export bay (js/08m) its word comes first
   { const jh = jobHint(); if (jh && !P.act && !(PS.stopOn && P.stars > 0) && (JOB.on || !hint)) hint = jh; }   // a vehicle job: what to do now (js/08n)
@@ -159,7 +159,6 @@ function updateHud(time) {
   { const nz = nitroHere(c), nb = $('bNitro'); if (nb.hidden === nz) nb.hidden = !nz; if (nz) nb.classList.toggle('wait', JOB.nitroCd > 0); }   // NITRO in a taxi, once earned
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
   const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && ((!c.t.weapon && !drop && !canDriveBy()) || raceLocked() || pnsLocked()); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
-  const shf = $('shifter'); if (shf.hidden === !!c) shf.hidden = !c;
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }
   drawMini(time);

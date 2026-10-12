@@ -87,7 +87,7 @@ function paintTitle() {
   $('newBtn').classList.toggle('alt', !!d);                       // with a save to continue, CONTINUE is the main button
   $('bestLine').textContent = best > 0 ? 'MOST CASH ' + money(best) : 'Steal a car, make trouble, outrun the police.';
 }
-function showTitle() { svReset(); state = 'menu'; $('hud').hidden = true; $('shifter').hidden = true; hush(); showCard('startCard', true); }
+function showTitle() { svReset(); state = 'menu'; $('hud').hidden = true; hush(); showCard('startCard', true); }
 $('contBtn').addEventListener('click', () => { const d = latestSave(); if (d) loadGame(d); });
 $('newBtn').addEventListener('click', () => showCard('modeCard'));
 $('goBtn').addEventListener('click', newGame);
