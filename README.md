@@ -506,8 +506,21 @@ The houses stand on plots of their own (map remodel version 5, `safe` in the map
 
 - **Inside** (an interior of the top-down kind: the roof turns see-through while you are in): walk in through the glass doors - bollards keep cars out - and every car it sells turns on a turntable of its own: the sedan, estate, taxi, sports car, pickup, truck, limo and motorbike (cyan lights), and at the front three **rare cars sold only here** (gold lights): the **VELOCE** supercar (€120,000, 340 km/h), the **SUNDANCER** - a 1950s convertible with tail fins and chrome (€60,000) - and the **BRUISER** muscle car with its bonnet scoop and stripes (€45,000).
 - **Buying**: walk up to a car and press E (or tap BUY): the card gives its price, top speed, 0-100 km/h and weight, the colours it comes in - the car on the turntable repaints as you choose - and where to **deliver** it: any free garage bay or reserved space of a safehouse you own. Paid, it waits there, kept in your saves like any car you leave there. No free space: buy a safehouse, or drive a car out of one.
-- Behind the hall: the **TUNING** workshop (its roller door to the avenue; the tuning itself comes next) and a stock yard of cars under strings of pennants.
+- Behind the hall: the **TUNING** workshop (below) and a stock yard of cars under strings of pennants.
 - The prices are the vehicles table's **Showroom price** (also in the economy sheet); a vehicle with no traffic and no parked weight is sold only here.
+
+## The tuning workshop
+
+**Sunstrip Tuning** (mode `tuning`, both modes; `js/08y-tuning.js`, the building in `js/10s-showroom.js`) is the workshop behind the showroom, its roller door to the beach avenue under a yellow TUNING sign, a lamp beside it (green: open, blinking: come in, red: busy). Inside - the roof turns see-through while you are in, an interior of the top-down kind - a checkered bay runs from the door between yellow lines, round it red tool chests and a workbench, a stack of tyres, a rack of coloured rims, a car up on the lift, an engine on a stand and the mechanic in blue overalls.
+
+- **Driving in**: come up to the door in a car it takes and it rolls up; stop in the bay and it comes down behind you. It turns away **police and army vehicles** and any car **while you are wanted** (lose the police first), a car on fire and one in a race. Nothing parks across its door.
+- **The card** has three tabs, and every pick shows on the car at once:
+  - **LOOKS** - **paint** (the car's own colours, then any colour), a **two-tone roof**, **racing stripes** (twin stripes over the bonnet, the roof and the boot), **rims** and **underglow** in any colour (or none: the underglow then follows the paint). Taxis, buses, ambulances, fire engines and trash trucks keep their livery: no paint, roof or stripes for them;
+  - **PARTS** - a **spoiler** (a wing on the boot; on the estate a wing on the end of the roof) and a **bonnet scoop**, on the models with room for them and none of their own (the sports car, the NASCAR special and the VELOCE have wings of their own and the BRUISER its scoop; a pickup takes only a scoop; trucks, bikes and the big service vehicles take neither);
+  - **PERFORMANCE** - **engine**, **brakes** and **armour** in three levels: engine +5 / +10 / +15% top speed and +10 / +20 / +35% acceleration, brakes +15 / +30 / +50%, armour 20 / 40 / 60% less damage (bullets, crashes and blasts).
+- **The price** is what the changes cost: €400 paint, €350 roof, €500 stripes, €600 rims, €800 underglow, €1,500 spoiler, €1,200 scoop; engine €4,000 / €8,000 / €16,000, brakes €2,000 / €4,500 / €9,000, armour €5,000 / €10,000 / €20,000 a level - going up two levels costs both. Levels you have are kept (no going back down). **BUY** pays, the mechanic goes round the car with his air wrench while sparks fly (5 s; the door stays down, you cannot drive or get out), a new engine revs, the door rolls up and the game saves. **LEAVE** puts the car back as it came in.
+- **It stays with the car**: park it in a garage bay or reserved space of a safehouse and it is kept, tuned, in your saves; drive off in it after loading a game and it still has everything.
+- Numbers: the vehicles table's **Tuning** sheet (`tools/vehicle_sheet.py`: each look, part and level with its price and what it does; the prices also in the economy sheet, TUNING), and the places table's *Tuning workshop* group (how long the mechanic works, how fast the door rolls).
 
 ## Clothes shops
 
@@ -648,6 +661,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/08s-safehouses.js` | the safehouses at work: the BUY card with its picture, GO IN, the doors of the houses, coming in unseen, SLEEP and the save slots, the wardrobe, the weapon stash, kept cars (spawned when you come near, put away when you leave), saving, the roofs, doors and markers, the map icons |
 | `js/08t-sideview.js` | the side-on view inside a tower: floors, doors, stairs, the elevator and its panel, neighbours, the clerk, your flat, walking and the buttons, drawn on its own canvas |
 | `js/08w-showroom.js` | Sunstrip Motors: the BUY button by a turntable, the car card (colours, where to deliver it), buying, the map icon |
+| `js/08y-tuning.js` | the tuning workshop: where each part goes on each model, the parts on the car, the door and the bay, the card (LOOKS, PARTS, PERFORMANCE), the mechanic's work, the tuning kept with the car |
 | `js/08x-visitors.js` | visitors at the Colony and the cement works: a car from the traffic turns into the site's street, parks in a free bay, its driver walks in; later someone walks out and drives it away |
 | `js/08v-flights.js` | the check-in booth on the terminal's forecourt (the FLIGHTS button, the board) and the scenic flight: its shots, the route round the city, the window view, rain on the glass; the flight's rewards (the aviator cap, faster on foot for a day) |
 | `js/08u-police-heli.js` | the police helicopter: coming in, the searchlight, the machine-gun bursts and pipe bombs, brought down by the rifle or the AA launcher, the crash and the wreck; its model and map icon |
@@ -680,7 +694,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10o-unique-more.js` | the 40 unique buildings of the city's own kinds: skyscrapers, condo towers, schools, the arena (and the park it takes), parking garages, gas stations, museums, civic buildings, supermarkets, car washes, bowling alleys; the pylon signs |
 | `js/10p-parks.js` | the 60 parks, squares and plazas: the plazas' and courts' rows, the parks' lawns, each design's model and solids, the name signs |
 | `js/10q-forests.js` | the woods on the big lawns and the space center's scrub: which lawns, the patches (a fixed noise), the trees |
-| `js/10s-showroom.js` | the showroom: walls, doors with bollards, turntables, counter, workshop and stock yard; the model, the cars on show (turning), the roof that fades |
+| `js/10s-showroom.js` | the showroom: walls, doors with bollards, turntables, counter, the tuning workshop (bay, tool chests, tyres, rims, lift, engine stand, its own roof, roller door, lamp and mechanic) and stock yard; the model, the cars on show (turning), the roofs that fade |
 | `js/10r-factory.js` | the cement works in Gravel Flats: its solids and fence, the model (hall, chimneys, tower, kiln, silos, piles, trucks), the smoke and the blinking lights, the floodlights |
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending); the terminal's hall inside, under a roof that the scenic flight lifts off |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
@@ -712,14 +726,14 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
-What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom; next: the tuning workshop, the junkyard at the docks, roadblocks, stats and 100%; then new places - prison island, construction site, casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
+What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom, the tuning workshop; next: the junkyard at the docks, roadblocks, stats and 100%; then new places - prison island, construction site, casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
 
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
 3. Convert the scripts to ES modules once the globals are untangled.
 4. Police, later: roadblocks, spike strips and a helicopter at 4-5 stars.
 5. **New places, agreed with the owner, to build next** (each will be asked about in detail first; the spray garages are built - see Pay 'n' Spray):
-   - *Car showroom and your garage*: buy cars; tune them - spoilers, wheel colours, paint colours you do not see on the road; a garage near the start keeps the cars you park in it, saved with the game.
+   - *Car showroom and your garage*: built - Sunstrip Motors, the tuning workshop behind it, and the safehouses' garages.
    - *Prison island*: busted, you walk out of its gate; walls, towers, guards; breakouts for the story.
    - *Construction site*: a half-built tower with cranes, ramps and scaffolding for stunt jumps.
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.

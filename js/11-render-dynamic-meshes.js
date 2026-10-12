@@ -178,8 +178,9 @@ function buildCar(c) {                       // parts that never move on their o
     for (const x of [L * 0.31, -L * 0.31]) axle(x, 4.6);
     lamps(8, 2.6, 8, 2.6); seat(L * 0.02, 17.9);
   }
+  tuneParts(c, m, merged, wheels);                                   // the tuning workshop's roof, stripes, wing, scoop and rims (js/08y)
   merged('w', E.tire, wheels);
-  { const ug = new THREE.Mesh(GP, glowMat(c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
+  { const ug = new THREE.Mesh(GP, glowMat((c.tune && c.tune.glow) || c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
     const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38, true)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool
     body.emissive = new THREE.Color(c.color).multiplyScalar(0.22); }
   c.mesh = g; c.tilt = tilt; c.m = m; c.roll = 0; c.baseCol = new THREE.Color(c.color); c.tailOn = false; c.dead3 = false; c.hpShown = -1; scene.add(g);
@@ -198,7 +199,7 @@ function syncCar(c, time, dt) {
   m.ug.visible = !c.dead; m.hb.visible = !!c.driver && !c.dead;
   if (m.drv) m.drv.visible = !!c.driver && !c.dead;
   if (m.rider) m.rider.material = c.driver === 'player' ? playerTopMat() : m.riderM;   // you on the bike: in your top's colour
-  if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; }
+  if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; if (m.tp) for (const o of m.tp) o.material = E.black; }
   else if (!c.dead) {                      // there is no health bar: the damage shows - the paint scorches darker, nearly done for it throbs dull red, on fire it flickers orange
     if (Math.abs(f - c.hpShown) > 0.01) { c.hpShown = f; m.body.color.copy(c.baseCol).lerp(_tmp.set(0x1b1b1f), (1 - f) * 0.8); }
     const glow = c.burn > 0 ? 0.5 + 0.3 * Math.sin(time * 31) * Math.sin(time * 17) : f < 0.3 ? 0.16 + 0.16 * Math.sin(time * 9) : -1;

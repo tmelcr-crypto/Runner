@@ -158,7 +158,7 @@ function updateHud(time) {
   { const rh = raceHint(); if (rh && !P.act && (RACE.on || !hint)) hint = rh; }   // a race: what to do now (js/08o)
   { const nz = nitroHere(c), nb = $('bNitro'); if (nb.hidden === nz) nb.hidden = !nz; if (nz) nb.classList.toggle('wait', JOB.nitroCd > 0); }   // NITRO in a taxi, once earned
   setText('vname', 'vname', vname); setText('vinfo', 'vinfo', vinfo); setText('hint', 'hint', hint);
-  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && ((!c.t.weapon && !drop && !canDriveBy()) || raceLocked() || pnsLocked()); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
+  const drop = !!c && isThrown(WEAPONS[P.weapon]), bf = $('bFire'), noFire = !!c && ((!c.t.weapon && !drop && !canDriveBy()) || raceLocked() || pnsLocked() || tuneLocked()); if (bf.hidden !== noFire) bf.hidden = noFire;   // in the tank FIRE launches rockets; with a bomb in hand it drops one; with a gun: the drive-by
   const zone = P.dead ? H.zone : districtAt(P.x, P.y);
   if (zone !== H.zone) { H.zone = zone; const z = $('zone'); z.textContent = zone; z.className = ''; void z.offsetWidth; z.className = 'show'; }
   drawMini(time);

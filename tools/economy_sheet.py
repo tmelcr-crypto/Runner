@@ -97,6 +97,9 @@ def rows():
     for v in block('vehicle')[3]['vehicles']:
         if v.get('role') == 'police' or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank', 'trash', 'ambulance', 'fire'): continue
         out.append(dict(key='price.' + v['id'], label='Buy a %s' % v['name'].lower(), value=v.get('price') or 0, unit=USD, note='Only sold there.' if not v.get('traffic') and not v.get('parked') and v.get('price') else '', file='vehicle', id=v['id'], field='price', lo=0, hi=10000000, empty_ok=False))
+    out.append(('#', 'TUNING', 'The Sunstrip tuning workshop (vehicles table: tuning): each look and part, and each level of engine, brakes and armour (going up a level costs the levels in between).'))
+    for r in block('vehicle')[3].get('tuning', []):
+        out.append(dict(key='tune.' + r['id'], label=nice(r['name']), value=r['price'], unit=USD, note=r.get('notes', ''), file='vehicle', id=r['id'], field='price', lo=0, hi=1000000, empty_ok=False))
     out.append(('#', 'CAR DELIVERY AT THE DOCKS', 'What the dockers pay for the wanted car (a damaged one pays less: places table). 0: that vehicle is never wanted.'))
     for v in block('vehicle')[3]['vehicles']:
         if v.get('role') == 'police' or v.get('job') or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank'): continue

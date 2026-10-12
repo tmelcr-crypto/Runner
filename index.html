@@ -223,7 +223,8 @@
         <li>Leave a car in your garage or your reserved space and it stays there, saved. Going in unseen loses the police.</li></ul></div>
       <div><h3>CAR SHOWROOM</h3><ul>
         <li><b>SUNSTRIP MOTORS</b> on the beach avenue (a pink car on the maps): every car kind on a turntable, and three rare ones sold only there - the VELOCE, the SUNDANCER and the BRUISER.</li>
-        <li>Walk up to a car and <b>BUY</b>: pick its colour and a free garage bay or reserved space of a safehouse you own - it waits for you there.</li></ul></div>
+        <li>Walk up to a car and <b>BUY</b>: pick its colour and a free garage bay or reserved space of a safehouse you own - it waits for you there.</li>
+        <li><b>TUNING</b> behind it: drive in and stop. Paint, roof, stripes, rims, underglow, a spoiler and a scoop, and three levels of engine, brakes and armour - tap to try them on the car, <b>BUY</b> pays for the changes. Not for police cars, nor while you are wanted. The tuning stays with the car.</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>€</b> in its own colour on the maps, its name over the door and a ring of light at it. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>The <b>BLACK MARKET</b> at the docks sells the <b>AA LAUNCHER</b> (€25,000) and its rockets (€5,000): keep a helicopter, tank or APC inside the sight for 2 s until it locks, then let go - one rocket destroys it. You carry three at most; one more launcher lies hidden in the city.</li>
@@ -365,6 +366,18 @@
     <p class="keys">TAP A COLOUR · ENTER SPRAYS · ESC OR E LEAVES</p>
   </div>
 
+  <div class="card" id="tuneCard" hidden>
+    <p class="tag">SUNSTRIP TUNING · <span id="tnName">CAR</span></p>
+    <p class="sub" id="tnSub"></p>
+    <div class="tabs" id="tnTabs"><button type="button" data-t="looks" class="on">LOOKS</button><button type="button" data-t="parts">PARTS</button><button type="button" data-t="perf">PERFORMANCE</button></div>
+    <div id="tnLooks"><div class="chips" id="tnWhat"></div><div class="sws" id="tnSw"></div></div>
+    <div id="tnParts" hidden></div>
+    <div id="tnPerf" hidden></div>
+    <p class="warn ok" id="tnMsg"></p>
+    <div class="menu"><button id="tnGo" class="big pri" type="button">BUY</button><button id="tnNo" class="big alt back" type="button">LEAVE</button></div>
+    <p class="keys">TAP TO TRY IT ON THE CAR · ENTER BUYS · ESC OR E LEAVES</p>
+  </div>
+
   <div class="card" id="safeCard" hidden>
     <p class="tag" id="sfTag">FOR SALE</p>
     <h2 id="sfName">SAFEHOUSE</h2>
@@ -496,6 +509,7 @@
 <script src="js/08v-flights.js"></script>
 <script src="js/08w-showroom.js"></script>
 <script src="js/08x-visitors.js"></script>
+<script src="js/08y-tuning.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

@@ -15,8 +15,8 @@ function stepCar(c, dt) {
   c.slip = Math.abs(vl);
   if (c.thr !== 0) {
     const braking = c.thr * vf < 0;
-    const nb = c.nitroT > 0, top = nb ? t.max * (1 + JB.nitroTop) : t.max, acc = nb ? t.acc * (1 + JB.nitroPush) : t.acc;   // nitro (js/08n)
-    const a = braking ? t.brake * H.brake * (0.55 + 0.45 * SKY.grip) : acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? top : Math.min(t.max * 0.45, 35 * KMH))));
+    const tk = c.tk, nb = c.nitroT > 0, top = (nb ? t.max * (1 + JB.nitroTop) : t.max) * (tk ? tk.top : 1), acc = (nb ? t.acc * (1 + JB.nitroPush) : t.acc) * (tk ? tk.acc : 1);   // nitro (js/08n); a tuned engine (js/08y)
+    const a = braking ? t.brake * (tk ? tk.brake : 1) * H.brake * (0.55 + 0.45 * SKY.grip) : acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? top : Math.min(t.max * 0.45, 35 * KMH))));
     vf += c.thr * a * dt;
   }
   vf *= Math.exp(-(c.thr === 0 ? (c.driver ? H.coast : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little

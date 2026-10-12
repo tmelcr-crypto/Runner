@@ -6,11 +6,16 @@
      own - every car kind the showroom sells (vehicles table: price), the three rare ones sold only here at the front - a sales counter
      at the back, plants, a big SUNSTRIP MOTORS over the door and on a pylon at the corner. The roof turns see-through while you are
      inside (an interior of the top-down kind, like the Pay 'n' Spray).
-   - the tuning workshop at the back, its roller door to the avenue (shut until the tuning comes, PLAN step 5).
+   - the tuning workshop at the back, its roller door to the avenue (js/08y): a bay down the middle, tool chests, a workbench, tyres,
+     a rack of rims, a car up on the lift, an engine on a stand, a mechanic; its roof turns see-through while you are inside.
    - the stock yard beside it: cars for sale parked in rows under strings of pennants.
    Turntables and the counter are solid; the cars on them are pictures only (they never drive). Mode: showroom (js/01j). */
 const SHOWM = MAP.showroom || null;
-const SHOW = { slots: [], roof: 1, pt: null, lm: null, cars: [], yard: [], built: false };
+const SHOW = { slots: [], roof: 1, pt: null, lm: null, cars: [], yard: [], built: false, wk: null };
+function tnFurniture() {                  // the workshop's furniture, clear of the bay in front of the door: [x, y, w, h] (world, middles)
+  const [x0, y0, x1, y1] = SHOWM.shop;
+  return { chests: [x0 + 90, y0 + 10, 60, 14], bench: [x1 - 62, y0 + 10, 46, 14], tyres: [x0 + 12, y0 + 40, 14, 44], rims: [x0 + 14, y1 - 46, 16, 40], lift: [x0 + 70, y1 - 36, 60, 40], engine: [x1 - 60, y1 - 24, 18, 18] };
+}
 const SHOW_LAYOUT = [                     // where each car stands in the hall: [type, x, z] in the hall's frame (x east, z south, from its middle)
   ['super', -165, 112], ['bike', -84, 116], ['sedan', -165, 34], ['sports', -84, 38], ['pickup', -165, -44], ['taxi', -84, -42], ['estate', -165, -118],
   ['convertible', 86, 114], ['muscle', 166, 112], ['truck', 166, 26], ['limo', 120, -92]];
@@ -32,7 +37,8 @@ function genShowroom() {                  // js/04 genWorld, after the cement wo
     solid(x, y, r * 1.4, r * 1.4, { soft: true });
   }
   solid(H.cx, H.y0 + 30, 90, 24);                                    // the sales counter
-  const [wx0, wy0, wx1, wy1] = SHOWM.shop; wallX(wy0, wx0, wx1, []); wallX(wy1, wx0, wx1, []); wallY(wx0, wy0, wy1, []);   // the workshop: shut for now
+  const [wx0, wy0, wx1, wy1] = SHOWM.shop; wallX(wy0, wx0, wx1, []); wallX(wy1, wx0, wx1, []); wallY(wx0, wy0, wy1, []);   // the tuning workshop (js/08y)
+  for (const [fx, fy, fw, fh] of Object.values(tnFurniture())) solid(fx, fy, fw, fh);
   const [ex, ey, ew] = SHOWM.sdoor; wallY(wx1, wy0, wy1, [[ey, ew]]); SHOW.sdoor = solid(ex, ey, wt + 2, ew, { door: true });   // the roller door: a wall while it is down
   const [yx0, yy0, yx1, yy1] = SHOWM.yard; SHOW.yard = [];
   for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) { const x = yx0 + 50 + j * 64, y = yy0 + 70 + i * 120, type = ['sedan', 'estate', 'pickup', 'sports', 'taxi', 'sedan'][i * 3 + j];
@@ -72,14 +78,49 @@ function makeShowroom(cx, cy) {
   // the roof: white, a band of neon along its edge (it fades while you are inside)
   box5(R, X(H.x0) - 2, HH, Z(H.y0) - 2, X(H.x1) + 2, HH + 5, Z(H.y1) + 2, _C('#f4f4f6')); box5(RG, X(H.x0) - 2, HH + 5, Z(H.y1) + 1, X(H.x1) + 2, HH + 7, Z(H.y1) + 2, neon);
   for (let k = 0; k < 4; k++) box5(R, X(H.x0) + 60 + k * 90, HH + 5, Z(H.y0) + 60, X(H.x0) + 100 + k * 90, HH + 11, Z(H.y0) + 90, _C('#c8ccd4'));   // AC units
-  // the workshop: a plain block, a roller door to the avenue, TUNING over it
-  { const [x0, y0, x1, y1] = SHOWM.shop, [, ey, ew] = SHOWM.sdoor, h = 46;
-    box5(T, X(x0), 0, Z(y0), X(x1), h, Z(y1), _C('#3a3f4c')); box5(T, X(x0) - 1, h, Z(y0) - 1, X(x1) + 1, h + 3, Z(y1) + 1, _C('#2a2d38'));
-    face(T, [[X(x1) + 0.6, 0.5, Z(ey - ew / 2)], [X(x1) + 0.6, 0.5, Z(ey + ew / 2)], [X(x1) + 0.6, 38, Z(ey + ew / 2)], [X(x1) + 0.6, 38, Z(ey - ew / 2)]], [1, 0, 0], _C('#9aa0ab'));
-    for (let y = 4; y < 38; y += 4) face(T, [[X(x1) + 0.8, y, Z(ey - ew / 2)], [X(x1) + 0.8, y, Z(ey + ew / 2)], [X(x1) + 0.8, y + 0.6, Z(ey + ew / 2)], [X(x1) + 0.8, y + 0.6, Z(ey - ew / 2)]], [1, 0, 0], _C('#6a707c'));
-    for (let x = x0 + 20; x < x1 - 20; x += 40) face(G, [[X(x), 26, Z(y1) + 0.6], [X(x) + 24, 26, Z(y1) + 0.6], [X(x) + 24, 34, Z(y1) + 0.6], [X(x), 34, Z(y1) + 0.6]], [0, 0, 1], _C('#ffd98a'));
-    const ts = fasciaSign('TUNING', '#ffd23f', 50, 12); ts.position.set(X(x1) + 1.2, 44, Z(ey)); ts.rotation.y = Math.PI / 2; sub.push(ts);
-    const tb = fasciaSign('TUNING', '#ffd23f', 50, 12); tb.position.set(X(x1) - 30, h + 12, Z(y1) + 1.2); sub.push(tb); }
+  // the tuning workshop: walls with the roller door to the avenue, a bay down the middle, the workshop round it, a roof that fades (js/08y)
+  const WR = new GeoBuilder(), WRG = new GeoBuilder(), WD = new GeoBuilder();
+  { const [x0, y0, x1, y1] = SHOWM.shop, [, ey, ew] = SHOWM.sdoor, h = 46, DH = 38, w = 2, F = tnFurniture(), C = _C;
+    const wallC = C('#3a3f4c'), trim = C('#2a2d38'), yel = C('#ffd23f'), blk = C('#16161c'), steel = C('#8a8f9c'), red = C('#d0323f');
+    const fl = (gb, a0, b0, a1, b1, y, col) => face(gb, [[X(a0), y, Z(b0)], [X(a1), y, Z(b0)], [X(a1), y, Z(b1)], [X(a0), y, Z(b1)]], [0, 1, 0], col);
+    fl(T, x0, y0, x1, y1, 0.9, C('#2a2d38'));                                                   // the floor: dark epoxy, a checkered bay, yellow lines
+    for (let x = x0 + 8, i = 0; x < x1 - 6; x += 16, i++) for (let y = ey - 48, k = 0; y < ey + 48; y += 16, k++) if ((i + k) % 2) fl(T, x, y, Math.min(x + 16, x1 - 6), Math.min(y + 16, ey + 48), 0.95, C('#3a3d52'));
+    for (const s of [-1, 1]) fl(T, x0 + 6, ey + s * 50 - 1.5, x1 - 4, ey + s * 50 + 1.5, 1, yel);
+    for (let k = 0, n = Math.round(ew / 6); k < n; k++) fl(T, x1 - 5, ey - ew / 2 + k * ew / n, x1 - 1, ey - ew / 2 + (k + 1) * ew / n, 1, k % 2 ? blk : yel);   // a striped threshold
+    box5(T, X(x0), 0, Z(y0) - w, X(x1), h, Z(y0) + w, wallC); box5(T, X(x0), 0, Z(y1) - w, X(x1), h, Z(y1) + w, wallC); box5(T, X(x0) - w, 0, Z(y0), X(x0) + w, h, Z(y1), wallC);
+    box5(T, X(x1) - w, 0, Z(y0), X(x1) + w, h, Z(ey - ew / 2), wallC); box5(T, X(x1) - w, 0, Z(ey + ew / 2), X(x1) + w, h, Z(y1), wallC); box5(T, X(x1) - w, DH, Z(ey - ew / 2), X(x1) + w, h, Z(ey + ew / 2), wallC);
+    box5(T, X(x0) - 1, h, Z(y0) - 3, X(x1) + 3, h + 3, Z(y0) + 3, trim); box5(T, X(x0) - 1, h, Z(y1) - 3, X(x1) + 3, h + 3, Z(y1) + 3, trim); box5(T, X(x1) - 3, h, Z(y0), X(x1) + 3, h + 3, Z(y1), trim); box5(T, X(x0) - 3, h, Z(y0), X(x0) + 3, h + 3, Z(y1), trim);
+    box5(G, X(x1) + 2, h - 9, Z(y0), X(x1) + 2.6, h - 6, Z(y1), yel); box5(G, X(x0), h - 9, Z(y1) + 2, X(x1), h - 6, Z(y1) + 2.6, yel);   // a yellow neon band on the street sides
+    for (const s of [-1, 1]) for (let y = 0; y < DH; y += 4) box5(T, X(x1) + 2, y, Z(ey + s * (ew / 2 + 1.5)) - 1.5, X(x1) + 4, Math.min(DH, y + 4), Z(ey + s * (ew / 2 + 1.5)) + 1.5, (y / 4) % 2 ? blk : yel);   // hazard posts
+    box5(T, X(x1) + 1, DH, Z(ey - ew / 2) - 3, X(x1) + 4, DH + 5, Z(ey + ew / 2) + 3, trim);          // the drum the door rolls onto
+    // the workshop: tool chests and a bench along the back, tyres and a rack of rims on the far wall, a car up on the lift, an engine on a stand
+    { const [cx, cy, cw, ch] = F.chests; box5(T, X(cx - cw / 2), 0, Z(cy - ch / 2), X(cx + cw / 2), 14, Z(cy + ch / 2), red);
+      for (let y = 3; y < 14; y += 3) box5(T, X(cx - cw / 2) + 1, y, Z(cy + ch / 2), X(cx + cw / 2) - 1, y + 0.6, Z(cy + ch / 2) + 0.5, trim);
+      for (let k = 0; k < 6; k++) box5(T, X(cx - cw / 2 + 4 + k * 9), 14, Z(cy - 4), X(cx - cw / 2 + 8 + k * 9), 15, Z(cy + 3), C(pick(['#c8ccd4', '#ffd23f', '#2bf3ff', '#3a3d47']))); }
+    { const [bx, by, bw, bh] = F.bench; box5(T, X(bx - bw / 2), 0, Z(by - bh / 2), X(bx + bw / 2), 11, Z(by + bh / 2), C('#8a6a48')); box5(T, X(bx - bw / 2) + 3, 11, Z(by - 3), X(bx - bw / 2) + 9, 15, Z(by + 3), trim);
+      box5(T, X(bx + 6), 11, Z(by - 4), X(bx + 16), 16, Z(by + 4), C('#5a6070')); }                // a vice, a parts washer
+    { const [tx, ty, , th] = F.tyres; for (let k = 0; k < 4; k++) for (let n = 0; n < 3; n++) T.prism(X(tx), Z(ty - th / 2 + 6 + k * 11), 5.4, n * 3.6, n * 3.6 + 3.4, C('#1c1c22'), 12, 5.4, true); }
+    { const [rx, ry, , rh] = F.rims, cols = ['#ff2bd6', '#2bf3ff', '#ffd23f', '#3dffa6', '#ff7a3d', '#f4f4f6'];
+      box5(T, X(rx) - 7, 0, Z(ry - rh / 2), X(rx) + 7, 3, Z(ry + rh / 2), steel);
+      for (let k = 0; k < 3; k++) for (let n = 0; n < 2; n++) { const cz = Z(ry - rh / 2 + 7 + k * 13), cx = X(rx) + (n ? 3.5 : -3.5); T.prism(cx, cz, 4.4, 3, 4, C(cols[k * 2 + n]), 12, 4.4, true); T.prism(cx, cz, 1.6, 4, 4.4, trim, 8, 1.6, true); } }
+    { const [lx, ly] = F.lift, lc = C(pick(['#ff2bd6', '#2bf3ff', '#ffd23f', '#3dffa6']));
+      for (const s of [-1, 1]) box5(T, X(lx) + s * 26 - 1.6, 0, Z(ly) - 1.6, X(lx) + s * 26 + 1.6, 32, Z(ly) + 1.6, C('#d0323f'));
+      box5(T, X(lx) - 24, 16, Z(ly) - 14, X(lx) + 24, 17.5, Z(ly) + 14, steel);
+      box5(T, X(lx) - 24, 18, Z(ly) - 11, X(lx) + 24, 24, Z(ly) + 11, lc); box5(T, X(lx) - 8, 24, Z(ly) - 8.5, X(lx) + 10, 30, Z(ly) + 8.5, C('#1d2230'));
+      for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box5(T, X(lx) + sx * 15 - 4, 16.5, Z(ly) + sz * 11 - 2, X(lx) + sx * 15 + 4, 22, Z(ly) + sz * 11 + 2, blk);
+      box5(T, X(lx) - 26, 23.5, Z(ly) - 9, X(lx) - 23, 26, Z(ly) + 9, lc); }                       // a wing on it
+    { const [ex2, ey2] = F.engine; box5(T, X(ex2) - 9, 0, Z(ey2) - 2, X(ex2) + 9, 8, Z(ey2) + 2, steel); box5(T, X(ex2) - 7, 8, Z(ey2) - 7, X(ex2) + 7, 18, Z(ey2) + 7, C('#5a6070'));
+      box5(T, X(ex2) - 6, 18, Z(ey2) - 6, X(ex2) + 6, 20, Z(ey2) + 6, red); for (let k = -1; k <= 1; k++) T.prism(X(ex2) + 9, Z(ey2) + k * 4, 1.2, 12, 14, C('#c8ccd4'), 6, 1.2, true); }
+    for (const s of [-1, 1]) box5(G, X(x0 + 30), h - 8, Z(ey + s * 60) - 1.2, X(x1 - 30), h - 7, Z(ey + s * 60) + 1.2, C('#e8f6ff'));   // tube lights along the sides of the bay
+    // the roof (fades while you are inside): deck, skylights, AC units, a yellow edge to the street
+    fl(WR, x0 - 1, y0 - 3, x1 + 3, y1 + 3, h + 3.2, C('#4a4e5c'));
+    for (let x = x0 + 20; x < x1 - 30; x += 46) fl(WR, x, ey - 30, x + 26, ey + 30, h + 3.5, C('#6d8fc9'));
+    box5(WR, X(x0) + 20, h + 3, Z(y0) + 14, X(x0) + 44, h + 12, Z(y0) + 38, C('#9aa0ab')); WR.prism(X(x0) + 32, Z(y0) + 26, 7, h + 12, h + 12.6, C('#555a66'), 10, 7, true);
+    box5(WRG, X(x1) + 1.6, h + 3.2, Z(y0), X(x1) + 3.2, h + 4.6, Z(y1), yel);
+    // the door: slats hanging from the drum, rolled up by scaling (geometry hangs down from y = 0)
+    for (let y = 0; y < DH; y += 3) box5(WD, X(x1) - 1, y - DH, Z(ey - ew / 2), X(x1) + 1, Math.min(0, y - DH + 2.7), Z(ey + ew / 2), C((y / 3) % 2 ? '#8e95a3' : '#a9afbc'));
+    const ts = fasciaSign('TUNING', '#ffd23f', 50, 12); ts.position.set(X(x1) + 4.2, 44, Z(ey)); ts.rotation.y = Math.PI / 2; sub.push(ts);
+    const tb = fasciaSign('TUNING', '#ffd23f', 50, 12); tb.position.set(X(x1) - 30, h + 14, Z(y1) + 3.2); sub.push(tb); }
   // the stock yard: pennant strings on poles
   { const [x0, y0, x1, y1] = SHOWM.yard, cols = ['#ff2bd6', '#2bf3ff', '#ffe14a', '#3dffa6', '#ff7a3d'];
     for (const [px, py] of [[x0 + 8, y0 + 8], [x1 - 8, y0 + 8], [x0 + 8, y1 - 8], [x1 - 8, y1 - 8]]) T.prism(X(px), Z(py), 1.2, 0, 34, _C('#d8dce4'), 6);
@@ -94,6 +135,14 @@ function makeShowroom(cx, cy) {
   const roofMat = xray(new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true })), roofGlow = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true });
   const roof = new THREE.Mesh(mergeBuilders([R, RG]), [roofMat, roofGlow]); m.add(roof); m.userData.own.push(roofMat, roofGlow);
   SHOW.pt = { roof, roofMat, roofGlow, op: -1 };
+  { const wMat = xray(new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true })), wGlow = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true });   // the workshop's own roof, door, lamp and mechanic (js/08y)
+    const wRoof = new THREE.Mesh(mergeBuilders([WR, WRG]), [wMat, wGlow]); m.add(wRoof);
+    const door = new THREE.Mesh(WD.build(), LM_MAT[0]); door.position.y = 38; m.add(door);
+    const [, ey, ew] = SHOWM.sdoor, lampMat = new THREE.MeshBasicMaterial({ color: 0x3dff7a }), lamp = new THREE.Mesh(GB, lampMat);
+    lamp.scale.set(2, 4, 4); lamp.position.set(X(SHOWM.shop[2]) + 4.4, 30, Z(ey - ew / 2 - 9)); m.add(lamp);
+    const mech = buildPerson('ped', 0x2a4aa8, '#c98a5a'); part(mech.tilt, GB, mc(0xc8ccd4), 7, 1.4, 1.4, 7.5, 14, 3.6); m.add(mech.g);   // blue overalls, a wrench
+    m.userData.own.push(wMat, wGlow, lampMat);
+    SHOW.wk = { roofMat: wMat, roofGlow: wGlow, door, lampMat, mech, op: -1 }; }
   return m;
 }
 

@@ -67,6 +67,7 @@ const CAR_TYPES = (() => {
     colors: v.colors.length ? v.colors : ['#c8c8d0'] };
   return o;
 })();
+const TUNE = Object.fromEntries((VEHICLE_TABLE.tuning || []).map(r => [r.id, r]));   // the tuning workshop's prices and levels (js/08y)
 const KERB_W = 2.33 * UNITS_PER_M, STALL_W = 2.5 * UNITS_PER_M;   // widest vehicle for the kerb parking lane / a parking lot stall
 function pickType(weight, ok) {          // a vehicle type at random, by one of its weights (traffic, parked, chase), among those ok() allows
   let sum = 0; for (const k in CAR_TYPES) if (!ok || ok(CAR_TYPES[k])) sum += CAR_TYPES[k][weight];

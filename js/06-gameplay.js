@@ -62,6 +62,7 @@ function killPlayer() {
 }
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
+  if (c.tk) d *= c.tk.arm;                                         // tuned armour takes some of it (js/08y)
   c.hp -= d; if (byPlayer) c.byPlayer = true;
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
@@ -250,7 +251,7 @@ function letGo(c) {                                              // a carjacking
 }
 function tryEnterExit() {
   if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
-  if (P.car) { if (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET')) return; exitCar(); return; }   // js/08o, js/08q
+  if (P.car) { if (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET') || tuneLocked('WAIT - THE MECHANIC IS STILL AT IT')) return; exitCar(); return; }   // js/08o, js/08q
   const c = nearestCar(); if (!c || rampLocked('ON FOOT DURING A RAMPAGE')) return;
   const occ = c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race';
   P.act = { k: 'steal', c, t: 0, dur: occ ? 3 : 1, occ }; P.vx = P.vy = 0;       // an empty car takes a second; pulling a driver out takes three
@@ -286,9 +287,9 @@ function updatePlayer(dt, inp) {
     } else if (touchMode) { c.thr = 0; c.str = 0; c.assist = false; c.fs = 0; }
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
     c.hb = inp.sprint; jobNitro(c, dt);                            // nitro in a taxi, the taxi job's reward (js/08n)
-    raceHold(c, dt); pnsHold(c, dt);                               // a race's countdown and results, a respray hold the car still (js/08o, js/08q)
+    raceHold(c, dt); pnsHold(c, dt); tuneHold(c, dt);              // a race's countdown and results, a respray, the tuning hold the car still (js/08o, js/08q, js/08y)
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; P.z = c.z || 0;
-    if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '')) { }   // a race, a respray: FIRE is locked
+    if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '') || tuneLocked(inp.fire && !P.ctrig ? 'NOT IN THE WORKSHOP' : '')) { }   // a race, a respray: FIRE is locked
     else if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
     else { updateReload(dt); carDrop(c, inp); }                    // a bomb in hand: FIRE drops it out of the window, then the next one comes to hand (js/06b)

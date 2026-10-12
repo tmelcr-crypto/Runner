@@ -480,6 +480,33 @@ button.clRow.on{border-color:var(--cyan)}
 #pnsCard .menu button{flex:1;padding:14px 10px}
 #pnsCard .keys{margin:10px 0 0}
 @media (max-height:560px){ #pnsCard .sub,#pnsCard .keys{display:none} #pnsCard .lab{margin:4px 0 2px} .sws{grid-template-columns:repeat(18,1fr);gap:3px} }
+/* the tuning workshop's card (js/08y): tabs, the look being picked, the colours, the parts and the levels */
+#tuneCard{max-width:520px;margin:auto auto 0}
+#tuneCard .tag{color:#ffd23f;font-size:12px;margin:0 0 6px;text-shadow:0 0 10px #ffd23f}
+#tuneCard .tabs{display:flex;gap:6px;margin:6px 0 8px}
+#tuneCard .tabs button,#tuneCard .chips button,#tuneCard .trow button{font-family:var(--f-display);font-size:8px;color:var(--paper);background:#14172b;border:2px solid var(--line);padding:8px 6px;cursor:pointer;touch-action:manipulation}
+#tuneCard .tabs button{flex:1;font-size:9px}
+#tuneCard .tabs button.on,#tuneCard .chips button.on,#tuneCard .trow button.on{background:#ffd23f;border-color:#ffd23f;color:#0b0614}
+#tuneCard .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:0 0 6px}
+#tuneCard .chips button{padding:6px 2px;line-height:1.5}
+#tuneCard .chips button i{display:block;font-style:normal;color:var(--dim);font-size:7px}
+#tuneCard .chips button.on i{color:#3a2a00}
+#tuneCard .chips button.ch::after{content:"";display:inline-block;width:5px;height:5px;margin-left:4px;border-radius:50%;background:#3dffa6;vertical-align:1px}
+#tuneCard button:disabled{opacity:.35;cursor:default}
+#tuneCard .sws button.none{background:repeating-linear-gradient(135deg,#22243a 0 4px,#3a3d5a 4px 8px)}
+#tuneCard .trow{display:flex;align-items:center;gap:6px;margin:4px 0;text-align:left}
+#tuneCard .trow b{font-family:var(--f-display);font-size:9px;min-width:88px}
+#tuneCard .trow i{flex:1;font-style:normal;font-size:12px;color:var(--dim)}
+#tuneCard .trow button{min-width:44px}
+#tuneCard .trow.lv button{min-width:38px}
+#tuneCard .trow button.now:not(.on){border-color:#3dffa6}
+#tnParts[hidden],#tnPerf[hidden],#tnLooks[hidden]{display:none}
+#tnMsg{min-height:14px;margin:8px 0 0;color:#fff;text-shadow:0 0 8px rgba(255,210,63,.7)}
+#tuneCard .menu{flex-direction:row;width:min(480px,100%)}
+#tuneCard .menu button{flex:1;padding:14px 10px}
+#tuneCard .keys{margin:8px 0 0}
+@media (max-height:560px){ #tuneCard .sub,#tuneCard .keys{display:none} #tuneCard .tabs{margin:2px 0 4px} #tuneCard .tabs button{padding:6px} #tuneCard .chips button{padding:4px 2px} #tuneCard .menu button{padding:10px} #tnMsg{margin:4px 0 0} }
+@media (max-width:560px){ #tuneCard .trow b{min-width:64px;font-size:8px} #tuneCard .trow i{font-size:10px} }
 
 /* the lime edge glow toward a ringing phone or an off-screen target (js/08p) */
 .edge{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s}

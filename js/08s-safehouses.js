@@ -174,7 +174,7 @@ function safeTick(dt) {                   // js/15 update: the doors, coming in,
 }
 
 /* ---------- kept cars: in a garage bay or a reserved space ---------- */
-const carState = c => ({ type: c.type, color: c.color, hp: Math.round(c.hp), radio: c.radio });
+const carState = c => ({ type: c.type, color: c.color, hp: Math.round(c.hp), radio: c.radio, tune: c.tune || undefined });
 function inSpot(c, p) { const dx = c.x - p.x, dy = c.y - p.y, ca = Math.cos(p.ang), sa = Math.sin(p.ang); return Math.abs(dx * ca + dy * sa) < p.l / 2 - 4 && Math.abs(-dx * sa + dy * ca) < p.w / 2; }
 function spawnKept(h, k) {
   const s = h.keep[k], p = h.spots[k]; if (!s || !CAR_TYPES[s.type]) { h.keep[k] = null; return; }
@@ -182,6 +182,7 @@ function spawnKept(h, k) {
   const c = makeCar(s.type, p.x, p.y, p.ang, null, typeof s.color === 'string' ? s.color : undefined);
   if (typeof s.hp === 'number' && isFinite(s.hp)) c.hp = clamp(s.hp, 1, c.hp);
   if (Number.isInteger(s.radio) && s.radio < RADIO.length) c.radio = Math.max(-1, s.radio);
+  tuneSet(c, s.tune);                                              // the tuning stays with the car (js/08y)
   c.searched = true; c.keep = true; c.home = { h, k }; cars.push(c); h.live[k] = c;
 }
 function safeCars(dt) {
@@ -222,7 +223,7 @@ function safeLoad(d) {                    // js/15b applySave (older saves: only
   if (d.stash && typeof d.stash === 'object') for (const id in d.stash) { const s = d.stash[id]; if (WEAPONS.some(w => w.id === id) && Array.isArray(s)) SAFEST.stash[id] = [n(s[0]), n(s[1])]; }
   if (d.cars && typeof d.cars === 'object') for (const h of SAFES) {
     const a = d.cars[h.id]; if (!Array.isArray(a)) continue;
-    h.keep = h.spots.map((p, k) => { const s = a[k]; return s && CAR_TYPES[s.type] ? { type: s.type, color: typeof s.color === 'string' ? s.color : undefined, hp: n(s.hp) || undefined, radio: s.radio } : null; });
+    h.keep = h.spots.map((p, k) => { const s = a[k]; return s && CAR_TYPES[s.type] ? { type: s.type, color: typeof s.color === 'string' ? s.color : undefined, hp: n(s.hp) || undefined, radio: s.radio, tune: tuneClean(s.tune) || undefined } : null; });
   }
 }
 
