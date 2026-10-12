@@ -301,7 +301,6 @@ function buildDrawable(o) {
   if (o.bld) {
     const geo = { x: -o.lw / 2, y: -o.lh / 2, w: o.lw, h: o.lh, H: o.H, kind: o.kind, c: o.c, inner: o.inner, pastel: o.pastel };
     o.mesh = withSeed(o.seed, () => makeBuilding(geo)); o.H = geo.H; o.fade = 1;
-    if (o.sign) { const sg = signMesh(o.sign, '#ffd23f', Math.min(o.lw * 0.9, 170), 34); sg.position.set(0, o.H + 22, o.lh * 0.25); o.mesh.add(sg); o.mesh.userData.own.push(sg.material); }
   } else o.mesh = o.make();
   if (!o.world) { o.mesh.position.set(o.cx, 0, o.cy); o.mesh.rotation.y = -(o.a || 0); }
   cityGroup.add(o.mesh);

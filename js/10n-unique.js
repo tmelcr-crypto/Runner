@@ -85,7 +85,7 @@ function uniqueSite(row, c) {
   return { row, r, W: c.W, D: c.D, H, a, door, side: Math.random() < 0.5 ? -1 : 1, seed: 12100 + row.id.length * 31 + Math.round(r.cx) % 997, lm: null };
 }
 
-/* ---------- signs: neon letters on a dark panel, turned toward the camera ---------- */
+/* ---------- signs: neon letters on a dark panel, always on the building - flat on a wall, a parapet, a pylon or a blade ---------- */
 const _uqt = {};
 function uqTex(text, col, vertical) {
   const k = text + col + (vertical ? 'v' : ''); if (_uqt[k]) return _uqt[k];
@@ -96,11 +96,31 @@ function uqTex(text, col, vertical) {
   if (vertical) [...text].forEach((ch, i) => put(ch, 64, 58 + i * 92)); else { let fs = 76; while (g.measureText(text).width > c.width - 40 && fs > 30) { fs -= 4; g.font = 'bold ' + fs + 'px "Arial Black",Impact,sans-serif'; } put(text, c.width / 2, 68); }
   return (_uqt[k] = finishTex(c));
 }
-function uqSign(m, U, text, col, x, y, z, h, vertical, flat) {   // a sign h high; flat: on the facade (faces the front), else turned to the camera
+function uqSign(m, U, text, col, x, y, z, h, vertical, flat) {   // a sign h high; flat: on the facade (faces the front), else turned to the camera (none left)
   const t = uqTex(text, col, vertical), asp = t.image.width / t.image.height, maxW = U.W * 1.15; if (!vertical && h * asp > maxW) h = Math.max(9, maxW / asp); const w = h * asp;
   const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide, transparent: true }));
   s.position.set(x, y, z); if (!flat) { s.rotation.order = 'YXZ'; s.rotation.set(-(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180) * 0.75, U.a, 0); }
   m.add(s); m.userData.own.push(s.material); return s;
+}
+
+function uqFit(text, h, maxW, vertical) {  // the size a sign takes: h high, narrower than maxW (then lower)
+  const asp = vertical ? 128 / (92 * text.length + 24) : Math.max(256, 74 * text.length) / 128; let w = h * asp; if (w > maxW) { w = maxW; h = w / asp; } return { w, h };
+}
+function uqParapet(T, U, x, z, y0, h, maxW, col, neon) {   // the front wall carried up over the roof, a cap on it, the name flat on its face (z)
+  const s = uqFit(U.row.name, h, maxW - 6), x0 = x - s.w / 2 - 3, x1 = x + s.w / 2 + 3, top = y0 + s.h + 3;
+  box5(T, x0, y0 - 1, z - 2.4, x1, top, z, _C(col)); box5(T, x0 - 0.6, top, z - 3, x1 + 0.6, top + 1.4, z + 0.6, _C(shade(col, -25)));
+  return m => uqSign(m, U, U.row.name, neon, x, y0 + 1.5 + s.h / 2, z + 0.3, s.h, false, true);
+}
+const uqSide = U => Math.abs(U.door.fy) < 0.5 ? (U.door.fx < 0 ? 1 : -1) : 0;   // a front the camera sees side-on (east or west): the model's side (x) that faces the camera, else 0
+const UQ_FRONT = {                        // kind: (half width, half depth, H) -> [x of the front's camera-side corner, z of the front, height the blade starts at]
+  deco: (hw, hd) => [hw - 8, hd - 12, 18], streamline: (hw, hd) => [hw - Math.min(22, hw * 0.3, hd * 0.3) - 4, hd, 28], med: (hw, hd) => [hw - 30, hd - 16, 26],
+  bank: (hw, hd) => [hw - 8, hd - 6, 22], church: (hw, hd) => [Math.min(hw - 4, 40) - 4, hd - 6, 22], club: (hw, hd) => [hw - 6, hd - 10, 26],
+  shop: (hw, hd) => [hw - 5, hd - 4, 19], office: (hw, hd) => [hw - 6, hd, 26] };
+function uqBlade(T, U, hw, hd, H, neon) {  // a front seen side-on: a blade standing out from it at the corner toward the camera, the name down it (the cinema, motel and diner turn their own signs)
+  const sx = uqSide(U), f = UQ_FRONT[U.row.kind]; if (!sx || !f) return null;
+  const [cx, fz, y0] = f(hw, hd, H), n = U.row.name.length, s = uqFit(U.row.name, Math.max(24, Math.min(9 * n + 12, H + 20 - y0)), 99, true), x = sx * cx;
+  box5(T, x - 0.9, y0, fz, x + 0.9, y0 + s.h + 4, fz + s.w + 5, _C('#2a2d3a')); box5(T, x - 1.3, y0 + s.h + 4, fz, x + 1.3, y0 + s.h + 5.2, fz + s.w + 5.4, _C(neon));
+  return m => { const sg = uqSign(m, U, U.row.name, neon, x + sx * 1.1, y0 + 2 + s.h / 2, fz + 2.5 + s.w / 2, s.h, true, true); sg.rotation.y = sx * Math.PI / 2; };
 }
 
 /* ---------- helpers for the models ---------- */
@@ -117,7 +137,8 @@ function uqPalm(T, x, z, h) { palm(T, x, z, h); }
 function makeUnique(U) {
   const T = new GeoBuilder(), G = new GeoBuilder(), W = U.W, D = U.D, H = U.H, row = U.row, f = UQ_MODELS[row.kind] || UQ_MODELS.shop;
   const post = f(T, G, U, W / 2, D / 2, H, row.c, row.neon);
-  const m = lmMesh(T, G); if (post) post(m);
+  const blade = uqBlade(T, U, W / 2, D / 2, H, row.neon);
+  const m = lmMesh(T, G); if (post) post(m); if (blade) blade(m);
   const B = new GeoBuilder(); box5(B, -W / 2, 0, -D / 2, W / 2, SIDE_H + 0.2, D / 2, _C(UQ_GROUND[row.kind] || '#8a8494'));   // the lot: paving, a lawn, a car park...
   const base = lmMesh(B, new GeoBuilder()), g = new THREE.Group(); g.add(base, m); m.position.y = SIDE_H; g.userData.own = m.userData.own.concat(base.userData.own);
   return g;
@@ -150,7 +171,8 @@ const UQ_MODELS = {
     box5(T, tx - tw / 2 + 4, TH, fz - 20, tx + tw / 2 - 4, TH + 6, fz - 2, _C(acc)); box5(T, tx - tw / 2 + 8, TH + 6, fz - 16, tx + tw / 2 - 8, TH + 10, fz - 6, _C(c));
     const nf = Math.random() < 0.5 ? 3 : 5; for (let k = 0; k < nf; k++) { const x = tx - tw / 2 + (k + 1) * tw / (nf + 1); box5(T, x - 1.2, 18, fz + 1.5, x + 1.2, TH - 2, fz + 4, _C(trim)); }   // fins down the front
     box5(G, tx - tw / 2 + 2, 12, fz + 0.6, tx + tw / 2 - 2, 14, fz + 1.4, _C(neon));
-    return m => { const vertical = U.row.name.length <= 9; if (vertical) uqSign(m, U, U.row.name, neon, tx, (TH + 18) / 2 + 6, fz + 6, Math.min(TH - 20, 10 * U.row.name.length + 8), true); else uqSign(m, U, U.row.name, neon, tx, TH + 20, fz - 8, 20); };
+    const sh = Math.min(TH - 22, 10 * U.row.name.length + 8);                       // the name down the tower, on its fins
+    return m => uqSign(m, U, U.row.name, neon, tx, TH - 2 - sh / 2, fz + 4.4, sh, true, true);
   },
   streamline(T, G, U, hw, hd, H, c, neon) { // Streamline Moderne: rounded front corners, racing bands, portholes, a pylon with the name
     const R = Math.min(22, hw * 0.3, hd * 0.3), fz = hd, acc = pick(['#35c9c0', '#ff7ab6', '#6f86ff', '#ffb02e']);
@@ -166,7 +188,8 @@ const UQ_MODELS = {
     box5(T, -16, 0, fz, 16, 24, fz + 2, _C('#9fd8ff')); box5(T, -22, 24, fz - 2, 22, 27, fz + 12, _C('#f4f4f6'));   // glass-block lobby, the curved canopy
     box5(T, -hw + 6, H, -hd + 10, hw - 6, H + 8, fz - R, _C(shade(c, -12)));
     const px = hw * 0.55; box5(T, px - 6, H, fz - 14, px + 6, H + 60, fz - 2, _C('#f4f4f6')); box5(G, px - 6.6, H + 58, fz - 14.6, px + 6.6, H + 60, fz - 1.4, _C(neon));
-    const n = U.row.name.length; return m => n <= 8 ? uqSign(m, U, U.row.name, neon, px, H + 32, fz + 2, Math.min(56, 7 * n + 10), true) : uqSign(m, U, U.row.name, neon, 0, H + 22, fz - 6, 16);
+    const n = U.row.name.length; if (n > 8) { const xa = -hw + R + 2, xb = px - 8; return uqParapet(T, U, (xa + xb) / 2, fz, H, 16, xb - xa, '#f4f4f6', neon); }   // a long name on a parapet beside the pylon
+    return m => uqSign(m, U, U.row.name, neon, px, H + 30, fz - 1.4, Math.min(52, 7 * n + 10), true, true);   // a short one down the pylon
   },
   mimo(T, G, U, hw, hd, H, c, neon) {      // a MiMo motel: two floors of rooms off open walkways, a cheese-hole screen, a boomerang sign, a pool
     const bz = hd - Math.min(46, hd * 0.45), back = -hd, rd = bz - back, acc = pick(['#ff7ab6', '#2bf3ff', '#ffe14a', '#3dffa6', '#ff7a3d']);
@@ -180,7 +203,9 @@ const UQ_MODELS = {
     const px = hw - 16; T.prism(px, hd - 8, 1.6, 0, 46, _C('#2a2d3a'), 6);
     face(T, [[px - 2, 40, hd - 8], [px + 22, 54, hd - 8], [px + 22, 58, hd - 8], [px - 2, 46, hd - 8]], [0, 0, 1], _C(acc)); face(T, [[px - 2, 40, hd - 8], [px - 26, 54, hd - 8], [px - 26, 58, hd - 8], [px - 2, 46, hd - 8]], [0, 0, 1], _C(acc));   // the boomerang
     box5(G, px - 3, 58, hd - 9, px + 3, 64, hd - 7, _C('#ffe14a'));
-    return m => { uqSign(m, U, U.row.name, neon, px, 36, hd - 6, 15); uqSign(m, U, 'VACANCY', '#ff4d4d', px, 24, hd - 6, 7); };
+    const ms = uqSide(U);
+    return m => { for (const [t, col, y, h] of [[U.row.name, neon, 33, 13], ['VACANCY', '#ff4d4d', 22, 6]]) {   // on the boomerang's pole (turned to the camera's side when the front is not)
+      const sg = uqSign(m, U, t, col, px, y, hd - 6.2, h, false, true); if (ms) { sg.rotation.y = ms * Math.PI / 2; sg.position.set(px, y, hd - 8 + sg.geometry.parameters.width / 2 + 1.6); } } };
   },
   med(T, G, U, hw, hd, H, c, neon) {       // Mediterranean Revival: stucco, red tile roofs, arches, a tower, a courtyard with a fountain
     const fz = hd - 16, tile = pick(['#c9773a', '#b8642e', '#d0864a']), arch = '#3a2a1e';
@@ -193,7 +218,7 @@ const UQ_MODELS = {
     T.prism(tx, fz - 12, 18, TH, TH + 12, _C(tile), 4, 0.5, true);
     if (hd - fz > 8) { const cz = (fz + hd) / 2; flat(T, -hw, fz, hw, hd, 0.6, _C('#d8c4a0')); T.prism(-hw * 0.3, cz, 6, 0, 3, _C('#e8dcc6'), 12, 6, true); flat(G, -hw * 0.3 - 4.5, cz - 4.5, -hw * 0.3 + 4.5, cz + 4.5, 3.2, _C('#3fd0ff')); T.prism(-hw * 0.3, cz, 1.2, 3, 8, _C('#e8dcc6'), 8, 0.6, true); uqPalm(T, hw * 0.45, cz, 40); uqPalm(T, -hw + 8, cz, 34); }
     box5(T, -12, 0, fz, 12, 20, fz + 1, _C(arch)); box5(T, -14, 22, fz, 14, 24, fz + 4, _C('#2a2d3a'));   // the door, a wrought-iron balcony over it
-    return m => uqSign(m, U, U.row.name, neon, 0, H + 28, fz - 4, 16);
+    return uqParapet(T, U, -U.side * 13, fz, H, 14, 2 * hw - 34, c, neon);   // a stucco gable over the eaves, away from the tower
   },
   diner(T, G, U, hw, hd, H, c, neon) {     // a stainless-steel diner: rounded ends, chrome bands, the counter window, DINER on the roof
     const L = Math.min(hw - 4, 64), dd = Math.min(hd - 4, 22), z0 = hd - dd * 2 - 6, z1 = hd - 6, zc = (z0 + z1) / 2, steel = _C(c), stripe = pick(['#e0364f', '#2bf3ff', '#ff2bd6', '#2a4aa8']);
@@ -204,7 +229,10 @@ const UQ_MODELS = {
     box5(T, -6, 0, z1, 6, 18, z1 + 6, steel); box5(G, -4, 2, z1 + 6.1, 4, 14, z1 + 6.4, _C('#ffe9a8'));   // the vestibule
     box5(T, -L * 0.4, H, zc - 3, L * 0.4, H + 3, zc + 3, _C('#2a2d3a'));
     flat(T, -hw, z1 + 7, hw, hd, 0.5, _C('#3a3d47')); for (let x = -hw + 6; x < hw - 6; x += 14) flat(T, x, z1 + 8, x + 0.8, hd - 1, 0.6, _C('#f4f4f6'));   // its own little lot
-    return m => { uqSign(m, U, U.row.name, neon, 0, H + 16, zc, 14); uqSign(m, U, 'OPEN 24H', '#ff4d4d', L * 0.6, H + 6, zc, 6); };
+    const dsx = uqSide(U), ds = uqFit(U.row.name, 14, dsx ? 2 * dd - 2 : L * 0.8 + 6);   // the name standing on a stand on the roof (along the roof when the front is seen side-on)
+    if (dsx) box5(T, -1.6, H + 3, zc - ds.w / 2 - 1, -0.4, H + 5, zc + ds.w / 2 + 1, _C('#2a2d3a')); else box5(T, -ds.w / 2 - 1, H + 3, zc - 1.6, ds.w / 2 + 1, H + 5, zc - 0.4, _C('#2a2d3a'));
+    return m => { const sg = uqSign(m, U, U.row.name, neon, 0, H + 5 + ds.h / 2, zc, ds.h, false, true); if (dsx) sg.rotation.y = dsx * Math.PI / 2;
+      uqSign(m, U, 'OPEN 24H', '#ff4d4d', (L - dd) * 0.55, 10.5, z1 + 1, 6, false, true); };   // OPEN 24H in the window
   },
   cinema(T, G, U, hw, hd, H, c, neon) {    // a movie palace: the marquee with chasing lights, a tall blade sign, the ticket booth, posters
     const fz = hd - 6, acc = shade(c, 40);
@@ -215,7 +243,11 @@ const UQ_MODELS = {
     box5(T, -6, 0, fz, 6, 14, fz + 8, _C('#7a5a3a')); box5(G, -4, 6, fz + 8.1, 4, 12, fz + 8.4, _C('#9fd8ff'));   // the ticket booth
     for (const sx of [-1, 1]) box5(G, sx * (mw - 12) - 6, 4, fz + 0.2, sx * (mw - 12) + 6, 18, fz + 0.6, _C(pick(['#ff7ab6', '#6f86ff', '#ffe14a'])));   // posters
     const bx = (Math.random() < 0.5 ? -1 : 1) * Math.min(hw - 10, 30);
-    return m => { uqSign(m, U, U.row.name, neon, bx, H + 22, fz + 4, Math.min(56, U.row.name.length * 9 + 10), true); uqSign(m, U, 'NOW SHOWING', '#fff3c0', 0, 26, fz + 17, 6, false, true); };
+    const bh = Math.min(56, U.row.name.length * 9 + 10), bs = uqFit(U.row.name, bh, 40, true), by0 = 33;   // the blade: on the facade over the marquee, up past the roof
+    const csx = uqSide(U), bxx = csx ? csx * Math.abs(bx) : bx;                       // seen side-on, the blade stands out from the wall at the corner toward the camera
+    if (csx) box5(T, bxx - 1.2, by0, fz, bxx + 1.2, by0 + bs.h + 4, fz + bs.w + 5, _C('#2a2d3a')); else box5(T, bx - bs.w / 2 - 2.5, by0, fz, bx + bs.w / 2 + 2.5, by0 + bs.h + 4, fz + 3, _C('#2a2d3a'));
+    return m => { const sg = csx ? uqSign(m, U, U.row.name, neon, bxx + csx * 1.4, by0 + 2 + bs.h / 2, fz + 2.5 + bs.w / 2, bs.h, true, true) : uqSign(m, U, U.row.name, neon, bx, by0 + 2 + bs.h / 2, fz + 3.3, bs.h, true, true);
+      if (csx) sg.rotation.y = csx * Math.PI / 2; uqSign(m, U, 'NOW SHOWING', '#fff3c0', 0, 26, fz + 17, 6, false, true); };
   },
   bank(T, G, U, hw, hd, H, c, neon) {      // columns and steps, a pediment, bronze doors, the name over them
     const fz = hd - 18, stone = _C(c), dark = _C(shade(c, -30));
@@ -225,7 +257,7 @@ const UQ_MODELS = {
     box5(T, -hw + 4, H - 6, fz, hw - 4, H, fz + 12, stone);                        // the entablature
     face(T, [[-hw + 4, H, fz + 12], [hw - 4, H, fz + 12], [0, H + 14, fz + 12], [0, H + 14, fz + 12]], [0, 0, 1], dark); box5(T, -hw + 4, H, fz, hw - 4, H + 1, fz + 12, stone);
     box5(T, -8, 0, fz - 0.5, 8, 20, fz + 0.5, _C('#8a6a2a')); box5(G, -hw + 10, H - 4.5, fz + 12.1, hw - 10, H - 1.5, fz + 12.4, _C('#ffd98a'));
-    return m => uqSign(m, U, U.row.name, neon, 0, H + 24, fz + 6, 14);
+    const fs2 = uqFit(U.row.name, 5.6, 2 * hw - 24); return m => uqSign(m, U, U.row.name, neon, 0, H - 3, fz + 12.5, fs2.h, false, true);   // on the frieze over the doors
   },
   church(T, G, U, hw, hd, H, c, neon) {    // a mission church: a curved gable, a bell tower, a rose window, doors, a cross
     const nw = Math.min(hw - 4, 40), fz = hd - 6, wall = _C(c), tile = _C('#b8642e');
@@ -238,7 +270,7 @@ const UQ_MODELS = {
       box5(T, tx - 10, 0, fz - 22, tx + 10, 70, fz - 2, wall); for (const sx of [-1, 1]) box5(T, tx - 5, 54, fz - 1.9, tx + 5, 66, fz - 1.6, _C('#2a2d3a'));
       T.prism(tx, fz - 12, 14, 70, 84, tile, 4, 0.5, true); box5(T, tx - 0.8, 84, fz - 12.8, tx + 0.8, 96, fz - 11.2, _C('#ffd23f')); box5(T, tx - 4, 90, fz - 12.8, tx + 4, 91.6, fz - 11.2, _C('#ffd23f'));
     } else { box5(T, -0.8, H + 22, fz - 1.6, 0.8, H + 34, fz, _C('#ffd23f')); box5(T, -4, H + 29, fz - 1.6, 4, H + 30.6, fz, _C('#ffd23f')); }
-    return m => uqSign(m, U, U.row.name, neon, 0, H + 46, 0, 15);
+    const cs = uqFit(U.row.name, Math.min(7, H - 33), 2 * nw - 8); return m => uqSign(m, U, U.row.name, neon, 0, 21.5 + cs.h / 2, fz + 0.4, cs.h, false, true);   // over the doors
   },
   club(T, G, U, hw, hd, H, c, neon) {      // a nightclub: a dark box striped with neon, the canopy, a velvet rope, searchlights
     const fz = hd - 10, alt = pick(['#ff2bd6', '#2bf3ff', '#3dffa6', '#ffe14a', '#a259ff']);
@@ -249,7 +281,7 @@ const UQ_MODELS = {
     box5(G, -8, 0, fz, 8, 18, fz + 0.4, _C(shade(neon, -30)));
     for (const x of [-16, -8, 8, 16]) T.prism(x, fz + 16, 1, 0, 8, _C('#ffd23f'), 6, 1, true); box5(T, -16, 6.4, fz + 15.6, -8, 7.4, fz + 16.4, _C('#b3122a')); box5(T, 8, 6.4, fz + 15.6, 16, 7.4, fz + 16.4, _C('#b3122a'));   // the velvet rope
     for (const [x0, z0, x1, z1] of [[-hw + 2, -hd + 2, hw - 2, -hd + 3.4], [-hw + 2, fz - 3.4, hw - 2, fz - 2], [-hw + 2, -hd + 2, -hw + 3.4, fz - 2], [hw - 3.4, -hd + 2, hw - 2, fz - 2]]) box5(G, x0, H, z0, x1, H + 1.2, z1, _C(alt));   // a neon frame round the roof
-    return m => uqSign(m, U, U.row.name, neon, 0, H + 16, fz - 2, 18);
+    return uqParapet(T, U, 0, fz, H + 1.2, 16, 2 * hw - 8, c, neon);   // the name on a parapet over the front
   },
   shop(T, G, U, hw, hd, H, c, neon) {      // a shop: a striped awning, the display windows, a sign, and something to say what it sells
     const fz = hd - 4, n = U.row.name, s1 = pick(['#ff7ab6', '#2bf3ff', '#ffe14a', '#3dffa6', '#e0364f', '#6f86ff']), s2 = '#f4f4f6';
@@ -268,7 +300,7 @@ const UQ_MODELS = {
     else if (/CAMERA/.test(n)) { box5(T, -10, y, -8, 10, y + 12, 4, _C('#2a2d3a')); T.prism(0, 4, 5, y + 2, y + 10, _C('#16161c'), 10, 5, true); }
     else if (/VINYL/.test(n)) { disc(T, 0, -4, 14, y + 1, _C('#16161c'), 20); disc(T, 0, -4, 4, y + 1.2, _C(s1), 12); }
     else if (/BOOK/.test(n)) for (let k = 0; k < 6; k++) box5(T, -hw + 8 + k * 4, 0, fz + 10, -hw + 11 + k * 4, 12 + (k % 3) * 2, fz + 14, _C(pick(['#e0364f', '#2a4aa8', '#ffe14a', '#3dffa6'])));
-    return m => uqSign(m, U, n, neon, 0, H + 10, fz - 2, 12);
+    return uqParapet(T, U, 0, fz, H, 12, 2 * hw - 6, c, neon);   // the name on a parapet over the front
   },
   office(T, G, U, hw, hd, H, c, neon) {    // an office block: sun-shade fins, a glass lobby, the name on its crown
     const glass = pick(['#2a3a5a', '#1d2f4a', '#24405a']), fin = _C(c);
@@ -277,6 +309,6 @@ const UQ_MODELS = {
     for (let x = -hw; x <= hw; x += 12) box5(T, x - 0.8, 24, hd, x + 0.8, H - 6, hd + 4, fin);
     box5(G, -hw + 6, 2, hd + 0.2, hw - 6, 20, hd + 0.6, _C('#cfe6ff')); box5(T, -hw, 20, -hd, hw, 24, hd + 8, fin);   // the lobby, a canopy
     box5(T, -hw + 6, H, -hd + 6, hw - 6, H + 14, hd - 6, fin);
-    return m => uqSign(m, U, U.row.name, neon, 0, H + 28, hd - 8, 18);
+    const os = uqFit(U.row.name, 11, 2 * hw - 16); return m => uqSign(m, U, U.row.name, neon, 0, H + 7, hd - 5.7, os.h, false, true);   // on the crown's front
   },
 };

@@ -90,7 +90,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
    A new 90s-style synth track plays (made by the game). Build the cutscene engine so story mode can use it later. - done
 7. **The map overhaul**:
    - Remove the floating name boards (SEA BREEZE, GROVE DOCK, LUNAPARK PARKING, the COLONY HOTEL roof board...); a name stays
-     only where it belongs on a building (a neon sign on its facade or pylon).
+     only where it belongs on a building (a neon sign on its facade or pylon). - done (store, unique building and landmark names
+     too; a front the camera sees side-on gets a blade sign)
    - 100 more unique places: 40 more unique buildings (new kinds too: skyscrapers, a school, an arena, a parking garage, a gas
      station...) and 60 places - every park, square and plaza its own design (ponds, gardens, playgrounds, a skate park,
      sculptures, a bandstand...). No repeated patterns: everything recognisable.

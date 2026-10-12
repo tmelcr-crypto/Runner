@@ -92,7 +92,10 @@ function makePier(G) {                       // planks on pilings, the T-head wi
   for (const x of [hx0 + 6, hx1 - 6]) { T.prism(X(x), Z((hy0 + hy1) / 2), 0.7, 1.6, 26, _C('#2a2d3a'), 6); box5(Gl, X(x) - 2, 25, Z((hy0 + hy1) / 2) - 2, X(x) + 2, 28, Z((hy0 + hy1) / 2) + 2, _C('#ffe9a8')); }   // lamps
   box5(T, X(cx) - 12, 1.6, Z(hy0 + 6), X(cx) + 12, 4.6, Z(hy0 + 10), _C('#7a5a3a')); box5(T, X(cx) - 12, 4.6, Z(hy0 + 4), X(cx) + 12, 9, Z(hy0 + 5.4), _C('#7a5a3a'));   // a bench facing the sea
   T.prism(X(px1) + 2, Z(py1 - 14), 2.8, 4, 6, _C('#ff4d4d'), 10, 2.8, true); T.prism(X(px1) + 2, Z(py1 - 14), 1.6, 4, 6.2, _C('#f4f4f6'), 8, 1.6, true);   // a lifebuoy
-  const m = lmMesh(T, Gl), sign = signMesh('GROVE DOCK', '#2bf3ff', 60, 14); sign.position.set(X(cx), 20, Z(py1) - 4); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180) * 0.6; m.add(sign); m.userData.own.push(sign.material);
+  const az = Z(py1) - 6, ax0 = X(px0) - 4, ax1 = X(px1) + 4;                                           // an arch over the way onto the pier, the name on its crossbar
+  for (const x of [ax0, ax1]) { box5(T, x - 1.6, 1.6, az - 1.6, x + 1.6, 30, az + 1.6, _C('#e8e4d8')); box5(Gl, x - 2, 30, az - 2, x + 2, 32, az + 2, _C('#2bf3ff')); }
+  box5(T, ax0 - 3, 20, az - 1.2, ax1 + 3, 30, az + 1.2, _C('#e8e4d8'));
+  const m = lmMesh(T, Gl), sign = fasciaSign('GROVE DOCK', '#2bf3ff', ax1 - ax0 + 4, 9); sign.position.set((ax0 + ax1) / 2, 25, az + 1.4); m.add(sign); m.userData.own.push(sign.material);
   for (const b of GROVE.boats) { const bm = makeBoat(b.k); bm.position.set(X(b.x), 0, Z(b.y)); bm.rotation.y = -b.a; m.add(bm); b.mesh = bm; }
   return m;
 }

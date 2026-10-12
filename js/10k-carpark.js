@@ -110,11 +110,13 @@ function makeCarpark() {
       const ax = (gapA + gapB) / 2, az = Z1 + 20; flatQ(T, ax - 4, az - 4, ax + 4, az + 14, 0.6, line); face(T, [[ax - 11, 0.6, az - 4], [ax + 11, 0.6, az - 4], [ax, 0.6, az - 18], [ax, 0.6, az - 18]], [0, 1, 0], line);
     }
     if (top) for (const [px, pz] of [[X0 + 30, Z0 + 30], [X1 - 30, Z0 + 30], [X0 + 30, Z1 - 30], [X1 - 30, Z1 - 30]]) { T.prism(px, pz, 1.2, y, y + 34, C('#14102a'), 6); box5(G, px - 3, y + 34, pz - 3, px + 3, y + 37, pz + 3, C('#fff3b0')); }   // floodlights on the roof
+    const sw = 250, sy0 = y - K.dh + ph + 4, sy1 = y + ph - 4;                                         // the name's board on the south face, hung from the top deck's edge
+    if (top) box5(T, -sw / 2 - 3, sy0 - 2, Z1, sw / 2 + 3, sy1 + 1.5, Z1 + 1.2, C('#2b2e38'));
     const mats = [xray(new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true })), new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true })];
     const mesh = new THREE.Mesh(mergeBuilders([T, G]), mats); g.add(mesh); view.groups.push({ mesh, mats, op: 1 });
-    if (top) {                                                                                          // the name over the roof, facing the camera
-      const sign = signMesh('LUNAPARK PARKING', '#ffd23f', 260, 36); sign.material.transparent = true; sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180);
-      sign.position.set(0, y + 50, Z1 - 20); mesh.add(sign); mats.push(sign.material); view.sign = sign;
+    if (top) {                                                                                          // and the name on it
+      const sign = fasciaSign('LUNAPARK PARKING', '#ffd23f', sw, sy1 - sy0); sign.material.transparent = true;
+      sign.position.set(0, (sy0 + sy1) / 2, Z1 + 1.4); mesh.add(sign); mats.push(sign.material); view.sign = sign;
     }
   }
   g.userData.own = view.groups.flatMap(v => v.mats); K.view = view;

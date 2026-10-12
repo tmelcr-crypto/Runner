@@ -128,14 +128,16 @@ function placeJobs() {                   // a new game (js/15): the first one fi
     const pad = new THREE.Mesh(RAMP_PAD, rampMat(col, 0.2)); pad.scale.setScalar(JOB_MR); pad.position.y = 1.4;
     const ring = new THREE.Mesh(RAMP_RING, rampMat(col, 0.9)); ring.scale.setScalar(JOB_MR); ring.position.y = 1.6;
     const beam = new THREE.Mesh(GCyl, rampMat(col, 0.12)); beam.scale.set(18, 70, 18); beam.position.y = 35;
-    const sign = signMesh(JOBK[d.kind].name + ' JOB', col, 110, 22); sign.position.set(0, 78, 0); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180);
+    const sign = signMesh(JOBK[d.kind].name + ' JOB', col, 70, 14); sign.rotation.x = -Math.PI / 2; sign.position.set(0, 1.8, 0);   // painted on the pad
+    sign.material.transparent = true; sign.material.opacity = 0.8; sign.material.depthWrite = false;
     g.add(pad, ring, beam, sign); g.userData.ring = ring; g.visible = false; d.g = g; jobGroup.add(g);
   }
   for (const R of RANKS) {                                         // the rank: a pole with a lit TAXI sign, yellow paint along the kerb
     const g = new THREE.Group(); g.position.set(R.sign.x, groundH(R.sign.x, R.sign.y), R.sign.y);
     part(g, GB, mc(0x2b2e38), 1.4, 30, 1.4, 0, 15, 0);
-    const box = part(g, GB, mBas(0xffd23f), 12, 6, 1.2, 0, 31, 0); box.rotation.y = -R.sign.ang;
-    const sign = signMesh('TAXI', '#ffd23f', 40, 12); sign.position.set(0, 46, 0); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180); g.add(sign);   // turned to the camera
+    const ca = Math.cos(R.sign.ang), sa = Math.sin(R.sign.ang), [nx, ny] = Math.abs(sa) > Math.abs(ca) ? [ca, sa] : [-sa, ca], ry = Math.atan2(nx, ny) + (ny < 0 ? Math.PI : 0);
+    const box = part(g, GB, mBas(0xffd23f), 26, 8, 1.6, 0, 33, 0); box.rotation.y = ry;            // the sign on top of the pole, along the street or across it - whichever the camera sees - TAXI on both faces
+    for (const k of [0, Math.PI]) { const sign = fasciaSign('TAXI', '#ffd23f', 24, 6.4); sign.rotation.y = ry + k; sign.position.set(Math.sin(ry + k) * 0.9, 33, Math.cos(ry + k) * 0.9); g.add(sign); }
     const paint = new THREE.Group(), q = R.paint[0]; paint.position.set(q.x, groundH(q.x, q.y) + 0.9, q.y); paint.rotation.y = -Math.atan2(q.ty, q.tx);
     part(paint, GB, mBas(0xd8b52a), 230, 0.3, 1.6, 0, 0, 0);
     R.deco = [g, paint]; jobGroup.add(g, paint);

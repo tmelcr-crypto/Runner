@@ -23,6 +23,9 @@ function windows(G, x0, x1, z, y0, y1, step, col, n) {            // a row of li
   for (let x = x0 + step / 2; x < x1 - step / 2; x += step) face(G, [[x - step * 0.3, y0, z + 0.3], [x + step * 0.3, y0, z + 0.3], [x + step * 0.3, y1, z + 0.3], [x - step * 0.3, y1, z + 0.3]], n || [0, 0, 1], _C(col));
 }
 function withSign(m, text, col, w, h, x, y, z) { const sg = signMesh(text, col, w, h); sg.position.set(x, y, z); m.add(sg); m.userData.own.push(sg.material); return m; }
+function withBand(m, text, col, w, h, x, y, z, ry) {   // a name band flat on a wall (facing +z, or turned by ry)
+  const sg = fasciaSign(text, col, w, h); sg.position.set(x, y, z); sg.rotation.y = ry || 0; m.add(sg); m.userData.own.push(sg.material); return m;
+}
 
 /* ---------- the military base ---------- */
 function makeBaseBuilding(b) {
@@ -38,7 +41,7 @@ function makeBaseBuilding(b) {
     for (const y of [8, 26]) windows(G, -w + 10, w - 10, h, y, y + 9, 22, win);
     box5(T, -20, 0, h, 20, 26, h + 22, _C('#d8d0b0')); box5(T, -22, 26, h - 2, 22, 29, h + 24, _C(LCOL.olive));      // the entrance porch
     T.prism(w - 30, -h + 30, 1.2, 43, 110, _C(LCOL.dark), 5); box5(G, w - 32, 108, -h + 28, w - 28, 112, -h + 32, _C('#ff3b5c'));   // radio mast
-    return withSign(lmMesh(T, G), 'COMMAND', '#3dffa6', 90, 18, 0, 52, h + 4);
+    return withBand(lmMesh(T, G), 'COMMAND', '#3dffa6', 38, 8, 0, 20.5, h + 22.3);   // over the entrance, on the porch
   }
   if (b.t === 'garage') {                                           // a long open shed: roof on posts, a back wall
     box5(T, -w, 0, h - 6, w, 30, h, _C(LCOL.khaki)); box5(T, -w - 4, 30, -h - 6, w + 4, 34, h + 2, _C(LCOL.roofG));
@@ -48,7 +51,7 @@ function makeBaseBuilding(b) {
   if (b.t === 'guard') {
     box5(T, -w, 0, -h, w, 24, h, _C('#d8d0b0')); box5(T, -w - 5, 24, -h - 5, w + 5, 28, h + 5, _C(LCOL.olive));
     face(G, [[-w + 5, 10, h + 0.3], [w - 5, 10, h + 0.3], [w - 5, 20, h + 0.3], [-w + 5, 20, h + 0.3]], [0, 0, 1], _C(win));
-    return withSign(lmMesh(T, G), 'STOP - MILITARY AREA', '#ff3b5c', 70, 12, 0, 40, h + 4);
+    return withBand(lmMesh(T, G), 'STOP - MILITARY AREA', '#ff3b5c', Math.min(2 * w - 6, 80), 6, 0, 5.5, h + 0.4);   // under the window
   }
   if (b.t === 'fuel') {
     for (const s of [-1, 1]) { T.prism(s * 22, 0, 16, 0, 34, _C('#6a7048'), 12, 16, true); }
@@ -75,7 +78,7 @@ function makeBunker(w, h) {                                       // an ammo mag
     face(T, [p(a0, -w / 2), p(a1, -w / 2), p(a1, w / 2), p(a0, w / 2)], [0, Math.sin((a0 + a1) / 2), Math.cos((a0 + a1) / 2)], _C(k % 2 ? '#3f5a34' : '#46623a'));
   }
   box5(T, w / 2 - 4, 0, -R, w / 2 + 6, 24, R, _C(LCOL.conc)); face(G, [[w / 2 + 6.3, 0, -10], [w / 2 + 6.3, 0, 10], [w / 2 + 6.3, 17, 10], [w / 2 + 6.3, 17, -10]], [1, 0, 0], _C('#5a5f50'));
-  return withSign(lmMesh(T, G), 'DANGER - EXPLOSIVES', '#ffb02e', 70, 12, 0, 40, R);
+  return withBand(lmMesh(T, G), 'DANGER - EXPLOSIVES', '#ffb02e', Math.min(2 * R - 6, 64), 5, w / 2 + 6.5, 20.5, 0, Math.PI / 2);   // over the door
 }
 function makeRack() {                                             // a weapon rack in the armoury yard
   const T = new GeoBuilder(), G = new GeoBuilder();
@@ -128,7 +131,7 @@ function makeSpaceBits(kind) {
     const S = SPACEM.lcc, w = S[2] / 2, h = S[3] / 2;
     box5(T, -w, 0, -h, w, 36, h, _C('#e8e8ec')); box5(T, -w - 3, 36, -h - 3, w + 3, 39, h + 3, _C('#9aa0ab'));
     face(G, [[-w + 8, 18, h + 0.4], [w - 8, 18, h + 0.4], [w - 8, 30, h + 0.4], [-w + 8, 30, h + 0.4]], [0, 0, 1], _C('#3fe0ff'));
-    return withSign(lmMesh(T, G), 'LAUNCH CONTROL', '#2bf3ff', 110, 20, 0, 52, h + 4);
+    return withBand(lmMesh(T, G), 'LAUNCH CONTROL', '#2bf3ff', Math.min(2 * w - 16, fasciaFit('LAUNCH CONTROL', 9, 999)), 9, 0, 10, h + 0.4);   // under the window band
   }
   if (kind === 'office') {
     const S = SPACEM.office, w = S[2] / 2, h = S[3] / 2;
@@ -154,7 +157,8 @@ function makeSpaceGate() {                                        // a sliding s
   for (const s of [-1, 1]) box5(T, -6, 0, s * 70 - 6, 6, 40, s * 70 + 6, _C('#c8ccd4'));
   box5(T, -2, 2, -64, 2, 34, 64, _C('#7a808c')); for (let z = -60; z <= 60; z += 12) box5(T, -2.5, 2, z - 1, 2.5, 34, z + 1, _C('#5a606a'));
   box5(G, -8, 40, -72, 8, 43, -68, _C('#ff3b5c')); box5(G, -8, 40, 68, 8, 43, 72, _C('#ff3b5c'));
-  return withSign(lmMesh(T, G), 'AUTHORIZED PERSONNEL ONLY', '#ff3b5c', 90, 13, 30, 50, 0);
+  box5(T, -3, 34, -64, 3, 44, 64, _C('#c8ccd4'));                                                     // a crossbar over the gate, the warning on it
+  return withBand(lmMesh(T, G), 'AUTHORIZED PERSONNEL ONLY', '#ff3b5c', 120, 8, 3.3, 39, 0, Math.PI / 2);
 }
 
 /* ---------- the port ---------- */
@@ -187,16 +191,16 @@ function makeLunaGate(w) {                                        // the grand e
   for (const s of [-1, 1]) { box5(T, s * (w / 2 + 50) - 18, 0, -12, s * (w / 2 + 50) + 18, 26, 12, cream); box5(T, s * (w / 2 + 50) - 22, 26, -16, s * (w / 2 + 50) + 22, 30, 16, pink); face(G, [[s * (w / 2 + 50) - 14, 10, 12.3], [s * (w / 2 + 50) + 14, 10, 12.3], [s * (w / 2 + 50) + 14, 20, 12.3], [s * (w / 2 + 50) - 14, 20, 12.3]], [0, 0, 1], _C('#ffe9b0')); }
   for (let x = -w / 2 + 14; x < w / 2 - 6; x += 22) { box5(T, x - 1, 0, -6, x + 1, 12, 6, _C(LCOL.steel)); box5(T, x + 4, 9, -0.5, x + 14, 10, 0.5, _C(LCOL.steel)); }   // turnstiles
   for (let k = 0; k < 12; k++) { const x = -w / 2 - 12 + k * (w + 24) / 11; box5(G, x - 2, 74, -6.4, x + 2, 78, -6, _C(pick(['#ffe14a', '#2bf3ff', '#ff2bd6']))); }   // bulbs along the arch
-  return withSign(lmMesh(T, G), 'HERON KEY LUNAPARK', '#ffe14a', w + 30, 26, 0, 88, 8);
+  return withBand(lmMesh(T, G), 'HERON KEY LUNAPARK', '#ffe14a', w + 26, 12, 0, 67, 6.3);   // on the arch
 }
 function makeStand(seed) {                                        // a food stand with a striped awning, tables and umbrellas
   const T = new GeoBuilder(), G = new GeoBuilder(), cols = [['#ff2bd6', '#fff'], ['#2bf3ff', '#fff'], ['#ffb02e', '#fff'], ['#3dffa6', '#fff'], ['#e0364f', '#ffe14a']][seed % 5];
   box5(T, -18, 0, -12, 18, 18, 12, _C('#f4e9d0')); face(G, [[-14, 8, 12.3], [14, 8, 12.3], [14, 15, 12.3], [-14, 15, 12.3]], [0, 0, 1], _C('#ffe9b0'));
   for (let k = 0; k < 6; k++) face(T, [[-20 + k * 6.66, 22, 12], [-20 + (k + 1) * 6.66, 22, 12], [-20 + (k + 1) * 6.66, 18, 22], [-20 + k * 6.66, 18, 22]], [0, 0.7, 0.7], _C(cols[k % 2]));
-  box5(T, -20, 18, -14, 20, 22, 12, _C(cols[0])); box5(G, -12, 24, -2, 12, 32, 0, _C(cols[0]));
+  box5(T, -20, 18, -14, 20, 22, 12, _C(cols[0])); box5(T, -13, 22, -2, 13, 33, 0, _C('#2a2d3a'));   // the roof, a board standing on it
   for (const [x, z] of [[-30, 36], [0, 44], [30, 36]]) { box5(T, x - 5, 0, z - 5, x + 5, 7, z + 5, _C('#7a5a3a')); T.prism(x, z, 0.6, 0, 22, _C(LCOL.dark), 4); T.prism(x, z, 12, 20, 25, _C(pick(['#ff2bd6', '#ffe14a', '#2bf3ff', '#3dffa6'])), 8, 1, true); }
   const words = ['HOT DOGS', 'ICE CREAM', 'PRETZELS', 'PIZZA', 'FUNNEL CAKE', 'TACOS', 'LEMONADE'];
-  return withSign(lmMesh(T, G), words[seed % words.length], cols[0], 34, 7, 0, 36, 1);
+  return withBand(lmMesh(T, G), words[seed % words.length], cols[0], 25, 10, 0, 27.5, 0.3);
 }
 function makeVillage(r) {                                         // half-timbered houses round a square, a beer hall and a clock tower
   const T = new GeoBuilder(), G = new GeoBuilder(), w = r.x1 - r.x0, h = r.y1 - r.y0, wall = _C('#f2ead8'), beam = _C('#4a3020');
@@ -213,7 +217,7 @@ function makeVillage(r) {                                         // half-timber
   for (let x = -55; x < 65; x += 20) box5(T, x - 1, 0, h / 2 - 10, x + 1, 34, h / 2 - 9.4, beam);
   T.prism(0, -40, 10, 0, 90, wall, 4, 10); T.prism(0, -40, 12, 90, 120, _C('#5a2a1a'), 4, 1);   // the clock tower in the square
   box5(G, -6, 70, -40 + 9.2, 6, 82, -40 + 9.8, _C('#ffe9b0'));
-  return withSign(lmMesh(T, G), 'FESTHAUS', '#ffb02e', 70, 14, 5, 76, h / 2 - 8);
+  return withBand(lmMesh(T, G), 'FESTHAUS', '#ffb02e', 66, 11, 5, 23, h / 2 - 9.1);   // on the beer hall's front
 }
 function makePiazza(rad) {                                        // the Italian piazza: a fountain, a ring of cafe umbrellas
   const T = new GeoBuilder(), G = new GeoBuilder(), stone = _C('#d8cfb8');
