@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 11): see the comment above each remodelN below.
+  - Later versions (2 to 12): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -689,7 +689,23 @@ def remodel11(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11]
+# version 12: the junkyard (PLAN step 6, October 2026: the owner moved it to Dockside, by the port; js/10t, js/08z). The south part of the
+# port's maintenance yard becomes DOCKSIDE SALVAGE (salvage: area - the fenced yard; gate - [x, y, width] in its south fence, to the shore
+# street; spot - [x, y, w, l] where you leave a car for the crane; crane - the magnet crane's middle; crusher - [x, y, w, d]; pile - where
+# the cubes go; shack - [x, y, w, d], the office; kennel - the guard dog's); the workshop that stood there goes, the one to the north stays.
+def remodel12(M):
+    J = [4856, 13170, 5355, 13644]
+    M['bld'] = [b for b in M['bld'] if not (abs(b[0] - 5250) < 2 and abs(b[1] - 13390) < 2)]
+    cx, cy, R, a = 5030, 13420, 157, -0.42
+    M['salvage'] = {'area': J, 'gate': [5110, 13644, 110], 'spot': [5110, 13555, 50, 130], 'crane': [cx, cy, R],
+                    'crusher': [round(cx + R * math.cos(a)), round(cy + R * math.sin(a)), 110, 64], 'pile': [5292, 13352], 'shack': [4910, 13585, 80, 56], 'kennel': [4975, 13608]}
+    sx, sy = M['salvage']['spot'][:2]
+    assert abs(math.hypot(sx - cx, sy - cy) - R) < 3, math.hypot(sx - cx, sy - cy)      # the magnet reaches the spot and the crusher alike
+    M['remodel'] = 12
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12]
 
 
 if __name__ == '__main__':
@@ -732,5 +748,8 @@ if __name__ == '__main__':
     head = head.replace("   showroom's block (showroom: block, hall, door, side, shop, sdoor, yard). */",
                         "   showroom's block (showroom: block, hall, door, side, shop, sdoor, yard); version 11: dead-end streets for visitors to the Colony and the\n"
                         "   cement works (edges v: colony / factory, closed to traffic) and their car parks (lm colony vlot, gravel.factory vlot). */")
+    head = head.replace("   cement works (edges v: colony / factory, closed to traffic) and their car parks (lm colony vlot, gravel.factory vlot). */",
+                        "   cement works (edges v: colony / factory, closed to traffic) and their car parks (lm colony vlot, gravel.factory vlot); version 12: the\n"
+                        "   junkyard in the port's maintenance yard (salvage: area, gate, spot, crane, crusher, pile, shack, kennel). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
