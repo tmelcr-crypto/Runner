@@ -16,6 +16,7 @@ an import writes each one back there (only the price, the rest of each table is 
   vehicle jobs pay       js/01o-jobs-data.js      (also tools/settings_sheet.py jobs)
   race fees and prizes   js/01p-races-data.js     (also tools/settings_sheet.py races)
   the spray garages      js/01l-places-data.js    (also tools/settings_sheet.py places)
+  the scenic flight      js/01k-airport-data.js   (also tools/settings_sheet.py airport)
   safehouses             js/01q-safehouse-data.js (also tools/safehouse_sheet.py)
 Rows are found by the key in the last column, so they may be moved; a row that is missing keeps its price.
 Needs openpyxl for .xlsx and numbers-parser for .numbers."""
@@ -24,7 +25,8 @@ import json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); JSD = os.path.join(HERE, '..', 'js')
 FILES = {'eco': ('01i-economy-data.js', 'ECONOMY'), 'ramp': ('01h-rampage-data.js', 'RAMPAGE'), 'police': ('01b-police-data.js', 'POLICE'),
          'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON'), 'clothes': ('01n-clothes-data.js', 'CLOTHES'), 'vehicle': ('01c-vehicle-data.js', 'VEHICLE'),
-         'jobs': ('01o-jobs-data.js', 'JOBS'), 'races': ('01p-races-data.js', 'RACES'), 'places': ('01l-places-data.js', 'PLACES'), 'safe': ('01q-safehouse-data.js', 'SAFE')}
+         'jobs': ('01o-jobs-data.js', 'JOBS'), 'races': ('01p-races-data.js', 'RACES'), 'places': ('01l-places-data.js', 'PLACES'), 'safe': ('01q-safehouse-data.js', 'SAFE'),
+         'airport': ('01k-airport-data.js', 'AIRPORT')}
 HEADS = ['Action or commodity', 'Price (or from)', 'Up to', 'Unit', 'Notes', 'Key (do not change)']
 USD, PCT = '€', '% of your cash'
 LIMITS = {'€': (0, 1000000), '$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
@@ -108,6 +110,11 @@ def rows():
     for r in block('places')[3]['settings']:
         if r['unit'] != USD: continue
         out.append(dict(key='places.' + r['id'], label=r['name'], value=r['v'], unit=USD, note=r.get('note', ''), file='places', id=r['id'], field='v',
+                        lo=r.get('min', 0), hi=r.get('max', 1000000), empty_ok=False))
+    out.append(('#', 'THE AIRPORT', 'The departures desk in the terminal (airport table).'))
+    for r in block('airport')[3]['settings']:
+        if r['unit'] != USD: continue
+        out.append(dict(key='airport.' + r['id'], label=r['name'], value=r['v'], unit=USD, note=r.get('note', ''), file='airport', id=r['id'], field='v',
                         lo=r.get('min', 0), hi=r.get('max', 1000000), empty_ok=False))
     out.append(('#', 'SAFEHOUSES', 'What each place you can own costs (safehouse table). 0: yours from the start.'))
     for h in block('safe')[3]['houses']:

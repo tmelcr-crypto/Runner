@@ -257,7 +257,7 @@ function syncPlayer(time, dt) {
     P3.flash = new THREE.Mesh(GSph, mBas(0xfff0a0)); P3.flash.scale.set(4.5, 4.5, 4.5); o.g.add(P3.flash);
     P3.gy = 0; { const pg = new THREE.Mesh(GP, glowMat('#2bf3ff', 0.85)); pg.scale.set(52, 1, 52); pg.position.y = 1.4; o.g.add(pg); }
   }
-  const vis = !P.car && !(P.act && P.act.occ) && state !== 'over'; P3.mesh.visible = vis; if (!vis) return;
+  const vis = !P.car && !(P.act && P.act.occ) && state !== 'over' && !CUT.hideP;   // CUT.hideP: on board a plane in a cutscene (js/15c) P3.mesh.visible = vis; if (!vis) return;
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
   P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8, live = feat('liveWalk'), run = live ? clamp((sp - 30) / 50, 0, 1) : 0;

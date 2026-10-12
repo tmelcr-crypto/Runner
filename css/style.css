@@ -596,3 +596,34 @@ button.stRow:hover,button.stRow:focus{outline:0;border-color:var(--good);box-sha
 .wcell.locked .wn,.wcell.locked .wa{color:var(--dim)}
 .wcell:not(.locked):active{transform:scale(.95)}
 @media (max-width:640px){ #wgrid{grid-template-columns:repeat(3,minmax(0,1fr));max-height:64vh} }
+
+/* ---------- the departures desk (js/08v) ---------- */
+#flyCard .tag{color:#2bf3ff;font-size:12px;margin:0 0 8px;text-shadow:0 0 10px #2bf3ff}
+#flyCard h2{color:#fff;text-shadow:0 0 10px #2bf3ff,0 0 24px rgba(43,243,255,.5),3px 3px 0 #000}
+#flyBoard{display:grid;gap:4px;margin:12px 0;padding:10px;background:#07060c;border:2px solid #2a2440;font-family:var(--f-display);font-size:9px;text-align:left}
+#flyBoard .fr{display:grid;grid-template-columns:5em 1fr 6em 11em;gap:8px;align-items:center;padding:5px 4px;color:#ffb02e;white-space:nowrap}
+#flyBoard .fr.on{color:#5dff4f;background:rgba(93,255,79,.08)}
+#flyBoard .fr .st{text-align:right}
+#flyBoard .fr.soon .st{color:#ff4d6d}
+@media (max-width:520px){#flyBoard{font-size:7px;padding:8px 6px}#flyBoard .fr{gap:6px}}
+
+/* ---------- cutscenes (js/15c): letterbox, caption, fade, the skip button, the plane's window ---------- */
+html.cut #hud,html.cut #touch{visibility:hidden}
+#cut{position:fixed;inset:0;z-index:30;pointer-events:none}
+#cut[hidden]{display:none}
+#cut .lb{position:absolute;left:0;right:0;height:0;background:#000;transition:height .8s ease}
+#cut .lb.top{top:0}#cut .lb.bot{bottom:0}
+#cut.bars .lb{height:11vh}
+#cutCap{position:absolute;left:6vw;bottom:calc(11vh + 18px);margin:0;max-width:80vw;font-family:var(--f-display);font-size:13px;line-height:1.7;letter-spacing:2px;color:#fff;text-shadow:0 0 12px #2bf3ff,2px 2px 0 #000;opacity:0;transition:opacity .9s}
+#cutCap.on{opacity:1}
+#cut:not(.bars) #cutCap{bottom:7vh}
+#cutFade{position:absolute;inset:0;background:#000;opacity:0}
+#cutSkip{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;pointer-events:auto;font-family:var(--f-display);font-size:12px;letter-spacing:2px;color:#07060c;background:#ffd23f;border:0;padding:10px 16px;box-shadow:0 0 14px rgba(255,210,63,.6),3px 3px 0 #000;cursor:pointer}
+#cutSkip:active{transform:scale(.95)}
+#cutWin{position:absolute;inset:0;overflow:hidden}
+#cutWin[hidden]{display:none}
+#cutWin .pane{position:absolute;left:50%;top:47%;width:min(62vw,50vh);height:min(86vw,70vh);transform:translate(-50%,-50%);border-radius:44%/38%;border:clamp(8px,1.6vmin,14px) solid #efe9de;
+  box-shadow:0 0 0 clamp(4px,.8vmin,7px) #b9b1a3,0 0 0 200vmax #d4cdc0,inset 0 0 36px rgba(0,0,0,.5),inset 0 0 0 3px rgba(255,255,255,.35)}
+#cutWin .pane::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.14),transparent 35%,transparent 70%,rgba(255,255,255,.06))}
+#cutRain{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit}
+#cutWin::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 46%,transparent 34%,rgba(40,30,20,.32) 100%);pointer-events:none}

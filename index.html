@@ -41,6 +41,7 @@
   <div id="toast"></div>
   <div id="warnBanner" hidden></div>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
+  <button id="flyBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><b>SKYPORT</b><span class="go">FLIGHTS</span></button>
   <button id="raceBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7c0-1.7 4-3.5 9-3.5S21 5.3 21 7v2.2c0 .6-.5 1-1 .9l-3-.6a1 1 0 0 1-.8-1V7.3C15 6.9 13.6 6.7 12 6.7s-3 .2-4.2.6v1.2a1 1 0 0 1-.8 1l-3 .6c-.5.1-1-.3-1-.9zm4 5h10l2 8H5zm5 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><b></b><span class="go">ANSWER</span></button>
   <div id="raceHud" hidden><span class="rl" id="raceHudName">RACE</span><b id="racePos"></b><span id="raceLap"></span><i id="raceClock">0:00</i></div>
   <div id="raceCount"></div>
@@ -89,6 +90,13 @@
   <div class="svPad" id="svPadR"><button id="svD" type="button" aria-label="Down">&#9660;</button><button id="svU" type="button" aria-label="Up">&#9650;</button></div>
   <p class="svKeys">ARROWS OR A / D WALK · W OR E: UP · S: DOWN · ESC: MENU</p>
   <div id="svLift" hidden><p class="tag">ELEVATOR</p><div id="svFloors"></div><button id="svLiftX" class="big alt" type="button">CLOSE</button></div>
+</div>
+<div id="cut" hidden>
+  <div id="cutWin" hidden><div class="pane"><canvas id="cutRain"></canvas></div></div>
+  <div class="lb top"></div><div class="lb bot"></div>
+  <p id="cutCap"></p>
+  <div id="cutFade"></div>
+  <button id="cutSkip" type="button">LAND</button>
 </div>
 <div id="sleepFx" hidden><span class="moon"></span><b>SLEEPING</b><i id="sleepClock">00:00</i></div>
 
@@ -259,6 +267,7 @@
         <li>Keep off the runway and taxiways: a moving plane runs over anything in its way. Parked planes are solid.</li>
         <li>Enough gunfire, or a rocket or grenade at its tanks, blows a plane up - a huge blast and a burning wreck.</li>
         <li>A fence keeps cars off the airfield. At the gates police guard a barrier: stop and it lifts; crash through and you are wanted. Only a heavy vehicle - truck, bus, fire engine, APC, tank - going fast breaks the fence.</li>
+        <li><b>DEPARTURES</b> at the terminal's middle door, on foot: tap <b>FLIGHTS</b> or press <b>E</b>. Prague and Norfolk are coming soon; a <b>SCENIC FLIGHT</b> over the city costs €5,000 - a cinematic at a random hour and weather, two minutes seen from your window seat. <b>LAND</b> (or Esc) skips it.</li>
         <li>The big parking lot is on the avenue, next to the terminal. Bayside Mall stands in a park that covers its whole peninsula, with a pond.</li></ul></div>
       <div><h3>MILITARY BASE</h3><ul>
         <li>North of the airport. Inside the fence a <b>RESTRICTED AREA</b> warning counts down 5 seconds: stay and the alarm gives you <b>4 STARS</b> and the soldiers open fire.</li>
@@ -317,6 +326,16 @@
     <p class="sub rampRules" id="jobRules"></p>
     <div class="menu"><button id="jobGo" class="big pri" type="button">START JOB</button><button id="jobNo" class="big alt back" type="button">NOT NOW</button></div>
     <p class="keys">ENTER STARTS · ESC OR E LEAVES</p>
+  </div>
+
+  <div class="card" id="flyCard" hidden>
+    <p class="tag">SKYPORT</p>
+    <h2>DEPARTURES</h2>
+    <p class="sub" id="flySub"></p>
+    <div id="flyBoard"></div>
+    <p class="warn" id="flyWarn" hidden></p>
+    <div class="menu"><button id="flyGo" class="big pri" type="button">SCENIC FLIGHT</button><button id="flyNo" class="big alt back" type="button">NOT NOW</button></div>
+    <p class="keys">ENTER FLIES · ESC OR E LEAVES</p>
   </div>
 
   <div class="card" id="raceCard" hidden>
@@ -426,6 +445,7 @@
 <script src="js/01r-buildings-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
+<script src="js/02c-music.js"></script>
 <script src="js/03-input.js"></script>
 <script src="js/04-world.js"></script>
 <script src="js/05-entities.js"></script>
@@ -454,6 +474,7 @@
 <script src="js/08s-safehouses.js"></script>
 <script src="js/08t-sideview.js"></script>
 <script src="js/08u-police-heli.js"></script>
+<script src="js/08v-flights.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -485,6 +506,7 @@
 <script src="js/14b-weapon-wheel-scope.js"></script>
 <script src="js/15-game-flow-loop.js"></script>
 <script src="js/15b-menus-saves.js"></script>
+<script src="js/15c-cutscene.js"></script>
 <script src="js/16-octagrid-map-preview.js"></script>
 <script src="js/main.js"></script>
 </body>

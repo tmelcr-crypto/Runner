@@ -33,21 +33,25 @@ function obox(gb, ax, az, bx, bz, w, y0, y1, col) {               // a box from 
     face(gb, [[p[0], y0, p[1]], [q[0], y0, q[1]], [q[0], y1, q[1]], [p[0], y1, p[1]]], [nx / m, 0, nz / m], col);
   }
 }
-function makeTerminalHall() {                                    // a long glass hall facing the apron, a canopy over the drop-off, a jet bridge to every gate
+const TERM = { roof: null, open: false };                           // the terminal's roof: hidden while a cutscene walks you through the hall (js/08v)
+function terminalRoof(open) { TERM.open = open; if (TERM.roof) TERM.roof.visible = !open; }
+function makeTerminalHall() {                                    // a long glass hall facing the apron, a canopy over the drop-off, a jet bridge to every gate; inside, the hall
   const [x0, z0, x1, z1] = AIRF.terminal, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, hw = (x1 - x0) / 2, hh = (z1 - z0) / 2;
-  const T = new GeoBuilder(), G = new GeoBuilder(), wall = _C('#cfd3dd'), trim = _C('#b8bdc9'), glass = _C('#3fe0ff'), dark = _C('#2a2348'), steel = _C('#9aa0ab');
-  box5(T, -hw, 0, -hh, hw, 34, hh, wall); box5(T, -hw - 6, 34, -hh - 6, hw + 6, 38, hh + 6, trim);
-  box5(T, -130, 38, -hh + 30, 130, 48, hh - 30, _C('#a9aebb'));                                  // the raised roof with skylights
-  for (let z = -hh + 60; z < hh - 90; z += 130) flat(G, -100, z, 100, z + 60, 48.3, _C('#7fe8ff'));
+  const T = new GeoBuilder(), G = new GeoBuilder(), R = new GeoBuilder(), RG = new GeoBuilder(), wall = _C('#cfd3dd'), trim = _C('#b8bdc9'), glass = _C('#3fe0ff'), dark = _C('#2a2348'), steel = _C('#9aa0ab');
+  box5(T, -hw, 0, -hh, -hw + 6, 34, hh, wall); box5(T, hw - 6, 0, -hh, hw, 34, hh, wall); box5(T, -hw, 0, -hh, hw, 34, -hh + 6, wall); box5(T, -hw, 0, hh - 6, hw, 34, hh, wall);   // the walls
+  flat(R, -hw, -hh, hw, hh, 34, wall); box5(R, -hw - 6, 34, -hh - 6, hw + 6, 38, hh + 6, trim);    // the roof, its own mesh (see below)
+  box5(R, -130, 38, -hh + 30, 130, 48, hh - 30, _C('#a9aebb'));                                  // the raised roof with skylights
+  for (let z = -hh + 60; z < hh - 90; z += 130) flat(RG, -100, z, 100, z + 60, 48.3, _C('#7fe8ff'));
   for (const [sx, n] of [[-1, [-1, 0, 0]], [1, [1, 0, 0]]]) face(G, [[sx * (hw + 0.3), 8, -hh + 10], [sx * (hw + 0.3), 8, hh - 10], [sx * (hw + 0.3), 28, hh - 10], [sx * (hw + 0.3), 28, -hh + 10]], n, glass);
   face(G, [[-hw + 10, 8, hh + 0.3], [hw - 10, 8, hh + 0.3], [hw - 10, 28, hh + 0.3], [-hw + 10, 28, hh + 0.3]], [0, 0, 1], glass);
-  face(G, [[-hw - 6, 34.5, hh + 6.3], [hw + 6, 34.5, hh + 6.3], [hw + 6, 37.5, hh + 6.3], [-hw - 6, 37.5, hh + 6.3]], [0, 0, 1], _C('#ff2bd6'));
+  face(RG, [[-hw - 6, 34.5, hh + 6.3], [hw + 6, 34.5, hh + 6.3], [hw + 6, 37.5, hh + 6.3], [-hw - 6, 37.5, hh + 6.3]], [0, 0, 1], _C('#ff2bd6'));
   box5(T, hw, 24, -hh + 120, hw + 46, 27, hh - 120, trim);                                       // the canopy over the forecourt, on posts
   face(G, [[hw + 46.3, 24, -hh + 120], [hw + 46.3, 24, hh - 120], [hw + 46.3, 27, hh - 120], [hw + 46.3, 27, -hh + 120]], [1, 0, 0], _C('#2bf3ff'));
   for (let z = -hh + 130; z <= hh - 130; z += 120) box5(T, hw + 38, 0, z - 1.5, hw + 41, 24, z + 1.5, dark);
   for (let z = -hh + 180; z < hh - 150; z += 240) face(G, [[hw + 0.4, 0, z - 14], [hw + 0.4, 0, z + 14], [hw + 0.4, 13, z + 14], [hw + 0.4, 13, z - 14]], [1, 0, 0], _C('#ffe9b0'));   // doors
-  for (const [ax, az] of [[-60, -hh + 200], [60, -200], [-40, 300], [70, hh - 260]]) box5(T, ax - 14, 48, az - 10, ax + 14, 56, az + 10, steel);   // plant on the roof
-  const m = lmMesh(T, G), own = m.userData.own;
+  for (const [ax, az] of [[-60, -hh + 200], [60, -200], [-40, 300], [70, hh - 260]]) box5(R, ax - 14, 48, az - 10, ax + 14, 56, az + 10, steel);   // plant on the roof
+  terminalInside(T, G, hw, hh, AIRF.stands.map(st => st.y - 60 - cz));
+  const m = lmMesh(T, G), own = m.userData.own, roof = lmMesh(R, RG); m.add(roof); TERM.roof = roof; roof.visible = !TERM.open;
   AIRF.stands.forEach((st, i) => {                                // the bridge: a corridor from the wall, a rotunda on a column, a tunnel to the front door
     const rx = x0 - 34 - cx, rz = st.y - 60 - cz, ex = st.x + 80 - cx, ez = st.y - 15 - cz;
     const B = new GeoBuilder(); obox(B, -hw, rz, rx, rz, 11, 13, 22, steel); B.prism(rx, rz, 8, 0, 23, dark, 10, 8, true);
@@ -57,6 +61,33 @@ function makeTerminalHall() {                                    // a long glass
   });
   const sg = signMesh('SKYPORT', '#2bf3ff', 300, 60); sg.position.set(0, 76, hh - 40); m.add(sg); own.push(sg.material);
   return m;
+}
+function terminalInside(T, G, hw, hh, gates) {                    // the hall under the roof: tiles, check-in, security, shops, the gates' seats; a clear concourse down the middle
+  const tile = _C('#d9dde5'), seam = _C('#c3c8d2'), desk = _C('#2a4aa8'), top = _C('#e9edf3'), belt = _C('#3a3d45'), post = _C('#2a2d35'), seat = _C('#1f3a8a'), green = _C('#3d8a3a'), metal = _C('#9aa0ab');
+  flat(T, -hw + 6, -hh + 6, hw - 6, hh - 6, 0.6, tile);
+  for (let x = -hw + 46; x < hw - 6; x += 40) flat(T, x, -hh + 6, x + 1.2, hh - 6, 0.7, seam);
+  for (let z = -hh + 46; z < hh - 6; z += 40) flat(T, -hw + 6, z, hw - 6, z + 1.2, 0.7, seam);
+  flat(T, -hw + 6, -40, hw - 6, 40, 0.8, _C('#4a3a7a'));                                         // the concourse carpet, door to gate 3
+  for (const zc of [-600, -330, 330, 600]) {                                                     // check-in islands: desks, the belt behind, a lit board, the queue lines
+    box5(T, 110, 0, zc - 110, 124, 9, zc + 110, desk); flat(T, 110, zc - 110, 124, zc + 110, 9.2, top); box5(T, 124, 0, zc - 110, 134, 5, zc + 110, belt);
+    box5(T, 134, 0, zc - 100, 138, 22, zc + 100, top); face(G, [[133.6, 14, zc - 90], [133.6, 14, zc + 90], [133.6, 20, zc + 90], [133.6, 20, zc - 90]], [-1, 0, 0], _C(pick(['#2bf3ff', '#ff2bd6', '#ffd23f', '#5dff4f'])));
+    for (let k = 0; k < 4; k++) box5(T, 152 + k * 12, 0, zc - 90, 153 + k * 12, 7, zc + 90, post);
+    box5(T, 196, 18, zc - 34, 200, 32, zc + 34, _C('#14121c'));                                    // the departures board
+    for (let r = 0; r < 4; r++) face(G, [[195.6, 20 + r * 3, zc - 30], [195.6, 20 + r * 3, zc + 30], [195.6, 21.4 + r * 3, zc + 30], [195.6, 21.4 + r * 3, zc - 30]], [-1, 0, 0], _C('#ffb02e'));
+  }
+  box5(T, 36, 0, -hh + 6, 40, 12, -75, _C('#9fd7e6')); box5(T, 36, 0, 75, 40, 12, hh - 6, _C('#9fd7e6'));   // security: a glass screen, two lanes through it
+  for (const z of [-55, 55]) { box5(T, 22, 0, z - 14, 54, 4, z + 14, belt); box5(T, 30, 0, z - 16, 34, 16, z - 12, metal); box5(T, 30, 0, z + 12, 34, 16, z + 16, metal); box5(T, 30, 14, z - 16, 34, 17, z + 16, metal); }   // the scanner arches
+  for (const zc of [-500, -260, 220, 480]) {                                                      // shops and a cafe in the middle of the airside: an awning in their colour
+    const col = _C(pick(['#ff2bd6', '#ffb02e', '#2bf3ff', '#5dff4f', '#a259ff'])); box5(T, -70, 0, zc - 70, 10, 16, zc + 70, _C('#f2efe8'));
+    face(G, [[10.4, 12, zc - 66], [10.4, 12, zc + 66], [10.4, 16, zc + 66], [10.4, 16, zc - 66]], [1, 0, 0], col);
+    face(G, [[-70.4, 12, zc - 66], [-70.4, 12, zc + 66], [-70.4, 16, zc + 66], [-70.4, 16, zc - 66]], [-1, 0, 0], col);
+    for (let k = 0; k < 3; k++) { T.prism(20, zc - 40 + k * 40, 6, 0, 7, _C('#e8e2d4'), 8, 6, true); T.prism(-80, zc - 40 + k * 40, 6, 0, 7, _C('#e8e2d4'), 8, 6, true); }   // little tables
+  }
+  gates.forEach(zb => {                                                                          // each gate: its desk, a carpet at the door, rows of seats either side of the way in
+    flat(T, -hw + 6, zb - 22, -hw + 60, zb + 22, 0.9, _C('#ffd23f')); box5(T, -190, 0, zb + 32, -176, 10, zb + 58, desk); face(G, [[-175.6, 10, zb + 36], [-175.6, 10, zb + 54], [-175.6, 15, zb + 54], [-175.6, 15, zb + 36]], [1, 0, 0], _C('#2bf3ff'));
+    for (const side of [-1, 1]) for (let r = 0; r < 3; r++) { const z = zb + side * (52 + r * 26); if (Math.abs(z) < 48) continue; box5(T, -150, 0, z - 6, -70, 5, z + 6, seat); box5(T, -150, 5, z + side * 4 - 2, -70, 11, z + side * 4 + 2, seat); }
+  });
+  for (const [x, z] of [[80, -150], [80, 150], [-100, -150], [-100, 150], [180, -760], [180, 760], [-120, -790], [-120, 790]]) { T.prism(x, z, 7, 0, 7, _C('#8a6a48'), 8); T.prism(x, z, 9, 7, 14, green, 8, 4, true); }   // planters
 }
 function makeBooth() {                                           // a guard booth with the boom raised
   const T = new GeoBuilder(), G = new GeoBuilder();
