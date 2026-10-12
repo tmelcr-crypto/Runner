@@ -124,6 +124,7 @@ js/10s, js/08w) and the tuning workshop (js/08y, October 2026).
   each, moderate at the top: engine +15% top speed and +35% acceleration, brakes +50%, armour -60% damage, level 3 about EUR 16-20,000.
 
 ## 6. Junkyard and car crusher (Gravel Flats)
+(Done October 2026: Dockside Salvage in the port's maintenance yard - map remodel 12, js/10t, js/08z.)
 (October 2026: the yard kept for it by the cement works became the works' road and staff car park - map remodel 11. The owner chose a new
 place: **Dockside, by the port** - in the port's maintenance yard area, wrecks and containers side by side, near the black market. The
 rest of this step stands.)

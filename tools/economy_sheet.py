@@ -104,6 +104,9 @@ def rows():
     for v in block('vehicle')[3]['vehicles']:
         if v.get('role') == 'police' or v.get('job') or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank'): continue
         out.append(dict(key='delivery.' + v['id'], label='Deliver a %s' % v['name'].lower(), value=v.get('delivery') or 0, unit=USD, note='', file='vehicle', id=v['id'], field='delivery', lo=0, hi=1000000, empty_ok=False))
+    out.append(('#', 'JUNKYARD', "What Dockside Salvage's crusher pays for each vehicle undamaged (vehicles table; a damaged one pays less: places table). 0: the crane leaves it."))
+    for v in block('vehicle')[3]['vehicles']:
+        out.append(dict(key='scrap.' + v['id'], label='Scrap a %s' % v['name'].lower(), value=v.get('scrap') or 0, unit=USD, note='', file='vehicle', id=v['id'], field='scrap', lo=0, hi=1000000, empty_ok=False))
     out.append(('#', 'VEHICLE JOBS', 'Taxi, paramedic, firefighter and vigilante (jobs table): what each fare, patient, fire or criminal car pays, and the level bonus.'))
     for r in block('jobs')[3]['settings']:
         if r['unit'] != USD: continue
