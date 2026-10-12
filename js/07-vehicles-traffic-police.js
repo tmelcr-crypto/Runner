@@ -145,7 +145,7 @@ function routeEdge(c) {                      // a vehicle on a call (js/08c): at
   }
   return best || { e: c.e, fw: -c.fw };
 }
-const nextFor = c => c.task ? routeEdge(c) : c.crim && c.crim.flee ? fleeEdge(c) : nextEdge(c.e, c.fw);   // criminals fleeing you take the street away from you (js/08n)
+const nextFor = c => (c.visit && visitNext(c)) || (c.task ? routeEdge(c) : c.crim && c.crim.flee ? fleeEdge(c) : nextEdge(c.e, c.fw));   // criminals fleeing you take the street away from you (js/08n)
 function laneAhead(c, ahead, out) {          // point on the car's lane `ahead` units further on, running into the next edge if needed
   const E = RE[c.e], s = c.s + ahead;
   if (s <= E.len) return lanePoint(c.e, c.fw, s, c.lo || LANE, out);
@@ -237,7 +237,7 @@ function updateCars(dt) {
   for (const c of cars) {
     if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
-    else if (c.driver === 'ai') aiDrive(c, dt);
+    else if (c.driver === 'ai') { if (!(c.visit && visitDrive(c, dt))) aiDrive(c, dt); }   // a visitor parking or leaving drives itself (js/08x)
     else if (c.driver === 'cop') { copDrive(c, dt); copHeavy(c, dt); }   // a tank's rockets, an APC's turret gun (js/08r)
     else if (c.driver === 'race') raceDrive(c, dt);                // a race's rivals (js/08o)
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)

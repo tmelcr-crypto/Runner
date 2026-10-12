@@ -98,12 +98,33 @@ function makeBooth() {                                           // a guard boot
   box5(G, -12, 25, -10, 12, 26, 10, _C('#ff3b5c'));
   return lmMesh(T, G);
 }
+const CHECKIN = { x: 0, y: 0 };                                  // the flights check-in booth on the forecourt (js/08v: its pad and the FLIGHTS button)
+function makeCheckIn() {                                         // a small glass booth out in the open, its counter to the south (the camera), a clerk inside, a tall lit sign behind
+  const T = new GeoBuilder(), G = new GeoBuilder(), white = _C('#f2f4f8'), blue = _C('#2a4aa8'), dark = _C('#2a2d38'), cyan = _C('#2bf3ff'), sub = [];
+  flat(T, -26, -20, 26, 22, 0.9, _C('#c9ced8'));                                                 // its own paving
+  box5(T, -22, 0, -16, 22, 30, -12, white); box5(T, -22, 0, -16, -19, 30, 16, white); box5(T, 19, 0, -16, 22, 30, 16, white);   // back and side walls
+  box5(T, -19, 0, 10, 19, 11, 16, blue); box5(T, -20, 11, 9, 20, 12, 17, white);                 // the counter
+  for (const x of [-20.5, 20.5]) box5(T, x - 1.5, 12, 14, x + 1.5, 30, 17, white);               // the window's frame
+  face(G, [[-19, 13, -11.6], [19, 13, -11.6], [19, 27, -11.6], [-19, 27, -11.6]], [0, 0, 1], _C('#9fe6ff'));   // a lit departures board on the back wall
+  for (let k = 0; k < 4; k++) box5(G, -15, 15.5 + k * 3, -11.5, 15, 16.5 + k * 3, -11.3, _C(k ? '#2a4aa8' : '#ffd23f'));
+  box5(T, -25, 30, -19, 25, 36, 20, white); box5(G, -25, 36, -19, 25, 37, 20, cyan);               // the roof, a cyan edge
+  box5(T, -3, 0, -32, 3, 116, -28, dark); box5(T, -50, 102, -31, 50, 136, -28, dark);              // the sign's post, behind, and its board
+  const fs = fasciaSign('CHECK-IN', '#2bf3ff', 44, 6); fs.position.set(0, 33, 20.2); sub.push(fs);
+  const ps = fasciaSign('FLIGHTS', '#ffe14a', 96, 22); ps.position.set(0, 124, -27.6); sub.push(ps);
+  const ps2 = fasciaSign('SCENIC · PRAGUE · NORFOLK', '#2bf3ff', 96, 9); ps2.position.set(0, 107.5, -27.6); sub.push(ps2);
+  const m = lmMesh(T, G); for (const o of sub) { m.add(o); m.userData.own.push(o.material); }
+  const clerk = buildPerson('ped', '#2a4aa8', '#e8b48a'); clerk.g.position.set(0, 0.6, 2); clerk.g.rotation.y = -Math.PI / 2; if (clerk.umb) clerk.tilt.remove(clerk.umb); m.add(clerk.g);   // in the airline's blue, facing out (no umbrella: its shape is shared)
+  part(clerk.headG, GB, mc(0x1a2a6a), 5.4, 1.6, 7, -0.2, 4.6, 0);                                  // a small blue cap
+  return m;
+}
 function genAirport() {                                          // js/04 genWorld, after the landmarks: collision boxes, the buildings' builders, the fence
   FENCE = []; if (!AIRF) return;
   const add = (cx, cy, hw, hh, make) => { LMS.push({ cx, cy, a: 0, rad: Math.hypot(hw, hh), make: () => withSeed(7001 + Math.round(cx + cy), make), mesh: null }); LM_CLEAR.push([cx, cy, hw + 30, hh + 30]); };
   const [x0, y0, x1, y1] = AIRF.terminal; makeSolid((x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0, 0, {}); add((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, makeTerminalHall);
   const H = AIRF.hangars; makeSolid(H.x, H.y, H.w - 40, H.h - 20, 0, {}); add(H.x, H.y, H.w / 2, H.h / 2, () => makeHangars(H));
   const [tx, ty] = AIRF.tower; makeSolid(tx, ty, 50, 50, 0, {}); add(tx, ty, 30, 30, makeTower);
+  CHECKIN.x = x1 + 118; CHECKIN.y = (y0 + y1) / 2 + 20;                                         // on the open forecourt, past the canopy, in front of the middle door
+  makeSolid(CHECKIN.x, CHECKIN.y, 46, 34, 0, {}); makeSolid(CHECKIN.x, CHECKIN.y - 30, 8, 6, 0, {}); add(CHECKIN.x, CHECKIN.y, 30, 30, makeCheckIn);
   for (const g of AIRF.gates) {                                  // a booth just inside each gate
     const a = g.a * Math.PI / 180, bx = g.x + Math.cos(a) * (g.w / 2 + 16) - Math.sin(a) * 20, by = g.y + Math.sin(a) * (g.w / 2 + 16) + Math.cos(a) * 20;
     makeSolid(bx, by, 20, 16, 0, {}); add(bx, by, 14, 12, makeBooth);

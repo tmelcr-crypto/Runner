@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 10): see the comment above each remodelN below.
+  - Later versions (2 to 11): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -655,7 +655,41 @@ def remodel10(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10]
+# version 11: streets to the Colony and the cement works (October 2026, js/08x). Each is a dead end closed to ordinary traffic (nt) and
+# marked for visitors (v: colony / factory - no boom across it; js/08x sends a visiting car in now and then to park). The Colony's leaves
+# the beach avenue at a new junction and runs into the ring drive; its visitors park in the car park beside the drive (lm colony vlot).
+# The cement works' leaves the corner where the street turns round the space center and runs along the space center's fence to the
+# works' gate; the space center's corner is cut back for it, the shore filled where it touched the bay, and a staff car park of four
+# bays lies beside it at the gate (a lot; gravel.factory vlot). What is left of the junkyard's yard stays gravel.junk.
+def remodel11(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    # the Colony
+    C = next(L for L in M['lm'] if L['t'] == 'colony'); y = round((C['drive'][1] + C['drive'][3]) / 2); x0 = 10982; x1 = round(C['drive'][0]) + 40
+    n0 = split_edge_at(M, [x0, y]); n1 = node_at(M, x1, y)
+    M['edges'].append({'a': n0, 'b': n1, 'p': [[x0, y], [x1, y]], 'nt': True, 'v': 'colony'})
+    C['vlot'] = [11425, 12872]
+    # the cement works
+    F = M['gravel']['factory']; g = F['gate']; ny = g['y'] - 15; nc = [4748, 1904]; mid = [nc[0] - (ny - nc[1]), ny]; end = [g['x'] + 62, ny]
+    road = LineString([nc, mid, end]); corr = road.buffer(RH + SW)
+    SP = unary_union([poly(r) for r in M['space']['area']]); cut = Polygon([(4140, 2400), (5200, 2400), (5200, 1340)])   # x + y > 6540: the corner by the road
+    S = M['space']; NEW = largest(SP.difference(cut).buffer(0)); S['area'] = rings(NEW); S['fence'] = fence_line(NEW.buffer(-30).exterior, [S['gate']])
+    assert NEW.buffer(-30).exterior.distance(road) > RH + SW - 1, NEW.buffer(-30).exterior.distance(road)
+    wet = corr.buffer(14).difference(LAND)
+    if wet.area > 1: edit_land(M, (4000, 2200), lambda G: G.union(corr.buffer(14)).buffer(0)); print('shore filled under the works road: %d sq units' % wet.area)
+    lot = [4342, ny + RH + SW + 54, 160, 100, 180, 1, -1, 0.4]
+    LAND = unary_union([poly(p) for p in M['land']]); assert LAND.buffer(-4).contains(rect(*lot[:5])), 'the staff car park is in the water'
+    clear_ground(M, unary_union([corr, rect(*lot[:5]).buffer(6)]))
+    M['lots'].append(lot); F['vlot'] = lot[:2]
+    M['edges'].append({'a': node_at(M, *nc), 'b': node_at(M, *end), 'p': [nc, mid, end], 'nt': True, 'v': 'factory'})
+    J = unary_union([poly(r) for r in M['gravel']['junk']['area']]).difference(corr.buffer(10)).difference(rect(*lot[:5]).buffer(10))
+    J = largest(J.buffer(0)); M['gravel']['junk']['area'] = rings(J); jx0, jy0, jx1, jy1 = J.bounds
+    M['gravel']['junk']['gate'] = {'x': round((jx0 + jx1) / 2), 'y': round(jy0), 'a': 90, 'w': 100}
+    print('junkyard plot left: %d x %d (%d sq units)' % (jx1 - jx0, jy1 - jy0, J.area))
+    M['remodel'] = 11
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11]
 
 
 if __name__ == '__main__':
@@ -695,5 +729,8 @@ if __name__ == '__main__':
     head = head.replace("   strips' exits (speedway.strips[].exit) and the Sandbar strip's park and woods (grass of kind lawn and wood). */",
                         "   strips' exits (speedway.strips[].exit) and the Sandbar strip's park and woods (grass of kind lawn and wood); version 10: the Sunstrip\n"
                         "   showroom's block (showroom: block, hall, door, side, shop, sdoor, yard). */")
+    head = head.replace("   showroom's block (showroom: block, hall, door, side, shop, sdoor, yard). */",
+                        "   showroom's block (showroom: block, hall, door, side, shop, sdoor, yard); version 11: dead-end streets for visitors to the Colony and the\n"
+                        "   cement works (edges v: colony / factory, closed to traffic) and their car parks (lm colony vlot, gravel.factory vlot). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

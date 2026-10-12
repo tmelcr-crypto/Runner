@@ -221,6 +221,14 @@ function hdHat(head, hat) {                // on the head (its centre; the crown
   else if (hs === 'beret') { const b = hdAdd(head, hdSph(3.1), h1, 0.5, 1.9, -0.2, 1, 0.42, 1); b.rotation.z = -0.25; hdAdd(head, hdCyl(0.15, 0.2, 0.6, 8), h2, 0.6, 3.25, -0.2); }
   else if (hs === 'bandana') { hdAdd(head, D(2.72, 1.3), h1, 0, 1.0, -0.05, 1, 1, 1.05); hdAdd(head, hdSph(0.6), h2, 0, 1.0, -2.8); for (const s of [-1, 1]) { const t = hdAdd(head, new THREE.BoxGeometry(0.6, 1.6, 0.2), h1, s * 0.4, 0.1, -2.95); t.rotation.z = s * 0.4; } }
   else if (hs === 'headband') hdAdd(head, D(2.62, 0.7), h1, 0, 1.3, -0.05, 1, 1, 1.05);
+  else if (hs === 'aviator') {                                       // a leather flying helmet: shell, fleece rim, ear flaps with a strap, goggles pushed up on the forehead
+    const lea = hdM(hat.c1, { roughness: 0.55 }); hdAdd(head, new THREE.SphereGeometry(2.98, 24, 12, 0, TAU, 0, Math.PI / 2), lea, 0, 0.35, -0.15, 1.02, 1.05, 1.08);
+    hdAdd(head, D(3.02, 0.5), hdM('#f2e6c9', { roughness: 0.95 }), 0, 0.45, -0.1, 1, 1, 1.06);
+    for (const s of [-1, 1]) { hdAdd(head, new THREE.BoxGeometry(0.45, 2.6, 2.0), lea, s * 2.9, -0.9, -0.25); hdAdd(head, new THREE.BoxGeometry(0.2, 1.8, 0.35), hdM('#2a1a10'), s * 2.7, -2.4, 0.6); }
+    hdAdd(head, D(3.07, 0.42), hdM('#2a1a10'), 0, 1.45, -0.05, 1, 1, 1.07);
+    for (const s of [-1, 1]) { const r = hdAdd(head, hdCyl(0.78, 0.78, 0.5, 18), hdM('#c8ccd4', { roughness: 0.3, metalness: 0.7 }), s * 0.98, 1.55, 2.75); r.rotation.x = Math.PI / 2;
+      const l = hdAdd(head, hdCyl(0.62, 0.62, 0.56, 18), h2, s * 0.98, 1.55, 2.8); l.rotation.x = Math.PI / 2; }
+  }
 }
 function hdGlasses(head, gl) {             // over the eyes (y 0.2, z 2.2 on the head)
   const g1 = hdM(gl.c1, { roughness: 0.25, metalness: 0.3 }), g2 = hdM(gl.c2 || gl.c1, { roughness: 0.3, metalness: 0.6 }), gs = gl.style;

@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1m. STREETS SETTINGS ----------
-   Traffic lights and the rules of the road (js/07b), the walk signals at the crossings, lights and sirens, and the heat reducers lying
-   on the road or in the back alleys (js/08d). tools/settings_sheet.py exports this table to Apple Numbers or Excel and writes an edited
+   Traffic lights and the rules of the road (js/07b), the walk signals at the crossings, lights and sirens, the heat reducers lying
+   on the road or in the back alleys (js/08d), and the visitors at the Colony and the cement works (js/08x). tools/settings_sheet.py exports this table to Apple Numbers or Excel and writes an edited
    copy back:  python3 tools/settings_sheet.py streets export streets.numbers  /  ... streets import streets.numbers
    Keep the JSON between the markers valid. */
 const STREETS_TABLE = /*STREETS-JSON*/{
@@ -25,7 +25,12 @@ const STREETS_TABLE = /*STREETS-JSON*/{
   {"id": "waterKnock", "group": "Water cannon", "name": "Someone hit by the jet stays down for", "unit": "s", "min": 0, "max": 10, "v": 2.5, "note": "People and cops are knocked down; no damage. Spraying people counts like a punch for the police."},
   {"id": "waterPush", "group": "Water cannon", "name": "The jet pushes people away at", "unit": "m", "min": 0, "max": 15, "v": 4, "note": "Metres per second while they are in the jet."},
   {"id": "waterCarPush", "group": "Water cannon", "name": "The jet pushes a car of 1.4 t at", "unit": "m", "min": 0, "max": 20, "v": 3, "note": "Metres per second per second; heavier vehicles move less. Burning cars are put out (they stay wrecks)."},
-  {"id": "alleyBack", "group": "Heat reducers", "name": "An alley heat reducer comes back after", "unit": "min", "min": 0.5, "max": 30, "v": 2, "note": "In the same spot. Every heat reducer is taken from inside a car too."}
+  {"id": "alleyBack", "group": "Heat reducers", "name": "An alley heat reducer comes back after", "unit": "min", "min": 0.5, "max": 30, "v": 2, "note": "In the same spot. Every heat reducer is taken from inside a car too."},
+  {"id": "visitEvery", "group": "Visitors", "name": "A visitor turns in about every", "unit": "s", "min": 3, "max": 600, "v": 25, "note": "At the Colony and at the cement works, each on its own, while you are near: a car in the traffic just before the junction turns into the site's street and parks there (js/08x). Mode: visitors."},
+  {"id": "visitMax", "group": "Visitors", "name": "Visitors' cars at a site at most", "unit": "count", "min": 0, "max": 12, "v": 3, "note": "Parked there or on the way in or out."},
+  {"id": "visitStayMin", "group": "Visitors", "name": "A visit lasts at least", "unit": "s", "min": 5, "max": 1200, "v": 40, "note": "From parking until someone walks out to the car."},
+  {"id": "visitStayMax", "group": "Visitors", "name": "... and at most", "unit": "s", "min": 5, "max": 1200, "v": 150, "note": "A random time between the two."},
+  {"id": "visitNear", "group": "Visitors", "name": "Visits happen while you are within", "unit": "m", "min": 50, "max": 600, "v": 220, "note": "Distance from the site's car park; farther away nobody comes or goes."}
 ]
 }/*END-STREETS-JSON*/;
 /* STR: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

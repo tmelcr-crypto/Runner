@@ -29,7 +29,7 @@ const JN = RN.map((n, ni) => {
     return { x: n.x + Math.cos(mid) * r, y: n.y + Math.sin(mid) * r };
   });
   const h = Math.abs(Math.sin(ni * 12.9898 + 4.1) * 43758.5453);
-  return { ni, x: n.x, y: n.y, arms, corners, ng, sig: open.length >= 3 && ng >= 2, off: h - Math.floor(h) };
+  return { ni, x: n.x, y: n.y, arms, corners, ng, sig: open.length >= 3 && ng >= 2, off: h - Math.floor(h), vis: arms.some(a => RE[a.e].v) };   // vis: a visitors' street leaves here (js/08x)
 });
 const armIdx = (J, e) => { for (let k = 0; k < J.arms.length; k++) if (J.arms[k].e === e) return k; return -1; };
 const JGRID = new Map(), JG = 600;
@@ -106,6 +106,7 @@ function roadRules(c, vf, stop, F) {
   const out = c.nx ? armIdx(J, c.nx.e) : -1;
   if (XING.length && out >= 0 && crossingBusy(ni, J.arms[out].e)) b = Math.min(b, past ? toEnd + SW_OUT - 27 : dStop);   // people on the crossing of the street it turns into
   if (!J.sig || !feat('trafficLights')) {                                    // no lights: wait at the junction while it is busy
+    if (J.vis && !Ec.v && !(c.nx && RE[c.nx.e].v)) return b;                 // straight on past a visitors' street: the street goes on as if it were not there
     const box = ROAD_HALF + SW_W + 20;
     if (toEnd > box && toEnd < box + stop + 60)
       for (const o of cars) if (o !== c && o.driver && !o.dead && Math.abs(o.x - J.x) < box && Math.abs(o.y - J.y) < box && o.e !== c.e && carSpeed(o) > 5) { b = Math.min(b, toEnd - box + 48); break; }

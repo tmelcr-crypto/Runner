@@ -194,7 +194,7 @@ function pvClose() {
   $('pv').hidden = true; $('overlay').hidden = false; document.documentElement.classList.remove('pv');
 }
 function pvFrame() {
-  const D = pv.D, st = Math.sin(pv.tilt), ct = Math.cos(pv.tilt);
+  const D = pv.D, st = Math.sin(pv.tilt), ct = Math.cos(pv.tilt); setNear(30);
   camera.position.set(pv.tx + D * st * Math.sin(pv.yaw), D * ct, pv.tz + D * st * Math.cos(pv.yaw));
   const tt = performance.now() / 1000; for (const p of pv.anim) { const it = p.mesh.userData.it; it.position.y = 11 + Math.sin(tt * 2 + p.x) * 2; it.rotation.y = tt * 1.6; }
   camera.lookAt(pv.tx, 0, pv.tz); camera.updateMatrixWorld(); renderer.render(scene, camera);

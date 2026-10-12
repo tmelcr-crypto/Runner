@@ -66,6 +66,11 @@ function dressPerson(o, outfit) {          // o: a figure from buildPerson; outf
     else if (hs === 'beret') { const m = addH(h1, 4.7, 1.5, 4.7, 0, 27.1, 0.6, GSph); m.rotation.x = -0.25; addH(h2, 0.4, 1, 1, 4.1, 26.6, -1.2); }
     else if (hs === 'bandana') { addH(h1, 4.25, 1.7, 4.25, 0.3, 25.2, 0, GCyl); addH(h2, 1.5, 1.5, 1.5, -4, 25, 0); }
     else if (hs === 'headband') addH(h1, 4.15, 0.9, 4.15, 0.4, 25, 0, GCyl);
+    else if (hs === 'aviator') {                                    // a leather flying helmet: the shell, a fleece rim, flaps over the ears, goggles pushed up
+      addH(h1, 4.35, 3.1, 4.35, -0.1, 25.2, 0, GSph); addH('#f2e6c9', 4.4, 0.6, 4.4, 0.3, 24.3, 0, GCyl);
+      for (const z of [-3.9, 3.9]) addH(h1, 2.4, 3.6, 0.7, -0.1, 22.6, z);
+      addH('#2a1a10', 4.42, 0.7, 4.42, 0.4, 25.9, 0, GCyl); for (const z of [-1.5, 1.5]) addH(h2, 0.9, 1.5, 1.5, 4.5, 26, z, GSph, true);
+    }
   }
   // glasses: the face at x 4.4, the eyes at about y 23.5
   if (gl) {

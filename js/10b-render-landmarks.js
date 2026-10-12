@@ -360,7 +360,7 @@ function makeColonyRing(R) {
     const t = rand(-1.2, 1.2), r = rand(4, R.ri - 7), [x, , z] = W(s * R.hl + s * Math.cos(t) * r * 0.9, Math.sin(t) * r, 0);
     T.prism(x, z, 2.6, 4.4, 7.4, _C(pick(['#ff4d8d', '#ffe14a', '#ff7a3d', '#c77dff', '#ffffff'])), 6, 2.6, true);
   }
-  for (const u of [-R.hl * 0.38, R.hl * 0.38]) { const [x, , z] = W(u, 0, 0); for (let k = 0; k < 5; k++) T.prism(x + rand(-10, 10), z + rand(-10, 10), rand(4, 6), 4.4, rand(8, 11), _C(pick(['#2e8b57', '#3a9e4a', '#23b38a'])), 7, 3, true); }   // low bushes
+  for (const u of [-R.hl * 0.38, R.hl * 0.38]) { const [x, , z] = W(u, 0, 0); for (let k = 0; k < 5; k++) T.prism(x + rand(-10, 10), z + rand(-10, 10), rand(4, 6), 4.4, rand(8, 11), _C(leafCol(pick(['#2e8b57', '#3a9e4a', '#23b38a']))), 7, 3, true); }   // low bushes (autumn colours, js/12g)
   const [sx, sy] = colonyAt(COLONY.lw / 2 + VALET_STAND[0], VALET_STAND[1]), ox = sx - R.x, oz = sy - R.y;   // the valet stand: a lectern with the key box on it
   box5(T, ox - 4, 0, oz - 5, ox + 4, 11, oz + 5, _C('#5a3a26')); box5(T, ox - 3, 11, oz - 4, ox + 3, 15, oz + 4, _C('#c9a24a')); box5(G, ox - 3.4, 13, oz - 4.4, ox + 3.4, 13.6, oz + 4.4, _C('#ffe9a8'));
   box5(T, ox - 0.6, 15, oz - 0.6, ox + 0.6, 20, oz + 0.6, _C('#2a2d3a'));                                // the VALET board on a post on the lectern

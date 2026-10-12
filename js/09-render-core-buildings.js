@@ -12,6 +12,11 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(OUTSIDE_HEX);
 scene.fog = new THREE.Fog(OUTSIDE_HEX, 1700, 3800);
 const camera = new THREE.PerspectiveCamera(CAM_FOV, 1, 30, 7000);
+/* The near plane follows the camera down to just above the tallest thing in the city (the chimneys and towers reach about 560, the
+   helicopter flies lower): phones often have a coarse depth buffer, and with the near plane far from the camera's height a driver's
+   head 2 units under a car roof, or anything close under a surface, no longer shows through it. */
+const NEAR_TOP = 700;
+function setNear(n) { if (Math.abs(camera.near - n) > 4) { camera.near = n; camera.updateProjectionMatrix(); } }
 const hemi = new THREE.HemisphereLight(0x8a7cff, 0x2a1245, 0.95); scene.add(hemi);   // sky and sun follow the hour and the weather (js/12d)
 const sun = new THREE.DirectionalLight(0x9fc4ff, 0.6); sun.position.set(-600, 1000, -400); scene.add(sun);   // sun in the north-west, shadows fall south-east
 const flashLight = new THREE.PointLight(0xffc060, 0, 220); scene.add(flashLight);
@@ -30,7 +35,7 @@ function placeCamera(shake) {
   const D = camDist(), tl = CAM_TILT_DEG * Math.PI / 180;
   let sx = 0, sz = 0; if (shake && cam.shake > 0) { sx = rand(-1, 1) * cam.shake * 1.4; sz = rand(-1, 1) * cam.shake * 1.4; }
   camera.position.set(cam.x + sx, D * Math.cos(tl), cam.y + D * Math.sin(tl) + sz);
-  camera.lookAt(cam.x + sx, 0, cam.y + sz); camera.updateMatrixWorld();
+  camera.lookAt(cam.x + sx, 0, cam.y + sz); setNear(Math.max(30, (D * Math.cos(tl) - NEAR_TOP) * 0.9)); camera.updateMatrixWorld();   // 0.9: the view's corners see 0.95 of the height
 }
 const _ray = new THREE.Raycaster(), _pl = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), _v2 = new THREE.Vector2(), _hit = new THREE.Vector3();
 function screenToWorld(sx, sy) {      // mouse position -> point on the ground (game x, y)

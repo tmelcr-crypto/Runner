@@ -162,7 +162,7 @@ const RN = MAP.nodes.map(([x, y]) => ({ x, y, e: [] }));
 const RE = MAP.edges.map((d, i) => {
   const p = d.p, cum = [0];
   for (let k = 1; k < p.length; k++) cum.push(cum[k - 1] + Math.hypot(p[k][0] - p[k - 1][0], p[k][1] - p[k - 1][1]));
-  return { i, a: d.a, b: d.b, p, cum, len: cum[cum.length - 1], nt: !!d.nt };
+  return { i, a: d.a, b: d.b, p, cum, len: cum[cum.length - 1], nt: !!d.nt, v: d.v || '' };   // v: a street for visitors only (js/08x)
 });
 for (const e of RE) { RN[e.a].e.push(e.i); if (e.b !== e.a) RN[e.b].e.push(e.i); }
 for (const e of RE) for (let k = 0; k < e.p.length - 1; k++) {
@@ -287,11 +287,11 @@ function genWorld() {
     if (best) { best.sign = 'SEA BREEZE'; best.H = Math.max(best.H, 60); best.c = '#9be8c8'; }
   }
   GATES = [];
-  for (const E of RE) if (E.nt) {                                 // a boom across each driveway, just past the sidewalk of the street it leaves
+  for (const E of RE) if (E.nt && !E.v) {                         // a boom across each driveway, just past the sidewalk of the street it leaves (not the visitors' streets, js/08x)
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genFactory(); genShowroom(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genParks(); serviceDecor();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); genFactory(); genShowroom(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill && !b.uniq).concat(LMS, fillChunks());   // fill buildings stream as merged chunks; a unique building is its own drawable (js/10n)
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

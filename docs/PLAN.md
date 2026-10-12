@@ -121,6 +121,8 @@ js/10s, js/08w); the tuning workshop next.
   engine, brakes, armour in price steps (vehicle table). Tuning is kept with the car in your garages and saves.
 
 ## 6. Junkyard and car crusher (Gravel Flats)
+(October 2026: the yard kept for it by the cement works became the works' road and staff car park - map remodel 11 - so only a small
+corner is left, gravel.junk; the junkyard needs a new plot in Gravel Flats.)
 - A fenced yard in the industrial north-west (the gravel yard kept for it in Gravel Flats, east of the cement works by the street
   corner: MAP.gravel.junk): stacks of wrecks (solid, some smashable), a magnet crane, the crusher, a shack and a
   guard dog that chases you on foot. Drive a car onto the crane's spot and get out: the magnet lifts it into the crusher, a cube
@@ -138,5 +140,11 @@ js/10s, js/08w); the tuning workshop next.
 - The reward at 100%: a gold one-of-a-kind car delivered to your best garage, and health and armour up to 200.
 
 ## Later (not now)
-- **People with real lives**: from home to their car, to a shop, to the gas station... and back to a parking lot and home.
+- **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
+  lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
+  to their own car (parked at the kerb, in a car park or a garage), driving to work, a shop, the gas station, the beach, a
+  restaurant, parking there and walking in; later walking out again, back to the car and home for the night. They go into
+  buildings and come out of them (their doors), get into and out of cars and drive them like the traffic does, and the streets
+  are fuller at the rush hours and emptier at night. The visiting cars at the Colony and the cement works (built October 2026)
+  are the first small piece of this.
 - **Flying**: see the README's Next steps.

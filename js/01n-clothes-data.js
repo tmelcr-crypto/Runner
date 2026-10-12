@@ -1,9 +1,10 @@
 'use strict';
 /* ---------- 1n. CLOTHES ----------
    The ten clothes shops and what each sells (js/08l), the pieces you start with, and the rule that new clothes lose the police.
-   Five pieces you wear: hat, glasses, top, bottoms, shoes. Each item: shop (empty: yours from the start, never sold), slot, style - the
+   Five pieces you wear: hat, glasses, top, bottoms, shoes. Each item: shop (empty: yours from the start, never sold; reward: never sold,
+   the game gives it - the aviator cap for your first scenic flight, js/08v), slot, style - the
    shape it is drawn with (js/11c), c1 its main colour, c2 a second colour (print, trim, stripes, band, frame, sole), price in euros.
-     hat      cap beanie bucket fedora cowboy hardhat beret bandana headband
+     hat      cap beanie bucket fedora cowboy hardhat beret bandana headband aviator
      glasses  shades aviators round visor
      top      tee tank hawaii shirt check hoodie jacket suit leather hivis jersey camo
      bottoms  jeans trousers shorts track cargo
@@ -118,6 +119,7 @@ const CLOTHES_TABLE = /*CLOTHES-JSON*/{
   {"id": "night_platform", "name": "PLATFORM BOOTS", "shop": "night", "slot": "shoes", "style": "boots", "c1": "#14161d", "c2": "#ff2bd6", "price": 420, "notes": ""},
   {"id": "night_visor", "name": "NEON VISOR", "shop": "night", "slot": "glasses", "style": "visor", "c1": "#ff2bd6", "c2": "", "price": 80, "notes": ""},
   {"id": "night_beanie", "name": "BLACK BEANIE", "shop": "night", "slot": "hat", "style": "beanie", "c1": "#14161d", "c2": "#ff2bd6", "price": 35, "notes": ""},
+  {"id": "aviator_cap", "name": "AVIATOR CAP", "shop": "reward", "slot": "hat", "style": "aviator", "c1": "#6b4a2b", "c2": "#ffb02e", "price": null, "notes": "A leather flying helmet with goggles: given on your first scenic flight (js/08v), never sold."},
   {"id": "night_shades", "name": "CLUB SHADES", "shop": "night", "slot": "glasses", "style": "shades", "c1": "#15161c", "c2": "#3dffa6", "price": 90, "notes": ""}
 ]
 }/*END-CLOTHES-JSON*/;

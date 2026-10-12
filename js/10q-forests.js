@@ -47,16 +47,16 @@ function plantForests(trunks, crowns, pines, tufts, clear, TV) {  // js/10 build
       if (frNoise(jx, jy) > thr || !inPoly(jx, jy, A.g) || !clear(jx, jy, 18) || (A.scrub && !spaceClear(jx, jy))) continue;
       const r = fr1(jx * 0.37, jy * 0.53), tm = partMark(TV); n++;
       if (A.scrub) {                                               // scrub: low pines and saw palmetto
-        if (r < 0.6) { const h = 26 + r * 30, w = h * 0.3, col = pick(['#3a6a3a', '#4a7a3a', '#2f5f36']); trunks.push({ x: jx, y: 3, z: jy, sx: 1.4, sy: 6, sz: 1.4, c: '#4a3626' }); pines.push({ x: jx, y: 2, z: jy, sx: w, sy: h, sz: w, ry: r * TAU, c: col }); addTree(jx, jy, w, h, 'pine', '#4a3626', col, partsSince(TV, tm)); }
+        if (r < 0.6) { const h = 26 + r * 30, w = h * 0.3, col = pineCol(pick(['#3a6a3a', '#4a7a3a', '#2f5f36'])); trunks.push({ x: jx, y: 3, z: jy, sx: 1.4, sy: 6, sz: 1.4, c: '#4a3626' }); pines.push({ x: jx, y: 2, z: jy, sx: w, sy: h, sz: w, ry: r * TAU, c: col }); addTree(jx, jy, w, h, 'pine', '#4a3626', col, partsSince(TV, tm)); }
         else { for (let i = 0; i < 3; i++) crowns.push({ x: jx + (i - 1) * 4, y: 3, z: jy + ((i * 5) % 3 - 1) * 4, sx: 6, sy: 3.4, sz: 6, c: pick(['#5a7a3a', '#6a8a42', '#4f6a36']) }); registerThrow(jx, jy, partsSince(TV, tm), null, 0.3, 'bush'); }
         continue;
       }
-      if (r < 0.55) { const h = 52 + r * 50, w = h * (0.24 + r * 0.1), col = pick(['#0f6b4f', '#145c46', '#1a6a4a', '#0d5a48']); trunks.push({ x: jx, y: 4, z: jy, sx: 2, sy: 8, sz: 2, c: '#3b2a1e' }); pines.push({ x: jx, y: 3, z: jy, sx: w, sy: h, sz: w, ry: r * TAU, c: col }); addTree(jx, jy, w, h, 'pine', '#3b2a1e', col, partsSince(TV, tm)); }
-      else { const h = 20 + r * 14, cr = 12 + r * 8, col = r > 0.97 ? pick(['#d94fa0', '#7a35d6']) : pick(GREEN);
+      if (r < 0.55) { const h = 52 + r * 50, w = h * (0.24 + r * 0.1), col = pineCol(pick(['#0f6b4f', '#145c46', '#1a6a4a', '#0d5a48'])); trunks.push({ x: jx, y: 4, z: jy, sx: 2, sy: 8, sz: 2, c: '#3b2a1e' }); pines.push({ x: jx, y: 3, z: jy, sx: w, sy: h, sz: w, ry: r * TAU, c: col }); addTree(jx, jy, w, h, 'pine', '#3b2a1e', col, partsSince(TV, tm)); }
+      else { const h = 20 + r * 14, cr = 12 + r * 8, col = r > 0.97 ? pick(['#d94fa0', '#7a35d6']) : leafCol(pick(GREEN));   // autumn colours (js/12g)
         trunks.push({ x: jx, y: h / 2, z: jy, sx: 2.6, sy: h, sz: 2.6, c: '#3b2a1e' }); crowns.push({ x: jx, y: h + cr * 0.35, z: jy, sx: cr, sy: cr * 0.9, sz: cr, c: col });
         const a = r * 40; crowns.push({ x: jx + Math.cos(a) * cr * 0.5, y: h + 2, z: jy + Math.sin(a) * cr * 0.5, sx: cr * 0.7, sy: cr * 0.62, sz: cr * 0.7, c: shade(col, 10) });
         addTree(jx, jy, cr * 1.25, h, 'leafy', '#3b2a1e', col, partsSince(TV, tm)); }
-      if (r > 0.82) tufts.push({ x: jx + 6, y: 0, z: jy + 4, sx: 1.8, sy: 2, sz: 1.8, ry: r * TAU, c: '#4f7a3a' });   // undergrowth
+      if (r > 0.82) tufts.push({ x: jx + 6, y: 0, z: jy + 4, sx: 1.8, sy: 2, sz: 1.8, ry: r * TAU, c: feat('autumn') ? '#9a8a4a' : '#4f7a3a' });   // undergrowth (dry in autumn)
     }
   }
   return (FOREST_TREES = n);

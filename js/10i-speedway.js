@@ -67,7 +67,7 @@ function genSpeedway() {
     const p = (d, o) => { const q = stripPt(S, d, o); return [q.x, q.y]; }, w = S.hw + 8;
     const X = S.exit;                                               // the exit past the finish: a gap in the city-side fence, a sliding gate (js/08o opens it)
     addFence([[p(0, -w), p(S.wall + 6, -w)], [p(S.wall + 6, -w), p(S.wall + 6, w)]].concat(X ? [[p(0, w), p(X.d - X.w / 2, w)], [p(X.d + X.w / 2, w), p(S.wall + 6, w)]] : [[p(0, w), p(S.wall + 6, w)]]), 'track');
-    if (X) { const g = stripPt(S, X.d, w); S.gate = { open: 0, solid: makeSolid(g.x, g.y, X.w, 5, S.a, { gate: true }), x: g.x, y: g.y };
+    if (X) { const g = stripPt(S, X.d, w); S.gate = { open: 0, solid: makeSolid(g.x, g.y, X.w, 5, S.a, { exitGate: true }), x: g.x, y: g.y };   // shut: a wall for everyone, police and people on foot too (not a boom they slip past)
       for (const e of [-1, 1]) { const q = stripPt(S, X.d + e * (X.w / 2 + 3), w); makeSolid(q.x, q.y, 6, 6, 0, {}); }
       add(g.x, g.y, X.w / 2 + 70, 40, () => makeStripGate(S), S.a); }
     const t = stripPt(S, 40, 0); makeSolid(t.x, t.y, 6, 6, 0, {}); add(t.x, t.y, 12, 12, () => makeTree(S.id), S.a - Math.PI / 2);
