@@ -267,7 +267,7 @@ function updateAct(dt) {                                         // stealing: wh
 function nearestCar() {
   let best = null, bd = 1e9;
   for (const c of cars) {
-    if (c.dead) continue; const d = dist(P.x, P.y, c.x, c.y);
+    if (c.dead || c.hook) continue; const d = dist(P.x, P.y, c.x, c.y);   // not one hanging from a crane (js/08m, js/08z)
     if (d < 48 + c.t.len * 0.25 && d < bd) { best = c; bd = d; }
   }
   return best;

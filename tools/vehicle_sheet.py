@@ -42,6 +42,7 @@ ROWS = [
     ('weapon', 'Weapon: none / rockets / water / mg', 'choice', ['none', 'rockets', 'water', 'mg'], 'rockets: when you drive it, FIRE launches rockets straight ahead (no ammo needed); a police one fires them at you at the top wanted level. water: FIRE sprays a water cannon that knocks people down and puts out fires (streets table). mg: a turret machine gun that fires at the nearest target ahead, belt after belt (police table: Tank and APC); the police fire it at you. With a weapon of its own you cannot drop bombs from it.', 'pick none, rockets or water'),
     ('price', 'Showroom price (€)', 'num', (0, 10000000), 'What the Sunstrip showroom sells it for (0: not sold there). A vehicle with no traffic and no parked weight is one you can only buy there. Also in the economy sheet.', 'euros, 0 = not sold'),
     ('delivery', 'Delivery price at the docks (€)', 'num', (0, 1000000), 'What the dockers pay when this is the wanted car at the docks (less for damage). 0: never wanted. Also in the economy sheet.', 'euros, 0 = never'),
+    ('scrap', 'Scrap price at the junkyard (€)', 'num', (0, 1000000), "What the junkyard's crusher pays for it undamaged (less for damage: places table, Junkyard). 0: the crane leaves it. Also in the economy sheet.", 'euros, 0 = never'),
 ] + [('c%d' % k, 'Colour %d (#hex)' % k, 'colour', None, 'Paint colour; each vehicle picks one of its colours at random, and its neon underglow takes the same colour.' if k == 1 else 'Another paint colour (optional).',
       '#RRGGBB' + ('; at least one' if k == 1 else '')) for k in range(1, 7)] + [
     ('notes', 'Notes / look', 'text', None, 'How it looks or behaves, especially for a new body.', 'free text'),
@@ -51,10 +52,10 @@ ROW = {r[0]: r for r in ROWS}
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('body', 'body'), ('role', 'role'), ('len', 'length'), ('wid', 'width'), ('top', 'top speed'),
          ('accTo', 'accelerates'), ('accS', '...in seconds'), ('accS', 'in seconds'), ('brake', 'braking'), ('steer', 'steering'), ('grip', 'tyre grip'),
          ('hp', 'health'), ('kg', 'weight'), ('tree', 'slowed by'), ('armored', 'armored'), ('traffic', 'traffic weight'), ('parked', 'parked weight'), ('chase', 'police chase'),
-         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('price', 'showroom price'), ('delivery', 'delivery price')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
-DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'price': 0, 'delivery': 0, 'colors': [], 'notes': ''}
+         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('price', 'showroom price'), ('delivery', 'delivery price'), ('scrap', 'scrap price')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
+DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'price': 0, 'delivery': 0, 'scrap': 0, 'colors': [], 'notes': ''}
 ORDER = ['id', 'name', 'body', 'role', 'len', 'wid', 'top', 'accTo', 'accS', 'brake', 'steer', 'grip', 'hp', 'kg', 'tree', 'armored', 'traffic', 'parked', 'chase', 'chaseFrom',
-         'hidden', 'job', 'weapon', 'price', 'delivery', 'colors', 'notes']
+         'hidden', 'job', 'weapon', 'price', 'delivery', 'scrap', 'colors', 'notes']
 
 
 def tree_default(kg):
@@ -328,7 +329,7 @@ def build(cols, present, old):
             else:
                 n = num(raw); lo, hi = ROW[key][3]
                 if n is None:
-                    if key in ('traffic', 'parked', 'chase', 'hidden', 'delivery', 'price'): v[key] = 0
+                    if key in ('traffic', 'parked', 'chase', 'hidden', 'delivery', 'scrap', 'price'): v[key] = 0
                     elif key == 'chaseFrom': v[key] = 1
                     elif key == 'tree': v[key] = tree_default(v.get('kg'))
                     else: errors.append('%s / %s: missing or not a number' % (where, lab))

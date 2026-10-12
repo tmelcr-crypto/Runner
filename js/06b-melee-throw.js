@@ -33,6 +33,7 @@ function meleeHits(w) {
   const R = BODY_R + w.reach, half = w.arc / 2; let hit = 0;
   for (const p of peds) if (!p.dead && !p.knocked && inArc(p.x, p.y, R, half, 7)) { hitPerson(p, w, false); hit++; }
   for (const o of officers) if (!o.dead && !o.knocked && inArc(o.x, o.y, R, half, 7)) { hitPerson(o, w, true); hit++; }
+  for (const o of TARGETS) if (o.melee && !o.dead && !o.off && inArc(o.x, o.y, R, half, 8)) { damageTarget(o, w.dmg, true); hit++; }   // the junkyard's dog (js/08z)
   for (const c of cars) {
     if (c.dead || c === P.car || Math.abs(c.x - P.x) > R + 60 || Math.abs(c.y - P.y) > R + 60) continue;
     const q = carCircles(c).find(q => inArc(q[0], q[1], R, half, q[2])); if (!q) continue;
