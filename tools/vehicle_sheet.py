@@ -12,7 +12,7 @@ import json, math, os, re, sys
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
 SHIFTERS = ['auto', 'sport', 'tall', 'throttle', 'bar']
-BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'nascar', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'new']
+BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'nascar', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'super', 'convertible', 'muscle', 'new']
 KERB_W, STALL_W = 2.33, 2.5                  # widest vehicle that fits the kerb parking lane / a parking lot stall (m)
 # key, label, kind (text / choice / num / int / yesno / colour), choices or (min, max), what it means, unit / how to fill
 ROWS = [
@@ -39,6 +39,7 @@ ROWS = [
     ('hidden', 'Hidden on map (count)', 'int', (0, 5), 'How many stand parked at secret spots, always in the same places, for you to find.', 'number, usually 0'),
     ('job', 'Job: none / trash / ambulance / fire / taxi', 'choice', ['none', 'trash', 'ambulance', 'fire', 'taxi'], 'trash: stops at the bins along its way. ambulance: comes for the dead; you can do the paramedic job in it. fire: comes to explosions and burning wrecks and puts them out; the firefighter job. taxi: the taxi job, and it waits at the taxi ranks (jobs table).', 'pick from the list'),
     ('weapon', 'Weapon: none / rockets / water / mg', 'choice', ['none', 'rockets', 'water', 'mg'], 'rockets: when you drive it, FIRE launches rockets straight ahead (no ammo needed); a police one fires them at you at the top wanted level. water: FIRE sprays a water cannon that knocks people down and puts out fires (streets table). mg: a turret machine gun that fires at the nearest target ahead, belt after belt (police table: Tank and APC); the police fire it at you. With a weapon of its own you cannot drop bombs from it.', 'pick none, rockets or water'),
+    ('price', 'Showroom price (€)', 'num', (0, 10000000), 'What the Sunstrip showroom sells it for (0: not sold there). A vehicle with no traffic and no parked weight is one you can only buy there. Also in the economy sheet.', 'euros, 0 = not sold'),
     ('delivery', 'Delivery price at the docks (€)', 'num', (0, 1000000), 'What the dockers pay when this is the wanted car at the docks (less for damage). 0: never wanted. Also in the economy sheet.', 'euros, 0 = never'),
     ('shifter', 'Gear selector: auto / sport / tall / throttle / bar', 'choice', SHIFTERS, 'The gear selector on a touch screen (no letters; up is reverse, down is drive): auto - a T-handle lever, sport - a short round knob, tall - a long lever with a big knob, throttle - a military throttle handle, bar - a handlebar switch.', 'pick from the list'),
 ] + [('c%d' % k, 'Colour %d (#hex)' % k, 'colour', None, 'Paint colour; each vehicle picks one of its colours at random, and its neon underglow takes the same colour.' if k == 1 else 'Another paint colour (optional).',
@@ -50,10 +51,10 @@ ROW = {r[0]: r for r in ROWS}
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('body', 'body'), ('role', 'role'), ('len', 'length'), ('wid', 'width'), ('top', 'top speed'),
          ('accTo', 'accelerates'), ('accS', '...in seconds'), ('accS', 'in seconds'), ('brake', 'braking'), ('steer', 'steering'), ('grip', 'tyre grip'),
          ('hp', 'health'), ('kg', 'weight'), ('tree', 'slowed by'), ('armored', 'armored'), ('traffic', 'traffic weight'), ('parked', 'parked weight'), ('chase', 'police chase'),
-         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('delivery', 'delivery price'), ('shifter', 'gear selector')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
-DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'delivery': 0, 'shifter': 'auto', 'colors': [], 'notes': ''}
+         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('price', 'showroom price'), ('delivery', 'delivery price'), ('shifter', 'gear selector')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
+DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'price': 0, 'delivery': 0, 'shifter': 'auto', 'colors': [], 'notes': ''}
 ORDER = ['id', 'name', 'body', 'role', 'len', 'wid', 'top', 'accTo', 'accS', 'brake', 'steer', 'grip', 'hp', 'kg', 'tree', 'armored', 'traffic', 'parked', 'chase', 'chaseFrom',
-         'hidden', 'job', 'weapon', 'delivery', 'shifter', 'colors', 'notes']
+         'hidden', 'job', 'weapon', 'price', 'delivery', 'shifter', 'colors', 'notes']
 
 
 def tree_default(kg):
@@ -257,7 +258,7 @@ def build(cols, present, old):
             else:
                 n = num(raw); lo, hi = ROW[key][3]
                 if n is None:
-                    if key in ('traffic', 'parked', 'chase', 'hidden', 'delivery'): v[key] = 0
+                    if key in ('traffic', 'parked', 'chase', 'hidden', 'delivery', 'price'): v[key] = 0
                     elif key == 'chaseFrom': v[key] = 1
                     elif key == 'tree': v[key] = tree_default(v.get('kg'))
                     else: errors.append('%s / %s: missing or not a number' % (where, lab))

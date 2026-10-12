@@ -134,6 +134,27 @@ function buildCar(c) {                       // parts that never move on their o
     const mg = part(tur, GCyl, E.black, 0.8, 13, 0.8, 9, 26.4, 0); mg.rotation.z = -Math.PI / 2; part(tur, GB, E.black, 4, 2, 1.6, 4, 25.4, 0);
     for (const x of [L * 0.36, L * 0.12, -L * 0.12, -L * 0.36]) axle(x, 5.5);
     lamps(9, 2.6, 9, 2.6, 5);
+  } else if (B === 'super') {               // a mid-engined supercar: a low wedge, a glass canopy, side intakes, an engine deck, a rear wing
+    merged('b', body, [[GB, L, 5.4, Wd, 0, 5.2, 0], [GB, L * 0.24, 2.4, Wd - 3, L * 0.37, 3.6, 0], [GB, L * 0.3, 2.2, Wd - 4, -L * 0.3, 8.9, 0], [GB, L * 0.2, 1, Wd - 8, -L * 0.03, 12.9, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.34, 4.6, Wd - 5, -L * 0.03, 10.3, 0);
+    merged('k', E.black, [[GB, L * 0.15, 3.2, 0.6, -L * 0.13, 6.4, Wd / 2 + 0.2], [GB, L * 0.15, 3.2, 0.6, -L * 0.13, 6.4, -(Wd / 2 + 0.2)], [GB, 3, 0.7, Wd + 1, -L / 2 + 2.5, 13.4, 0],
+      [GB, 1.2, 3.4, 1.2, -L / 2 + 3, 11.5, Wd / 2 - 4], [GB, 1.2, 3.4, 1.2, -L / 2 + 3, 11.5, -(Wd / 2 - 4)], [GB, L * 0.12, 0.5, Wd - 6, L * 0.25, 6.6, 0]]);
+    for (const x of [L * 0.32, -L * 0.3]) axle(x, 4.4);
+    lamps(5.6, 1.6, 5.4, 1.4, 5); seat(-L * 0.03, 12.4, 0.8);
+  } else if (B === 'convertible') {          // a 1950s convertible: long and low, the top down, chrome bumpers and side strip, tail fins, a red interior
+    merged('b', body, [[GB, L, 6.6, Wd, 0, 6.6, 0], [GB, L * 0.24, 3.4, 1.6, -L * 0.38, 11.4, Wd / 2 - 1.6], [GB, L * 0.24, 3.4, 1.6, -L * 0.38, 11.4, -(Wd / 2 - 1.6)]]);
+    merged('c', mc(0xd8dce4), [[GB, 1.8, 2.4, Wd + 0.8, L / 2 + 0.4, 4.6, 0], [GB, 1.8, 2.4, Wd + 0.8, -L / 2 - 0.4, 4.6, 0], [GB, L * 0.86, 0.6, Wd + 0.3, 0, 8.4, 0]]);
+    merged('i', mc(0x9a2a2a), [[GB, L * 0.42, 2.4, Wd - 4.4, -L * 0.1, 10.6, 0], [GB, 2, 4.4, Wd - 4.4, -L * 0.2, 12.2, 0], [GB, 2, 4.4, Wd - 4.4, -L * 0.02, 12.2, 0]]);
+    m.cabin = part(tilt, GB, GLASS, 1, 4.6, Wd - 3, L * 0.13, 12.2, 0);
+    for (const x of [L * 0.33, -L * 0.3]) axle(x, 4.6);
+    lamps(7.4, 2.4, 7.4, 2.4); seat(-L * 0.1, 16.4);
+  } else if (B === 'muscle') {               // a muscle car: a long bonnet with a scoop, a short deck with a ducktail, twin stripes, fat rear tyres
+    merged('b', body, [[GB, L, 7.6, Wd, 0, 7, 0], [GB, L * 0.28, 1.4, Wd - 8, -L * 0.12, 17.4, 0], [GB, 2, 1.6, Wd - 3, -L / 2 + 1, 11.6, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.32, 6, Wd - 5, -L * 0.12, 14, 0);
+    merged('s', E.white, [[GB, L * 0.98, 0.3, 2.2, 0, 10.95, 3], [GB, L * 0.98, 0.3, 2.2, 0, 10.95, -3], [GB, L * 0.28, 0.3, 2.2, -L * 0.12, 18.2, 3], [GB, L * 0.28, 0.3, 2.2, -L * 0.12, 18.2, -3]]);
+    merged('k', E.black, [[GB, L * 0.14, 2.2, Wd * 0.3, L * 0.24, 11.8, 0], [GB, 1.2, 2.6, Wd + 0.4, L / 2, 6, 0]]);
+    axle(L * 0.31, 4.6); for (const s2 of [-1, 1]) wheel(-L * 0.31, s2 * (Wd / 2 + 0.6), 5, 5.2);
+    lamps(7.6, 2.4, 7.6, 2.4); seat(-L * 0.08, 17.1);
   } else if (B === 'bike') {                 // a motorbike: wheels, engine, tank, seat, fairing - and its rider, out in the open
     merged('b', body, [[GB, L * 0.22, 4, 6, L * 0.08, 13.5, 0], [GB, L * 0.16, 7, 7.5, L * 0.3, 13, 0], [GB, L * 0.14, 3, 5, -L * 0.33, 13.5, 0]]);
     merged('k', E.black, [[GB, L * 0.4, 6, 5, 0, 9, 0], [GB, L * 0.25, 2, 5.5, -L * 0.15, 13.2, 0], [GB, 1.5, 1.2, 13, L * 0.24, 17, 0]]);

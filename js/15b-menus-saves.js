@@ -73,7 +73,7 @@ function back() {
   else if (id === 'raceCard') closeRaceCard();
   else if (id === 'flyCard') closeFlyCard();
   else if (id === 'pnsCard') closePns(false);
-  else if (id === 'safeCard' || id === 'stashCard') closeSafeCard();
+  else if (id === 'safeCard' || id === 'stashCard' || id === 'carCard') closeSafeCard();
   else if (id === 'slotCard' && SAFEST.slotRet) closeSleepSave();     // the save slots after sleeping (js/08s)
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }

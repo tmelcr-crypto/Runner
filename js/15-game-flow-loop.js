@@ -97,7 +97,7 @@ function handleKeys() {
       if (!lock && pressed.KeyQ && !bigOpen) toggleWheel(true);
       if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
       if ((pressed.KeyE || pressed.KeyF || pressed.Enter || pressed.NumpadEnter) && RACE.res) closeRaceRes();   // the race's results (js/08o)
-      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(), h = safeKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (flyKey()) openFlyCard(); else if (h) safeUse(h); else if (s) openShop(s); else tryEnterExit(); }   // a safehouse's door, bed, wardrobe or stash (js/08s)   // at a store's door E goes in, at a skull the rampage's screen
+      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(), h = safeKey(), v = showKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (flyKey()) openFlyCard(); else if (h) safeUse(h); else if (v) openCarCard(v); else if (s) openShop(s); else tryEnterExit(); }   // a safehouse's door, bed, wardrobe or stash (js/08s)   // at a store's door E goes in, at a skull the rampage's screen
     }
   }
   if (pressed.KeyM) Snd.toggle();
