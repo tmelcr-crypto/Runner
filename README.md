@@ -151,6 +151,24 @@ python3 tools/buildings_sheet.py export buildings.numbers   # or .xlsx
 python3 tools/buildings_sheet.py import buildings.numbers [--dry-run]
 ```
 
+## 60 parks, squares and plazas
+
+Every plaza on the streets used to be the same fountain square; now each one is its own place, and so are the six sports courts and ten parks on the biggest open lawns - 60 in all, no two alike (the parks table, `js/01s-parks-data.js`; built by `js/10p-parks.js`). Each has its name on a sign by its entrance, turned to whichever side the camera sees.
+
+- **The 44 plazas**: Fountain Square (the old three-tier fountain), a splash pad with rings of jets, a sculpture court, Clock Square, Veterans Square with its obelisk and flags, a bandstand on a green, a giant chessboard with stone chess tables, a playground (slide tower, swings, climbing dome, sandpit, see-saw), a skate spot, an outdoor gym, a fenced dog run, a rose garden with arches, a zen garden of raked gravel, a palm court with loungers, a little open-air theatre, a food truck plaza under string lights, a farmers market, a reflecting pool, a hedge maze, pirate mini golf, a turning carousel, a pergola walk under bougainvillea, a butterfly garden with a mesh dome, a bocce club, a great sundial, a stone labyrinth, a flamingo pond, a cactus garden, a topiary garden (an elephant, a giraffe, a rabbit), rainbow arches, a picnic grove with grills, a lily pond with a frog fountain, a glass palm house, a dancing fountain whose lit jets rise and fall, Heroes Square with a bronze rider, a peace bell garden, a water wall, a mosaic plaza with a mosaic lizard, a wind garden of turning pinwheels, Sailors Square with an anchor and a ship's wheel, Domino Corner, ping pong tables, an open-air stage, and a play street with hopscotch and four square.
+- **The 6 courts**: basketball, tennis, beach volleyball, handball walls, pickleball and futsal.
+- **The 10 parks**: Swan Lake Park (an island, a footbridge, swan boats), a botanic garden with a glasshouse, an adventure fort with rope bridges and a zip line, a community garden, a Japanese garden (koi, a red bridge, a pagoda), a little league field, a wildflower meadow with beehives, a mango orchard with its farm stand, a BMX track and Lookout Hill with its tower.
+- What stands is solid (a fountain, a statue, the stalls, the fences); the rest is walked on, and people stroll through.
+- The places are picked once with the city and are always the same: each plaza or court takes the row of its kind in a fixed shuffle; each park takes the biggest clear rectangle of a lawn (off the streets, away from the landmarks and the unique buildings), the biggest lawns first, spread apart, facing the nearest street.
+- Scenery: both modes.
+
+The table holds each place's name, kind, colour and notes (plaza kinds go on plazas, court kinds on courts, park kinds on parks), and the settings: how big a lawn a park needs, and how far apart the parks are. `tools/parks_sheet.py` exports it to Apple Numbers or Excel and reads an edited copy back, checking every value:
+
+```
+python3 tools/parks_sheet.py export parks.numbers   # or .xlsx
+python3 tools/parks_sheet.py import parks.numbers [--dry-run]
+```
+
 ## The lunapark
 
 Heron Key grew into the bay to make room for a lunapark in the spirit of the big European-village parks. The street runs round its north and east side, outside the railings; the multi-storey car park is across the street (below). Only people get in: a grand arch with the park's name on it, ticket booths and turnstiles (free entry); cars stop at the turnstiles.
@@ -576,6 +594,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01p-races-data.js` | the races: phone booths, street races and their five fixed routes, the NASCAR race, the drag strip, results (`tools/settings_sheet.py races`) |
 | `js/01q-safehouse-data.js` | the ten safehouses (kind, district, price, cars, floors) and their settings (`tools/safehouse_sheet.py`), `SAFE`, `SAFE_HOUSES` |
 | `js/01r-buildings-data.js` | the 160 unique buildings (name, kind, wall and neon colours) and where they go (`tools/buildings_sheet.py`), `UNIQUE_TABLE`, `UNIQ` |
+| `js/01s-parks-data.js` | the 60 parks, squares and plazas (name, kind, colour) and how the parks are picked (`tools/parks_sheet.py`), `PARKS_TABLE`, `PARKS` |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02c-music.js` | the cutscenes' music, played by the game itself: a sequencer (drums, bass, pads, arpeggio, lead) and the track *Neon Skyline* |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
@@ -623,6 +642,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10m-grove.js` | the palm grove by the car park: the palms and rocks (placed once, solid, streamed in pieces), the pier with its T-head, the moored boats and their bobbing |
 | `js/10n-unique.js` | the unique buildings: the lots chosen (size, district, the beachfront, spacing), the solids where a model leaves its lot open, the eleven model families with their neon names |
 | `js/10o-unique-more.js` | the 40 unique buildings of the city's own kinds: skyscrapers, condo towers, schools, the arena (and the park it takes), parking garages, gas stations, museums, civic buildings, supermarkets, car washes, bowling alleys; the pylon signs |
+| `js/10p-parks.js` | the 60 parks, squares and plazas: the plazas' and courts' rows, the parks' lawns, each design's model and solids, the name signs |
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending); the terminal's hall inside, under a roof that the scenic flight lifts off |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
 | `js/11b-weapon-models.js` | small 3D models of every weapon, an ammo box and the items (health, armor, heat reducer), for your hand, the pickups and the stores |
