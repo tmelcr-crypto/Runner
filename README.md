@@ -701,7 +701,7 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
-What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings; next: the showroom and tuning, the junkyard, roadblocks and the police helicopter, stats and 100%, and a few fixes): **`docs/PLAN.md`**. The list below is the older, rougher one.
+What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom; next: the tuning workshop, the junkyard at the docks, roadblocks, stats and 100%; then new places - prison island, construction site, casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
 
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
