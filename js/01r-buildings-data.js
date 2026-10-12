@@ -1,16 +1,18 @@
 'use strict';
 /* ---------- 1r. UNIQUE BUILDINGS ----------
-   120 buildings of the city, each one its own model, colours and neon name, like the original Colony on its lot (js/10n builds them):
+   160 buildings of the city, each one its own model, colours and neon name, like the original Colony on its lot (js/10n builds them):
    a Miami mix - Art Deco and Streamline hotels and MiMo motels mostly along the beachfront, Mediterranean villas, diners, cinemas,
-   banks, churches, nightclubs, shops and offices. Each takes the lot of an ordinary building facing a street, chosen by its size and its
+   banks, churches, nightclubs, shops and offices - and 40 of the city's own (js/10o): skyscrapers and condo towers, schools, an
+   arena on a park of its own, parking garages, gas stations, museums, civic buildings, supermarkets, car washes and bowling alleys. Each takes the lot of an ordinary building facing a street, chosen by its size and its
    district (beachfront first); the SEA BREEZE stands where its name was, by the old start.
-   kind: deco | streamline | mimo | med | diner | cinema | bank | church | club | shop | office; c: the walls; neon: the name's colour.
+   kind: deco | streamline | mimo | med | diner | cinema | bank | church | club | shop | office | sky | condo | school | arena | garage |
+   gas | museum | civic | market | carwash | bowling; c: the walls; neon: the name's colour.
    tools/buildings_sheet.py exports this table to Apple Numbers or Excel and reads an edited copy back:
      python3 tools/buildings_sheet.py export buildings.numbers  /  ... import buildings.numbers [--dry-run]
    Keep the JSON between the markers valid. */
 const UNIQUE_TABLE = /*UNIQUE-JSON*/{
 "settings": [
-  {"id": "spacing", "name": "Two unique buildings at least this far apart", "unit": "m", "min": 10, "max": 200, "v": 25, "note": "Spread over the city: much more and the 120 do not all fit."},
+  {"id": "spacing", "name": "Two unique buildings at least this far apart", "unit": "m", "min": 10, "max": 200, "v": 25, "note": "Spread over the city: much more and the 160 do not all fit."},
   {"id": "beach", "name": "Beachfront: this close to a sand beach", "unit": "m", "min": 20, "max": 400, "v": 80, "note": "Hotels, motels, clubs and diners go here first."},
   {"id": "beachFirst", "name": "Of the hotels and motels, on the beachfront", "unit": "%", "min": 0, "max": 100, "v": 75, "note": "The rest anywhere in the city."}
 ],
@@ -134,7 +136,47 @@ const UNIQUE_TABLE = /*UNIQUE-JSON*/{
   {"id": "atlas_building", "name": "ATLAS BUILDING", "kind": "office", "c": "#9fb8d8", "neon": "#f4f4f6", "note": ""},
   {"id": "trident_house", "name": "TRIDENT HOUSE", "kind": "office", "c": "#9fb8d8", "neon": "#ffe14a", "note": ""},
   {"id": "coral_exchange", "name": "CORAL EXCHANGE", "kind": "office", "c": "#9fb8d8", "neon": "#a259ff", "note": ""},
-  {"id": "sunshine_plaza", "name": "SUNSHINE PLAZA", "kind": "office", "c": "#c8d0d8", "neon": "#ff7a3d", "note": ""}
+  {"id": "sunshine_plaza", "name": "SUNSHINE PLAZA", "kind": "office", "c": "#c8d0d8", "neon": "#ff7a3d", "note": ""},
+  {"id": "palmetto_tower", "name": "PALMETTO TOWER", "kind": "sky", "c": "#c8d0d8", "neon": "#2bf3ff", "note": "A skyscraper: a podium with a glass lobby, a glass shaft banded floor by floor, setbacks and a spire, a red light on top."},
+  {"id": "biscayne_one", "name": "BISCAYNE ONE", "kind": "sky", "c": "#d8dce4", "neon": "#ff2bd6", "note": ""},
+  {"id": "azure_center", "name": "AZURE CENTER", "kind": "sky", "c": "#9fb8d8", "neon": "#2bf3ff", "note": ""},
+  {"id": "goldcoast_tower", "name": "GOLDCOAST TOWER", "kind": "sky", "c": "#e8d8a8", "neon": "#ffd23f", "note": ""},
+  {"id": "solara_tower", "name": "SOLARA TOWER", "kind": "sky", "c": "#f4f4f6", "neon": "#ff7a3d", "note": ""},
+  {"id": "coral_spire", "name": "CORAL SPIRE", "kind": "sky", "c": "#ffc8b8", "neon": "#ff4d6d", "note": ""},
+  {"id": "mangrove_trust", "name": "MANGROVE TRUST", "kind": "sky", "c": "#b8d8c8", "neon": "#3dffa6", "note": ""},
+  {"id": "atlantic_center", "name": "ATLANTIC CENTER", "kind": "sky", "c": "#c8ccd4", "neon": "#6f86ff", "note": ""},
+  {"id": "isla_verde", "name": "ISLA VERDE", "kind": "condo", "c": "#e8f4ec", "neon": "#3dffa6", "note": "A condo tower: balconies with glass rails across the front on every floor, a pool deck on the podium, a lit crown with the name."},
+  {"id": "aqua_vista", "name": "AQUA VISTA", "kind": "condo", "c": "#d8f0f8", "neon": "#2bf3ff", "note": ""},
+  {"id": "la_palma", "name": "LA PALMA", "kind": "condo", "c": "#fff0d8", "neon": "#ffb02e", "note": ""},
+  {"id": "marina_bay", "name": "MARINA BAY", "kind": "condo", "c": "#e8e8f4", "neon": "#a259ff", "note": ""},
+  {"id": "breakers_point", "name": "BREAKERS POINT", "kind": "condo", "c": "#f4e8f0", "neon": "#ff2bd6", "note": ""},
+  {"id": "ocean_one", "name": "OCEAN ONE", "kind": "condo", "c": "#e0f0ff", "neon": "#6f86ff", "note": ""},
+  {"id": "coral_shore_high", "name": "CORAL SHORE HIGH", "kind": "school", "c": "#d8a878", "neon": "#ffd23f", "note": "A school: two floors of classrooms, an entrance with a clock, the gym with a curved roof, a flagpole, the yellow bus, a court in the yard."},
+  {"id": "palm_heights_academy", "name": "PALM HEIGHTS ACADEMY", "kind": "school", "c": "#c8b8a0", "neon": "#2bf3ff", "note": ""},
+  {"id": "bayside_elementary", "name": "BAYSIDE ELEMENTARY", "kind": "school", "c": "#e8c8a0", "neon": "#ff7ab6", "note": ""},
+  {"id": "sundome_arena", "name": "SUNDOME ARENA", "kind": "arena", "c": "#d8d4e8", "neon": "#ff2bd6", "note": "An arena on a park of its own: a round drum ringed with a lit glass concourse, a shallow dome, piers, a marquee pylon on the plaza."},
+  {"id": "central_parking", "name": "CENTRAL PARKING", "kind": "garage", "c": "#b8b8c0", "neon": "#ffd23f", "note": "A parking garage: open decks on columns, cars parked on them, a stair tower, the name over the way in."},
+  {"id": "mercado_garage", "name": "MERCADO GARAGE", "kind": "garage", "c": "#c8b8a8", "neon": "#ff7a3d", "note": ""},
+  {"id": "park_and_shop", "name": "PARK & SHOP", "kind": "garage", "c": "#a8b0b8", "neon": "#2bf3ff", "note": ""},
+  {"id": "palm_gas", "name": "PALM GAS", "kind": "gas", "c": "#3dbf6a", "neon": "#3dffa6", "note": "A gas station: the shop at the back, a canopy lit round its edge over two pump islands, a price pylon with the name at the corner."},
+  {"id": "gulfstream_gas", "name": "GULFSTREAM GAS", "kind": "gas", "c": "#2a6ad8", "neon": "#2bf3ff", "note": ""},
+  {"id": "flamingo_fuel", "name": "FLAMINGO FUEL", "kind": "gas", "c": "#ff7ab6", "neon": "#ff2bd6", "note": ""},
+  {"id": "dolphin_fuel", "name": "DOLPHIN FUEL", "kind": "gas", "c": "#35a0c8", "neon": "#ffd23f", "note": ""},
+  {"id": "bay_art_museum", "name": "BAY ART MUSEUM", "kind": "museum", "c": "#f4f4f6", "neon": "#ff2bd6", "note": "A museum: white galleries stacked out over a glass hall, gardens on their roofs and hanging off them, the name on a low wall by the street."},
+  {"id": "science_museum", "name": "SCIENCE MUSEUM", "kind": "museum", "c": "#e8ecf4", "neon": "#2bf3ff", "note": "With SCIENCE in its name: a planetarium dome on the roof and a rocket on its fins out front."},
+  {"id": "city_hall", "name": "CITY HALL", "kind": "civic", "c": "#e8e0c8", "neon": "#ffd23f", "note": "Civic buildings: steps, columns and the name on the frieze, and the mark of what each is - CITY HALL a dome with a flag, COURTHOUSE a clock tower, POST OFFICE flags and mailboxes, a library a lawn with benches."},
+  {"id": "public_library", "name": "PUBLIC LIBRARY", "kind": "civic", "c": "#e0d8c8", "neon": "#2bf3ff", "note": ""},
+  {"id": "courthouse", "name": "COURTHOUSE", "kind": "civic", "c": "#d8d4cc", "neon": "#ffe14a", "note": ""},
+  {"id": "post_office", "name": "POST OFFICE", "kind": "civic", "c": "#c8a888", "neon": "#6f86ff", "note": ""},
+  {"id": "sunny_mart", "name": "SUNNY MART", "kind": "market", "c": "#f4e8c8", "neon": "#ff7a3d", "note": "A supermarket: a big box at the back with stripes, a tall entrance with the name, cart corrals, its car park in front."},
+  {"id": "bay_foods", "name": "BAY FOODS", "kind": "market", "c": "#d8f0e0", "neon": "#3dffa6", "note": ""},
+  {"id": "supermercado", "name": "SUPERMERCADO", "kind": "market", "c": "#ffe0c8", "neon": "#ff4d6d", "note": ""},
+  {"id": "sparkle_wash", "name": "SPARKLE WASH", "kind": "carwash", "c": "#c8e8f8", "neon": "#2bf3ff", "note": "A car wash: an open tunnel along the street you can drive through, big brushes inside, vacuum posts out front."},
+  {"id": "bubbles_car_wash", "name": "BUBBLES CAR WASH", "kind": "carwash", "c": "#f8d8f0", "neon": "#ff2bd6", "note": ""},
+  {"id": "tropic_wash", "name": "TROPIC WASH", "kind": "carwash", "c": "#d8f8c8", "neon": "#ffd23f", "note": ""},
+  {"id": "strike_zone", "name": "STRIKE ZONE", "kind": "bowling", "c": "#ff9f6b", "neon": "#ffe14a", "note": "A Googie bowling alley: a long hall with a zig-zag roof edge, a giant pin by the door, a starburst over the pylon with the name."},
+  {"id": "lucky_lanes", "name": "LUCKY LANES", "kind": "bowling", "c": "#7fd8c8", "neon": "#ff2bd6", "note": ""},
+  {"id": "cosmic_bowl", "name": "COSMIC BOWL", "kind": "bowling", "c": "#a88fd8", "neon": "#2bf3ff", "note": ""}
 ]
 }/*END-UNIQUE-JSON*/;
 const UNIQ = Object.fromEntries(UNIQUE_TABLE.settings.map(r => [r.id, r.v]));

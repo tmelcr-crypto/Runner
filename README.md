@@ -104,9 +104,9 @@ The Colony Hotel stands on the Sandbar beach east of the start - the white Strea
 
 **The valet.** By the doors, beside the valet stand, a valet in a red jacket and cap turns to watch you come. Walk up, or roll up slower than 15 km/h, and the valet waves and greets you - GOOD EVENING, WELCOME TO THE COLONY, NICE RIDE... - with a bright arcade ding-dong, once, until you have been away and come back (the places table: `valetGreet`, 9 m; `valetAgain`, 40 s). Only a greeting, for now. Trouble scares the valet off like anyone else; then back to the door. Mode: `valet`. Behind it, between the hotel and the sea, its own park: lawns, paths, palms, flower beds, benches and lamps round a three-tier fountain. Its free room is your first safehouse, yours from the start: new games begin at its door (*Safehouses*).
 
-## 120 unique buildings
+## 160 unique buildings
 
-All over the city, 120 buildings are one of a kind. Each has its own model, its own colours and its name in neon, the way the Colony first stood on its lot (the unique buildings table, `js/01r-buildings-data.js`). The name is always on the building - down a tower, on a parapet, a frieze or a crown, over the doors, on a pole sign - and where the front faces east or west, so that the camera would see it side-on, a blade sign stands out from the front at the corner toward the camera with the name down it. A Miami mix:
+All over the city, 160 buildings are one of a kind. Each has its own model, its own colours and its name in neon, the way the Colony first stood on its lot (the unique buildings table, `js/01r-buildings-data.js`). The name is always on the building - down a tower, on a parapet, a frieze or a crown, over the doors, on a pole sign - and where the front faces east or west, so that the camera would see it side-on, a blade sign stands out from the front at the corner toward the camera with the name down it. A Miami mix:
 
 - **Art Deco hotels** (28, the SEA BREEZE among them, on the building by the old start whose sign it was): a terrace with umbrellas at the front, eyebrows over every row of windows, a finned centre tower with a ziggurat top and the name down its fins.
 - **Streamline hotels** (14): rounded front corners, racing bands, a glass-block lobby under a curved canopy, a short name down a pylon over the roof, a long one on a parapet beside it.
@@ -120,12 +120,27 @@ All over the city, 120 buildings are one of a kind. Each has its own model, its 
 - **Shops** (12): a striped awning, lit windows, and something that says what they sell. Surfboards, an ice-cream cone, a green cross, flowers, café umbrellas, a diamond, an arcade's lights, a camera, a record or a pile of books. The name on a parapet over the front.
 - **Offices** (6): sun-shade fins, a glass lobby, the name on the front of the crown.
 
+And 40 of the city's own (`js/10o-unique-more.js`):
+
+- **Skyscrapers** (8, downtown first): a podium with a glass lobby and the name over its front, a glass shaft banded floor by floor with lit windows, and a top of its own - setbacks and a spire, a slanted top lit along its edges, a lit crown with a helipad, or a glass pyramid - and a red light on the very top. 260-420 high: what a flight will have to clear.
+- **Condo towers** (6, the beachfront first): balconies with glass rails across the front on every floor, a pool deck with loungers on the podium, a lit crown with the name.
+- **Schools** (3): two floors of classrooms, an entrance with a clock and the name, the gym under a curved roof, a flagpole, the yellow bus, a court in the yard.
+- **The arena** (1): SUNDOME ARENA takes the middle of a big park of its own - a round drum ringed with a lit glass concourse and piers, a shallow dome, lamps and planters on its plaza, the name on a marquee by the street.
+- **Parking garages** (3): open decks on columns with cars parked on them, lights under every deck, a stair tower, the name over the way in.
+- **Gas stations** (4): the shop at the back, a canopy in the brand's colours, lit round its edge, over two pump islands, the name on a price pylon at the corner and on the canopy.
+- **Museums** (2): white galleries stacked out over a glass hall with gardens on their roofs and hanging off them; the science museum has a planetarium dome and a rocket on its fins out front. The name on a low wall by the street.
+- **Civic buildings** (4): steps, columns and the name on the frieze - CITY HALL with a dome and a flag, the COURTHOUSE with a clock tower, the POST OFFICE with flags and mailboxes, the PUBLIC LIBRARY with benches and a tree on its lawn.
+- **Supermarkets** (3): a big striped box at the back, a tall entrance with the name, cart corrals and its car park in front.
+- **Car washes** (3): an open tunnel along the street you can drive through, big brushes inside, bubbles on the roof, vacuum posts out front.
+- **Bowling alleys** (3): Googie style - a long hall with a zig-zag roof edge, a giant pin by the door, a starburst over the pylon with the name.
+
 **Where they stand.**
 - Each one takes the lot of an ordinary building that faces a street (a villa or a hotel set back from the road faces the nearest one), and stands where that building stood. The lot must suit the kind (its size and its district), and its front must be one the camera can see (not facing north).
 - Every district with a lot that suits has at least one; the busiest give one up where needed.
 - Hotels, motels, clubs and diners go to the beachfront first: within 80 m of a sand beach, and three hotels in four. The rest stand anywhere.
 - No two stand closer than 25 m.
-- Where a model leaves part of its lot open (a diner's car park, a motel's pool court, a villa's courtyard, a church's lawn), only what stands is solid.
+- The arena does not take a building's lot: it takes the middle of a big park (the biggest square that stays on the grass, away from the other unique buildings), and faces the nearest street.
+- Where a model leaves part of its lot open (a diner's car park, a motel's pool court, a villa's courtyard, a church's lawn, a school's yard, a gas station's forecourt, a supermarket's car park, a museum's front, the car wash's tunnel, the arena's plaza), only what stands is solid.
 - The lots are picked once with the city and are always the same.
 - Scenery: both modes.
 
@@ -560,7 +575,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01o-jobs-data.js` | the vehicle jobs: dispatch points, levels, the clock, pay, rewards, nitro (`tools/settings_sheet.py jobs`) |
 | `js/01p-races-data.js` | the races: phone booths, street races and their five fixed routes, the NASCAR race, the drag strip, results (`tools/settings_sheet.py races`) |
 | `js/01q-safehouse-data.js` | the ten safehouses (kind, district, price, cars, floors) and their settings (`tools/safehouse_sheet.py`), `SAFE`, `SAFE_HOUSES` |
-| `js/01r-buildings-data.js` | the 120 unique buildings (name, kind, wall and neon colours) and where they go (`tools/buildings_sheet.py`), `UNIQUE_TABLE`, `UNIQ` |
+| `js/01r-buildings-data.js` | the 160 unique buildings (name, kind, wall and neon colours) and where they go (`tools/buildings_sheet.py`), `UNIQUE_TABLE`, `UNIQ` |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02c-music.js` | the cutscenes' music, played by the game itself: a sequencer (drums, bass, pads, arpeggio, lead) and the track *Neon Skyline* |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
@@ -607,6 +622,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10k-carpark.js` | the lunapark car park: decks, ramps and the heights (`z`) they give, walls by height, the barrier and booth, parked cars on every deck, the model by level and the decks above you fading, its map icon |
 | `js/10m-grove.js` | the palm grove by the car park: the palms and rocks (placed once, solid, streamed in pieces), the pier with its T-head, the moored boats and their bobbing |
 | `js/10n-unique.js` | the unique buildings: the lots chosen (size, district, the beachfront, spacing), the solids where a model leaves its lot open, the eleven model families with their neon names |
+| `js/10o-unique-more.js` | the 40 unique buildings of the city's own kinds: skyscrapers, condo towers, schools, the arena (and the park it takes), parking garages, gas stations, museums, civic buildings, supermarkets, car washes, bowling alleys; the pylon signs |
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending); the terminal's hall inside, under a roof that the scenic flight lifts off |
 | `js/11-render-dynamic-meshes.js` | vehicle models (one per body, drivers inside under the roof), people, pickups |
 | `js/11b-weapon-models.js` | small 3D models of every weapon, an ammo box and the items (health, armor, heat reducer), for your hand, the pickups and the stores |

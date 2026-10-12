@@ -1,4 +1,4 @@
-"""Unique buildings table <-> spreadsheet (Apple Numbers or Excel): the 120 buildings with their own model and neon name, and where they
+"""Unique buildings table <-> spreadsheet (Apple Numbers or Excel): the 160 buildings with their own model and neon name, and where they
 go (js/01r-buildings-data.js).
 
   python3 tools/buildings_sheet.py export buildings.numbers            write the table as a Numbers file (or .xlsx)
@@ -11,12 +11,13 @@ import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__)); JS = os.path.join(HERE, '..', 'js', '01r-buildings-data.js')
 A, B = '/*UNIQUE-JSON*/', '/*END-UNIQUE-JSON*/'
-KINDS = ['deco', 'streamline', 'mimo', 'med', 'diner', 'cinema', 'bank', 'church', 'club', 'shop', 'office']
+KINDS = ['deco', 'streamline', 'mimo', 'med', 'diner', 'cinema', 'bank', 'church', 'club', 'shop', 'office',
+         'sky', 'condo', 'school', 'arena', 'garage', 'gas', 'museum', 'civic', 'market', 'carwash', 'bowling']
 fmt = lambda v: ('%d' % v) if float(v).is_integer() else ('%g' % v)
 TIPS = [('Yellow cells', 'What you can change: the name in neon, the kind of building, its wall colour and its neon colour.', 'tap a cell and type'),
-        ('Kind', 'deco (Art Deco hotel), streamline (Streamline Moderne hotel), mimo (MiMo motel), med (Mediterranean villa), diner, cinema, bank, church, club (nightclub), shop, office.', 'pick from the list'),
+        ('Kind', 'deco (Art Deco hotel), streamline (Streamline Moderne hotel), mimo (MiMo motel), med (Mediterranean villa), diner, cinema, bank, church, club (nightclub), shop, office, sky (skyscraper), condo (condo tower), school, arena (takes a park of its own), garage (parking garage), gas (gas station), museum (SCIENCE in the name: a planetarium), civic (CITY HALL, COURTHOUSE, POST OFFICE or a library by its name), market (supermarket), carwash, bowling.', 'pick from the list'),
         ('Colours', 'As #RRGGBB, for example #ffb3c7 (pink) or #2bf3ff (cyan).', '#RRGGBB'),
-        ('Where they stand', 'The game picks each lot: an ordinary building facing a street, the right size for the kind, hotels and motels on the beachfront first. The Sea Breeze stays by the old start.', ''),
+        ('Where they stand', 'The game picks each lot: an ordinary building facing a street, the right size for the kind, hotels and motels on the beachfront first. The Sea Breeze stays by the old start; the arena takes the middle of a big park.', ''),
         ('Settings', 'How far apart two of them stand, how close to the sea counts as the beachfront, and how many of the hotels and motels go there.', ''),
         ('Sending it back', 'Upload the file in the chat as it is (.numbers or .xlsx). Every value is checked before anything is written.', '')]
 HO_HEAD = ['Name on screen', 'Kind', 'Walls', 'Neon', 'Notes', 'ID']
@@ -151,7 +152,7 @@ def do_import(src, dry):
     for n, row in enumerate(rows, start=2):
         g = lambda name: row[hd[name]] if name in hd and hd[name] < len(row) else None
         hid = text(g('id')).lower(); where = 'Buildings row %d (%s)' % (n, hid or 'no ID')
-        if hid not in H: errors.append('%s: unknown ID - the 120 buildings are fixed' % where); continue
+        if hid not in H: errors.append('%s: unknown ID - the 160 buildings are fixed' % where); continue
         h = H[hid]; name = text(g('name on screen')).upper(); kind = text(g('kind')).lower(); c, ne = colour(g('walls')), colour(g('neon'))
         if not name or len(name) > 24: errors.append('%s: a name of 1 to 24 letters is needed' % where); continue
         if name in names: errors.append('%s: the name %s is already used by %s' % (where, name, names[name])); continue
