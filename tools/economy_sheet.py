@@ -12,6 +12,7 @@ an import writes each one back there (only the price, the rest of each table is 
   health, body armor     js/01g-shop-data.js
   weapons and their ammo js/01f-weapon-data.js    (also tools/weapon_sheet.py)
   clothes                js/01n-clothes-data.js   (also tools/clothes_sheet.py)
+  car showroom prices    js/01c-vehicle-data.js   (also tools/vehicle_sheet.py)
   car delivery prices    js/01c-vehicle-data.js   (also tools/vehicle_sheet.py)
   vehicle jobs pay       js/01o-jobs-data.js      (also tools/settings_sheet.py jobs)
   race fees and prizes   js/01p-races-data.js     (also tools/settings_sheet.py races)
@@ -92,6 +93,10 @@ def rows():
         if not it.get('shop'): continue
         out.append(dict(key='clothes.' + it['id'], label='%s (%s)' % (it['name'].capitalize(), it['slot']), value=it.get('price'), unit=USD, note='Sold at %s.' % shops.get(it['shop'], it['shop']),
                         file='clothes', id=it['id'], field='price', lo=0, hi=100000, empty_ok=False))
+    out.append(('#', 'CAR SHOWROOM', 'What the Sunstrip showroom sells each vehicle for (vehicles table). 0: not sold there.'))
+    for v in block('vehicle')[3]['vehicles']:
+        if v.get('role') == 'police' or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank', 'trash', 'ambulance', 'fire'): continue
+        out.append(dict(key='price.' + v['id'], label='Buy a %s' % v['name'].lower(), value=v.get('price') or 0, unit=USD, note='Only sold there.' if not v.get('traffic') and not v.get('parked') and v.get('price') else '', file='vehicle', id=v['id'], field='price', lo=0, hi=10000000, empty_ok=False))
     out.append(('#', 'CAR DELIVERY AT THE DOCKS', 'What the dockers pay for the wanted car (a damaged one pays less: places table). 0: that vehicle is never wanted.'))
     for v in block('vehicle')[3]['vehicles']:
         if v.get('role') == 'police' or v.get('job') or v.get('weapon') or v.get('body') in ('bus', 'apc', 'tank'): continue

@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 9): see the comment above each remodelN below.
+  - Later versions (2 to 10): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -640,7 +640,22 @@ def remodel9(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9]
+# version 10: the Sunstrip showroom (PLAN step 5, js/10s, js/08w). The block at the corner of the beach avenue and the street south of the
+# big park is cleared for a car dealer (showroom: block, hall - the glass showroom, its front to the south street; door - its entrance
+# [x, y, width]; side - a second door to the avenue; shop - the tuning workshop at the back, sdoor - its roller door to the avenue; yard -
+# an open stock yard); the whole block is paved (yards p).
+def remodel10(M):
+    B = box(11835, 8331, 12291, 8969)
+    move_services(M, clear_ground(M, B.buffer(6)))
+    M['alleys'] = [a for a in M['alleys'] if not B.intersects(rect(*a[:5]))]
+    M['yards'] += rings(B, 'p')
+    M['showroom'] = {'block': [11835, 8331, 12291, 8969], 'hall': [11852, 8630, 12276, 8952], 'door': [12064, 8952, 90], 'side': [12276, 8800, 70],
+                     'shop': [12090, 8348, 12276, 8606], 'sdoor': [12276, 8470, 100], 'yard': [11852, 8348, 12070, 8606]}
+    M['remodel'] = 10
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10]
 
 
 if __name__ == '__main__':
@@ -677,5 +692,8 @@ if __name__ == '__main__':
     head = head.replace("   on where it dipped round a block, the base road ending at the base gate, the south tip's coast road straightened. */",
                         "   on where it dipped round a block, the base road ending at the base gate, the south tip's coast road straightened; version 9: the drag\n"
                         "   strips' exits (speedway.strips[].exit) and the Sandbar strip's park and woods (grass of kind lawn and wood). */")
+    head = head.replace("   strips' exits (speedway.strips[].exit) and the Sandbar strip's park and woods (grass of kind lawn and wood). */",
+                        "   strips' exits (speedway.strips[].exit) and the Sandbar strip's park and woods (grass of kind lawn and wood); version 10: the Sunstrip\n"
+                        "   showroom's block (showroom: block, hall, door, side, shop, sdoor, yard). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

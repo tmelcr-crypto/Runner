@@ -113,6 +113,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
 8. Then the plan's steps 5-8 below.
 
 ## 5. Car showroom and tuning (Sunstrip)
+(Asked: the showroom and the workshop are interiors of the top-down kind, the roof see-through.) - the showroom is done (map remodel 10,
+js/10s, js/08w); the tuning workshop next.
 - A glass showroom on a main street in Sunstrip, cars on turntables: every car kind plus three rare ones sold only there (a
   supercar, a classic convertible, a muscle car). A bought car is delivered to a safehouse garage or parking space you choose.
 - **Tuning** at its workshop: paint, a two-tone roof, racing stripes; wheel rim and underglow colours; a spoiler, a bonnet scoop;

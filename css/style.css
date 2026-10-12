@@ -627,3 +627,11 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #cutWin .pane::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.14),transparent 35%,transparent 70%,rgba(255,255,255,.06))}
 #cutRain{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit}
 #cutWin::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 46%,transparent 34%,rgba(40,30,20,.32) 100%);pointer-events:none}
+
+/* the Sunstrip showroom card (js/08w) */
+#ccTo{display:flex;flex-direction:column;gap:4px;margin:2px 0 4px}
+.ccTo{width:100%;padding:7px 8px;font:inherit;font-size:13px;text-align:left;background:#1d1b2a;color:#f4f4f6;border:2px solid #3a3448;border-radius:4px;cursor:pointer;touch-action:manipulation}
+.ccTo.on{border-color:#3dffa6;color:#3dffa6;box-shadow:0 0 8px rgba(61,255,166,.35)}
+#carCard .sws{grid-template-columns:repeat(8,1fr);max-width:320px}
+@media (max-height:560px){ #carCard .sub,#carCard .keys{display:none} }
+#ccBuy:disabled{opacity:.35;cursor:default}
