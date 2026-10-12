@@ -119,7 +119,6 @@ function updateTrees(dt) {
           F.landed = true; const T = F.T, L = F.len, near = dist(T.x, T.y, P.x, P.y);
           for (let n = 0; n < 12; n++) { const d = L * rand(0.5, 1.05); addP({ x: T.x + F.nx * d + rand(-6, 6), y: T.y + F.ny * d + rand(-6, 6), z: rand(2, 6), vz: rand(40, 120), grav: 300, vx: rand(-40, 40), vy: rand(-40, 40),
             life: rand(0.6, 1.2), max: 1.2, s0: rand(2.4, 3.6), s1: 1.5, col: shade(T.cc, randi(-16, 16)), drag: 2, alpha: 1 }); }
-          if (decals.length < 150) decals.push({ x: T.x + F.nx * L * 0.8, y: T.y + F.ny * L * 0.8, r: T.r * 0.9, life: 40, col: shade(T.cc, -40) });   // leaves on the ground
           if (near < 900) { Snd.smash('treefall', 1 - near / 900); if (near < 300) cam.shake = Math.max(cam.shake, 1.5); }
         }
       }

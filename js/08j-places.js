@@ -145,7 +145,7 @@ function forceWanted(n) {                                         // straight to
   P.heat = Math.max(P.heat, COP.lv.heat[Math.min(n, COP.lv.heat.length - 1)]); P.sinceCrime = 0; policeKnow(P.x, P.y); updateStars();
 }
 function raiseAlarm() {
-  if (!feat('base') || BASEX.alarm) return;
+  if (!feat('base') || BASEX.alarm || RAMP.on) return;                // not during a rampage: like the police, the base looks away (js/08f)
   BASEX.alarm = true; BASEX.outT = 0; forceWanted(PLC.baseStars); toast('BASE ALARM!', true); Snd.tone(440, 880, 0.6, 0.15, 'sawtooth');
 }
 const baseHurt = (x, y) => { if (inBase(x, y)) raiseAlarm(); };     // js/06: a shot, a blast or a body inside the base
@@ -155,7 +155,8 @@ function baseTick(dt) {
   const t = P.car || P, inside = !P.dead && state === 'play' && inBase(t.x, t.y);
   if (inside) {
     BASEX.outT = 0;
-    if (!BASEX.alarm) { BASEX.warnT += dt; const n = Math.max(0, Math.ceil(PLC.baseWarn - BASEX.warnT)); el.innerHTML = 'RESTRICTED AREA<br><small>LEAVE NOW ' + n + '</small>'; el.hidden = false; if (BASEX.warnT >= PLC.baseWarn) raiseAlarm(); }
+    if (RAMP.on) { BASEX.warnT = 0; el.hidden = true; }
+    else if (!BASEX.alarm) { BASEX.warnT += dt; const n = Math.max(0, Math.ceil(PLC.baseWarn - BASEX.warnT)); el.innerHTML = 'RESTRICTED AREA<br><small>LEAVE NOW ' + n + '</small>'; el.hidden = false; if (BASEX.warnT >= PLC.baseWarn) raiseAlarm(); }
     else el.hidden = true;
   } else {
     if (BASEX.warnT > 0 || BASEX.alarm) BASEX.leftAt = gameT;

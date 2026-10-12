@@ -57,7 +57,7 @@ $('cutSkip').addEventListener('click', e => { e.stopPropagation(); cutSkip(); })
 const _cv = new THREE.Vector3();
 function cutView() {
   const v = CUT.view; if (!v) return;
-  camera.position.set(v.x, v.h, v.y); if (v.up) camera.up.set(v.up.x, v.up.y, v.up.z); else camera.up.set(0, 1, 0); camera.lookAt(_cv.set(v.lx, v.lh, v.ly));   // up: tilted with a banking plane
+  setNear(30); camera.position.set(v.x, v.h, v.y); if (v.up) camera.up.set(v.up.x, v.up.y, v.up.z); else camera.up.set(0, 1, 0); camera.lookAt(_cv.set(v.lx, v.lh, v.ly));   // up: tilted with a banking plane
   if (v.roll) camera.rotateZ(v.roll);
   if (camera.fov !== v.fov) { camera.fov = v.fov; camera.updateProjectionMatrix(); partMat.uniforms.uScale.value = VH * renderer.getPixelRatio() / (2 * Math.tan(v.fov * Math.PI / 360)); }
   camera.updateMatrixWorld();

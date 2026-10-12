@@ -81,7 +81,7 @@ function scenicFlight() {
         enter() { terminalRoof(true); people(); cam.zoom = 1.05; },
         tick(dt, t, u) {
           const s = wlen * smooth01(0, 1, u) , q = along(walk, s), q2 = along(walk, Math.min(wlen, s + 4));
-          P.vx = (q2[0] - q[0]) / 4 * (wlen / 10); P.vy = (q2[1] - q[1]) / 4 * (wlen / 10); P.x = q[0]; P.y = q[1]; P.ang = q[2];
+          P.vx = (q2[0] - q[0]) / 4 * (wlen / 10); P.vy = (q2[1] - q[1]) / 4 * (wlen / 10); P.bob += Math.hypot(q[0] - P.x, q[1] - P.y) * 0.1; P.x = q[0]; P.y = q[1]; P.ang = q[2];   // the step goes on as you walk (js/06 is paused)
           cam.x = P.x - 40; cam.y = P.y; cam.zoom = lerp(1.05, 1.6, smooth01(0, 0.7, u));
         },
         leave() { terminalRoof(false); for (const g of figures) scene.remove(g); figures = []; CUT.hideP = true; P.vx = P.vy = 0; } },
