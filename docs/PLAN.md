@@ -105,7 +105,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
      holds you only 6 s without a cop on the ground. - done (js/12g; modes trees, heliLose)
    - One factory with tall smoking chimneys in Gravel Flats, next to the future junkyard. - done (the cement works on the space
      center's south-east corner, js/10r; remodel 7 keeps the gravel yard east of it, up to the street corner, for the junkyard)
-   - Reroute the roads that make no real-life sense (decide and fix; no need to ask).
+   - Reroute the roads that make no real-life sense (decide and fix; no need to ask). - done (remodel 8: the avenue's U detour
+     straightened, the base road ends at its gate, the south tip's zigzag coast road straightened with a beach below it)
    - Both drag strips: a band from the city through a park and a forest to the strip, then forest again to the beach; each
      strip gets a one-way exit toward the city, passable only from inside once a race is over.
 8. Then the plan's steps 5-8 below.
