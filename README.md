@@ -584,13 +584,13 @@ python3 tools/economy_sheet.py import economy.numbers [--dry-run]
 
 ## Armed people
 
-About one passer-by in five carries a weapon - a pistol (10%), a baseball bat or a knife (3% each), a machete or a golf club (2% each); the weapon table's row *Carried by people (%)* sets which and how many (melee weapons and guns that fire bullets on tap or hold; at most 100% together). You only see it when they use it:
+About one passer-by in four or five carries a weapon - a pistol (10%), a revolver (2%), an SMG (1%), a baseball bat or a knife (3% each), a machete or a golf club (2% each); the weapon table's row *Carried by people (%)* sets which and how many (melee weapons and guns that fire bullets on tap or hold; at most 100% together). You only see it when they use it:
 - hurt them, pull them out of their car, or kill someone within about 13 m of them, and they **fight back** instead of running - unarmed people still run;
-- a gun is fired at you the way the police fire (the police table's accuracy and damage), from a clear line of sight, keeping a little distance; in a car they shoot the car;
+- a gun is fired at you the way the police fire, from a clear line of sight, keeping a little distance; in a car they shoot the car. The hit chance falls the farther you are (the police table: 35% close up down to 8% at full range); each hit does the police's damage times the gun's damage against the pistol's - a revolver about twice as hard but about 1.4 times slower, an SMG in bursts of 3 to 5 bullets that each do about half (police table, group *Armed people*: the time between shots and the burst size);
 - a melee weapon is swung when they reach you, softer than you hit (30% of the weapon's damage, at most 15), at under half your pace; a moving car they keep away from;
 - they give up when you get 58 m away or after 45 seconds.
 
-Gunfire alone only makes people run. Killed, they drop their weapon in its colour bubble: a melee weapon you do not have yet, or a pistol with one magazine (+7 rounds if you have one already). People brought in for a rampage carry nothing, so rampages play as tuned. Their shots and swings add no heat to you; what you do to them does.
+Gunfire alone only makes people run. Killed, they drop their weapon in its colour bubble: a melee weapon you do not have yet, or a gun with one magazine (a pistol +7 rounds if you have one already). People brought in for a rampage carry nothing, so rampages play as tuned. Their shots and swings add no heat to you; what you do to them does.
 
 ## Layout
 
