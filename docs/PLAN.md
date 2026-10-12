@@ -87,7 +87,7 @@ All of these are for **both** modes except the kill frenzies (free roam only).
 6. **The airport**: flights to Prague and Norfolk (both COMING SOON) and a **scenic flight** for EUR 5,000: a cinematic - you walk
    to the plane through the terminal hall (its roof see-through), the plane taxis to the runway, then 2 minutes flying round the
    city seen from your seat through an oval window; a random time of day and weather each time; the only button is LAND (skip).
-   A new 90s-style synth track plays (made by the game). Build the cutscene engine so story mode can use it later.
+   A new 90s-style synth track plays (made by the game). Build the cutscene engine so story mode can use it later. - done
 7. **The map overhaul**:
    - Remove the floating name boards (SEA BREEZE, GROVE DOCK, LUNAPARK PARKING, the COLONY HOTEL roof board...); a name stays
      only where it belongs on a building (a neon sign on its facade or pylon).
