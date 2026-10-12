@@ -713,7 +713,8 @@ function genLandmarks() {
         for (const z of L.isl) solid(p.x, p.y, a, L.cx, z, 72, 8, true);                                 // pump islands and the sign post
         solid(p.x, p.y, a, w / 2 - 12, h / 2 - 12, 4, 4, true);
         add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makeGas(p), ex - 20, ey - 20);
-      } else if (p.t === 'plaza') { solid(p.x, p.y, a, 0, 0, 30, 30, true); add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makePlaza(p), ex - 20, ey - 20); }
+      } else if (pkProp(p, a, w, h, ex, ey)) continue;                                                  // a plaza or a court of its own design (js/10p)
+      else if (p.t === 'plaza') { solid(p.x, p.y, a, 0, 0, 30, 30, true); add(p.x, p.y, a, Math.hypot(w, h) / 2, () => makePlaza(p), ex - 20, ey - 20); }
       else { for (const s of [-1, 1]) solid(p.x, p.y, a, s * 77, 0, 4, 4, true); add(p.x, p.y, a, 95, makeCourt, ex - 30, ey - 30); }
     }
   }
