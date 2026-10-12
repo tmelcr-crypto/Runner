@@ -9,6 +9,9 @@
    body: the 3D model (js/11). role police: patrols, joins chases from chaseFrom stars on (chase = how often it is sent).
    traffic / parked: how often it drives in traffic / stands parked. hidden: how many stand at secret spots. job: trash / ambulance / fire / taxi (taxi: the taxi job, js/08n).
    price: what the Sunstrip showroom sells it for (js/08w; 0: not sold there); with no traffic and no parked weight it is sold only there.
+   tuning: what the Sunstrip tuning workshop does and charges (js/08y): the looks and parts (paint, roof, stripes, rims, glow, spoiler,
+   scoop: their price) and three levels each of engine (top speed and acceleration, % more), brakes (% more) and armour (% less damage) -
+   each level's numbers are what the car has at that level; going up costs the levels in between.
    delivery: what the dockers pay for it when it is the wanted car (js/08m; 0: never wanted).
    weapon rockets: FIRE launches rockets when you drive it; water: FIRE sprays the water cannon (js/08c); mg: a turret machine gun (js/08r). shifter: the look of the gear selector on a touch screen. accTo at or above top speed means "the time to reach top speed". */
 const VEHICLE_TABLE = /*VEHICLE-JSON*/{
@@ -32,6 +35,24 @@ const VEHICLE_TABLE = /*VEHICLE-JSON*/{
   {"id": "super", "name": "VELOCE", "body": "super", "role": "civilian", "len": 4.6, "wid": 2.05, "top": 340, "accTo": 100, "accS": 2.8, "brake": 12, "steer": 3.1, "grip": 6.8, "hp": 220, "kg": 1450, "tree": 47, "armored": false, "traffic": 0, "parked": 0, "chase": 0, "chaseFrom": 1, "hidden": 0, "job": "", "weapon": "", "price": 120000, "delivery": 4000, "shifter": "sport", "colors": ["#ff2a2a", "#ffe14a", "#2bf3ff", "#f4f4f6", "#111114"], "notes": "A mid-engined supercar: wedge nose, scissor-low roofline, side intakes, a rear wing. Sold only at the Sunstrip showroom."},
   {"id": "convertible", "name": "SUNDANCER", "body": "convertible", "role": "civilian", "len": 5.4, "wid": 2.1, "top": 190, "accTo": 100, "accS": 8.5, "brake": 8.5, "steer": 2.4, "grip": 5, "hp": 220, "kg": 1750, "tree": 44, "armored": false, "traffic": 0, "parked": 0, "chase": 0, "chaseFrom": 1, "hidden": 0, "job": "", "weapon": "", "price": 60000, "delivery": 2500, "shifter": "auto", "colors": ["#ff8fc8", "#7fe0d0", "#f4e3b0", "#e0364f"], "notes": "A 1950s convertible: long and low, the top down, chrome bumpers, tail fins, whitewall tyres. Sold only at the Sunstrip showroom."},
   {"id": "muscle", "name": "BRUISER", "body": "muscle", "role": "civilian", "len": 5.0, "wid": 2.0, "top": 250, "accTo": 100, "accS": 4.5, "brake": 9.5, "steer": 2.6, "grip": 4.6, "hp": 260, "kg": 1650, "tree": 45, "armored": false, "traffic": 0, "parked": 0, "chase": 0, "chaseFrom": 1, "hidden": 0, "job": "", "weapon": "", "price": 45000, "delivery": 2000, "shifter": "sport", "colors": ["#ff7a00", "#1d1b24", "#2b6aff", "#e0364f"], "notes": "A muscle car: a long bonnet with a scoop, a short deck, racing stripes, fat rear tyres. Sold only at the Sunstrip showroom."}
+],
+"tuning": [
+  {"id": "paint", "name": "PAINT", "price": 400, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "A new colour for the body (the underglow follows it unless it has its own)."},
+  {"id": "roof", "name": "TWO-TONE ROOF", "price": 350, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "The roof in a second colour."},
+  {"id": "stripes", "name": "RACING STRIPES", "price": 500, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "Twin stripes over the bonnet, the roof and the boot."},
+  {"id": "rims", "name": "RIMS", "price": 600, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "Coloured wheel rims."},
+  {"id": "glow", "name": "UNDERGLOW", "price": 800, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "The neon under the car in a colour of its own."},
+  {"id": "spoiler", "name": "SPOILER", "price": 1500, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "A rear wing (not on cars that have one, or no boot for it)."},
+  {"id": "scoop", "name": "BONNET SCOOP", "price": 1200, "top": 0, "acc": 0, "brake": 0, "armour": 0, "notes": "An air scoop on the bonnet (not on cars that have one, or no bonnet)."},
+  {"id": "engine1", "name": "ENGINE 1", "price": 4000, "top": 5, "acc": 10, "brake": 0, "armour": 0, "notes": "Street tune."},
+  {"id": "engine2", "name": "ENGINE 2", "price": 8000, "top": 10, "acc": 20, "brake": 0, "armour": 0, "notes": "Sport tune."},
+  {"id": "engine3", "name": "ENGINE 3", "price": 16000, "top": 15, "acc": 35, "brake": 0, "armour": 0, "notes": "Race tune."},
+  {"id": "brakes1", "name": "BRAKES 1", "price": 2000, "top": 0, "acc": 0, "brake": 15, "armour": 0, "notes": ""},
+  {"id": "brakes2", "name": "BRAKES 2", "price": 4500, "top": 0, "acc": 0, "brake": 30, "armour": 0, "notes": ""},
+  {"id": "brakes3", "name": "BRAKES 3", "price": 9000, "top": 0, "acc": 0, "brake": 50, "armour": 0, "notes": ""},
+  {"id": "armour1", "name": "ARMOUR 1", "price": 5000, "top": 0, "acc": 0, "brake": 0, "armour": 20, "notes": ""},
+  {"id": "armour2", "name": "ARMOUR 2", "price": 10000, "top": 0, "acc": 0, "brake": 0, "armour": 40, "notes": ""},
+  {"id": "armour3", "name": "ARMOUR 3", "price": 20000, "top": 0, "acc": 0, "brake": 0, "armour": 60, "notes": "Bullets, crashes and blasts do 60% less."}
 ]
 }/*END-VEHICLE-JSON*/;
 
