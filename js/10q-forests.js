@@ -3,7 +3,8 @@
    The city's large green expanses get woods (places table, City: forestMin, forestCover, forestGap): every lawn at least forestMin
    across - the golf links, the big parks, the islands' greens, but not a landmark's park (Bayfront, the mall's, the Colony's) or a
    designed one (js/10p) - is wooded in patches covering forestCover of it, meadows and clearings between; the space center's grounds
-   get low pine scrub away from its buildings, pad and crawlerway. Trees stand about forestGap apart, pines and broadleaves mixed, a
+   get low pine scrub away from its buildings, pad and crawlerway; the woods either side of the Sandbar drag strip (grass of kind wood, map
+   remodel 9) are trees all over, the park beside them (kind lawn) gets none. Trees stand about forestGap apart, pines and broadleaves mixed, a
    few in flower; like every tree they fall when a vehicle drives into them (js/12g), and the saw palmetto is flattened like a bush. Always the same: the patches come from a
    fixed noise, not from chance. */
 let FOREST_TREES = 0;                     // how many trees the woods got (a check for the tests)
@@ -16,6 +17,8 @@ function frNoise(x, y) {                  // smooth value noise, two octaves, 0.
 function forestAreas() {                  // the lawns that get woods, and the space center's grounds (scrub)
   const out = [], side = PLC.forestMin, skip = MAP.lm.filter(L => L.t === 'park' || L.t === 'mall' || L.t === 'colony').map(L => [L.x - (L.w || 0) / 2 - 200, L.y - (L.h || 0) / 2 - 200, L.x + (L.w || 0) / 2 + 200, L.y + (L.h || 0) / 2 + 200]);
   for (const g of MAP.grass) {
+    if (g.k === 'lawn') continue;                                   // the Sandbar strip's park stays open
+    if (g.k === 'wood') { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of g.o) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } out.push({ g, box: [x0, y0, x1, y1], scrub: false, full: true }); continue; }   // its woods: trees all over
     if (Math.abs(polyArea(g.o)) < side * side || spwIn(g.o[0][0], g.o[0][1])) continue;
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of g.o) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
     const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; if (skip.some(b => cx > b[0] && cx < b[2] && cy > b[1] && cy < b[3])) continue;
@@ -38,7 +41,7 @@ function plantForests(trunks, crowns, pines, tufts, clear, TV) {  // js/10 build
   const gap = Math.max(18, PLC.forestGap), cover = PLC.forestCover, GREEN = ['#1f8a5a', '#17784e', '#23955f', '#2e7a4a', '#1d6e48'];
   let n = 0;
   for (const A of forestAreas()) {
-    const [x0, y0, x1, y1] = A.box, thr = A.scrub ? 0.42 : cover;
+    const [x0, y0, x1, y1] = A.box, thr = A.full ? 2 : A.scrub ? 0.42 : cover;
     for (let y = y0 + gap / 2; y < y1; y += gap) for (let x = x0 + gap / 2; x < x1; x += gap) {
       const jx = x + (fr1(x, y) - 0.5) * gap * 0.9, jy = y + (fr1(y, x) - 0.5) * gap * 0.9;
       if (frNoise(jx, jy) > thr || !inPoly(jx, jy, A.g) || !clear(jx, jy, 18) || (A.scrub && !spaceClear(jx, jy))) continue;

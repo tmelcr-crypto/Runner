@@ -626,6 +626,7 @@ function genParks() {                     // js/04 genWorld, after the unique bu
   const rows = PARKS_TABLE.places.filter(r => pkSiteOf(r.kind) === 'park'); if (!rows.length) return;
   const min = PARKS.parkMin * 12, far = PARKS.parkSpacing * 12, C = 30, cand = [];
   for (const g of MAP.grass) {
+    if (g.k === 'wood') continue;                                   // the woods by the Sandbar strip (map remodel 9)
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of g.o) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
     if (x1 - x0 < min || y1 - y0 < min || Math.max(x1 - x0, y1 - y0) > 1000) continue;   // golf links and the big landmark parks keep their own look
     const nx = Math.floor((x1 - x0) / C), ny = Math.floor((y1 - y0) / C), ok = [];

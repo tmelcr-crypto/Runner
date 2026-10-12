@@ -417,6 +417,15 @@ function dragTick() {                    // at each strip a rival waits in the r
     const c = makeCar(type, p.x, p.y, p.ang, null); c.keep = true; c.searched = true; c.lot = S; cars.push(c); D.rival = c; D.filled = true;
   }
 }
+function stripGates(dt) {                 // each strip's exit gate (js/10i): shut during a race and always from outside; with no race running it slides
+  for (const S of SPW_STRIPS) {           // open as you come up to it from inside the strip, stays open while you pass through, and shuts behind you
+    const g = S.gate; if (!g) continue;
+    const X = S.exit, who = P.car || P, d = stripAlong(S, who.x, who.y), o = stripSide(S, who.x, who.y), w = S.hw + 8, racing = RACE.on && RACE.on.phase !== 'done';
+    const inside = Math.abs(o) < w - 2 && Math.abs(d - X.d) < X.w / 2 + 160, gap = Math.abs(d - X.d) < X.w / 2 + 6 && o > w - 40 && o < w + 70;
+    const want = !P.dead && !racing && (inside || (g.open > 0.3 && gap));
+    g.open = clamp(g.open + (want ? 1 : -1) * dt / 0.8, 0, 1); g.solid.off = g.open > 0.6 || (g.open > 0 && gap);
+  }
+}
 function dragMarkTick() {                // stopped by a strip's booth in a car: its card (once per stop - drive off and back for it again)
   let at = null;
   if (feat('dragStrip') && !RACE.on && state === 'play' && P.car && !P.dead) for (const S of SPW_STRIPS) if (dist(S.booth[0], S.booth[1], P.car.x, P.car.y) < 80) at = S;
@@ -443,7 +452,7 @@ function dragStart(o, test) {
 
 /* ---------- running a race ---------- */
 function raceTick(dt) {                  // js/15, every frame of play
-  ringTick(dt); pitTick(); dragTick();
+  ringTick(dt); pitTick(); dragTick(); stripGates(dt);
   if (RACE.res) { RACE.res.t -= dt; const b = $('rrBar'); if (b) b.style.width = Math.max(0, RACE.res.t / RC.resultsFor * 100) + '%'; if (RACE.res.t <= 0) closeRaceRes(); }
   const Ro = RACE.on;
   if (!Ro) { dragMarkTick(); return; }

@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 8): see the comment above each remodelN below.
+  - Later versions (2 to 9): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -607,7 +607,40 @@ def remodel8(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8]
+# version 9: the drag strips (map overhaul 7h). Each strip gets an exit toward the city past its finish: a gate in its fence on the city
+# side and a lane from it to the nearest street (speedway.strips[].exit: d - how far along the strip, w - the gate's width, lane, lw - the
+# lane's width); the gate opens only from inside once a race is over (js/08o). The Sandbar strip now runs through woods: from the city a
+# park (grass of kind lawn - no woods of its own), then a wood (kind wood - trees all over it) up to the strip's fence; beyond the strip
+# another wood, then the beach down to the sea. Its landmarks (the Sail, the wheel), its lanes and booth keep their ground.
+def remodel9(M):
+    LAND = unary_union([poly(p) for p in M['land']]); sp = M['speedway']
+    streets = unary_union([LineString(e['p']).buffer(RH + SW) for e in M['edges']])
+    for st in sp['strips']:
+        a = math.radians(st['ang']); ux, uy, nx, ny = math.cos(a), math.sin(a), -math.sin(a), math.cos(a)
+        P = lambda d, o: (st['sx'] + ux * d + nx * o, st['sy'] + uy * d + ny * o)
+        w, gd = st['hw'] + 8, (2900 if st['id'] == 'palm' else 8000)
+        gx, gy = P(gd, w); ray = LineString([(gx, gy), (gx + nx * 3000, gy + ny * 3000)]); hit = ray.intersection(streets)
+        k = min(Point(gx, gy).distance(Point(c)) for g in (hit.geoms if hasattr(hit, 'geoms') else [hit]) for c in g.coords) + 30
+        lane = [[round(gx), round(gy)], [round(gx + nx * k), round(gy + ny * k)]]
+        st['exit'] = {'d': gd, 'w': 96, 'lane': lane, 'lw': 72}
+        hit = [rect(*b[:5]) for b in M['bld'] if rect(*b[:5]).intersects(LineString(lane).buffer(44))]
+        move_services(M, clear_ground(M, unary_union([LineString(lane).buffer(44)] + hit).buffer(2)))
+    st = next(q for q in sp['strips'] if q['id'] == 'sand'); a = math.radians(st['ang']); ux, uy, nx, ny = math.cos(a), math.sin(a), -math.sin(a), math.cos(a)
+    P = lambda d, o: (st['sx'] + ux * d + nx * o, st['sy'] + uy * d + ny * o)
+    band = lambda d0, d1, o0, o1: Polygon([P(d0, o0), P(d1, o0), P(d1, o1), P(d0, o1)])
+    w = st['hw'] + 22; L0, L1 = -40, st['wall'] + 60
+    keep = unary_union([LineString(st['exit']['lane']).buffer(st['exit']['lw'] / 2 + 10), LineString(sp['access']).buffer(sp['aw'] / 2 + 10), Point(*st['booth']).buffer(60), band(L0, L1, -w, w)]
+                       + [box(L['x'] - L['w'] / 2 - 60, L['y'] - L['h'] / 2 - 60, L['x'] + L['w'] / 2 + 60, L['y'] + L['h'] / 2 + 60) for L in M['lm'] if L['t'] in ('sail', 'wheel')])
+    SAND = unary_union([poly(p) for p in M['sand']]).intersection(band(L0, L1, -3000, 3000)).difference(keep)
+    WOODW = SAND.intersection(band(L0, L1, w, w + 360)); PARK = SAND.intersection(band(L0, L1, w + 360, 3000)); WOODE = SAND.intersection(band(L0, L1, -w - 180, -w))
+    took = unary_union([WOODW, PARK, WOODE]).buffer(0)
+    M['sand'] = [r for p in M['sand'] for r in rings(poly(p).difference(took))]
+    M['grass'] += rings(PARK, 'lawn') + rings(WOODW, 'wood') + rings(WOODE, 'wood')
+    M['remodel'] = 9
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9]
 
 
 if __name__ == '__main__':
@@ -641,5 +674,8 @@ if __name__ == '__main__':
     head = head.replace("   and the yard by the street corner kept for the junkyard (gravel.junk). */",
                         "   and the yard by the street corner kept for the junkyard (gravel.junk); version 8: three streets rerouted - the avenue straight\n"
                         "   on where it dipped round a block, the base road ending at the base gate, the south tip's coast road straightened. */")
+    head = head.replace("   on where it dipped round a block, the base road ending at the base gate, the south tip's coast road straightened. */",
+                        "   on where it dipped round a block, the base road ending at the base gate, the south tip's coast road straightened; version 9: the drag\n"
+                        "   strips' exits (speedway.strips[].exit) and the Sandbar strip's park and woods (grass of kind lawn and wood). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
