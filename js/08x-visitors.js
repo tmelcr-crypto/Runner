@@ -72,7 +72,10 @@ function visitPark(c) {                  // in the bay: stop, the driver gets ou
   const sx = -Math.sin(c.ang), sy = Math.cos(c.ang), off = c.t.wid / 2 + 9, p = makePed(c.x + sx * off, c.y + sy * off);
   p.go = { x: S.door.x, y: S.door.y, vanish: true, via: [V.bay.a] }; p.state = 'walk'; peds.push(p);   // out of the bay, then to the door
 }
-function visitSteer(c, x, y, spd) { steerToward(c, x, y, spd); c.hb = false; }
+function visitSteer(c, x, y, spd) {      // steer for (x, y) and hold the speed closely (it brakes as soon as it is too fast: it stops where it means to)
+  const d = angDiff(c.ang, Math.atan2(y - c.y, x - c.x)), vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), tgt = spd * (1 - 0.6 * Math.min(1, Math.abs(d) / 1.2));
+  c.str = clamp(d * 2.4, -1, 1); c.thr = vf < tgt - 3 ? 0.7 : vf > tgt + 4 ? -0.8 : 0; c.hb = false;
+}
 function visitDrive(c, dt) {             // js/07 updateCars, for a visitor on its own (off the street): true when it drove the car
   const V = c.visit; if (!V || c.driver !== 'ai') return false;
   const S = V.S, B = V.bay; V.t += dt;
@@ -87,7 +90,8 @@ function visitDrive(c, dt) {             // js/07 updateCars, for a visitor on i
     else {                                                                                   // the last stretch: line up with the bay as it rolls in
       visitSteer(c, T.x, T.y, Math.min(10 * KMH, d * 2));
       if (d < 60) c.ang += clamp(angDiff(c.ang, B.ang), -1.4 * dt, 1.4 * dt);
-      if (d < 9 || V.t > 25) { if (d < 14) { c.x = lerp(c.x, B.x, 0.7); c.y = lerp(c.y, B.y, 0.7); c.ang = B.ang; } visitPark(c); }
+      const nx = Math.cos(B.ang), ny = Math.sin(B.ang), along = (c.x - B.x) * nx + (c.y - B.y) * ny, side = Math.abs(-(c.x - B.x) * ny + (c.y - B.y) * nx);
+      if ((along > -6 && side < 16) || V.t > 25) { if (d < 30) { c.x = lerp(c.x, B.x, 0.8); c.y = lerp(c.y, B.y, 0.8); c.ang = B.ang; } visitPark(c); }   // in the bay (or as far as it got): settle
     }
     if (V.phase === 'park' && V.t > 40) {                                                     // blocked on the way: it parks if it is nearly there, or gives up and drives off
       if (dist(c.x, c.y, B.x, B.y) < 24) visitPark(c); else { V.phase = 'away'; V.w = 0; V.t = 0; if (B.car === c) B.car = null; }
