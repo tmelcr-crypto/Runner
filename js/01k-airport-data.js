@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1k. AIRPORT SETTINGS ----------
    The Skyport airport (js/10f) and its planes (js/08i): how often they land and take off, how fast they go, what it takes to blow one
-   up, and what breaks the airfield fence. tools/settings_sheet.py exports this table to Apple Numbers or Excel and writes an edited
+   up, what breaks the airfield fence, and the departures desk's scenic flight (js/08v). tools/settings_sheet.py exports this table to Apple Numbers or Excel and writes an edited
    copy back:  python3 tools/settings_sheet.py airport export airport.numbers  /  ... airport import airport.numbers
    Keep the JSON between the markers valid. */
 const AIRPORT_TABLE = /*AIRPORT-JSON*/{
@@ -21,6 +21,9 @@ const AIRPORT_TABLE = /*AIRPORT-JSON*/{
   {"id": "burn", "group": "Damage", "name": "The wreck burns for", "unit": "s", "min": 5, "max": 300, "v": 45, "note": "Then it is cleared away and the gate is free for a new plane."},
   {"id": "deadly", "group": "Damage", "name": "Runs over anything from", "unit": "km/h", "min": 1, "max": 60, "v": 6, "note": "A moving plane faster than this kills whoever it hits and wrecks cars; slower it only pushes them aside. Parked planes are solid."},
   {"id": "heat", "group": "Damage", "name": "Heat for destroying a plane", "unit": "count", "min": 0, "max": 9999, "v": 80, "note": "Wanted-level heat when you blow one up, seen or heard (police table, for comparison: killing someone 50, a rocket blast 30). Destroying pays nothing, like any vehicle."},
+  {"id": "scenicPrice", "group": "Flights", "name": "A scenic flight costs", "unit": "\u20ac", "min": 0, "max": 100000, "v": 5000, "note": "Paid at the departures desk in the terminal. Flights to Prague and Norfolk show as COMING SOON."},
+  {"id": "scenicTime", "group": "Flights", "name": "The flight over the city lasts", "unit": "s", "min": 30, "max": 600, "v": 120, "note": "From lift-off until it comes in over the water to land; the plane goes once round the city, as fast as that takes. LAND skips it at any time."},
+  {"id": "scenicHeight", "group": "Flights", "name": "It flies at about", "unit": "m", "min": 40, "max": 400, "v": 100, "note": "Height above the city; it climbs to it after take-off and comes down again at the end."},
   {"id": "fenceKg", "group": "Fence", "name": "Vehicles that break the fence weigh from", "unit": "kg", "min": 500, "max": 50000, "v": 3300, "note": "Trucks, buses, the trash truck, fire engine, APC and tank (vehicle table: kg). Lighter cars bounce off."},
   {"id": "fenceKmh", "group": "Fence", "name": "... and hit it at least at", "unit": "km/h", "min": 1, "max": 150, "v": 20, "note": "Slower they just push against it."}
 ]

@@ -253,7 +253,7 @@ function gfxPlanes(time) {                   // js/13
   for (const pl of PLANES) {
     const m = pl.mesh; if (!m) continue;
     m.position.set(pl.x, pl.h + (pl.mode === 'wreck' ? -7 : 0), pl.y); m.rotation.set(pl.roll, -pl.ang, pl.pitch);
-    const a = pl.h > PL_FADE ? clamp(1 - (pl.h - PL_FADE) / (PL_GONE - PL_FADE), 0, 1) : 1, tr = a < 0.99;
+    const a = pl.cine ? 1 : pl.h > PL_FADE ? clamp(1 - (pl.h - PL_FADE) / (PL_GONE - PL_FADE), 0, 1) : 1, tr = a < 0.99;   // cine: the scenic flight's plane stays (js/08v)
     if (pl.mode !== 'wreck') for (const mt of m.material) { mt.opacity = a; if (mt.transparent !== tr) { mt.transparent = tr; mt.needsUpdate = true; } }
     if (pl.mode !== 'wreck') { const blink = (time + pl.x * 0.001) % 1.2; pl.beacon.visible = blink < 0.12; pl.strobe.visible = blink > 0.5 && blink < 0.56; }
     const sh = pl.shadow, o = pl.h + 26; sh.visible = pl.mode !== 'sunk'; sh.position.set(pl.x + o * 0.38, 1.0, pl.y + o * 0.5); sh.rotation.y = -pl.ang; sh.material.opacity = 0.28 * a * (pl.mode === 'wreck' ? 0.5 : 1);
