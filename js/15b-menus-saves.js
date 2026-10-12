@@ -163,7 +163,7 @@ function makeSave(thumb) {
   const c = P.car;
   return { v: SAVE_V, t: Date.now(), mode: gameMode, where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
-      outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe] },
+      outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe], boostH: P.boostH || 0 },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
     ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
@@ -182,6 +182,7 @@ function saveSpot(sv) {                              // where a saved game puts 
 function applySave(sv) {                             // called by resetGame (js/15) once the city is set up again
   const p = sv.P, n = (v, lo, hi, d) => typeof v === 'number' && isFinite(v) ? clamp(v, lo, hi) : d;
   jobLoad(sv.jobs);                                                 // job levels and rewards first: they raise the top of health and armor (js/08n)
+  P.boostH = n(p.boostH, 0, 240, 0);                               // hours left of the scenic flight's speed (js/08v)
   P.hp = n(p.hp, 1, hpMax(), 100); P.armor = n(p.armor, 0, armorMax(), 0); P.score = Math.round(n(p.score, 0, 1e9, 0)); P.kills = Math.round(n(p.kills, 0, 1e7, 0)); P.maxStars = Math.round(n(p.maxStars, 0, 5, 0));
   if (Array.isArray(p.wardrobe)) for (const id of p.wardrobe) if (CLOTH[id] && !P.wardrobe.includes(id)) P.wardrobe.push(id);   // clothes by id (js/01n); unknown ones are dropped
   if (p.outfit && typeof p.outfit === 'object') for (const sl of CL_SLOTS) { const id = p.outfit[sl]; if (id === null && (sl === 'hat' || sl === 'glasses')) P.outfit[sl] = null; else if (CLOTH[id] && CLOTH[id].slot === sl && P.wardrobe.includes(id)) P.outfit[sl] = id; }

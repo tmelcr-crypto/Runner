@@ -237,18 +237,18 @@ function buildCity() {
     for (let k = 0; k < n && parkTrees++ < 3000; k++) {
       const pt = randomIn(p, (x, y) => clear(x, y, 14)); if (!pt) continue; const [x, y] = pt, r = Math.random();
       if (r < 0.28) {                                              // a pine: a short trunk under three tiers of needles
-        const h = rand(46, 74), w = h * rand(0.25, 0.31), tm = partMark(TV), col = pick(['#0f6b4f', '#145c46', '#1a7a5a', '#0d5a48']);
+        const h = rand(46, 74), w = h * rand(0.25, 0.31), tm = partMark(TV), col = pineCol(pick(['#0f6b4f', '#145c46', '#1a7a5a', '#0d5a48']));   // autumn: duller (js/12g)
         trunks.push({ x, y: 4, z: y, sx: 1.8, sy: 8, sz: 1.8, c: '#3b2a1e' });
         pines.push({ x, y: 3, z: y, sx: w, sy: h, sz: w, ry: rand(0, TAU), c: col });
         addTree(x, y, w, h, 'pine', '#3b2a1e', col, partsSince(TV, tm));
       } else if (r < 0.72) {                                       // a leafy tree: a tall trunk, a crown of three lumps (now and then in flower)
-        const h = rand(18, 30), cr = rand(11, 18), col = Math.random() < 0.12 ? pick(['#7a35d6', '#d94fa0', '#2a7fb8']) : pick(GREEN), tm = partMark(TV);
+        const h = rand(18, 30), cr = rand(11, 18), col = Math.random() < 0.12 ? pick(['#7a35d6', '#d94fa0', '#2a7fb8']) : leafCol(pick(GREEN)), tm = partMark(TV);   // autumn colours (js/12g)
         trunks.push({ x, y: h / 2, z: y, sx: 2.4, sy: h, sz: 2.4, c: '#3b2a1e' });
         crowns.push({ x, y: h + cr * 0.35, z: y, sx: cr, sy: cr * 0.9, sz: cr, c: col });
         for (let i = 0; i < 2; i++) { const a = rand(0, TAU), d = cr * 0.55; crowns.push({ x: x + Math.cos(a) * d, y: h + rand(-2, 4), z: y + Math.sin(a) * d, sx: cr * 0.72, sy: cr * 0.66, sz: cr * 0.72, c: shade(col, randi(-14, 14)) }); }
         addTree(x, y, cr * 1.3, h, 'leafy', '#3b2a1e', col, partsSince(TV, tm));
       } else {                                                     // a bush: a few low lumps
-        const col = pick(GREEN), m = randi(2, 4), mk = partMark(veg);
+        const col = leafCol(pick(GREEN)), m = randi(2, 4), mk = partMark(veg);
         for (let i = 0; i < m; i++) { const s = rand(5.5, 9.5); crowns.push({ x: x + rand(-7, 7), y: s * 0.6, z: y + rand(-7, 7), sx: s, sy: s * 0.75, sz: s, c: shade(col, randi(-12, 12)) }); }
         if (Math.random() < 0.3) for (let i = 0; i < 5; i++) crowns.push({ x: x + rand(-8, 8), y: rand(5, 8), z: y + rand(-8, 8), sx: 1.4, sy: 1.4, sz: 1.4, c: pick(['#ff6fae', '#ffe14a', '#ffffff']) });   // in flower
         registerThrow(x, y, partsSince(veg, mk), null, 0.3, 'bush');

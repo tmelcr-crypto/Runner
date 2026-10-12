@@ -150,7 +150,7 @@ Object.assign(UQ_MODELS, {
     else if (/COURT/.test(n)) { const z = -hd * 0.2; box5(T, -14, H, z - 14, 14, H + 40, z + 14, stone); uqDial(T, G, 0, H + 28, z + 14, 9); T.prism(0, z, 16, H + 40, H + 54, _C(shade(c, -30)), 4, 0.5, true); }   // the clock tower
     else if (/POST/.test(n)) { for (const sx of [-1, 1]) { T.prism(sx * (hw - 10), hd - 6, 0.7, 0, 46, _C('#d8dce4'), 6); box5(T, sx * (hw - 10) + 0.7, 38, hd - 6.4, sx * (hw - 10) + 14, 45, hd - 5.6, _C(sx < 0 ? '#2a4aa8' : '#e0364f')); }
       for (const x of [-hw * 0.5, hw * 0.5]) { box5(T, x - 3, 0, hd - 4, x + 3, 9, hd - 1, _C('#2a4aa8')); } }   // flags and mailboxes
-    else { for (let k = 0; k < 4; k++) { const x = -hw + 20 + k * (2 * hw - 40) / 3; box5(T, x - 8, 0, fz + 18, x + 8, 3.4, fz + 21, _C('#7a5a3a')); } const v0 = T.pos.length / 3; T.prism(-hw * 0.4, -hd + 20, 12, 0, 38, _C('#2f7a4a'), 8, 2, true); treeNote(T, v0, { x: -hw * 0.4, z: -hd + 20, r: 12, th: 38, kind: 'cone', tc: '#2f7a4a', cc: '#2f7a4a' }); }   // benches, a tree
+    else { for (let k = 0; k < 4; k++) { const x = -hw + 20 + k * (2 * hw - 40) / 3; box5(T, x - 8, 0, fz + 18, x + 8, 3.4, fz + 21, _C('#7a5a3a')); } const v0 = T.pos.length / 3; const cy = pineCol('#2f7a4a'); T.prism(-hw * 0.4, -hd + 20, 12, 0, 38, _C(cy), 8, 2, true); treeNote(T, v0, { x: -hw * 0.4, z: -hd + 20, r: 12, th: 38, kind: 'cone', tc: cy, cc: cy }); }   // benches, a tree
     return post;
   },
   market(T, G, U, hw, hd, H, c, neon) {    // a supermarket: a big box at the back, a tall entrance with the name, stripes, cart corrals and its car park in front

@@ -29,7 +29,11 @@ const SKY_TABLE = /*SKY-JSON*/{
   {"id": "dayGlow", "group": "Look", "name": "Neon by day", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "How bright neon signs, trims and underglow stay in daylight. Street lights and headlights are off by day."},
   {"id": "nightLight", "group": "Look", "name": "Moonlight: the city at night", "unit": "%", "min": 5, "max": 100, "v": 40, "note": "How bright streets and buildings are at night (100 = as bright as the old neon night). Lamps, lit windows, neon and headlights glow the same. Mode: dayNight."},
   {"id": "dayTrue", "group": "Look", "name": "True colours by day", "unit": "%", "min": 0, "max": 100, "v": 100, "note": "At a clear noon, how far streets, sidewalks, grass and sand turn from the night's purple to grey, green and sand. 0: purple all day."},
-  {"id": "dayShadow", "group": "Look", "name": "Building shadows by day", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "How dark the shadows of buildings are in the sun (at night they almost vanish)."}
+  {"id": "dayShadow", "group": "Look", "name": "Building shadows by day", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "How dark the shadows of buildings are in the sun (at night they almost vanish)."},
+  {"id": "fwLength", "group": "Fireworks", "name": "The midnight fireworks last", "unit": "s", "min": 10, "max": 300, "v": 60, "note": "Real seconds of rockets, over one random park, plaza or beach, each time the clock passes midnight. Mode: fireworks."},
+  {"id": "fwEvery", "group": "Fireworks", "name": "A rocket goes up about every", "unit": "s", "min": 0.1, "max": 5, "v": 0.45, "note": "Now and then two go up together."},
+  {"id": "fwHeight", "group": "Fireworks", "name": "They burst at about", "unit": "m", "min": 5, "max": 40, "v": 18, "note": "Height above the ground. The camera looks down from above: much higher and the bursts leave the top of the screen."},
+  {"id": "fwHear", "group": "Fireworks", "name": "Heard up to", "unit": "m", "min": 50, "max": 2000, "v": 450, "note": "Louder the closer you are."}
 ]
 }/*END-SKY-JSON*/;
 /* SKYP: the same settings in game units: minutes become seconds, % a fraction, hours stay hours */

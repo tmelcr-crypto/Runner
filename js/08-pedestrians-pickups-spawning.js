@@ -28,6 +28,7 @@ function updatePeds(dt) {
     if (p.hostile && fightBack(p, dt)) continue;                    // armed and provoked: after you (js/08g)
     if (p.cop && copEngaged(p)) { p.combat = true; p.state = 'walk'; copCombat(p, dt); continue; }   // a foot patrol on the case (js/08b)
     if (p.post && postStep(p, dt)) continue;                         // a guard at a post, a soldier on patrol (js/08j)
+    if (p.go && visitWalk(p, dt)) continue;                          // a visitor walking between a car and a door (js/08x)
     if (p.combat) { p.combat = false; p.cv = null; if (!p.stroll) snapPed(p); }
     if (p.e < 0 && !p.stroll) snapPed(p);
     let mx = 0, my = 0, sp = 0;
@@ -52,6 +53,7 @@ function updatePeds(dt) {
     if (p.cop && Math.hypot(p.vx, p.vy) > 8) { p.hd = Math.atan2(p.vy, p.vx); p.ang = p.hd; }
     if (resolveCircle(p, 7) && p.state === 'flee') { p.fx = -p.fx + rand(-30, 30); p.fy = -p.fy + rand(-30, 30); }
   }
+  if (peds.some(p => p.vanish)) peds = peds.filter(p => !p.vanish);   // gone in through a door or into a car (js/08x)
 }
 /* people off the sidewalks: some stroll about the back alleys, the parks, the beaches and the promenades, from one spot to the next */
 let WALKA = null;

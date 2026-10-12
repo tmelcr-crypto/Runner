@@ -66,7 +66,7 @@ $('rampGo').addEventListener('click', () => { const r = rampAt; closeRamp(); if 
 /* ---------- playing one ---------- */
 function rampStart(r) {
   const w = WEAPONS[r.wi], i = r.wi;
-  RAMP.on = r; RAMP.t = r.time; RAMP.got = 0; RAMP.spawnT = 0; RAMP.short = 0; RAMP.beep = 6;
+  RAMP.on = r; RAMP.t = r.time; RAMP.got = 0; RAMP.spawnT = 0; RAMP.short = 0; RAMP.beep = 11;
   RAMP.keep = { weapon: P.weapon, has: P.has[i], mag: P.mag[i], ammo: P.ammo[i] };
   P.has[i] = true; P.weapon = i; P.mag[i] = w.mag; P.ammo[i] = RAMP_INF; P.relW = -1; P.swing = null; SCOPE.on = false; TA.on = TA.ok = false; P.heat = 0;
   $('rampHud').hidden = false; $('rampHud').style.setProperty('--wc', w.color); $('rampIcoHud').innerHTML = wIcon(w); H.rampN = H.rampT = null;
@@ -100,7 +100,7 @@ function rampTick(dt) {                  // every frame of play (js/15)
   const r = RAMP.on; if (!r) return;
   P.weapon = r.wi; P.has[r.wi] = true; P.ammo[r.wi] = RAMP_INF;      // locked in your hand, endless spare rounds
   RAMP.t -= dt; RAMP.lockT -= dt;
-  if (RAMP.t <= RAMP.beep - 1 && RAMP.t > 0) { RAMP.beep = Math.ceil(RAMP.t); Snd.tone(1200, 1200, 0.06, 0.1, 'square'); }   // the last five seconds
+  if (RAMP.t <= RAMP.beep - 1 && RAMP.t > 0) { RAMP.beep = Math.ceil(RAMP.t); Snd.tone(1200, 1200, 0.06, 0.1, 'square'); }   // the last ten seconds, with the blinking
   if (RAMP.t <= 0) { rampEnd(false, 'OUT OF TIME'); return; }
   rampSpawn(dt);
 }

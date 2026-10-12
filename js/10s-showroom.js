@@ -33,7 +33,7 @@ function genShowroom() {                  // js/04 genWorld, after the cement wo
   }
   solid(H.cx, H.y0 + 30, 90, 24);                                    // the sales counter
   const [wx0, wy0, wx1, wy1] = SHOWM.shop; wallX(wy0, wx0, wx1, []); wallX(wy1, wx0, wx1, []); wallY(wx0, wy0, wy1, []);   // the workshop: shut for now
-  const [ex, ey, ew] = SHOWM.sdoor; wallY(wx1, wy0, wy1, [[ey, ew]]); SHOW.sdoor = solid(ex, ey, wt + 2, ew, { gate: true });
+  const [ex, ey, ew] = SHOWM.sdoor; wallY(wx1, wy0, wy1, [[ey, ew]]); SHOW.sdoor = solid(ex, ey, wt + 2, ew, { door: true });   // the roller door: a wall while it is down
   const [yx0, yy0, yx1, yy1] = SHOWM.yard; SHOW.yard = [];
   for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) { const x = yx0 + 50 + j * 64, y = yy0 + 70 + i * 120, type = ['sedan', 'estate', 'pickup', 'sports', 'taxi', 'sedan'][i * 3 + j];
     if (CAR_TYPES[type]) { SHOW.yard.push({ type, x, y, color: pick(CAR_TYPES[type].colors) }); makeSolid(x, y, CAR_TYPES[type].wid, CAR_TYPES[type].len, 0, {}); } }

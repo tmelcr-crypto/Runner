@@ -1,19 +1,19 @@
 'use strict';
 /* ---------- 6v. FLIGHTS: the departures desk and the scenic flight ----------
-   (js/01j flights; airport table: Flights) At the terminal's middle door on the forecourt (the city side) a FLIGHTS button comes up
-   by you, on foot: the departures board - Prague and Norfolk are COMING SOON, and a scenic flight over the city for EUR 5,000.
+   (js/01j flights; airport table: Flights) At the check-in booth out on the terminal's forecourt (the city side, js/10f), on its pad
+   of light in front of the counter, a FLIGHTS button comes up by you, on foot: the departures board - Prague and Norfolk are COMING SOON, and a scenic flight over the city for EUR 5,000.
    The scenic flight is a cutscene (js/15c) with its own music (js/02c), at a random hour and in random weather each time:
      the walk - you cross the terminal hall (its roof taken off, js/10f) through security to gate 3;
      the push-back - the plane at the gate backs out onto the apron;
      the taxi - down the taxiway to the end of the runway;
      the flight - from your seat, through the oval window on the right: the take-off run, the climb, once round the city
        clockwise (so in the turns the window looks down on it) and in low over the water to land.
-   The only button is LAND: it skips to the end. You come out at the desk again, the game's own hour and weather back. */
+   The only button is LAND: it skips to the end. You come out at the check-in booth again, the game's own hour and weather back. */
 const DESK = { x: 0, y: 0, pad: null };
 const DESK_R = 30;
-function placeFlights() {                // a new game: the desk's spot, a pad of light by the door
+function placeFlights() {                // a new game: the pad of light in front of the check-in booth's counter
   if (!AIRF) return;
-  const [x0, y0, x1, y1] = AIRF.terminal; DESK.x = x1 + 26; DESK.y = (y0 + y1) / 2 + 60;
+  DESK.x = CHECKIN.x; DESK.y = CHECKIN.y + 46;
   if (!DESK.pad) {
     const g = new THREE.Group(), m = (geo, op, sc) => { const o = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: '#2bf3ff', transparent: true, opacity: op, depthWrite: false })); o.scale.setScalar(sc); g.add(o); return o; };
     m(GCirc, 0.18, DESK_R - 6).position.y = 1.4; const r = m(new THREE.RingGeometry(0.88, 1, 40).rotateX(-Math.PI / 2), 0.9, DESK_R - 6); r.position.y = 1.6; g.userData.ring = r;
@@ -23,7 +23,7 @@ function placeFlights() {                // a new game: the desk's spot, a pad o
 }
 const nearFly = () => !!AIRF && feat('flights') && state === 'play' && !P.car && !P.dead && !P.act && Math.abs(P.x - DESK.x) < DESK_R && Math.abs(P.y - DESK.y) < DESK_R && dist(P.x, P.y, DESK.x, DESK.y) < DESK_R;
 function flyKey() { if (!nearFly()) return false; const c = nearestCar(); return !(c && dist(c.x, c.y, P.x, P.y) < dist(DESK.x, DESK.y, P.x, P.y) - 8); }
-function flyUi(time) {                   // every frame (js/14): the FLIGHTS button by you at the desk
+function flyUi(time) {                   // every frame (js/14): the FLIGHTS button by you at the booth
   const bt = $('flyBtn'), on = nearFly(); if (DESK.pad) DESK.pad.userData.ring.scale.setScalar(DESK_R - 6 + Math.sin(time * 3) * 1.5);
   if (!on) { if (!bt.hidden) bt.hidden = true; return; }
   bt.hidden = false; doorBtnAt(bt);
@@ -46,6 +46,32 @@ $('flyGo').addEventListener('click', () => {
   P.score -= AIRP.scenicPrice; scenicFlight();
 });
 $('flyNo').addEventListener('click', closeFlyCard);
+/* ---------- the flight's rewards (js/01j flightPerks; airport table: boostPct, boostHours) ----------
+   The first scenic flight gives the aviator cap (clothes table: shop reward) - in your wardrobe at any clothes shop or safehouse.
+   Every flight after it makes you faster on foot for boostHours in-game hours (until the same hour the next day); another flight
+   starts it again, it does not add up. The hours run with the clock (at the usual rate when the clock is stopped); sleeping in a
+   safehouse uses the hours slept. A wing on the HUD shows the hours left. */
+const flyFast = () => P.boostH > 0 && feat('flightPerks');
+const flyBoostK = () => flyFast() ? 1 + AIRP.boostPct / 100 : 1;    // js/06: walking, running, sprinting
+function flyBoostTick(dt) { if (P.boostH > 0) P.boostH = Math.max(0, P.boostH - dt * 24 * (OPT.clock || 1) / SKYP.dayMinutes); }   // js/12d
+function flyReward() {                   // the toast's second half
+  if (!feat('flightPerks')) return '';
+  if (CLOTH.aviator_cap && !P.wardrobe.includes('aviator_cap')) { P.wardrobe.push('aviator_cap'); return ' - AN AVIATOR CAP FOR YOUR WARDROBE'; }
+  P.boostH = AIRP.boostHours; return ' - +' + Math.round(AIRP.boostPct) + '% ON FOOT FOR ' + Math.round(AIRP.boostHours) + 'H';
+}
+function boostUi() {                     // every frame (js/14): the wing and the hours left
+  const e = $('boostChip'), on = flyFast() && (state === 'play' || state === 'side');
+  if (e.hidden === on) e.hidden = !on;
+  if (on) { const h = Math.ceil(P.boostH) + 'H'; if (e.dataset.h !== h) { e.dataset.h = h; e.lastChild.textContent = '+' + Math.round(AIRP.boostPct) + '% ' + h; } }
+}
+function flyIcons(g, X, Y, q, inView) {  // js/14: a plane at the check-in booth on the maps
+  if (!AIRF || !feat('flights')) return;
+  const x = X(DESK.x), y = Y(DESK.y); if (!inView(x, y)) return;
+  g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = '#2bf3ff'; g.fillRect(x - q, y - q, 2 * q, 2 * q);
+  g.fillStyle = '#0b0614'; g.fillRect(x - q * 0.12, y - q * 0.8, q * 0.24, q * 1.5);                       // the fuselage, nose up
+  g.beginPath(); g.moveTo(x, y - q * 0.25); g.lineTo(x + q * 0.8, y + q * 0.12); g.lineTo(x - q * 0.8, y + q * 0.12); g.closePath(); g.fill();   // the wings
+  g.fillRect(x - q * 0.36, y + q * 0.5, q * 0.72, q * 0.16);                                              // the tail
+}
 
 /* ---------- the scenic flight ---------- */
 const SCENIC_ROUTE = [[1900, 9300], [3300, 5000], [6400, 1700], [10000, 1500], [13700, 3400], [14300, 7800], [13400, 12800], [10600, 15000], [7200, 15100], [4700, 13600], [3500, 16000], [2500, 17500], [1750, 17100], [1750, 15400]];   // once round the city, clockwise; the last points come in from the south to land
@@ -55,7 +81,7 @@ function scenicFlight() {
   const A = AIRF, si = Math.min(2, A.stands.length - 1), st = A.stands[si], [tx0, ty0, tx1, ty1] = A.terminal, tcx = (tx0 + tx1) / 2, tcy = (ty0 + ty1) / 2;
   const sky = { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, h0 = { v: 0 };
   let pl = null, route = null, routeT0 = 0, routeT = 1, figures = [], lastCap = -99, lastDist = '', shake = 0;
-  const walk = [[tx1 + 26, tcy + 60], [tx1 - 60, tcy + 60], [tcx + 60, tcy], [tcx - 60, tcy], [tx0 + 22, st.y - 60]];
+  const walk = [[DESK.x, DESK.y], [tx1 + 26, tcy + 60], [tx1 - 60, tcy + 60], [tcx + 60, tcy], [tcx - 60, tcy], [tx0 + 22, st.y - 60]];   // from the booth in through the middle door
   const wlen = walk.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - walk[i][0], p[1] - walk[i][1]), 0);
   const along = (pts, s) => { for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]); if (s <= l || i === pts.length - 1) { const f = clamp(s / l, 0, 1); return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, Math.atan2(b[1] - a[1], b[0] - a[0])]; } s -= l; } };
   const view = (x, y, h, lx, ly, lh, fov) => { CUT.view = { x, y, h, lx, ly, lh, fov }; };
@@ -125,7 +151,7 @@ function scenicFlight() {
       if (pl && PLANES.includes(pl)) dropPlane(pl); planeNext = gameT + 20;
       const passed = ((SKY.hour - h0.v) + 24) % 24; Object.assign(SKY, sky); SKY.hour = (sky.hour + passed) % 24;
       P.x = DESK.x + 10; P.y = DESK.y; P.ang = 0; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; streamCity(true);
-      toast('WELCOME BACK TO SKYPORT');
+      toast('WELCOME BACK TO SKYPORT' + flyReward());
     }
   });
 }

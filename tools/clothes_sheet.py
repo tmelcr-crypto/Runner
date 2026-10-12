@@ -11,7 +11,7 @@ import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__)); JS = os.path.join(HERE, '..', 'js', '01n-clothes-data.js')
 A, B = '/*CLOTHES-JSON*/', '/*END-CLOTHES-JSON*/'
-STYLES = {'hat': ['cap', 'beanie', 'bucket', 'fedora', 'cowboy', 'hardhat', 'beret', 'bandana', 'headband'],
+STYLES = {'hat': ['cap', 'beanie', 'bucket', 'fedora', 'cowboy', 'hardhat', 'beret', 'bandana', 'headband', 'aviator'],
           'glasses': ['shades', 'aviators', 'round', 'visor'],
           'top': ['tee', 'tank', 'hawaii', 'shirt', 'check', 'hoodie', 'jacket', 'suit', 'leather', 'hivis', 'jersey', 'camo'],
           'bottoms': ['jeans', 'trousers', 'shorts', 'track', 'cargo'],
@@ -19,7 +19,7 @@ STYLES = {'hat': ['cap', 'beanie', 'bucket', 'fedora', 'cowboy', 'hardhat', 'ber
 SLOTS = list(STYLES)
 ALL_STYLES = sorted({s for v in STYLES.values() for s in v})
 TIPS = [('Yellow cells', 'What you can change. Slot, Style and Shop are lists to pick from (Style must fit the slot - see Styles below).', 'tap a cell and type'),
-        ('Items', 'One row per piece: its name on screen, the shop that sells it (its ID from the Shops sheet), the slot it is worn in, the style it is drawn with, its colours and its price in euros.', ''),
+        ('Items', 'One row per piece: its name on screen, the shop that sells it (its ID from the Shops sheet; empty: yours from the start; reward: never sold, the game gives it - the aviator cap for the first scenic flight), the slot it is worn in, the style it is drawn with, its colours and its price in euros.', ''),
         ('Colours', 'Colour 1 is the main colour; Colour 2 a second one - the print on a T-shirt, a jacket\'s shirt or tie, stripes, a hat\'s band or brim, a glasses frame, a shoe\'s sole. Empty: none.', '#RRGGBB'),
         ('Styles', '; '.join('%s: %s' % (k, ', '.join(v)) for k, v in STYLES.items()), ''),
         ('Starting clothes', 'Rows with an empty Shop are what you wear in a new game (one top, bottoms and shoes); they are never sold and have no price.', ''),
@@ -76,7 +76,7 @@ def export_xlsx(dest, t):
                 if j in dvs: dvs[j].add(c.coordinate)
         for k, w in enumerate(widths): ws.column_dimensions[chr(65 + k)].width = w
         ws.freeze_panes = 'B2'
-    sheet('Items', IT_HEAD, it, [26, 10, 10, 11, 11, 11, 10, 30, 18], {1, 2, 3, 4, 5, 6, 7, 8}, {2: [s['id'] for s in t['shops']], 3: SLOTS, 4: ALL_STYLES})
+    sheet('Items', IT_HEAD, it, [26, 10, 10, 11, 11, 11, 10, 30, 18], {1, 2, 3, 4, 5, 6, 7, 8}, {2: [s['id'] for s in t['shops']] + ['reward'], 3: SLOTS, 4: ALL_STYLES})
     sheet('Shops', SH_HEAD, sh, [22, 14, 60, 12], {1, 2, 3}, {})
     sheet('Settings', ST_HEAD, st, [40, 9, 8, 10, 60, 12], {2}, {})
     g = wb.create_sheet('How to fill'); g.column_dimensions['A'].width = 20; g.column_dimensions['B'].width = 90; g.column_dimensions['C'].width = 18
@@ -107,7 +107,7 @@ def export_numbers(dest, t):
                 tb.write(i, j, '' if v is None else v, style=s)
                 if k in lists: tb.set_cell_formatting(i, j, 'popup', popup_values=lists[k], allow_none=True)
             tb.row_height(i, 30)
-    sheet('Items', IT_HEAD, it, [190, 80, 80, 90, 90, 90, 80, 200, 130], {1, 2, 3, 4, 5, 6, 7, 8}, {2: [s['id'] for s in t['shops']], 3: SLOTS, 4: ALL_STYLES})
+    sheet('Items', IT_HEAD, it, [190, 80, 80, 90, 90, 90, 80, 200, 130], {1, 2, 3, 4, 5, 6, 7, 8}, {2: [s['id'] for s in t['shops']] + ['reward'], 3: SLOTS, 4: ALL_STYLES})
     sheet('Shops', SH_HEAD, sh, [160, 100, 420, 90], {1, 2, 3}, {})
     sheet('Settings', ST_HEAD, st, [280, 70, 60, 80, 380, 90], {2}, {})
     sheet('How to fill', ['Item', 'What it means', 'How to fill'], [list(r) for r in TIPS], [150, 520, 120], set(), {})
@@ -186,16 +186,16 @@ def do_import(src, dry):
         c1, c2raw = colour(g('colour 1')), text(g('colour 2')); c2 = colour(c2raw) if c2raw else ''
         pr = num(g('price (€)'))
         if not name: errors.append('%s: a name is needed' % where)
-        if shop and shop not in shop_ids: errors.append('%s: shop "%s" is not on the Shops sheet' % (where, shop))
+        if shop and shop != 'reward' and shop not in shop_ids: errors.append('%s: shop "%s" is not on the Shops sheet (or reward)' % (where, shop))
         if slot not in STYLES: errors.append('%s: slot "%s" is not one of %s' % (where, slot, ', '.join(SLOTS))); continue
         if sty not in STYLES[slot]: errors.append('%s: style "%s" does not fit a %s (%s)' % (where, sty, slot, ', '.join(STYLES[slot])))
         if not c1: errors.append('%s: Colour 1 "%s" is not a colour like #ffd23f' % (where, g('colour 1')))
         if c2 is None: errors.append('%s: Colour 2 "%s" is not a colour (or leave it empty)' % (where, c2raw)); c2 = ''
-        if shop:
+        if shop and shop != 'reward':
             if pr is None or pr < 0 or pr > 100000 or not float(pr).is_integer(): errors.append('%s: price must be a whole number of euros, 0 to 100000' % where); pr = 0
         else: pr = None
         x = {'id': iid, 'name': name, 'shop': shop, 'slot': slot, 'style': sty, 'c1': c1 or '', 'c2': c2, 'price': pr, 'notes': text(g('notes'))}; new['items'].append(x)
-        if iid not in old: changes.append('new piece %s (%s, %s)' % (iid, name, shop or 'starting clothes'))
+        if iid not in old: changes.append('new piece %s (%s, %s)' % (iid, name, shop or 'starting clothes'))   # shop reward: never sold, the game gives it (the aviator cap: the first scenic flight)
         elif x != old[iid]: changes.append('piece %s: ' % iid + ', '.join('%s %s -> %s' % (k, old[iid].get(k), x[k]) for k in x if x[k] != old[iid].get(k)))
     for iid in old:
         if iid not in {x['id'] for x in new['items']}: changes.append('piece %s taken out' % iid)

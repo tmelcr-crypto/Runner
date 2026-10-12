@@ -44,9 +44,9 @@ function breakProp(o, nx, ny, sp) {      // burst: gone, in bits, a mess left wh
   for (let k = 0; k < n; k++) {
     const a = a0 + rand(-1.1, 1.1), s = sp * rand(0.25, 0.8) + rand(20, 80);
     addP({ x: o.x + rand(-4, 4), y: o.y + rand(-4, 4), z: rand(3, 10), vz: rand(80, 230), grav: 600, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
-      life: rand(0.7, 1.5), max: 1.5, s0: rand(2.6, 4.6), s1: 2, col: pick(S.cols), drag: 1.4, alpha: 1 });
+      life: rand(0.7, 1.5), max: 1.5, s0: rand(2.6, 4.6), s1: 2, col: pick(o.smash === 'bush' && feat('autumn') ? AUTUMN : S.cols), drag: 1.4, alpha: 1 });
   }
-  if (decals.length < 150) decals.push({ x: o.x + nx * 6, y: o.y + ny * 6, r: S.r * rand(0.8, 1.2), life: 70, col: S.decal });
+  if (decals.length < 150) decals.push({ x: o.x + nx * 6, y: o.y + ny * 6, r: S.r * rand(0.8, 1.2), life: 70, col: o.smash === 'bush' && feat('autumn') ? '#4a3020' : S.decal });
 }
 function spill(o, nx, ny, sp, cols) {    // trash out of a knocked bin
   for (let k = 0; k < 10; k++) {
@@ -60,7 +60,7 @@ function smashProp(o, c, sp) {           // vehicle c drives into street junk o 
   const nx0 = vx + 0.5 * (o.x - c.x) / d, ny0 = vy + 0.5 * (o.y - c.y) / d, nl = Math.hypot(nx0, ny0) || 1, nx = nx0 / nl, ny = ny0 / nl;   // ahead, and out to the side it was on
   if (SHRED[o.smash]) breakProp(o, nx, ny, sp);
   else {
-    throwProp(o, nx, ny, clamp(sp / 320, 0.3, 1.1)); messed(o); spill(o, nx, ny, sp, S.cols);
+    throwProp(o, nx, ny, clamp(sp / 320, 0.3, 1.1)); messed(o); spill(o, nx, ny, sp, o.smash === 'bush' && feat('autumn') ? AUTUMN : S.cols);
     if (o.smash === 'hydrant') spray(o.hx, o.hy);
   }
   const k = 1 - S.slow / Math.max(1, Math.sqrt(c.t.mass || 1)); c.vx *= k; c.vy *= k;

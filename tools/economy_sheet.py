@@ -90,7 +90,7 @@ def rows():
     cl = block('clothes')[3]; shops = {x['id']: x['name'] for x in cl['shops']}
     out.append(('#', 'CLOTHES', 'Each piece at the one clothes shop that sells it. Once bought it is yours: wearing it again is free at any clothes shop.'))
     for it in cl['items']:
-        if not it.get('shop'): continue
+        if not it.get('shop') or it['shop'] == 'reward': continue                 # starting clothes and rewards are never sold
         out.append(dict(key='clothes.' + it['id'], label='%s (%s)' % (it['name'].capitalize(), it['slot']), value=it.get('price'), unit=USD, note='Sold at %s.' % shops.get(it['shop'], it['shop']),
                         file='clothes', id=it['id'], field='price', lo=0, hi=100000, empty_ok=False))
     out.append(('#', 'CAR SHOWROOM', 'What the Sunstrip showroom sells each vehicle for (vehicles table). 0: not sold there.'))

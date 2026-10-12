@@ -25,7 +25,8 @@ function nextWeather() {
 const smooth01 = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 function dayness(h) { return smooth01(SKYP.sunrise - 0.75, SKYP.sunrise + 0.75, h) * (1 - smooth01(SKYP.sunset - 0.75, SKYP.sunset + 0.75, h)); }
 function updateSky(dt) {
-  SKY.hour = (SKY.hour + dt * 24 * OPT.clock / SKYP.dayMinutes) % 24;
+  const h0 = SKY.hour; SKY.hour = (SKY.hour + dt * 24 * OPT.clock / SKYP.dayMinutes) % 24; flyBoostTick(dt);
+  if (h0 > 23 && SKY.hour < 1 && (state === 'play' || state === 'side')) fwStart();   // midnight: fireworks somewhere in the city (js/12h)
   if ((SKY.left -= dt) <= 0) setWeather(OPT.weather === 'change' ? nextWeather() : OPT.weather);
   const w = WX_KINDS[SKY.kind], st = dt / SKYP.blend, to = (v, t) => v < t ? Math.min(t, v + st) : Math.max(t, v - st);
   SKY.cloud = to(SKY.cloud, w[0]); SKY.rain = to(SKY.rain, w[1]); SKY.fog = to(SKY.fog, w[2]); SKY.storm = to(SKY.storm, w[3]);

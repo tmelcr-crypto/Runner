@@ -121,6 +121,8 @@ js/10s, js/08w); the tuning workshop next.
   engine, brakes, armour in price steps (vehicle table). Tuning is kept with the car in your garages and saves.
 
 ## 6. Junkyard and car crusher (Gravel Flats)
+(October 2026: the yard kept for it by the cement works became the works' road and staff car park - map remodel 11 - so only a small
+corner is left, gravel.junk; the junkyard needs a new plot in Gravel Flats.)
 - A fenced yard in the industrial north-west (the gravel yard kept for it in Gravel Flats, east of the cement works by the street
   corner: MAP.gravel.junk): stacks of wrecks (solid, some smashable), a magnet crane, the crusher, a shack and a
   guard dog that chases you on foot. Drive a car onto the crane's spot and get out: the magnet lifts it into the crusher, a cube

@@ -180,7 +180,7 @@ function fireWeapon(aim) {                                      // aim: a point 
 }
 /* the drive-by (js/01j driveBy): in a car, a gun the weapon table lets fire from a car shoots out of the window at the nearest target
    ahead - a person, a cop, a vehicle - within its range and in sight; nobody there, straight ahead. A little wilder than on foot. */
-const canDriveBy = () => !!P.car && !P.car.t.weapon && WEAPONS[P.weapon].driveBy && P.has[P.weapon] && feat('driveBy');
+const canDriveBy = () => !!P.car && !P.car.t.weapon && WEAPONS[P.weapon].driveBy && P.has[P.weapon] && P.mag[P.weapon] + P.ammo[P.weapon] > 0 && feat('driveBy');   // an empty gun: the bombs instead
 function driveBy(c, inp) {
   const w = WEAPONS[P.weapon], fresh = inp.fire && !P.ctrig;      // P.ctrig: FIRE was already down last frame (set by updatePlayer)
   if (!inp.fire || !(w.auto || fresh) || P.dead) { if (!inp.fire) P.dry = false; return; }
@@ -292,7 +292,7 @@ function updatePlayer(dt, inp) {
     if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '')) { }   // a race, a respray: FIRE is locked
     else if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
-    else carDrop(c, inp);                                          // a bomb in hand: FIRE drops it out of the window (js/06b)
+    else { updateReload(dt); carDrop(c, inp); }                    // a bomb in hand: FIRE drops it out of the window, then the next one comes to hand (js/06b)
     P.ctrig = inp.fire; return;
   }
   const orig = inp; if (SCOPE.on && SCOPE.by === 'key') inp = { ix: 0, iy: 0, mag: 0, sprint: false, fire: inp.fire, held: inp.held };   // J held: the arrow keys move the scope, not you
@@ -302,7 +302,7 @@ function updatePlayer(dt, inp) {
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
   // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
   const gait = mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(WALK, 2.4 * MPS, (mg - 0.4) / 0.4) : lerp(3.5 * MPS, RUN, (mg - 0.8) / 0.2);
-  const sp = (inp.sprint && mg > 0.4 ? SPRINT : gait) * wk * FOOT, m = Math.hypot(inp.ix, inp.iy) || 1;
+  const sp = (inp.sprint && mg > 0.4 ? SPRINT : gait) * wk * FOOT * flyBoostK(), m = Math.hypot(inp.ix, inp.iy) || 1;   // faster for a day after a scenic flight (js/08v)
   const k = 1 - Math.exp(-14 * dt);
   P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
   P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;

@@ -9,6 +9,26 @@
    Under a standing tree - on foot, or in a vehicle that has stopped (police table: heliStill) - the helicopter's light cannot see you
    (js/08u). A new game puts every tree back. */
 const TREES = [], TRGRID = new Map(), FALLING = [];
+/* Autumn (js/01j autumn): the builders (js/10, 10b, 10o, 10p, 10q, 12e) pass a leafy tree's or a bush's crown through leafCol - reds,
+   oranges, yellows and browns, now and then still green - and a pine's through pineCol, a duller green; palms keep theirs. A few
+   leaves drift down from the leafy trees around you. */
+const AUTUMN = ['#c8402a', '#d9572b', '#e8772e', '#f09a32', '#f2bf3a', '#d8a03a', '#b5482a', '#9c5a2a', '#8a3a24', '#e0652a'];
+const leafCol = c => !feat('autumn') || Math.random() < 0.12 ? c : pick(AUTUMN);
+const _acol = new THREE.Color(), _aolive = new THREE.Color('#6a6a3c');
+const pineCol = c => feat('autumn') ? '#' + _acol.set(c).lerp(_aolive, 0.35).getHexString() : c;
+let leafT = 0;
+function leafDrift(dt) {                // a few leaves float down from the leafy trees in view: pick spots near the camera, a tree there sheds one
+  if ((leafT -= dt) > 0) return; leafT = 0.12;
+  const R = visRadius() * 0.8;
+  for (let n = 0; n < 4; n++) {
+    const l = TRGRID.get(tkey(cam.x + rand(-R, R), cam.y + rand(-R, R))); if (!l || !l.length) continue;
+    const T = l[Math.floor(Math.random() * l.length)]; if (T.gone || T.kind !== 'leafy') continue;
+    const a = rand(0, TAU), d = rand(0, T.r * 0.8), wind = rand(8, 22);
+    addP({ x: T.cx + Math.cos(a) * d, y: T.cy + Math.sin(a) * d, z: treeTop(T) * rand(0.7, 0.95), vz: rand(-4, 2), grav: 9, vx: wind * rand(0.6, 1), vy: wind * rand(-0.3, 0.3),
+      life: rand(3.5, 5.5), max: 5.5, s0: rand(1.8, 2.6), s1: 1.6, col: shade(T.cc, randi(-12, 12)), drag: 0.15, alpha: 1 });
+    return;
+  }
+}
 let treeT = 0;
 const treeAdd = T => { T.key = tkey(T.x, T.y); let l = TRGRID.get(T.key); if (!l) TRGRID.set(T.key, l = []); l.push(T); TREES.push(T); return T; };
 function addTree(x, y, r, th, kind, tc, cc, parts, cx, cy) {   // js/10, js/10d, js/10q: a tree drawn as instances (its parts, as for registerThrow)
@@ -105,6 +125,7 @@ function treeCover() {                  // js/08u: you are under a tree, on foot
 
 /* ---------- every frame (js/15, after the street junk) ---------- */
 function updateTrees(dt) {
+  if (feat('autumn')) leafDrift(dt);
   if (feat('trees')) for (const c of cars) {
     const sp = Math.hypot(c.vx, c.vy); if (sp < 2 || c.sunk || c.dead || (c.air || 0) > 10) continue;
     treesHit(c, sp);

@@ -22,11 +22,11 @@ function pkBench(T, x, z, alongX, face) {                 // a park bench 16 lon
 }
 function pkLamp(T, G, x, z, h) { h = h || 26; T.prism(x, z, 0.8, 0, h, _C(PK_IRON), 6); box5(G, x - 2.4, h, z - 2.4, x + 2.4, h + 3, z + 2.4, _C('#fff3b0')); pkS(x - 1, z - 1, x + 1, z + 1); }
 function pkTree(T, x, z, r, h, col) {                     // a round shade tree: trunk, a full crown (not solid: it falls, js/12g)
-  const v0 = T.pos.length / 3; col = col || pick(['#2f8f4e', '#3a9a52', '#2a7a46']); T.prism(x, z, Math.max(1, r * 0.12), 0, h * 0.5, _C('#6b4a2e'), 6);
+  const v0 = T.pos.length / 3; col = leafCol(col || pick(['#2f8f4e', '#3a9a52', '#2a7a46']));   // autumn colours (js/12g) T.prism(x, z, Math.max(1, r * 0.12), 0, h * 0.5, _C('#6b4a2e'), 6);
   T.prism(x, z, r * 0.7, h * 0.4, h * 0.62, _C(col), 9, r); T.prism(x, z, r, h * 0.62, h * 0.82, _C(col), 9, r * 0.75); T.prism(x, z, r * 0.75, h * 0.82, h, _C(shade(col, 14)), 9, r * 0.2, true);
   treeNote(T, v0, { x, z, r, th: h * 0.55, kind: 'leafy', tc: '#6b4a2e', cc: col });
 }
-function pkBush(T, x, z, r, col) { T.prism(x, z, r, 0.8, 0.8 + r * 0.9, _C(col || '#2f7a3a'), 8, r * 0.55, true); }
+function pkBush(T, x, z, r, col) { T.prism(x, z, r, 0.8, 0.8 + r * 0.9, _C(leafCol(col || '#2f7a3a')), 8, r * 0.55, true); }
 function pkBed(T, x0, z0, x1, z1, cols, step) {           // a raised flower bed, dotted with flowers
   box5(T, x0, 0.8, z0, x1, 2.4, z1, _C('#5a3a26')); step = step || 3.4;
   for (let x = x0 + 2; x < x1 - 1; x += step) for (let z = z0 + 2; z < z1 - 1; z += step) box5(T, x - 1, 2.4, z - 1, x + 1, 3.4 + Math.random() * 1.6, z + 1, _C(pick(cols)));

@@ -136,7 +136,7 @@ function vehicleGun(c, inp, dt) {
   if (c.t.weapon === 'water') { if (feat('waterCannon')) waterCannon(c, inp, dt); return; }
   if (c.t.weapon === 'mg') { if (feat('apcGun')) apcPlayerGun(c, inp, dt); return; }   // the APC's turret gun (js/08r)
   if (!inp.fire || c.gunT > 0 || c.t.weapon !== 'rockets') return;
-  const w = WEAPONS.find(q => q.rocket) || RK_DEF, a = c.ang; c.gunT = 1.5;
+  const w = WEAPONS.find(q => q.rocket) || RK_DEF, a = c.ang; c.gunT = COP.tankYouEvery;   // police table
   launchRocket({ x: c.x + Math.cos(a) * 900, y: c.y + Math.sin(a) * 900 }, w, c); Snd.rocket();
   c.vx -= Math.cos(a) * 30; c.vy -= Math.sin(a) * 30; cam.shake = Math.max(cam.shake, w.shake + 2);   // the recoil
   alertPeds(c.x, c.y, 500); reportCrime(w.heat * COP.crime.gunfire, w.hear, undefined, undefined, true);

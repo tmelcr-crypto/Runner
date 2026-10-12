@@ -134,7 +134,7 @@ function sleepTick(dt) {                  // js/15 frame while state is sleep: f
   $('sleepClock').textContent = hhmm((S.from + span * clamp((S.t - 0.3) / (T - 0.8), 0, 1)) % 24);
   if (S.t < T + 0.4) return;
   SAFEST.sleeping = null; $('sleepFx').hidden = true;
-  SKY.hour = S.to; P.hp = Math.max(P.hp, hpMax()); P.armor = Math.max(P.armor, armorMax()); P.hurtT = 0;
+  SKY.hour = S.to; P.boostH = Math.max(0, (P.boostH || 0) - span); P.hp = Math.max(P.hp, hpMax()); P.armor = Math.max(P.armor, armorMax()); P.hurtT = 0;
   SAFEST.slotRet = SAFEST.ret; state = 'sleep'; openSlots('save');
   $('slotMsg').textContent = (S.to === SAFE.wakeMorning ? 'GOOD MORNING' : 'GOOD EVENING') + ' - PICK A SLOT TO SAVE IN, OR GO BACK';
   if (!saveBlock()) putSave('auto', makeSave(lastThumb));
