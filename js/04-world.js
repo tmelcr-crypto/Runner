@@ -236,6 +236,7 @@ function blockStyle(cx, cy, big) {
   else if (d === 'PEARL KEY' || d === 'FAIRWAY ISLES' || d === 'HERON KEY') Object.assign(o, { H: rand(24, 36), kind: 'deco', pal: PASTEL, pastel: true });
   o.c = pick(o.pal); return o;
 }
+const TOWER_D = ['PALM HEIGHTS', 'SUNSTRIP', 'SEAVIEW'];   // the downtown districts where towers rise behind the street fronts
 function fillStyle(cx, cy, w, h) {                               // style of one street-front or interior building
   const d = districtAt(cx, cy), o = blockStyle(cx, cy, false), cap = Math.min(w, h) < 70 ? 40 : 52;
   if (d === 'MERCADO') o.H = rand(22, 36);
@@ -253,7 +254,10 @@ function genWorld() {
   BLD = MAP.bld.map((b, i) => [b, i]).filter(([b]) => !hitsColony(b[0], b[1], b[2], b[3], b[4])).map(([[cx, cy, w, h, ang, grp, inner, fill, kind, H0], idx]) => {
     if (fill) {                                                   // street-front and block-interior buildings: drawn merged per chunk, kept low enough
       const g = fillStyle(cx, cy, w, h), a = ang * Math.PI / 180, fx = cx - Math.sin(a) * h / 2, fy = cy + Math.cos(a) * h / 2;   // that nobody on the sidewalk disappears behind them
-      const H = GFH + Math.max(1, Math.round((g.H - GFH) / FLOOR)) * FLOOR, shop = !!nearestRoad(fx, fy, ROAD_HALF + SW_W + 24);   // a shop if its front is on a street
+      const shop = !!nearestRoad(fx, fy, ROAD_HALF + SW_W + 24);                                       // a shop if its front is on a street
+      if (!shop && Math.min(w, h) >= 70 && TOWER_D.includes(districtAt(cx, cy)) && Math.random() < PLC.towerShare) {   // a tower behind the street fronts (places table: City)
+        g.H = GFH + randi(Math.min(PLC.towerFloorsMin, PLC.towerFloorsMax), Math.max(PLC.towerFloorsMin, PLC.towerFloorsMax)) * FLOOR; g.kind = pick(['office', 'office', 'apartment']); g.c = pick(PALETTE); g.pastel = false; }
+      const H = GFH + Math.max(1, Math.round((g.H - GFH) / FLOOR)) * FLOOR;
       return makeSolid(cx, cy, w, h, a, { idx, seed: cx * 7 + cy * 13 + 1, inner: 0, back: !!(inner & 16), pad: true, bld: true, fill: true, shop, rad: Math.hypot(w, h) / 2, H, kind: g.kind, c: g.c, pastel: g.pastel });
     }
     const g = blocks[grp] || (blocks[grp] = kind ? { kind, H: H0, c: pick(PALETTE), pastel: false } : blockStyle(cx, cy, Math.max(w, h) >= 90)), tiny = Math.min(w, h) < 45;   // kind, H0: set by the map (the port's warehouses)

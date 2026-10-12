@@ -81,7 +81,7 @@ def validate(ws, r, ref):
     if r['unit'] == 'yes/no':
         v = DataValidation(type='list', formula1='"YES,NO"', allow_blank=False, showErrorMessage=True, error='Pick YES or NO.')
     else:
-        whole = r['unit'] in ('count', 'stars')
+        whole = r['unit'] in ('count', 'stars', 'level', 'floors')
         v = DataValidation(type='whole' if whole else 'decimal', operator='between', formula1=fmt(r['min']), formula2=fmt(r['max']), allow_blank=False,
                            showErrorMessage=True, error='Enter a %snumber from %s to %s.' % ('whole ' if whole else '', fmt(r['min']), fmt(r['max'])))
     ws.add_data_validation(v); v.add(ref)
@@ -181,7 +181,8 @@ TIPS_PLACES = [('ID column', 'How the game finds each row. Do not change it; row
             ('Port', 'One ship moves at a time. Below the lower count the next movement is an arrival, above the higher one a departure.', None),
             ('Lunapark and space center', 'Visitors stroll inside the lunapark while you are there. The space center gate stays shut until the story opens it.', None),
             ('Spray garages', 'Drive in, the door shuts, pick a colour: repainted and repaired for the price (money in euros, also in the economy sheet). Not seen going in, the police lose you up to the stars set.', None),
-            ('Colony', 'The valet at the hotel door greets you when you come close on foot or slowly in a car - once, until you have been away and come back.', None)]
+            ('Colony', 'The valet at the hotel door greets you when you come close on foot or slowly in a car - once, until you have been away and come back.', None),
+            ('City', 'Towers: in Palm Heights, Sunstrip and Seaview, this share of the bigger buildings behind the street fronts rise as towers, each between the two heights (a floor is 14 units of the game). Picked once with the city.', None)]
 TIPS_JOBS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds, distances in metres by road (a street block is about 100 m), speeds in km/h, money in euros, % as 0 to 100; a level and points are whole numbers.', None),
             ('Starting a job', 'Drive the right vehicle into the marker at its dispatch point and stop: taxi at a taxi rank, ambulance at a hospital, fire engine at a fire station, police car at a police station. The START card shows.', None),
@@ -330,7 +331,7 @@ def do_import(path, dry):
         v = num(raw)
         if v is None: errors.append('%s: "%s" is not a number' % (where, raw)); return None
         if v < r['min'] or v > r['max']: errors.append('%s: %s is outside %s to %s' % (where, fmt(v), fmt(r['min']), fmt(r['max']))); return None
-        if r['unit'] in ('count', 'stars', 'level') and not float(v).is_integer(): errors.append('%s: %s must be a whole number' % (where, fmt(v))); return None
+        if r['unit'] in ('count', 'stars', 'level', 'floors') and not float(v).is_integer(): errors.append('%s: %s must be a whole number' % (where, fmt(v))); return None
         return v
     show = lambda r, v: yn(v) if r['unit'] == 'yes/no' else fmt(v)
     for key, title in SHEETS.items():
