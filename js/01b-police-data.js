@@ -20,6 +20,10 @@ const POLICE_TABLE = /*POLICE-JSON*/{
   {"id": "shoot", "name": "Shoot on sight", "unit": "yes/no", "v": [false, false, true, true, true], "note": "YES: cops on foot shoot at you (after one warning). NO: they only shoot when Shoot back if attacked says so."},
   {"id": "shootBack", "name": "Shoot back if attacked", "unit": "yes/no", "v": [false, true, true, true, true], "note": "YES: cops shoot for a while after you fire a gun where they see or hear it, ram a police car or hurt a cop (Settings: Remember you as armed)."},
   {"id": "searchMax", "name": "Search area grows to", "unit": "m", "min": 5, "max": 400, "v": [60, 80, 100, 120, 140], "note": "Largest radius of the search area around the spot where you were last seen (the red circle on the map)."},
+  {"id": "rbCars", "name": "Roadblock: police cars across the street", "unit": "count", "min": 0, "max": 4, "v": [0, 0, 2, 3, 3], "note": "Set up on the road ahead of you while you drive (Roadblocks in Settings). 0: no roadblocks at this level."},
+  {"id": "rbCops", "name": "Roadblock: cops behind it", "unit": "count", "min": 0, "max": 8, "v": [0, 0, 2, 4, 4], "note": "They hold their place behind the cars and shoot when they see you."},
+  {"id": "rbGun", "name": "Roadblock cops' guns", "unit": "level", "min": 1, "max": 3, "v": [1, 1, 1, 2, 3], "note": "1: pistols, 2: SMGs (bursts), 3: rifles (far, slow and hard)."},
+  {"id": "rbApc", "name": "Roadblock: an APC in the middle", "unit": "yes/no", "v": [false, false, false, false, true], "note": "YES: the middle car is the police APC - far heavier to ram through."},
   {"id": "lose", "name": "Out of sight to lose them", "unit": "s", "min": 1, "max": 600, "v": [12, 20, 30, 40, 50], "note": "Seconds no cop may see you before they give up and the stars go. Inside the search area the time runs slower (Settings)."}
 ],
 "settings": [
@@ -53,6 +57,10 @@ const POLICE_TABLE = /*POLICE-JSON*/{
   {"id": "dmgFoot", "group": "Shooting", "name": "Damage to you per hit", "unit": "hp", "min": 0, "max": 100, "v": 6, "note": "You have 100 health."},
   {"id": "dmgCar", "group": "Shooting", "name": "Damage to your car per hit", "unit": "hp", "min": 0, "max": 500, "v": 5, "note": "A sedan has 100, a truck 220."},
   {"id": "armedFor", "group": "Shooting", "name": "Remember you as armed for", "unit": "s", "min": 0, "max": 600, "v": 30, "note": "How long Shoot back if attacked lasts after you fire where they see or hear it, ram a police car or hurt a cop."},
+  {"id": "rbEvery", "group": "Roadblocks", "name": "About one roadblock every", "unit": "s", "min": 10, "max": 600, "v": 60, "note": "While you drive with enough stars (Wanted levels: Roadblock police cars); one at a time."},
+  {"id": "rbAheadMin", "group": "Roadblocks", "name": "Set up ahead of you from", "unit": "m", "min": 50, "max": 1000, "v": 300, "note": "Along the road you are on, out of sight; it carries on straight through the junctions."},
+  {"id": "rbAheadMax", "group": "Roadblocks", "name": "... to", "unit": "m", "min": 50, "max": 1000, "v": 500, "note": "Must not be less than Set up ahead of you from."},
+  {"id": "rbGone", "group": "Roadblocks", "name": "Taken down once you are", "unit": "m", "min": 100, "max": 2000, "v": 650, "note": "This far from it and it out of sight (you got past or turned off); also when your stars drop below the roadblock levels."},
   {"id": "bystanders", "group": "Shooting", "name": "Hold fire near bystanders", "unit": "yes/no", "v": true, "note": "YES: a cop does not shoot while a passer-by is in the line of fire."},
   {"id": "pplGapMin", "group": "Armed people", "name": "Passer-by: time between shots from", "unit": "s", "min": 0.1, "max": 10, "v": 0.9, "note": "A passer-by who fights back with a pistol waits a random time between this and the next value before each shot; with a revolver 1.4 times as long, with an SMG this long between bursts. They hit with the police's hit chance (Shooting: close up to full range, less the farther you are) and the police's damage, times the weapon's damage against the pistol's (revolver about 2x, an SMG bullet about half)."},
   {"id": "pplGapMax", "group": "Armed people", "name": "Passer-by: time between shots to", "unit": "s", "min": 0.1, "max": 10, "v": 1.7, "note": "Must not be less than Passer-by: time between shots from."},

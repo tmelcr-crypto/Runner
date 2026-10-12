@@ -209,7 +209,7 @@ function syncCar(c, time, dt) {
   if (m.tur) m.tur.rotation.y = -(c.turA || 0);                     // a tank's or an APC's turret (js/08r)
   const brake = !c.dead && c.driver && c.thr < 0; if (brake !== c.tailOn) { c.tailOn = brake; for (const l of m.tail) l.material = brake ? E.tailOn : E.tailOff; }
   if (m.bar.length) {                       // light bars: police while crewed, ambulance and fire engine on a call, the trash truck's beacon at a bin
-    const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' : c.t.job === 'trash' ? c.stopT > 0 : !!c.task || !!c.medics), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;
+    const on = !c.dead && (c.t.cop ? c.driver === 'cop' || c.driver === 'ai' || !!c.rb : c.t.job === 'trash' ? c.stopT > 0 : !!c.task || !!c.medics), ph = Math.floor(time * 6 + c.sirenT) % 2 === 0, M = m.barM;
     m.bar[0].material = on && ph ? M[0] : M[1]; m.bar[1].material = on && !ph ? M[2] : M[3];
   }
 }
