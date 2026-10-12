@@ -7,7 +7,7 @@ let state = 'menu', gameT = 0, deadTimer = 0, best = 0;   // state: menu | play 
 const OPT_DEF = { time: SKYP.startHour, weather: 'change', clock: 1, police: 1, crowd: 1, start: 'usual' }, OPT = Object.assign({}, OPT_DEF);
 try { best = +localStorage.getItem('blockrunner.best') || 0; } catch (e) { }
 const P = { x: 0, y: 0, ang: 0, vx: 0, vy: 0, hp: 100, armor: 0, car: null, weapon: 0, has: startHas(), ammo: startAmmo(), mag: startMag(), rel: 0, relW: -1, trig: false, act: null, cool: 0, flash: 0, score: 0, kills: 0,
-  heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false, gear: 'D' };
+  heat: 0, stars: 0, maxStars: 0, sinceCrime: 99, dead: false, dry: false, bob: 0, hurtT: 0, mouseOn: false };
 const cam = { x: MW / 2, y: MH / 2, zoom: 1, shake: 0 };
 let boomFlash = null;
 const offDist = () => visRadius() + 80;   // visRadius() comes from the renderer
@@ -62,6 +62,7 @@ function killPlayer() {
 }
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
+  if (c.tk) d *= c.tk.arm;                                         // tuned armour takes some of it (js/08y)
   c.hp -= d; if (byPlayer) c.byPlayer = true;
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
@@ -233,7 +234,7 @@ function enterCar(c) {
   } else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
   else if (!c.free) reportCrime(COP.crime.steal, 0);             // the NASCAR special in the speedway's paddock is free to take (js/08o)
   if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
-  c.driver = 'player'; c.mode = 'player'; P.gear = 'D'; updateGearUi(); P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
+  c.driver = 'player'; c.mode = 'player'; P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
   carWeapon(c);
 }
 /* getting into an ordinary car (no weapon of its own): grenades into your hand - or pipe bombs - to drop out of the window, unless you
@@ -250,7 +251,7 @@ function letGo(c) {                                              // a carjacking
 }
 function tryEnterExit() {
   if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
-  if (P.car) { if (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET')) return; exitCar(); return; }   // js/08o, js/08q
+  if (P.car) { if (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET') || tuneLocked('WAIT - THE MECHANIC IS STILL AT IT')) return; exitCar(); return; }   // js/08o, js/08q
   const c = nearestCar(); if (!c || rampLocked('ON FOOT DURING A RAMPAGE')) return;
   const occ = c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race';
   P.act = { k: 'steal', c, t: 0, dur: occ ? 3 : 1, occ }; P.vx = P.vy = 0;       // an empty car takes a second; pulling a driver out takes three
@@ -278,18 +279,17 @@ function updatePlayer(dt, inp) {
   if (P.act) { if (!P.act.occ) { P.vx = P.vy = 0; } P.cool = Math.max(P.cool, 0.1); return; }
   if (P.car) {
     const c = P.car, sm = Math.hypot(TS.mx, TS.my);
-    if (touchMode && sm > 0.12) {          // joystick = where you want to go; gear D drives that way, gear R backs toward it
-      const mag = Math.min(1, sm), want = Math.atan2(TS.my, TS.mx), rev = P.gear === 'R';
-      const diff = angDiff(c.ang, rev ? want + Math.PI : want), turn = clamp(diff * 3.2, -1, 1);
-      c.str = rev ? -turn : turn; c.assist = true; c.fs = rev ? -1 : 1;
-      const gas = clamp(Math.max(0.4, mag) * (1 - 0.4 * Math.min(1, Math.abs(diff) / Math.PI)), 0, 1);
-      c.thr = rev ? -gas : gas;
+    if (touchMode && sm > 0.12) {          // joystick = where you want to go: the car drives that way, turning almost on the spot (no reverse on touch)
+      const mag = Math.min(1, sm), want = Math.atan2(TS.my, TS.mx);
+      const diff = angDiff(c.ang, want);
+      c.str = clamp(diff * 3.2, -1, 1); c.assist = true; c.fs = 1;
+      c.thr = clamp(Math.max(0.4, mag) * (1 - 0.4 * Math.min(1, Math.abs(diff) / Math.PI)), 0, 1);
     } else if (touchMode) { c.thr = 0; c.str = 0; c.assist = false; c.fs = 0; }
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
     c.hb = inp.sprint; jobNitro(c, dt);                            // nitro in a taxi, the taxi job's reward (js/08n)
-    raceHold(c, dt); pnsHold(c, dt);                               // a race's countdown and results, a respray hold the car still (js/08o, js/08q)
+    raceHold(c, dt); pnsHold(c, dt); tuneHold(c, dt);              // a race's countdown and results, a respray, the tuning hold the car still (js/08o, js/08q, js/08y)
     P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; P.z = c.z || 0;
-    if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '')) { }   // a race, a respray: FIRE is locked
+    if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '') || tuneLocked(inp.fire && !P.ctrig ? 'NOT IN THE WORKSHOP' : '')) { }   // a race, a respray: FIRE is locked
     else if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
     else { updateReload(dt); carDrop(c, inp); }                    // a bomb in hand: FIRE drops it out of the window, then the next one comes to hand (js/06b)

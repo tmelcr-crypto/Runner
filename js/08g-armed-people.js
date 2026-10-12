@@ -2,7 +2,8 @@
 /* ---------- 6c5. ARMED PEOPLE AND LOOT ----------
    Some passers-by carry a weapon - which, and how many, is the weapon table's "Carried by people" (js/01f; p.arm). Hurt them, pull
    them out of their car, or kill someone close to them, and they fight back instead of running: a gun is fired at you like a cop
-   fires (the police table's accuracy and damage), a melee weapon swung when they reach you. They give up when you get away or after
+   fires (the police table's hit chance, falling with distance, and its damage times the gun's against the pistol's): a revolver slower
+   and harder, an SMG in bursts (police table: Armed people); a melee weapon is swung when they reach you. They give up when you get away or after
    a while. People brought in for a rampage carry nothing (js/08f). Anyone killed drops a cash stack and the weapon they carried
    (cops: more cash, and their pistol); both blink for their last 10 seconds and vanish (js/01i). */
 const NPC_RUN = 4.2 * MPS, NPC_GIVEUP = 700, NPC_ANGRY = 45;
@@ -37,10 +38,17 @@ function fightBack(p, dt) {              // js/08 updatePeds, every frame while 
     else if (d < 80) stepCop(p, -ux, -uy, NPC_RUN * 0.5, dt);
     else stepCop(p, 0, 0, 0, dt);
     if (see && d < range && p.cool <= 0) {
-      p.cool = rand(0.9, 1.7); p.flash = 0.06;
+      const pw = WEAPONS[PISTOL], gap = () => rand(COP.pplGapMin, Math.max(COP.pplGapMin, COP.pplGapMax));
+      if (w.auto) {                                                  // an SMG: a burst at the gun's own rate, then a pause (police table: Armed people)
+        if (!(p.burst > 0)) p.burst = randi(COP.pplBurstMin, Math.max(COP.pplBurstMin, COP.pplBurstMax));
+        p.cool = --p.burst > 0 ? w.rate * 1.4 : gap();
+      } else p.cool = gap() * Math.sqrt(w.rate / pw.rate);           // a revolver fires about 1.4 times slower than a pistol
+      p.flash = 0.06;
       tracers.push({ x1: p.x + ux * 14, y1: p.y + uy * 14, x2: tgt.x + rand(-14, 14), y2: tgt.y + rand(-14, 14), life: 0.07 });
-      Snd.tone(900, 200, 0.05, 0.06, 'square'); alertPeds(p.x, p.y, 200, true);
-      if (Math.random() < lerp(COP.accNear, COP.accFar, clamp(d / COP.fireRange, 0, 1))) { if (P.car) damageCar(P.car, COP.dmgCar, false); else damagePlayer(COP.dmgFoot); }
+      if (w.id === 'revolver') Snd.tone(620, 120, 0.08, 0.08, 'square'); else Snd.tone(w.auto ? 1100 : 900, 200, w.auto ? 0.035 : 0.05, w.auto ? 0.045 : 0.06, 'square');
+      alertPeds(p.x, p.y, 200, true);
+      const k = w.dmg / pw.dmg;                                      // the hit chance falls with distance (police table: close up to full range); damage by the gun
+      if (Math.random() < lerp(COP.accNear, COP.accFar, clamp(d / COP.fireRange, 0, 1))) { if (P.car) damageCar(P.car, COP.dmgCar * k, false); else damagePlayer(COP.dmgFoot * k); }
     }
   }
   return true;

@@ -3,7 +3,9 @@
   python3 tools/vehicle_sheet.py export vehicles.numbers            write js/01c-vehicle-data.js as a Numbers file (or .xlsx)
   python3 tools/vehicle_sheet.py import vehicles.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
-One column per vehicle, one row per setting, the vehicle IDs in the top row. Rows are found by their label in the first column, so
+Sheet Vehicles: one column per vehicle, one row per setting, the vehicle IDs in the top row.
+Sheet Tuning: the Sunstrip tuning workshop (js/08y) - one row per item (its ID in the last column): the looks and parts with their
+price, and three levels each of engine, brakes and armour with their price and what the car has at that level. Rows are found by their label in the first column, so
 rows may be moved; a row that is missing keeps the values already in the game. A vehicle whose column is gone is removed.
 The Excel workbook has grey Calc rows (simple formulas); a Numbers file is written without formulas and checked on import.
 Needs openpyxl for .xlsx and numbers-parser for .numbers."""
@@ -11,7 +13,6 @@ import json, math, os, re, sys
 
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
-SHIFTERS = ['auto', 'sport', 'tall', 'throttle', 'bar']
 BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'nascar', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'super', 'convertible', 'muscle', 'new']
 KERB_W, STALL_W = 2.33, 2.5                  # widest vehicle that fits the kerb parking lane / a parking lot stall (m)
 # key, label, kind (text / choice / num / int / yesno / colour), choices or (min, max), what it means, unit / how to fill
@@ -41,7 +42,6 @@ ROWS = [
     ('weapon', 'Weapon: none / rockets / water / mg', 'choice', ['none', 'rockets', 'water', 'mg'], 'rockets: when you drive it, FIRE launches rockets straight ahead (no ammo needed); a police one fires them at you at the top wanted level. water: FIRE sprays a water cannon that knocks people down and puts out fires (streets table). mg: a turret machine gun that fires at the nearest target ahead, belt after belt (police table: Tank and APC); the police fire it at you. With a weapon of its own you cannot drop bombs from it.', 'pick none, rockets or water'),
     ('price', 'Showroom price (€)', 'num', (0, 10000000), 'What the Sunstrip showroom sells it for (0: not sold there). A vehicle with no traffic and no parked weight is one you can only buy there. Also in the economy sheet.', 'euros, 0 = not sold'),
     ('delivery', 'Delivery price at the docks (€)', 'num', (0, 1000000), 'What the dockers pay when this is the wanted car at the docks (less for damage). 0: never wanted. Also in the economy sheet.', 'euros, 0 = never'),
-    ('shifter', 'Gear selector: auto / sport / tall / throttle / bar', 'choice', SHIFTERS, 'The gear selector on a touch screen (no letters; up is reverse, down is drive): auto - a T-handle lever, sport - a short round knob, tall - a long lever with a big knob, throttle - a military throttle handle, bar - a handlebar switch.', 'pick from the list'),
 ] + [('c%d' % k, 'Colour %d (#hex)' % k, 'colour', None, 'Paint colour; each vehicle picks one of its colours at random, and its neon underglow takes the same colour.' if k == 1 else 'Another paint colour (optional).',
       '#RRGGBB' + ('; at least one' if k == 1 else '')) for k in range(1, 7)] + [
     ('notes', 'Notes / look', 'text', None, 'How it looks or behaves, especially for a new body.', 'free text'),
@@ -51,10 +51,10 @@ ROW = {r[0]: r for r in ROWS}
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('body', 'body'), ('role', 'role'), ('len', 'length'), ('wid', 'width'), ('top', 'top speed'),
          ('accTo', 'accelerates'), ('accS', '...in seconds'), ('accS', 'in seconds'), ('brake', 'braking'), ('steer', 'steering'), ('grip', 'tyre grip'),
          ('hp', 'health'), ('kg', 'weight'), ('tree', 'slowed by'), ('armored', 'armored'), ('traffic', 'traffic weight'), ('parked', 'parked weight'), ('chase', 'police chase'),
-         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('price', 'showroom price'), ('delivery', 'delivery price'), ('shifter', 'gear selector')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
-DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'price': 0, 'delivery': 0, 'shifter': 'auto', 'colors': [], 'notes': ''}
+         ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('price', 'showroom price'), ('delivery', 'delivery price')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
+DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'price': 0, 'delivery': 0, 'colors': [], 'notes': ''}
 ORDER = ['id', 'name', 'body', 'role', 'len', 'wid', 'top', 'accTo', 'accS', 'brake', 'steer', 'grip', 'hp', 'kg', 'tree', 'armored', 'traffic', 'parked', 'chase', 'chaseFrom',
-         'hidden', 'job', 'weapon', 'price', 'delivery', 'shifter', 'colors', 'notes']
+         'hidden', 'job', 'weapon', 'price', 'delivery', 'colors', 'notes']
 
 
 def tree_default(kg):
@@ -69,8 +69,62 @@ def read_table():
 
 
 def dump(t):
-    rows = t['vehicles']
-    return '{\n"vehicles": [\n' + ',\n'.join('  ' + json.dumps(v, ensure_ascii=False) for v in rows) + '\n]\n}'
+    rows = t['vehicles']; out = '{\n"vehicles": [\n' + ',\n'.join('  ' + json.dumps(v, ensure_ascii=False) for v in rows) + '\n]'
+    if t.get('tuning'): out += ',\n"tuning": [\n' + ',\n'.join('  ' + json.dumps(v, ensure_ascii=False) for v in t['tuning']) + '\n]'
+    return out + '\n}'
+
+
+# ---------- the Tuning sheet: one row per item ----------
+TUNE_COLS = [('name', 'Item', 'text', None), ('price', 'Price (€)', 'int', (0, 1000000)), ('top', 'Top speed +%', 'num', (0, 100)), ('acc', 'Acceleration +%', 'num', (0, 200)),
+             ('brake', 'Braking +%', 'num', (0, 200)), ('armour', 'Damage taken -%', 'num', (0, 90)), ('notes', 'Notes', 'text', None), ('id', 'ID (do not change)', 'text', None)]
+TUNE_TIP = ('Tuning sheet', 'The Sunstrip tuning workshop: the looks and parts cost their price each; engine, brakes and armour have three levels each - the numbers '
+            'are what the car has at that level (not added up), and going up costs the levels in between. Rows are found by the ID in the last column.', '')
+
+
+def tune_rows(t): return [[r.get(k) for k, *_ in TUNE_COLS] for r in t.get('tuning', [])]
+
+
+def read_tuning(path):
+    """the Tuning sheet's rows as {field: value}, or None when the file has no such sheet"""
+    if path.lower().endswith('.numbers'):
+        from numbers_parser import Document
+        sh = next((q for q in Document(path).sheets if q.name.lower().startswith('tuning')), None)
+        rows = [tuple(r) for r in sh.tables[0].rows(values_only=True)] if sh else None
+    else:
+        from openpyxl import load_workbook
+        ws = next((q for q in load_workbook(path, data_only=True).worksheets if q.title.lower().startswith('tuning')), None)
+        rows = list(ws.iter_rows(values_only=True)) if ws else None
+    if not rows: return None
+    head = [str(h or '').strip().lower() for h in rows[0]]; col = {}
+    for k, lab, *_ in TUNE_COLS:
+        for n, h in enumerate(head):
+            if h.startswith(lab.lower().split(' (')[0]): col[k] = n; break
+    if 'id' not in col: raise SystemExit('Tuning sheet: no ID column')
+    return [{k: (r[n] if n < len(r) else None) for k, n in col.items()} for r in rows[1:] if r and col['id'] < len(r) and r[col['id']] not in (None, '')]
+
+
+def build_tuning(rows, old):
+    """the tuning items from the sheet; rows left out keep their values -> items, errors"""
+    olds = {r['id']: r for r in old}; got, errors = {}, []
+    for r in rows:
+        tid = str(r['id']).strip().lower(); where = 'Tuning / ' + tid
+        if tid not in olds: errors.append('%s: unknown ID (the game knows %s)' % (where, ', '.join(olds))); continue
+        x = dict(olds[tid])
+        for k, lab, kind, rng in TUNE_COLS:
+            if k == 'id' or k not in r: continue
+            v = r[k]
+            if kind == 'text': x[k] = '' if v is None else str(v).strip(); continue
+            n = num(v)
+            if n is None: errors.append('%s / %s: missing or not a number' % (where, lab)); continue
+            if n < rng[0] or n > rng[1]: errors.append('%s / %s: %s is outside %s to %s' % (where, lab, fmt(n), fmt(rng[0]), fmt(rng[1]))); continue
+            if kind == 'int' and not float(n).is_integer(): errors.append('%s / %s: must be a whole number' % (where, lab)); continue
+            x[k] = n
+        if k == 'name' and not x.get('name'): errors.append('%s: a name is needed' % where)
+        got[tid] = x
+    for part in ('engine', 'brakes', 'armour'):
+        key = {'engine': 'acc', 'brakes': 'brake', 'armour': 'armour'}[part]; lv = [got.get(part + str(k), olds.get(part + str(k))) for k in (1, 2, 3)]
+        if all(lv) and not (lv[0][key] <= lv[1][key] <= lv[2][key]): errors.append('Tuning / %s: each level should do at least as much as the one before' % part)
+    return [got.get(r['id'], r) for r in old], errors
 
 
 fmt = lambda v: ('%d' % v) if float(v).is_integer() else ('%g' % v)
@@ -131,10 +185,18 @@ def export_xlsx(path, t):
             c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=lab == 'Calc: Check')
         ws.row_dimensions[i].height = 44 if lab == 'Calc: Check' else 18
     ws.freeze_panes = 'B2'
+    tw = wb.create_sheet('Tuning'); widths = [22, 12, 13, 15, 12, 15, 44, 18]
+    for j, (k, lab, *_r) in enumerate(TUNE_COLS, start=1):
+        tw.column_dimensions[L(j)].width = widths[j - 1]; c = tw.cell(row=1, column=j, value=lab); c.font = Font(name=F, size=10, bold=True, color='FFFFFF'); c.fill = f_head; c.border = box
+    for i, row in enumerate(tune_rows(t), start=2):
+        for j, v in enumerate(row, start=1):
+            k = TUNE_COLS[j - 1][0]; c = tw.cell(row=i, column=j, value=v); c.border = box; c.font = Font(name=F, size=10, bold=(k == 'name'), color='0000FF' if k not in ('name', 'id') else '000000')
+            c.fill = f_in if k not in ('name', 'id') else (f_lab if k == 'name' else f_calc)
+    tw.freeze_panes = 'B2'
     g = wb.create_sheet('How to fill'); g.column_dimensions['A'].width = 24; g.column_dimensions['B'].width = 60; g.column_dimensions['C'].width = 28
     for j, h in enumerate(['Item', 'What it means', 'Unit / how to fill'], start=1):
         c = g.cell(row=1, column=j, value=h); c.font = Font(name=F, size=10, bold=True, color='FFFFFF'); c.fill = f_head; c.border = box
-    rows = TIPS + [('Grey rows', 'Calculated - leave them. Check says OK when a column is complete, otherwise what to fix.', '')] + \
+    rows = TIPS + [TUNE_TIP, ('Grey rows', 'Calculated - leave them. Check says OK when a column is complete, otherwise what to fix.', '')] + \
         [(('Colour 1 ... 6' if lab.startswith('Colour 1') else lab), mean, unit) for key, lab, kind, ch, mean, unit in ROWS if not (kind == 'colour' and key != 'c1')]
     for i, row in enumerate(rows, start=2):
         for j, v in enumerate(row, start=1):
@@ -181,7 +243,15 @@ def export_numbers(path, t):
             else: tb.write(i, 1 + n, val, style=inp)
             if kind in ('choice', 'yesno'): tb.set_cell_formatting(i, 1 + n, 'popup', popup_values=ch if kind == 'choice' else ['yes', 'no'], allow_none=True)
         tb.row_height(i, 64 if key == 'notes' else (40 if len(lab) > 26 else 26))
-    rows = TIPS + [('Checks', 'This Numbers file has no formulas: every column is checked when the file comes back, and anything to fix is listed for you.', '')] + \
+    tr = tune_rows(t); doc.add_sheet('Tuning', 'Tuning', num_rows=len(tr) + 1, num_cols=len(TUNE_COLS)); tb2 = doc.sheets[-1].tables[0]; tb2.num_header_rows = 1; tb2.num_header_cols = 1
+    for j, (k, lab, *_r) in enumerate(TUNE_COLS): tb2.write(0, j, lab, style=head); tb2.col_width(j, [150, 80, 90, 100, 80, 100, 300, 120][j])
+    idst = style('BR id', bg_color=RGB(237, 237, 237), font_color=RGB(89, 89, 89))
+    for i, row in enumerate(tr, start=1):
+        for j, v in enumerate(row):
+            k = TUNE_COLS[j][0]; st = lab_s if k == 'name' else idst if k == 'id' else txt if k == 'notes' else inp
+            if v is None or v == '': tb2.set_cell_style(i, j, st)
+            else: tb2.write(i, j, v, style=st)
+    rows = TIPS + [TUNE_TIP, ('Checks', 'This Numbers file has no formulas: every column is checked when the file comes back, and anything to fix is listed for you.', '')] + \
         [(('Colour 1 ... 6' if lab.startswith('Colour 1') else lab), mean, unit) for key, lab, kind, ch, mean, unit in ROWS if not (kind == 'colour' and key != 'c1')]
     doc.add_sheet('How to fill', 'How to fill', num_rows=len(rows) + 1, num_cols=3)
     g = doc.sheets[-1].tables[0]; g.num_header_rows = 1; g.num_header_cols = 1; g.col_width(0, 190); g.col_width(1, 430); g.col_width(2, 170)
@@ -293,17 +363,18 @@ def changes(old, new):
     return out
 
 
-def write(s, i, j, vehicles):
-    open(JS, 'w', encoding='utf-8').write(s[:i] + dump({'vehicles': vehicles}) + s[j:]); print('written', os.path.relpath(JS))
+def write(s, i, j, vehicles, tuning=None):
+    open(JS, 'w', encoding='utf-8').write(s[:i] + dump({'vehicles': vehicles, 'tuning': tuning}) + s[j:]); print('written', os.path.relpath(JS))
 
 
 def do_import(path, dry):
     s, i, j, t = read_table(); cols, present = read_columns(path)
     vs, errors, warns = build(cols, present, t['vehicles'])
+    trows = read_tuning(path); tune, terr = (build_tuning(trows, t.get('tuning', [])) if trows is not None else (t.get('tuning', []), [])); errors += terr
     for w in warns: print('note: ' + w)
     if errors: print('Not imported - fix these first:'); [print('  ' + e) for e in errors]; sys.exit(1)
-    ch = changes(t['vehicles'], vs); print('%d change%s' % (len(ch), '' if len(ch) == 1 else 's') + (':' if ch else '')); [print('  ' + c) for c in ch]
-    if not dry and (ch or [v['id'] for v in vs] != [v['id'] for v in t['vehicles']]): write(s, i, j, vs)
+    ch = changes(t['vehicles'], vs) + ['tuning %s / %s: %s -> %s' % (n['id'], k, o.get(k), n.get(k)) for o, n in zip(t.get('tuning', []), tune) for k in n if o.get(k) != n.get(k)]; print('%d change%s' % (len(ch), '' if len(ch) == 1 else 's') + (':' if ch else '')); [print('  ' + c) for c in ch]
+    if not dry and (ch or [v['id'] for v in vs] != [v['id'] for v in t['vehicles']]): write(s, i, j, vs, tune)
 
 
 if __name__ == '__main__':

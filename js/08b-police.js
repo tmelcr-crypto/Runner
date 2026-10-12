@@ -285,6 +285,6 @@ function respawn() {
   for (const c of cars) if (c.task) endCall(c);
   for (; foot < COP.footPatrols; foot++) spawnFootCop(true);
   cam.x = P.x; cam.y = P.y; cam.zoom = ZOOM_BASE; cam.shake = 0; streamCity(true);
-  state = 'play'; deadTimer = 0; $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED'; updateGearUi();
+  state = 'play'; deadTimer = 0; $('wasted').style.display = 'none'; $('wasted').textContent = 'WASTED';
   toast((busted ? 'OUT ON BAIL' : 'OUT OF HOSPITAL') + (lose > 0 ? ' -' + money(lose) : ''));
 }

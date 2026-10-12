@@ -58,7 +58,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'safe' || state === 'sleep'); ov.classList.toggle('low', id === 'pnsCard'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'tune' || state === 'safe' || state === 'sleep'); ov.classList.toggle('low', id === 'pnsCard' || id === 'tuneCard'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -73,6 +73,7 @@ function back() {
   else if (id === 'raceCard') closeRaceCard();
   else if (id === 'flyCard') closeFlyCard();
   else if (id === 'pnsCard') closePns(false);
+  else if (id === 'tuneCard') closeTune(false);
   else if (id === 'safeCard' || id === 'stashCard' || id === 'carCard') closeSafeCard();
   else if (id === 'slotCard' && SAFEST.slotRet) closeSleepSave();     // the save slots after sleeping (js/08s)
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
@@ -87,7 +88,7 @@ function paintTitle() {
   $('newBtn').classList.toggle('alt', !!d);                       // with a save to continue, CONTINUE is the main button
   $('bestLine').textContent = best > 0 ? 'MOST CASH ' + money(best) : 'Steal a car, make trouble, outrun the police.';
 }
-function showTitle() { svReset(); state = 'menu'; $('hud').hidden = true; $('shifter').hidden = true; hush(); showCard('startCard', true); }
+function showTitle() { svReset(); state = 'menu'; $('hud').hidden = true; hush(); showCard('startCard', true); }
 $('contBtn').addEventListener('click', () => { const d = latestSave(); if (d) loadGame(d); });
 $('newBtn').addEventListener('click', () => showCard('modeCard'));
 $('goBtn').addEventListener('click', newGame);
@@ -164,7 +165,7 @@ function makeSave(thumb) {
   return { v: SAVE_V, t: Date.now(), mode: gameMode, where: districtAt(P.x, P.y) || '', opt: Object.assign({}, OPT), gameT,
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe], boostH: P.boostH || 0 },
-    car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio } : null,
+    car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio, tune: c.tune || undefined } : null,
     ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
@@ -174,6 +175,7 @@ function saveSpot(sv) {                              // where a saved game puts 
     const car = makeCar(c.type, c.x, c.y, num(c.ang) ? c.ang : 0, null, typeof c.color === 'string' ? c.color : undefined);
     if (num(c.hp)) car.hp = clamp(c.hp, 1, car.hp);
     if (Number.isInteger(c.radio) && c.radio < RADIO.length) car.radio = Math.max(-1, c.radio);
+    tuneSet(car, c.tune);                                          // its tuning (js/08y)
     return { x: car.x, y: car.y, ang: car.ang, car };
   }
   if (num(p.x) && num(p.y) && !pedBlocked(p.x, p.y) && shoreDist(p.x, p.y) > 4) return { x: p.x, y: p.y, ang: num(p.ang) ? p.ang : 0 };

@@ -203,7 +203,8 @@ TIPS_STREETS = [('ID column', 'How the game finds each row. Do not change it; ro
             ('Drivers', 'Cars stop at the line on red (and on amber when they can), give way to oncoming cars when turning across them, and stop for people on the crossing of the street they turn into. Running a red light yourself is not a crime.', None),
             ('Pedestrians', 'People cross at the zebra crossings. The walk signal is green while the traffic across the crossing has red.', None),
             ('Lights and sirens', 'Ambulances and fire engines on a call and police cars after you go through red lights slowly. Cars ahead of them move to the right and slow down.', None),
-            ('Heat reducers', 'Each takes one star off. One lies on the road while you are wanted enough; others wait in fixed back alleys. All of them are taken from inside a car too.', None)]
+            ('Heat reducers', 'Each takes one star off. One lies on the road while you are wanted enough; others wait in fixed back alleys. All of them are taken from inside a car too.', None),
+            ('City sound', 'All made by the game, no recordings. Each % is the loudness of one layer (100 = as tuned, 0 = off); City sound volume scales them all. Sounds of cars and people come from where they are and fade with distance.', None)]
 TIPS_POLICE = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
         ('Units', 'Distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h or m/s, times in seconds, % as 0 to 100.', None),
         ('Heat and stars', 'Each crime the police see or hear adds heat (Crimes sheet). Enough heat gives a wanted level (Wanted levels: Heat needed). Heat below 1 star fades away; stars only go when you lose the police or pay a fine.', None),
@@ -213,6 +214,7 @@ TIPS_POLICE = [('ID column', 'How the game finds each row. Do not change it; row
         ('Arrest', 'Other levels: cars pull up beside you (or ram you where Cars ram you = YES), the crew gets out and a cop who holds you long enough arrests you. Drive away and they run back to their car.', None),
         ('Shooting', 'Only on levels with Shoot on sight = YES, or Shoot back if attacked = YES after you fired, rammed a police car or hurt a cop. They shout a warning first and never shoot with a passer-by in the way.', None),
         ('Busted / wasted', 'With Carry on after busted or wasted = YES you start again at the nearest police station or hospital and lose a share of your score (and your weapons, if set).', None),
+        ('Armed people', 'Passers-by who carry a gun (weapon table: Carried by people) and turn on you shoot with the police\'s hit chance, which falls the farther you are, and the police\'s damage times their gun\'s damage against the pistol\'s. A revolver fires slower and harder, an SMG in short bursts.', None),
         ('Tank and APC', 'At the top wanted level the tank fires rockets at you; a police APC fires its turret gun in bursts when it sees you. The APC belt is also yours when you drive one (vehicle table: Weapon mg).', None)]
 
 
@@ -363,6 +365,8 @@ def do_import(path, dry):
         heat = next(r['v'] for r in t['levels'] if r['id'] == 'heat')
         if any(b_ <= a for a, b_ in zip(heat, heat[1:])): errors.append('Wanted levels / Heat needed must rise from level to level: %s' % heat)
         if st['gapMax'] < st['gapMin']: errors.append('Settings: Time between shots to (%s) is less than from (%s)' % (fmt(st['gapMax']), fmt(st['gapMin'])))
+        if st['pplGapMax'] < st['pplGapMin']: errors.append('Settings: Passer-by: time between shots to (%s) is less than from (%s)' % (fmt(st['pplGapMax']), fmt(st['pplGapMin'])))
+        if st['pplBurstMax'] < st['pplBurstMin']: errors.append('Settings: Passer-by SMG burst to (%s) is less than from (%s)' % (fmt(st['pplBurstMax']), fmt(st['pplBurstMin'])))
     elif NAME == 'places':
         if st['shipsMax'] < st['shipsMin']: errors.append('Settings: Ships at the berths at most (%s) is less than at least (%s)' % (fmt(st['shipsMax']), fmt(st['shipsMin'])))
     elif NAME == 'streets': pass

@@ -113,16 +113,20 @@ All of these are for **both** modes except the kill frenzies (free roam only).
 8. Then the plan's steps 5-8 below.
 
 ## 5. Car showroom and tuning (Sunstrip)
-(Asked: the showroom and the workshop are interiors of the top-down kind, the roof see-through.) - the showroom is done (map remodel 10,
-js/10s, js/08w); the tuning workshop next.
+(Asked: the showroom and the workshop are interiors of the top-down kind, the roof see-through.) - done: the showroom (map remodel 10,
+js/10s, js/08w) and the tuning workshop (js/08y, October 2026).
 - A glass showroom on a main street in Sunstrip, cars on turntables: every car kind plus three rare ones sold only there (a
   supercar, a classic convertible, a muscle car). A bought car is delivered to a safehouse garage or parking space you choose.
 - **Tuning** at its workshop: paint, a two-tone roof, racing stripes; wheel rim and underglow colours; a spoiler, a bonnet scoop;
   engine, brakes, armour in price steps (vehicle table). Tuning is kept with the car in your garages and saves.
+  (Asked October 2026:) it takes every vehicle but police and army ones - taxis, buses, ambulances, fire engines and trash trucks keep
+  their livery (no paint, roof or stripes; rims, underglow, parts and performance yes) - and nothing while you are wanted. Three levels
+  each, moderate at the top: engine +15% top speed and +35% acceleration, brakes +50%, armour -60% damage, level 3 about EUR 16-20,000.
 
 ## 6. Junkyard and car crusher (Gravel Flats)
-(October 2026: the yard kept for it by the cement works became the works' road and staff car park - map remodel 11 - so only a small
-corner is left, gravel.junk; the junkyard needs a new plot in Gravel Flats.)
+(October 2026: the yard kept for it by the cement works became the works' road and staff car park - map remodel 11. The owner chose a new
+place: **Dockside, by the port** - in the port's maintenance yard area, wrecks and containers side by side, near the black market. The
+rest of this step stands.)
 - A fenced yard in the industrial north-west (the gravel yard kept for it in Gravel Flats, east of the cement works by the street
   corner: MAP.gravel.junk): stacks of wrecks (solid, some smashable), a magnet crane, the crusher, a shack and a
   guard dog that chases you on foot. Drive a car onto the crane's spot and get out: the magnet lifts it into the crusher, a cube
@@ -130,6 +134,8 @@ corner is left, gravel.junk; the junkyard needs a new plot in Gravel Flats.)
 
 ## 7. Police: roadblocks (the helicopter: see 4d.5, which replaces it)
 - **Roadblocks from 3 stars**: two police cars across a street ahead of you, cops behind them shooting; ram through or turn.
+  (Asked October 2026: they grow with the stars) 3 stars: two cars, two cops with pistols; 4: three cars, four cops with SMGs; 5: an APC
+  in the middle and cops with rifles. Set up 300-500 m ahead on the road you are on, about one a minute while you drive.
 - **Helicopter from 4 stars**: follows you, a searchlight at night, a gunner from 5 stars; it sees you from the air, so hiding is
   harder; it can be shot down. (No spike strips.)
 
@@ -138,6 +144,23 @@ corner is left, gravel.junk; the junkyard needs a new plot in Gravel Flats.)
   bought, rampages passed, hidden weapons and items found, races won (each fixed route, the NASCAR race, both drag strips), level 10
   in each job, deliveries, sprays used (and stunt jumps once they exist).
 - The reward at 100%: a gold one-of-a-kind car delivered to your best garage, and health and armour up to 200.
+
+## 9. After the plan (asked October 2026; all for **both** modes; in this order, each to be asked about in detail before building)
+1. **New places** (from the README's list):
+   - *Prison island*: walls, watchtowers, guards. Busted, you walk out of the prison gate on its island (no longer at a police
+     station), and a free ferry takes you back to the docks. Breakouts for story mode.
+   - *Construction site*: a half-built tower, cranes, ramps and scaffolding.
+   - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
+   - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
+     and at the grove pier; a police patrol boat from 3 stars.
+   - *Stunt jumps*: twenty around the city - ramps, loading docks, rooftop gaps, the construction site; hit one fast enough and the
+     camera slows down in the air, a bonus for distance and height, each counted once toward 100%.
+   - *Interiors, top-down first*: the airport hangars, the port warehouses and storage units you can walk and drive into, their
+     roofs turning see-through, with things to find and take inside. (The side-on kind - hotels, offices - later.)
+2. **World events**: robberies with a getaway car and an armoured cash van to ram; fires, pile-ups with tow trucks, storm blackouts;
+   a rocket launch at the space center; a plane in trouble at the airport.
+3. **Flying and people with real lives** (below).
+Story mode is not started yet: when it is, the open items in docs/STORY.md come first.
 
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver

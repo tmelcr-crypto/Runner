@@ -35,6 +35,8 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "sprayTime", "group": "Spray garages", "name": "Spraying takes", "unit": "s", "min": 1, "max": 30, "v": 4, "note": "The door is shut and you cannot drive meanwhile."},
   {"id": "sprayDoor", "group": "Spray garages", "name": "The roller door opens or shuts in", "unit": "s", "min": 0.3, "max": 10, "v": 1.2, "note": ""},
   {"id": "sprayLose", "group": "Spray garages", "name": "Unseen going in, the police lose you up to", "unit": "stars", "min": 0, "max": 5, "v": 5, "note": "A cop who sees you drive in (or through the open door) is not fooled: you are repaired and repainted, and still wanted. 0: a respray never loses them."},
+  {"id": "tuneTime", "group": "Tuning workshop", "name": "The mechanic works for", "unit": "s", "min": 1, "max": 30, "v": 5, "note": "At the Sunstrip tuning workshop, after you pay: the door is shut and you cannot drive meanwhile."},
+  {"id": "tuneDoor", "group": "Tuning workshop", "name": "Its roller door opens or shuts in", "unit": "s", "min": 0.3, "max": 10, "v": 1.4, "note": ""},
   {"id": "sprayHues", "group": "Spray garages", "name": "Colours to choose from: hues", "unit": "count", "min": 4, "max": 24, "v": 12, "note": "Each in a light, a bright and a dark shade, plus white, greys and black. The car kind's own paints come first."},
   {"id": "visitors", "group": "Lunapark", "name": "Visitors around you", "unit": "count", "min": 0, "max": 80, "v": 30, "note": "People strolling inside the lunapark while you are there."},
   {"id": "wheelRpm", "group": "Lunapark", "name": "Ferris wheel turns per minute", "unit": "count", "min": 0, "max": 6, "v": 1, "note": "0 stops it."},

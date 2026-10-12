@@ -29,7 +29,7 @@ function carInPns(G, c) { return carCircles(c).every(q => pnsIn(G, q[0], q[1], q
 function pnsPaint(c, hex) {               // the car's colour (and its underglow), as it would be built in it
   c.color = hex; if (!c.baseCol) return;
   c.baseCol.set(hex); c.hpShown = -1; c.glowing = true;                 // js/11 sets the body (and its glow) again on the next frame
-  if (c.m && c.m.ug) c.m.ug.material = glowMat(hex, 0.9);
+  if (c.m && c.m.ug) c.m.ug.material = glowMat((c.tune && c.tune.glow) || hex, 0.9);   // a tuned underglow keeps its own colour (js/08y)
 }
 function doorBlocked(G) {                 // something standing under the door: it waits
   const q = {}, lim = (x, z, r) => Math.abs(x) < G.dw / 2 + r && Math.abs(z - (G.hd - PNS_WT / 2)) < PNS_WT / 2 + r + 2;

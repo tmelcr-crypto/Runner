@@ -66,14 +66,6 @@
   <button class="tbtn" id="bAct" type="button">ENTER<br>EXIT</button>
   <button class="tbtn" id="bDash" type="button">DASH</button>
   <button class="tbtn" id="bNitro" type="button" hidden>NITRO</button>
-  <div id="shifter" hidden>
-    <span class="lbl slbl">GEAR</span>
-    <div class="gate">
-      <button id="gR" type="button" class="gbtn">R</button>
-      <button id="gD" type="button" class="gbtn on">D</button>
-      <div id="slot"><div id="lever"><b></b></div></div>
-    </div>
-  </div>
 </div>
 
 <div id="pv" hidden>
@@ -175,13 +167,14 @@
         <li><b>SPACE</b> handbrake, drift</li><li><b>SHIFT or N</b> nitro in a taxi (the taxi job's reward)</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK / J</b> with a pistol, revolver, SMG or machine gun: a drive-by at the nearest target ahead; otherwise grenades go into your hand and drop out of the window; in the tank: rockets; in the fire engine: the water cannon</li></ul>
         <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: load, help (you save by sleeping in a safehouse)</li><li><b>INSIDE A TOWER</b> arrows or A / D walk, <b>W or E</b> up at a door, the stairs or the elevator, <b>S</b> down the stairs</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
-        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>GEAR LEVER</b> (in a car, above FIRE; on a phone held sideways, left of BRAKE) up: reverse, down: drive - each vehicle has its own</li><li><b>IN A CAR</b> steer with the left thumb; <b>BRAKE</b> and <b>FIRE</b> sit side by side for the right thumb</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target, let go; grenades and pipe bombs: FIRE turns into a little stick - hold it and drag toward where it should land (to the edge for the full range), let go to throw; drag back to the middle to keep it</li>
+        <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>IN A CAR</b> point the left stick where to drive - the car turns that way, almost on the spot; <b>BRAKE</b> and <b>FIRE</b> sit side by side for the right thumb</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target (anywhere on the screen, the scope may run off the edge), let go; grenades and pipe bombs: FIRE turns into a little stick - hold it and drag toward where it should land (to the edge for the full range), let go to throw; drag back to the middle to keep it</li>
         <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> / <b>RAMPAGE</b> / <b>BUY</b> / <b>GO IN</b> button: shows by you at a store's door, a rampage's skull or a safehouse; inside one, <b>SLEEP</b>, <b>WARDROBE</b> and <b>STASH</b></li><li><b>INSIDE A TOWER</b> the arrow buttons (or a drag on the screen) walk; <b>▲</b> at a door, the stairs or the elevator, <b>▼</b> down the stairs; MENU top right</li><li><b>DASH</b> button on foot, <b>BRAKE</b> in a car</li><li><b>NITRO</b> button in a taxi, once the taxi job's reward is yours</li><li><b>WEAPON</b> icon (top left, under your cash, health and armor) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map; <b>MENU</b> is up in its corner; tap the map to close</li><li><b>RADIO</b> icon next to the weapon in a car. Sound: your device's volume</li><li>No car health bar: smoke, then flames from the bonnet tell you the car is going</li></ul></div>
     </div>
     <div class="ctl page" data-tab="play" hidden>
       <div><h3>THE GAME</h3><ul>
         <li><b>FREE ROAM</b>: no missions, the city is yours. Steal cars, cause trouble, collect cash and stay alive. <b>STORY</b> mode is coming later.</li>
         <li>You start at the door of your room at the Colony hotel; your car waits in its reserved space in the guests' lot.</li>
+        <li>Listen to the city: traffic, horns (stand in front of a stopped car and its driver honks), brakes, people talking, birds by day, crickets at night, the surf by the sea, far-off sirens and dogs. In a car it is muffled.</li>
         <li><b>POINTS</b> <span id="helpPoints"></span></li></ul></div>
       <div><h3>CARS</h3><ul>
         <li>Walk up to one and press <b>E</b>: an empty car takes a second, pulling the driver out takes three (press again to give up).</li>
@@ -230,7 +223,8 @@
         <li>Leave a car in your garage or your reserved space and it stays there, saved. Going in unseen loses the police.</li></ul></div>
       <div><h3>CAR SHOWROOM</h3><ul>
         <li><b>SUNSTRIP MOTORS</b> on the beach avenue (a pink car on the maps): every car kind on a turntable, and three rare ones sold only there - the VELOCE, the SUNDANCER and the BRUISER.</li>
-        <li>Walk up to a car and <b>BUY</b>: pick its colour and a free garage bay or reserved space of a safehouse you own - it waits for you there.</li></ul></div>
+        <li>Walk up to a car and <b>BUY</b>: pick its colour and a free garage bay or reserved space of a safehouse you own - it waits for you there.</li>
+        <li><b>TUNING</b> behind it: drive in and stop. Paint, roof, stripes, rims, underglow, a spoiler and a scoop, and three levels of engine, brakes and armour - tap to try them on the car, <b>BUY</b> pays for the changes. Not for police cars, nor while you are wanted. The tuning stays with the car.</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>€</b> in its own colour on the maps, its name over the door and a ring of light at it. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>The <b>BLACK MARKET</b> at the docks sells the <b>AA LAUNCHER</b> (€25,000) and its rockets (€5,000): keep a helicopter, tank or APC inside the sight for 2 s until it locks, then let go - one rocket destroys it. You carry three at most; one more launcher lies hidden in the city.</li>
@@ -372,6 +366,18 @@
     <p class="keys">TAP A COLOUR · ENTER SPRAYS · ESC OR E LEAVES</p>
   </div>
 
+  <div class="card" id="tuneCard" hidden>
+    <p class="tag">SUNSTRIP TUNING · <span id="tnName">CAR</span></p>
+    <p class="sub" id="tnSub"></p>
+    <div class="tabs" id="tnTabs"><button type="button" data-t="looks" class="on">LOOKS</button><button type="button" data-t="parts">PARTS</button><button type="button" data-t="perf">PERFORMANCE</button></div>
+    <div id="tnLooks"><div class="chips" id="tnWhat"></div><div class="sws" id="tnSw"></div></div>
+    <div id="tnParts" hidden></div>
+    <div id="tnPerf" hidden></div>
+    <p class="warn ok" id="tnMsg"></p>
+    <div class="menu"><button id="tnGo" class="big pri" type="button">BUY</button><button id="tnNo" class="big alt back" type="button">LEAVE</button></div>
+    <p class="keys">TAP TO TRY IT ON THE CAR · ENTER BUYS · ESC OR E LEAVES</p>
+  </div>
+
   <div class="card" id="safeCard" hidden>
     <p class="tag" id="sfTag">FOR SALE</p>
     <h2 id="sfName">SAFEHOUSE</h2>
@@ -471,6 +477,7 @@
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/02c-music.js"></script>
+<script src="js/02d-city-sound.js"></script>
 <script src="js/03-input.js"></script>
 <script src="js/04-world.js"></script>
 <script src="js/05-entities.js"></script>
@@ -502,6 +509,7 @@
 <script src="js/08v-flights.js"></script>
 <script src="js/08w-showroom.js"></script>
 <script src="js/08x-visitors.js"></script>
+<script src="js/08y-tuning.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

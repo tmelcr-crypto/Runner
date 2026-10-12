@@ -143,10 +143,12 @@ function updateScope(inp, dt) {         // called from updatePlayer while a scop
     if (held === 'key') { const q = worldToScreen(P.x + Math.cos(P.ang) * 360, P.y + Math.sin(P.ang) * 360); SCOPE.sx = q.x; SCOPE.sy = q.y; }
   }
   if (!SCOPE.on) return;
-  if (held === 'touch') { SCOPE.sx = TS.fx; SCOPE.sy = TS.fy - SCOPE.hh - 46; }    // just above the finger
+  if (held === 'touch') {                                         // just above the finger; near the bottom edge it comes down to the finger, so the crosshair reaches it
+    const off = SCOPE.hh + 46; SCOPE.sx = TS.fx; SCOPE.sy = TS.fy - off * clamp((VH - TS.fy) / off, 0, 1);
+  }
   else if (held === 'mouse') { SCOPE.sx = mouse.x; SCOPE.sy = mouse.y; }
   else if (held === 'key') { SCOPE.sx += inp.ix * 520 * dt; SCOPE.sy += inp.iy * 520 * dt; }
-  SCOPE.sx = clamp(SCOPE.sx, SCOPE.hw + 4, VW - SCOPE.hw - 4); SCOPE.sy = clamp(SCOPE.sy, SCOPE.hh + 4, VH - SCOPE.hh - 4);
+  SCOPE.sx = clamp(SCOPE.sx, 0, VW); SCOPE.sy = clamp(SCOPE.sy, 0, VH);   // the crosshair goes anywhere on the screen; the scope around it may run off the edge
   SCOPE.aim = scopePick(SCOPE.sx, SCOPE.sy); SCOPE.hit = !!(SCOPE.aim && SCOPE.aim.hit);
   if (SCOPE.aim) P.ang = Math.atan2(SCOPE.aim.y - P.y, SCOPE.aim.x - P.x);
   const still = Math.hypot(P.vx, P.vy) < 12 && (SCOPE.by === 'key' || inp.mag <= 0.4);   // a stick pushed only far enough to turn you still counts as standing
@@ -247,6 +249,8 @@ function scopeUi() {                    // the ring, the crosshair and what the 
   if (!live) { if (!el.hidden) el.hidden = true; return; }
   const hw = SCOPE.hw, hh = SCOPE.hh; el.hidden = false;
   el.style.width = 2 * hw + 'px'; el.style.height = 2 * hh + 'px'; el.style.transform = 'translate(' + (SCOPE.sx - hw) + 'px,' + (SCOPE.sy - hh) + 'px)';
-  el.className = (WEAPONS[P.weapon].scope.shape === 'rect' ? 'rkt ' : '') + (SCOPE.ready ? (SCOPE.hit || SCOPE.tag.startsWith('DANGER') ? 'hit' : '') : 'wait');
+  el.className = (WEAPONS[P.weapon].scope.shape === 'rect' ? 'rkt ' : '') + (SCOPE.sy + hh + 30 > VH ? 'up ' : '') + (SCOPE.ready ? (SCOPE.hit || SCOPE.tag.startsWith('DANGER') ? 'hit' : '') : 'wait');   // up: the scope runs off the bottom, its words go above it
   setText('scopeTag', 'scopeTag', SCOPE.tag);
+  const t = $('scopeTag'); if (SCOPE.tagW === undefined || SCOPE.tagFor !== SCOPE.tag) { SCOPE.tagFor = SCOPE.tag; SCOPE.tagW = t.offsetWidth; }   // the words stay on the screen when the scope runs off its side
+  const tx = clamp(SCOPE.sx, SCOPE.tagW / 2 + 8, VW - SCOPE.tagW / 2 - 8) - SCOPE.sx; t.style.marginLeft = Math.round(tx) + 'px';
 }
