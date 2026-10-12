@@ -203,7 +203,8 @@ TIPS_STREETS = [('ID column', 'How the game finds each row. Do not change it; ro
             ('Drivers', 'Cars stop at the line on red (and on amber when they can), give way to oncoming cars when turning across them, and stop for people on the crossing of the street they turn into. Running a red light yourself is not a crime.', None),
             ('Pedestrians', 'People cross at the zebra crossings. The walk signal is green while the traffic across the crossing has red.', None),
             ('Lights and sirens', 'Ambulances and fire engines on a call and police cars after you go through red lights slowly. Cars ahead of them move to the right and slow down.', None),
-            ('Heat reducers', 'Each takes one star off. One lies on the road while you are wanted enough; others wait in fixed back alleys. All of them are taken from inside a car too.', None)]
+            ('Heat reducers', 'Each takes one star off. One lies on the road while you are wanted enough; others wait in fixed back alleys. All of them are taken from inside a car too.', None),
+            ('City sound', 'All made by the game, no recordings. Each % is the loudness of one layer (100 = as tuned, 0 = off); City sound volume scales them all. Sounds of cars and people come from where they are and fade with distance.', None)]
 TIPS_POLICE = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
         ('Units', 'Distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h or m/s, times in seconds, % as 0 to 100.', None),
         ('Heat and stars', 'Each crime the police see or hear adds heat (Crimes sheet). Enough heat gives a wanted level (Wanted levels: Heat needed). Heat below 1 star fades away; stars only go when you lose the police or pay a fine.', None),

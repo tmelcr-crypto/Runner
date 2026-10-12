@@ -145,7 +145,7 @@ let lastTs = 0;
 function frame(ts) {
   requestAnimationFrame(frame);
   const rdt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016); lastTs = ts;
-  handleKeys();
+  handleKeys(); cityFrame(rdt);                                     // the city's own sound follows what is around (js/02d)
   if (state === 'preview') { pvFrame(); return; }
   if (state === 'sleep' && SAFEST.sleeping) sleepTick(rdt);                // sleeping in a safehouse: the clock runs on (js/08s)
   if (SV.on) { if (state === 'side') sideFrame(rdt, ts / 1000); Radio.update(rdt); return; }   // inside a tower: the side-on view instead of the city (js/08t)

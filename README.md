@@ -287,6 +287,16 @@ Ambulances and fire engines on a call take the shortest way by road at up to 65 
 
 Every vehicle is one column of `js/01c-vehicle-data.js`: size, speed, acceleration, braking, steering, grip, health, weight, how much each tree it knocks down slows it, armour, how often it drives in traffic, parks or is sent by the police (and from which wanted level), how many are hidden, its job, its weapon, its delivery price at the docks, its colours. Acceleration given to a speed at or above the top speed counts as the time to reach top speed. `tools/vehicle_sheet.py` exports it to Apple Numbers or Excel and imports an edited copy (`export vehicles.numbers`, `import vehicles.numbers [--dry-run]`): one column per vehicle, rows found by their label, every value checked; a new column becomes a new vehicle (body `new` until its model is built).
 
+## City sound
+
+The city has a sound of its own under everything else (mode row `citySound`, on in both modes), all made by the game like its other sounds, heard from the middle of the screen - cars and people from the side they are on, louder the closer (within 60 m):
+- **traffic** - a low hum and a tyre hiss that grow with the moving cars around you (quieter at night, the hiss wetter in the rain); a driver honks when you stand or park right in front of their stopped car (after 2.5 s), now and then when stuck in a queue for long, and when you come at them fast; buses and trucks honk low, sports cars and bikes high; brakes squeal when a car stops hard;
+- **people** - arcade-style chatter from the people about (each with a voice of their own; now a question, now a laugh), more where there are more people, half at night and little in the rain; a shout when someone turns on you, screams when people run;
+- **nature** - birds in the trees by day, crickets in the green at night, gulls and the surf rolling in and out near the sea, wind that grows with the storms;
+- **far off** - about every 18 s something soft and muffled in the distance: a siren, dogs barking, a building site's hammer or drill (by day), a plane passing over, a car alarm, a horn.
+
+Inside a car the whole mix is muffled and at 45%; with the map, the weapon grid, a menu, a shop or a cutscene it fades out. Every layer has its own loudness in the streets table (group *City sound*: volume, traffic, horns and brakes, people, nature, far-off sounds and how often, how far cars and people are heard, how loud inside a car); 0% switches a layer off.
+
 ## Car radio
 
 Most cars have the radio on when you get in (85%; police and service vehicles start with it off). **R** in a car, or the **RADIO** button (top, shown in a car), tunes to the next station with a burst of static, and the last step turns it off; the station's name shows above the speedometer. Each car keeps its station, and a saved game keeps the one you were driving with.
@@ -611,7 +621,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01j-mode-data.js` | the game modes (free roam, story) and which features each has; `feat(id)` |
 | `js/01k-airport-data.js` | the airport settings in everyday units (edit by hand or with `tools/settings_sheet.py airport`), converted to `AIRP` |
 | `js/01l-places-data.js` | the airport gates, the military base, the port, the lunapark, the space center and the spray garages in everyday units (`tools/settings_sheet.py places`), converted to `PLC` |
-| `js/01m-streets-data.js` | traffic lights, drivers, pedestrians, sirens and the heat reducers on the road and in the alleys, in everyday units (`tools/settings_sheet.py streets`), converted to `STR` |
+| `js/01m-streets-data.js` | traffic lights, drivers, pedestrians, sirens, the heat reducers on the road and in the alleys, the visitors and the city sound, in everyday units (`tools/settings_sheet.py streets`), converted to `STR` |
 | `js/01n-clothes-data.js` | the ten clothes shops, every piece of clothing (slot, style, colours, price) and the clothes' police settings (`tools/clothes_sheet.py`) |
 | `js/01o-jobs-data.js` | the vehicle jobs: dispatch points, levels, the clock, pay, rewards, nitro (`tools/settings_sheet.py jobs`) |
 | `js/01p-races-data.js` | the races: phone booths, street races and their five fixed routes, the NASCAR race, the drag strip, results (`tools/settings_sheet.py races`) |
@@ -620,6 +630,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01s-parks-data.js` | the 60 parks, squares and plazas (name, kind, colour) and how the parks are picked (`tools/parks_sheet.py`), `PARKS_TABLE`, `PARKS` |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02c-music.js` | the cutscenes' music, played by the game itself: a sequencer (drums, bass, pads, arpeggio, lead) and the track *Neon Skyline* |
+| `js/02d-city-sound.js` | the city's own sound: traffic hum, horns and brakes, people's chatter and screams, birds, crickets, gulls, surf, wind and far-off sounds |
 | `js/02b-radio.js` | the car radio: plays the station of the car you are in, live position, tuning, fading, the station name |
 | `js/03-input.js` | keyboard, mouse, touch |
 | `js/04-world.js` | spatial hash, collision with turned boxes, raycast, distance-to-shore field, bridge rails, driveway gates, road graph queries and shortest paths, district building styles |

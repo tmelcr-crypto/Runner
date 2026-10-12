@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1m. STREETS SETTINGS ----------
    Traffic lights and the rules of the road (js/07b), the walk signals at the crossings, lights and sirens, the heat reducers lying
-   on the road or in the back alleys (js/08d), and the visitors at the Colony and the cement works (js/08x). tools/settings_sheet.py exports this table to Apple Numbers or Excel and writes an edited
+   on the road or in the back alleys (js/08d), the visitors at the Colony and the cement works (js/08x), and the city's own sound (js/02d). tools/settings_sheet.py exports this table to Apple Numbers or Excel and writes an edited
    copy back:  python3 tools/settings_sheet.py streets export streets.numbers  /  ... streets import streets.numbers
    Keep the JSON between the markers valid. */
 const STREETS_TABLE = /*STREETS-JSON*/{
@@ -30,7 +30,17 @@ const STREETS_TABLE = /*STREETS-JSON*/{
   {"id": "visitMax", "group": "Visitors", "name": "Visitors' cars at a site at most", "unit": "count", "min": 0, "max": 12, "v": 3, "note": "Parked there or on the way in or out."},
   {"id": "visitStayMin", "group": "Visitors", "name": "A visit lasts at least", "unit": "s", "min": 5, "max": 1200, "v": 40, "note": "From parking until someone walks out to the car."},
   {"id": "visitStayMax", "group": "Visitors", "name": "... and at most", "unit": "s", "min": 5, "max": 1200, "v": 150, "note": "A random time between the two."},
-  {"id": "visitNear", "group": "Visitors", "name": "Visits happen while you are within", "unit": "m", "min": 50, "max": 600, "v": 220, "note": "Distance from the site's car park; farther away nobody comes or goes."}
+  {"id": "visitNear", "group": "Visitors", "name": "Visits happen while you are within", "unit": "m", "min": 50, "max": 600, "v": 220, "note": "Distance from the site's car park; farther away nobody comes or goes."},
+  {"id": "csVolume", "group": "City sound", "name": "City sound volume", "unit": "%", "min": 0, "max": 200, "v": 100, "note": "Everything below together. 0 switches the city sound off."},
+  {"id": "csTraffic", "group": "City sound", "name": "Traffic hum and tyres", "unit": "%", "min": 0, "max": 200, "v": 100, "note": "Grows with the moving cars around you; quieter at night when there are fewer."},
+  {"id": "csHorns", "group": "City sound", "name": "Horns and brakes", "unit": "%", "min": 0, "max": 200, "v": 100, "note": "Drivers honk when they are stuck or you are in their way; brakes squeal when a car stops hard."},
+  {"id": "csHornAfter", "group": "City sound", "name": "A driver you block honks after", "unit": "s", "min": 0.5, "max": 30, "v": 2.5, "note": "With you (on foot or in a car) right in front of a stopped car. A driver stuck in a queue honks only after four times as long, and only now and then."},
+  {"id": "csPeople", "group": "City sound", "name": "People talking and shouting", "unit": "%", "min": 0, "max": 200, "v": 100, "note": "Arcade-style chatter, more where more people are; half at night, little in the rain. Shouts and screams when people run from trouble."},
+  {"id": "csNature", "group": "City sound", "name": "Birds, crickets, gulls, waves and wind", "unit": "%", "min": 0, "max": 200, "v": 100, "note": "Birds in the trees by day, crickets in the green at night, gulls and the surf near the sea, wind that grows with storms."},
+  {"id": "csFar", "group": "City sound", "name": "Far-off sounds", "unit": "%", "min": 0, "max": 200, "v": 100, "note": "Sirens, dogs barking, a building site's hammers and drills (by day), a plane passing over, a car alarm - far away, soft and muffled."},
+  {"id": "csFarEvery", "group": "City sound", "name": "A far-off sound about every", "unit": "s", "min": 3, "max": 300, "v": 18, "note": "A random time around this."},
+  {"id": "csHear", "group": "City sound", "name": "Cars and people are heard within", "unit": "m", "min": 10, "max": 150, "v": 60, "note": "From the middle of the screen. Louder the closer, and from their side (left or right speaker)."},
+  {"id": "csInCar", "group": "City sound", "name": "Inside a car the city sounds at", "unit": "%", "min": 0, "max": 100, "v": 45, "note": "Of its volume, muffled; the radio and your engine stay as they are."}
 ]
 }/*END-STREETS-JSON*/;
 /* STR: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */
