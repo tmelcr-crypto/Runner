@@ -95,6 +95,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
    - 100 more unique places: 40 more unique buildings (new kinds too: skyscrapers, a school, an arena, a parking garage, a gas
      station...) and 60 places - every park, square and plaza its own design (ponds, gardens, playgrounds, a skate park,
      sculptures, a bandstand...). No repeated patterns: everything recognisable.
+     - done: the 40 buildings (skyscrapers, condo towers, schools, the arena on a park, parking garages, gas stations, museums,
+       civic buildings, supermarkets, car washes, bowling alleys)
    - More tall buildings (future obstacles for flying).
    - Large empty areas filled with forests.
    - One factory with tall smoking chimneys in Gravel Flats, next to the future junkyard.

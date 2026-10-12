@@ -1,10 +1,11 @@
 'use strict';
-/* ---------- 7p. 120 UNIQUE BUILDINGS ----------
+/* ---------- 7p. 160 UNIQUE BUILDINGS ----------
    The unique buildings table (js/01r): each row takes the lot of an ordinary building that faces a street - its front not to the north,
    where the camera would see only its back, the right size for its kind, in a district that suits it, hotels, motels, clubs and diners
    near a sand beach first, never too close to another, at least one in every district with a lot that suits - and stands there as its own model in the building's footprint (solid as before,
    or only where it stands when it leaves part of the lot open: a diner's car park, a motel's pool court, a villa's courtyard, a church's lawn): Art Deco and Streamline hotels, MiMo motels,
-   Mediterranean villas, diners, cinemas, banks, churches, nightclubs, shops and offices, each in its colours with its name in neon.
+   Mediterranean villas, diners, cinemas, banks, churches, nightclubs, shops and offices, each in its colours with its name in neon
+   (and the 40 of the city's own kinds, js/10o: their models, sizes and heights join the tables here; the arena takes a park).
    The SEA BREEZE stands where its name was, by the old start. Picked once with the city (js/04 genWorld), always the same lots;
    streamed like the landmarks. Scenery: both modes.
    Each model is built in the lot's frame: x along the street (width W), z from the back to the front (depth D), the front at z = D/2. */
@@ -16,6 +17,7 @@ const UQ_FIT = {                          // kind: front width and depth (game u
   bank: { w: [70, 180], d: 60, dist: ['PALM HEIGHTS', 'SEAVIEW', 'SUNSTRIP', 'MERCADO'] }, church: { w: [60, 160], d: 80 },
   club: { w: [60, 180], d: 60, beach: true }, shop: { w: [40, 120], d: 40 }, office: { w: [80, 220], d: 80, dist: ['PALM HEIGHTS', 'SEAVIEW', 'SUNSTRIP'] } };
 const UQ_NOT = ['DOCKSIDE', 'GRAVEL FLATS', 'SKYPORT', 'OPEN WATER'];
+const UQ_H = {}, UQ_SITE = {};            // the kinds of js/10o: kind -> its height (a function); kind -> a site of its own instead of a building's lot
 
 function placeUniques() {                 // js/04 genWorld, after the safehouses
   UNIQUES = []; if (typeof UNIQUE_TABLE === 'undefined') return;
@@ -39,6 +41,7 @@ function placeUniques() {                 // js/04 genWorld, after the safehouse
     for (const row of rows) {
       const F = UQ_FIT[row.kind] || UQ_FIT.shop;
       if (row.id === 'sea_breeze') { const c = cand.find(o => o.r.sign === 'SEA BREEZE'); if (c && !c.taken) { take(row, c); continue; } }
+      if (UQ_SITE[row.kind]) { const c = UQ_SITE[row.kind](row, used); if (c) take(row, c); continue; }
       const fits = c => c.W >= F.w[0] && c.W <= F.w[1] && c.D >= F.d && ok(c);
       const isHotel = hotels.includes(row), wantBeach = isHotel ? hotelN++ < nBeach : F.beach;
       let c = null;
@@ -50,7 +53,7 @@ function placeUniques() {                 // js/04 genWorld, after the safehouse
     const count = d => used.filter(u => u.dname === d).length;                        // every district with a lot that suits gets one, moved from the busiest
     for (const d of [...new Set(cand.map(c => c.dname))].sort()) {
       if (count(d) > 0) continue;
-      const movers = used.filter(u => u.row.id !== 'sea_breeze' && count(u.dname) >= 3).sort((a, b) => count(b.dname) - count(a.dname) || (((UQ_FIT[b.row.kind] || {}).dist || []).includes(d) ? 1 : 0) - (((UQ_FIT[a.row.kind] || {}).dist || []).includes(d) ? 1 : 0));
+      const movers = used.filter(u => u.row.id !== 'sea_breeze' && !UQ_SITE[u.row.kind] && count(u.dname) >= 3).sort((a, b) => count(b.dname) - count(a.dname) || (((UQ_FIT[b.row.kind] || {}).dist || []).includes(d) ? 1 : 0) - (((UQ_FIT[a.row.kind] || {}).dist || []).includes(d) ? 1 : 0));
       for (const u of movers) {
         const F = UQ_FIT[u.row.kind] || UQ_FIT.shop;
         const c = cand.find(o => o.dname === d && !o.taken && o.W >= F.w[0] && o.W <= F.w[1] && o.D >= F.d && used.every(v => v === u || dist(v.r.cx, v.r.cy, o.r.cx, o.r.cy) > far));
@@ -80,7 +83,7 @@ function uqDoor(r) {                     // the side that faces a street (js/10l
 }
 function uniqueSite(row, c) {
   const { r, door } = c, a = Math.atan2(-door.fx, door.fy);                          // the mesh's +z is the front, toward the street
-  const H = { deco: rand(50, 80), streamline: rand(60, 100), mimo: 34, med: rand(36, 60), diner: 20, cinema: rand(46, 62), bank: rand(40, 56), church: 40, club: rand(30, 42), shop: rand(24, 38), office: rand(120, 210) }[row.kind] || 40;
+  const H = { deco: rand(50, 80), streamline: rand(60, 100), mimo: 34, med: rand(36, 60), diner: 20, cinema: rand(46, 62), bank: rand(40, 56), church: 40, club: rand(30, 42), shop: rand(24, 38), office: rand(120, 210) }[row.kind] || (UQ_H[row.kind] ? UQ_H[row.kind]() : 40);
   r.H = row.kind === 'church' ? 90 : H;
   return { row, r, W: c.W, D: c.D, H, a, door, side: Math.random() < 0.5 ? -1 : 1, seed: 12100 + row.id.length * 31 + Math.round(r.cx) % 997, lm: null };
 }
