@@ -11,6 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
+  - Later versions (2 to 7): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -538,7 +539,39 @@ def remodel6(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6]
+# version 7: Gravel Flats' cement works (js/10r) on the space center's empty south-east corner below its launch control center, between its
+# fence and the shore (gravel.factory: area, fence, gate; hall and tower [x0, y0, x1, y1, height], kiln [from, to, radius], cooler, silos
+# [x, y, r, height], chimneys [x, y, share of the tallest], piles [x, y, r], trucks [x, y, angle, kind], lamps), and east of it, up to the
+# street corner, the yard kept for the junkyard (gravel.junk: area, gate - PLAN step 6). Both are gravel yards (yards y); the space
+# center's area and fence shrink to make room.
+def remodel7(M):
+    SP = unary_union([poly(r) for r in M['space']['area']]); CUT = box(3560, 2000, 4700, 2700)
+    F = largest(SP.intersection(CUT)); NEW = largest(SP.difference(CUT).buffer(0))
+    S = M['space']; S['area'] = rings(NEW); S['fence'] = fence_line(NEW.buffer(-30).exterior, [S['gate']])
+    clear_ground(M, F)
+    FAC = largest(F.intersection(box(3500, 1900, 4250, 2700))); J = largest(F.intersection(box(4250, 1900, 4700, 2700)))
+    fgate = {'x': 4238, 'y': 2075, 'a': 0, 'w': 100}
+    M['yards'] += rings(F, 'y')
+    lay = {
+        'hall': [3620, 2080, 3900, 2240, 72], 'tower': [3930, 2036, 4010, 2116, 230], 'kiln': [[4010, 2168], [4196, 2184], 15], 'cooler': [4160, 2136, 4214, 2214, 40],
+        'silos': [[3985, 2256, 30, 170], [4060, 2256, 30, 170], [4130, 2250, 28, 150]], 'chimneys': [[3666, 2046, 1.0], [3746, 2046, 0.88], [3826, 2046, 0.76]],
+        'piles': [[3650, 2318, 46], [3752, 2338, 40], [3842, 2326, 34]], 'trucks': [[3965, 2345, 0, 'mixer'], [4200, 2262, 90, 'tanker'], [3880, 2360, 180, 'loader']],
+        'gatehouse': [4196, 2040, 30, 22], 'lamps': [[3605, 2270], [3920, 2300], [4180, 2300], [3920, 2040]], 'conveyor': [[3752, 2300], [3752, 2240]],
+    }
+    inner = FAC.buffer(-14)
+    for k in ('hall', 'tower', 'cooler'):
+        x0, y0, x1, y1 = lay[k][:4]; assert inner.contains(box(x0, y0, x1, y1)), k
+    for k in ('silos', 'piles'):
+        for q in lay[k]: assert inner.contains(Point(q[0], q[1]).buffer(q[2])), (k, q)
+    for q in lay['chimneys']: assert inner.contains(Point(q[0], q[1]).buffer(16)), q
+    for q in lay['trucks']: assert inner.contains(Point(q[0], q[1]).buffer(30)), q
+    M['gravel'] = {'factory': dict({'area': rings(FAC), 'fence': fence_line(FAC.buffer(-12).exterior, [fgate]), 'gate': fgate}, **lay),
+                   'junk': {'area': rings(J), 'gate': {'x': 4660, 'y': 2040, 'a': 0, 'w': 100}}}
+    M['remodel'] = 7
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7]
 
 
 if __name__ == '__main__':
@@ -566,5 +599,8 @@ if __name__ == '__main__':
     head = head.replace("   x, y, w, d, a, drive; the houseboat's deck and plank). */",
                         "   x, y, w, d, a, drive; the houseboat's deck and plank); version 6: the palm grove round the lunapark car park (lunapark.grove:\n"
                         "   area, coast, pier, head, boats). */")
+    head = head.replace("   area, coast, pier, head, boats). */",
+                        "   area, coast, pier, head, boats); version 7: Gravel Flats' cement works on the space center's south-east corner (gravel.factory)\n"
+                        "   and the yard by the street corner kept for the junkyard (gravel.junk). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

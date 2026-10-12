@@ -21,6 +21,7 @@ function buildMiniMap() {                   // the whole city drawn once; the mi
     m.fillStyle = '#e8e6f0'; for (let y = r.y0 + 260; y < r.y1 - 260; y += 200) m.fillRect(r.x - 4, y, 8, 110);   // the centre line
   }
   if (BASEM) fill(BASEM.area, '#3d4430'); if (SPACEM) fill(SPACEM.area, '#0f4a4a'); if (LUNA) fill(LUNA.area, '#5a3a6a');   // the base, the space center, the lunapark (js/10g)
+  if (FACT) fill(FACT.area, '#3a3446');                           // the cement works (js/10r)
   if (PORTM) { m.fillStyle = '#2a2244'; for (const s of PORTM.stacks) m.fillRect(s[0], s[1], s[2] - s[0], s[3] - s[1]); }
   if (SPW) { fill(SPW.area, '#2e2a3c'); mapSpeedway(m, x => x, y => y, 1); }   // the speedway (js/10i)
   m.fillStyle = '#7a4ad9'; for (const r of SOLIDS) if (!r.bld && !r.gate && !r.wall) box(r);       // landmarks and props

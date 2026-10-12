@@ -103,7 +103,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
    - (Asked on the way) Trees you knock down: not solid, a vehicle fells them and is slowed by weight (tank 0, motorbike 70%),
      on foot you walk through; under a tree (on foot, or stopped) the helicopter's light cannot see you, and its light alone
      holds you only 6 s without a cop on the ground. - done (js/12g; modes trees, heliLose)
-   - One factory with tall smoking chimneys in Gravel Flats, next to the future junkyard.
+   - One factory with tall smoking chimneys in Gravel Flats, next to the future junkyard. - done (the cement works on the space
+     center's south-east corner, js/10r; remodel 7 keeps the gravel yard east of it, up to the street corner, for the junkyard)
    - Reroute the roads that make no real-life sense (decide and fix; no need to ask).
    - Both drag strips: a band from the city through a park and a forest to the strip, then forest again to the beach; each
      strip gets a one-way exit toward the city, passable only from inside once a race is over.
@@ -116,7 +117,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
   engine, brakes, armour in price steps (vehicle table). Tuning is kept with the car in your garages and saves.
 
 ## 6. Junkyard and car crusher (Gravel Flats)
-- A fenced yard in the industrial north-west: stacks of wrecks (solid, some smashable), a magnet crane, the crusher, a shack and a
+- A fenced yard in the industrial north-west (the gravel yard kept for it in Gravel Flats, east of the cement works by the street
+  corner: MAP.gravel.junk): stacks of wrecks (solid, some smashable), a magnet crane, the crusher, a shack and a
   guard dog that chases you on foot. Drive a car onto the crane's spot and get out: the magnet lifts it into the crusher, a cube
   comes out, you are paid by kind and damage (economy table). Crushing a police car is a crime only if a cop sees it.
 
