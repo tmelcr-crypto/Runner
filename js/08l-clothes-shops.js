@@ -1,8 +1,8 @@
 'use strict';
 /* ---------- 6l. CLOTHES SHOPS ----------
    Ten clothes shops (js/01n), each with its own range, take shop buildings spread over the city - always the same ones, apart from
-   the six weapon stores. Each is a coat hanger in its colour on the minimap and the city map; at its door a ring of light, a turning
-   shirt and the shop's name. Walk up on foot: SHOP (or E). Inside, your figure turns slowly: tap a piece and the figure tries it on;
+   the six weapon stores. Each is a coat hanger in its colour on the minimap and the city map; its name over the door, and at the door a ring of
+   light and a turning shirt. Walk up on foot: SHOP (or E). Inside, your figure turns slowly: tap a piece and the figure tries it on;
    tap it again to buy it (and wear it). What you have bought is yours: the WARDROBE tab at any clothes shop puts it on for free.
    Clothes are only changed at the shops. Changing at least one piece while no cop saw you go in makes the police lose you
    (js/01n settings: up to 3 stars; above that it drops to 3). Modes: clothes (js/01j). */
@@ -50,7 +50,7 @@ function placeClothes() {                // the first game: find the shops and p
     const glow = new THREE.Mesh(GP, glowMat(s.color, 0.8)); glow.scale.set(80, 1, 80); glow.position.y = 1.3; g.add(glow);
     const icon = new THREE.Group(), cm = mBas(s.color); icon.position.y = 18; g.add(icon);   // a shirt turning above the pad
     part(icon, GB, cm, 2.4, 10, 9, 0, 0, 0); for (const z of [-1, 1]) { const sl = part(icon, GB, cm, 2.4, 3.6, 5, 0, 3.4, z * 6); sl.rotation.x = z * 0.7; }
-    const sign = signMesh(s.name, s.color, 96, 24); sign.position.set(0, 84, 0); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180); g.add(sign);
+    storeFascia(s, g);                                                // the name over the door (js/08e)
     g.userData = { icon, ring }; s.g = g; clGroup.add(g);
   }
   clGroup.visible = feat('clothes');

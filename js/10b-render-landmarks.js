@@ -33,6 +33,17 @@ function textTex(text, col) {
   return (_txt[k] = finishTex(c));
 }
 function signMesh(text, col, w, h) { return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: textTex(text, col), side: THREE.DoubleSide })); }
+const _fas = {};
+function fasciaTex(text, col, aspect) {  // a name band for a facade, any width to its height: dark, edged in its colour, the name in the middle
+  const L = Math.round(96 * aspect), W = Math.min(2048, Math.pow(2, Math.ceil(Math.log2(Math.max(128, L))))), k = text + col + L; if (_fas[k]) return _fas[k];
+  const c = document.createElement('canvas'); c.width = W; c.height = 128; const g = c.getContext('2d'); g.scale(W / L, 128 / 96);   // drawn L x 96, stretched back by the plane
+  g.fillStyle = '#0a0614'; g.fillRect(0, 0, L, 96); g.strokeStyle = col; g.lineWidth = 5; g.shadowColor = col; g.shadowBlur = 12; g.strokeRect(6, 6, L - 12, 84);
+  let fs = 62; const font = () => 'bold ' + fs + 'px "Arial Black",Impact,sans-serif'; g.font = font(); while (g.measureText(text).width > L - 44 && fs > 14) { fs -= 3; g.font = font(); }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = col; g.fillText(text, L / 2, 51); g.shadowBlur = 4; g.globalAlpha = 0.85; g.fillStyle = '#ffffff'; g.fillText(text, L / 2, 51);
+  return (_fas[k] = finishTex(c));
+}
+function fasciaSign(text, col, w, h) { return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: fasciaTex(text, col, w / h) })); }
+const fasciaFit = (text, h, max) => Math.min(max, h * Math.max(3, 0.62 * text.length + 1.2));   // a band about as long as its name needs
 function palm(T, x, z, h) {
   T.prism(x, z, 2.4, 0, h, _C('#3b2a1e'), 5);
   T.prism(x, z, 14, h - 2, h + 3, _C(pick(['#0f8f86', '#1ec9a6', '#14a37f'])), 7, 2, true);
@@ -54,7 +65,10 @@ function makeStadium(L) {                                        // a bowl of st
     }
   });
   for (const a of [0.8, 2.35, 3.95, 5.5]) { const x = Math.cos(a) * (R + 14), z = Math.sin(a) * (R + 14); T.prism(x, z, 2.6, 0, 96, _C('#14102a'), 6); box5(G, x - 11, 94, z - 4, x + 11, 102, z + 4, _C('#fff3b0')); }
-  const m = lmMesh(T, G), sg = signMesh('NEON BOWL', '#2bf3ff', 230, 44); sg.position.set(0, 58, R - 4); m.add(sg); m.userData.own.push(sg.material);
+  const gz = R - 9;                                                                                    // the gateway over the south entrance: two pylons, the name between them
+  for (const sx of [-1, 1]) { box5(T, sx * 100 - 9, 0, gz - 7, sx * 100 + 9, 92, gz + 7, _C('#2a2348')); box5(G, sx * 100 - 9.6, 88, gz - 7.6, sx * 100 + 9.6, 90, gz + 7.6, _C('#2bf3ff')); }
+  box5(T, -91, 40, gz - 3, 91, 84, gz + 1, _C('#2a2348'));
+  const m = lmMesh(T, G), sg = signMesh('NEON BOWL', '#2bf3ff', 172, 40); sg.position.set(0, 62, gz + 1.3); m.add(sg); m.userData.own.push(sg.material);
   return m;
 }
 const stadiumGap = a => Math.abs(angDiff(a, Math.PI / 2)) < 0.2;
@@ -91,7 +105,8 @@ function makeMall(L) {                                           // H-shaped two
     const z = sz * (ch + 30 + k * 60); if (Math.abs(z) > h / 2 - 20) continue;
     for (let x = -w / 2 + ww + 14; x < w / 2 - ww - 14; x += 26) flat(G, x, z - 0.8, x + 2, z + 22, 0.9, line);
   }
-  const m = lmMesh(T, G), sg = signMesh('BAYSIDE MALL', '#ff2bd6', 150, 32); sg.position.set(0, 64, ch + 2); m.add(sg); m.userData.own.push(sg.material);
+  box5(T, -82, 40, ch - 8, 82, 84, ch + 0.5, wall); box5(T, -84, 84, ch - 9, 84, 87, ch + 1.5, _C('#b7aed0'));   // the entrance front carried up over the roof, the name on it
+  const m = lmMesh(T, G), sg = signMesh('BAYSIDE MALL', '#ff2bd6', 150, 32); sg.position.set(0, 64, ch + 0.8); m.add(sg); m.userData.own.push(sg.material);
   return m;
 }
 function makeLighthouse() {                                      // striped tower on the rocks with a turning beam
@@ -274,8 +289,6 @@ function makeColonyBig() {
   put(neonSign('COLONY', true, 42, 150), F + 0.8, 120, 0, Math.PI / 2);                                // down the face of the pylon
   for (const sz of [-1, 1]) put(neonSign('COLONY', true, 34, 150), (x1 - 4 + F) / 2, 120, sz * 26.8, sz > 0 ? 0 : Math.PI);
   put(neonSign('HOTEL', false, 220, 15), F + 0.8, 42, 0, Math.PI / 2);
-  const board = neonSign('COLONY HOTEL', false, 190, 32); board.rotation.order = 'YXZ';                // a board on the roof the camera can read, whichever way the hotel faces (beside the pylon, not over it)
-  board.rotation.set(-(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180), COLONY.a, 0); board.position.set(x1 - 60, H + 46, -COLONY.ca * 125); m.add(board); own.push(board.material);
   return m;
 }
 function makeColonyPark(L) {             // its park: lawns (map grass), paths (map yards), the fountain, palms, flower beds, benches, lamps
@@ -348,6 +361,7 @@ function makeColonyRing(R) {
   for (const u of [-R.hl * 0.38, R.hl * 0.38]) { const [x, , z] = W(u, 0, 0); for (let k = 0; k < 5; k++) T.prism(x + rand(-10, 10), z + rand(-10, 10), rand(4, 6), 4.4, rand(8, 11), _C(pick(['#2e8b57', '#3a9e4a', '#23b38a'])), 7, 3, true); }   // low bushes
   const [sx, sy] = colonyAt(COLONY.lw / 2 + VALET_STAND[0], VALET_STAND[1]), ox = sx - R.x, oz = sy - R.y;   // the valet stand: a lectern with the key box on it
   box5(T, ox - 4, 0, oz - 5, ox + 4, 11, oz + 5, _C('#5a3a26')); box5(T, ox - 3, 11, oz - 4, ox + 3, 15, oz + 4, _C('#c9a24a')); box5(G, ox - 3.4, 13, oz - 4.4, ox + 3.4, 13.6, oz + 4.4, _C('#ffe9a8'));
+  box5(T, ox - 0.6, 15, oz - 0.6, ox + 0.6, 20, oz + 0.6, _C('#2a2d3a'));                                // the VALET board on a post on the lectern
   const m = lmMesh(T, G), sg = signMesh('VALET', '#ffd23f', 22, 6); sg.position.set(ox, 22, oz); sg.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180) * 0.6; m.add(sg); m.userData.own.push(sg.material);
   return m;
 }
@@ -535,7 +549,7 @@ function makeTV() {                                              // Bay TV: a co
   T.prism(0, 0, 9, 326, 332, conc, 12, 18); T.prism(0, 0, 18, 332, 340, glass, 12); G.prism(0, 0, 18.5, 334, 337, neon, 12); T.prism(0, 0, 18, 340, 344, conc, 12, 5, true);
   for (let k = 0; k < 6; k++) T.prism(0, 0, 3 - k * 0.3, 344 + k * 14, 358 + k * 14, k % 2 ? _C('#f1f1ee') : _C('#e0364f'), 6, 2.7 - k * 0.3);
   const m = lmMesh(T, G), tip = new THREE.Mesh(GSph, mBas(0xff3b5c)); tip.scale.set(4, 4, 4); tip.position.set(0, 430, 0); m.add(tip); m.userData.own.push(tip.material);
-  const sg = signMesh('BAY TV', '#2bf3ff', 60, 14); sg.position.set(0, 40, 49); m.add(sg); m.userData.own.push(sg.material);
+  const sg = signMesh('BAY TV', '#2bf3ff', 52, 13); sg.position.set(0, 21.5, 48.7); m.add(sg); m.userData.own.push(sg.material);   // on the base, over its glass band
   m.userData.anim = t => { tip.visible = (t % 1.4) < 0.7; };
   return m;
 }
@@ -556,7 +570,8 @@ function makeTwist() {                                           // the Twist: 2
   lid(T, sq(rTop, top, 74 - N * 0.6 + 2.5), plate);
   G.prism(0, 0, 40, top, top + 3, _C('#2bf3ff'), 4); T.prism(0, 0, 4, top, top + 70, _C('#c9ccd4'), 6, 0.6, true);
   box5(G, -2, top + 70, -2, 2, top + 74, 2, _C('#ff3b5c'));
-  const m = lmMesh(T, G), sg = signMesh('THE TWIST', '#2bf3ff', 70, 14); sg.position.set(0, 20, 101); m.add(sg); m.userData.own.push(sg.material);
+  box5(T, -39, 8, 93, 39, 30, 99, _C('#8d86a8')); box5(T, -40, 30, 92.4, 40, 31.6, 99.6, _C('#2bf3ff'));   // a name wall on the podium's front edge
+  const m = lmMesh(T, G), sg = signMesh('THE TWIST', '#2bf3ff', 70, 17.5); sg.position.set(0, 19, 99.3); m.add(sg); m.userData.own.push(sg.material);
   return m;
 }
 function makeCrown() {                                           // the Crown: a stepped deco tower, piers up every face, a sunburst crown and a spire
@@ -598,7 +613,8 @@ function makeSail() {                                            // the Sail: a 
   for (let k = 0; k < K; k++) { const a = rings[k][NP], b = rings[k + 1][NP]; nquad(G, [a[0] - 1.5, a[1], a[2] + 0.6], [a[0] + 1.5, a[1], a[2] + 0.6], [b[0] + 1.5, b[1], b[2] + 0.6], [b[0] - 1.5, b[1], b[2] + 0.6], _C('#ff2bd6'), 0, -L); }
   T.prism(0, -L / 2, 7, 0, H + 70, white, 8, 3, true); box5(G, -2, H + 70, -L / 2 - 2, 2, H + 74, -L / 2 + 2, _C('#ff3b5c'));
   const hy = H * 0.78; beam(T, [0, hy - 10, -L / 2], [0, hy, -L / 2 - 36], 3, white); T.prism(0, -L / 2 - 46, 26, hy, hy + 2, _C('#5a5f69'), 16, 26, true); G.prism(0, -L / 2 - 46, 26.4, hy + 1, hy + 2.4, _C('#3dffa6'), 16);
-  const m = lmMesh(T, G), sg = signMesh('THE SAIL', '#ff2bd6', 70, 15); sg.position.set(0, 26, 116); m.add(sg); m.userData.own.push(sg.material);
+  box5(T, -39, 12, 109, 39, 32, 114.6, _C('#d8c9a4')); box5(T, -40, 32, 108.4, 40, 33.6, 115.2, _C('#ff2bd6'));   // a name wall on the podium, before the prow
+  const m = lmMesh(T, G), sg = signMesh('THE SAIL', '#ff2bd6', 70, 17.5); sg.position.set(0, 22, 114.9); m.add(sg); m.userData.own.push(sg.material);
   return m;
 }
 function makeWheel() {                                           // the big wheel on the beach: two A-frames, a neon rim, sixteen gondolas
@@ -634,6 +650,7 @@ function genLandmarks() {
     if (L.t === 'stadium') {
       const R = L.r, seg = 56;
       for (let k = 0; k < seg; k++) { const am = (k + 0.5) / seg * TAU; if (stadiumGap(am)) continue; solid(L.x + Math.cos(am) * (R - 31), L.y + Math.sin(am) * (R - 31), am + Math.PI / 2, 0, 0, TAU * R / seg * 1.08, 62); }
+      for (const sx of [-1, 1]) solid(L.x, L.y, 0, sx * 100, R - 9, 18, 14);                          // the gateway's pylons
       add(L.x, L.y, 0, R + 20, () => makeStadium(L));
     } else if (L.t === 'estate') {
       const x0 = L.x - L.w / 2, x1 = L.x + L.w / 2, y0 = L.y - L.h / 2, y1 = L.y + L.h / 2, t = 9, g = 110, sw = (L.w - g) / 2;

@@ -139,7 +139,6 @@ function makePns(G) {
   R.prism(cx, cz, 8, H, H + 30, mag, 14, 8, true); R.prism(cx, cz, 8.4, H + 9, H + 13, C('#ffffff'), 14, 8.4, true);
   R.prism(cx, cz, 8, H + 30, H + 33, C('#c8ccd4'), 14, 5, true); R.prism(cx, cz, 4.6, H + 33, H + 38, C('#e8e8ee'), 12, 4.6, true);
   box5(R, cx - 1.5, H + 38, cz - 1.5, cx + 1.5, H + 40, cz + 1.5, trim);
-  for (const s of [-1, 1]) box5(R, s * 30 - 1, H, hd - 34, s * 30 + 1, H + 14, hd - 32, trim);   // posts for the sign
   box5(RG, -hw - 0.2, H + 3, hd - 0.4, hw + 0.2, H + 4.2, hd + 0.2, mag);
 
   /* the door: slats in a frame of its own, rolled up by scaling toward the drum (geometry hangs down from y = 0) */
@@ -150,8 +149,7 @@ function makePns(G) {
   const roof = new THREE.Mesh(mergeBuilders([R, RG]), [roofMat, roofGlow]); m.add(roof);
   const door = new THREE.Mesh(D.build(), LM_MAT[0]); door.position.y = DH; m.add(door);
   const lampMat = new THREE.MeshBasicMaterial({ color: 0x3dff7a }), lamp = new THREE.Mesh(GB, lampMat); lamp.scale.set(4, 4, 2); lamp.position.set(dw / 2 + 8, 30, hd + 1.2); m.add(lamp);
-  const sign = signMesh("PAY 'N' SPRAY", '#ff2bd6', Math.min(2 * hw * 0.8, 150), 30); sign.material.transparent = true;
-  sign.position.set(0, H + 26, hd - 33); sign.rotation.order = 'YXZ'; sign.rotation.set(-(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180), G.a, 0); m.add(sign);   // facing the camera whichever way the door does
+  const sign = fasciaSign("PAY 'N' SPRAY", '#ff2bd6', fasciaFit("PAY 'N' SPRAY", 10, 2 * hw - 16), 10); sign.position.set(0, (DH + H) / 2, hd + 0.8); m.add(sign);   // the name over the door
   const pt = buildPerson('ped', 0xf2f2f2, '#d9a074');                    // the painter: white overalls, a mask, a spray gun
   part(pt.tilt, GB, mc(0x333840), 2.2, 2.4, 5.4, 3.4, 22.4, 0); pt.gun = part(pt.tilt, GB, E.black, 6, 2, 2, 7.5, 15, 3.6); part(pt.tilt, GB, mc(0xff2bd6), 2.6, 3.6, 2.6, 6, 12.6, 3.6);
   m.add(pt.g);

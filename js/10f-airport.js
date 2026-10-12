@@ -50,6 +50,7 @@ function makeTerminalHall() {                                    // a long glass
   for (let z = -hh + 130; z <= hh - 130; z += 120) box5(T, hw + 38, 0, z - 1.5, hw + 41, 24, z + 1.5, dark);
   for (let z = -hh + 180; z < hh - 150; z += 240) face(G, [[hw + 0.4, 0, z - 14], [hw + 0.4, 0, z + 14], [hw + 0.4, 13, z + 14], [hw + 0.4, 13, z - 14]], [1, 0, 0], _C('#ffe9b0'));   // doors
   for (const [ax, az] of [[-60, -hh + 200], [60, -200], [-40, 300], [70, hh - 260]]) box5(R, ax - 14, 48, az - 10, ax + 14, 56, az + 10, steel);   // plant on the roof
+  box5(R, -150, 38, hh - 2, 150, 86, hh + 6, wall); box5(R, -152, 86, hh - 3, 152, 89, hh + 7, trim);   // the south front carried up for the name (with the roof: away while a cutscene looks in)
   terminalInside(T, G, hw, hh, AIRF.stands.map(st => st.y - 60 - cz));
   const m = lmMesh(T, G), own = m.userData.own, roof = lmMesh(R, RG); m.add(roof); TERM.roof = roof; roof.visible = !TERM.open;
   AIRF.stands.forEach((st, i) => {                                // the bridge: a corridor from the wall, a rotunda on a column, a tunnel to the front door
@@ -57,9 +58,9 @@ function makeTerminalHall() {                                    // a long glass
     const B = new GeoBuilder(); obox(B, -hw, rz, rx, rz, 11, 13, 22, steel); B.prism(rx, rz, 8, 0, 23, dark, 10, 8, true);
     obox(B, rx, rz, ex, ez, 10, 13, 22, steel); box5(B, ex - 2, 0, ez - 2, ex + 2, 13, ez + 2, dark);
     const bm = new THREE.Mesh(mergeBuilders([B]), LM_MAT[0]); m.add(bm);
-    const sg = signMesh('GATE ' + (i + 1), '#ffe14a', 40, 9); sg.position.set(rx, 32, rz + 10); m.add(sg); own.push(sg.material);
+    const sg = signMesh('GATE ' + (i + 1), '#ffe14a', 30, 7.5); sg.position.set((rx - hw) / 2, 17.5, rz + 5.9); m.add(sg); own.push(sg.material);   // on the bridge's side
   });
-  const sg = signMesh('SKYPORT', '#2bf3ff', 300, 60); sg.position.set(0, 76, hh - 40); m.add(sg); own.push(sg.material);
+  const sg = fasciaSign('SKYPORT', '#2bf3ff', 290, 44); sg.position.set(0, 62, hh + 6.4); roof.add(sg); own.push(sg.material);   // on the south front, raised over the roof
   return m;
 }
 function terminalInside(T, G, hw, hh, gates) {                    // the hall under the roof: tiles, check-in, security, shops, the gates' seats; a clear concourse down the middle

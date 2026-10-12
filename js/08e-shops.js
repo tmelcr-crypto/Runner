@@ -2,7 +2,7 @@
 /* ---------- 6c3. STORES ----------
    Six stores (js/01g), each selling its own set of weapons - with the ammo for its guns and bombs - and health or body armor. They
    take shop buildings on the streets, spread over the city and always the same ones; each is marked on the minimap and the city map
-   ($ in the store's colour), and in front of its door a ring of light with a turning weapon and the store's name floating above.
+   ($ in the store's colour), its name is on the building over the door, and in front of the door a ring of light with a turning weapon.
    Walk up to the door (on foot) and a SHOP button appears by you: tap it, click it or press E, and the game waits while you shop.
    Your score is your cash. Weapons you have are marked OWNED; ammo, health and armor stop at what you can carry. */
 let STORES = null, shopGroup = null, shopAt = null, shopBought = false;
@@ -64,11 +64,23 @@ function placeStores() {                 // the first game: find the stores and 
     const beam = new THREE.Mesh(GCyl, new THREE.MeshBasicMaterial({ color: s.color, transparent: true, opacity: 0.14, depthWrite: false })); beam.scale.set(14, 52, 14); beam.position.y = 26; g.add(beam);
     const first = WEAPONS.find(w => s.sells.includes(w.id)), icon = new THREE.Group(), m = first ? weaponModel(first.id, s.color) : itemModel(s.sells.find(id => ITEM[id]) || 'health');
     const b = new THREE.Box3().setFromObject(m), c = b.getCenter(new THREE.Vector3()), sz = b.getSize(new THREE.Vector3()); m.position.sub(c); icon.add(m); icon.scale.setScalar(Math.min(3, 30 / Math.max(5, sz.x, sz.y, sz.z))); icon.position.y = 16; g.add(icon);
-    const sign = signMesh(s.name, s.color, 96, 24); sign.position.set(0, 84, 0); sign.rotation.x = -(Math.PI / 2 - CAM_TILT_DEG * Math.PI / 180); g.add(sign);   // turned to face the camera
+    storeFascia(s, g);
     g.userData = { icon, ring }; s.g = g; shopGroup.add(g);
   }
   shopGroup.visible = feat('stores');                               // a mode without stores (js/01j)
   for (const s of STORES) s.g.visible = storeOn(s);
+}
+function storeFascia(s, g) {             // the store's name on its building, over the door: a band just above the ground floor (a clothes shop's too, js/08l)
+  const r = s.r, off = (s.x - r.cx) * s.zx + (s.y - r.cy) * s.zy - r.lh / 2, yT = GFH + Math.max(1, Math.round((r.H - GFH) / FLOOR)) * FLOOR;
+  const y0 = GFH + 1.8, y1 = Math.min(GFH + 14.8, yT - 3), w = fasciaFit(s.name, y1 - y0, r.lw - 10), sign = fasciaSign(s.name, s.color, w, y1 - y0);
+  sign.position.set(-s.zx * (off - 1.2), (y0 + y1) / 2, -s.zy * (off - 1.2)); sign.rotation.y = Math.atan2(s.zx, s.zy); g.add(sign);
+  const back = part(g, GB, mc(0x2b2e38), w + 3, y1 - y0 + 3, 1, -s.zx * (off - 0.5), (y0 + y1) / 2, -s.zy * (off - 0.5)); back.rotation.y = sign.rotation.y;
+  if (Math.abs(s.zx) > 0.5) {             // a front the camera sees side-on: a blade too, standing out from the wall at the end toward the camera
+    const ux = s.zx > 0 ? -s.zy : s.zy, uy = Math.abs(s.zx), along = Math.min(w / 2 + 6, r.lw / 2 - 3), bw = 40, bh = 13;
+    const bx = -s.zx * off + ux * along + s.zx * (bw / 2 + 1.5), by = -s.zy * off + uy * along + s.zy * (bw / 2 + 1.5), ry = Math.atan2(ux, uy);
+    const fr = part(g, GB, mc(0x2b2e38), bw + 2, bh + 2, 0.8, bx, y0 + bh / 2, by); fr.rotation.y = ry;
+    const bl = fasciaSign(s.name, s.color, bw, bh); bl.position.set(bx + ux * 0.5, y0 + bh / 2, by + uy * 0.5); bl.rotation.y = ry; g.add(bl);
+  }
 }
 function euroTex(col) {                // the € painted in front of a store's door
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
