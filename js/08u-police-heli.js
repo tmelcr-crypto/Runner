@@ -7,12 +7,14 @@
    light is on you, and at 5 stars it also drops pipe bombs where you will be (their blasts are not your crime). When your stars drop
    below 3 it flies off. Only the sniper rifle (a few hits) and the AA launcher (one rocket, js/12f) bring it down: it spins down
    trailing smoke and blows up where it falls - a crime that always counts - and the next one comes only 10 minutes later.
-   It flies above the roofs and climbs over anything taller. */
+   It flies above the roofs and climbs over anything taller. Under a tree - on foot, or stopped in a vehicle - its light cannot see you
+   (js/12g). (js/01j heliLose) Its light alone holds you only so long: when no cop on the ground has seen you for the police table's
+   heliLose, it loses you and sweeps the search area again; once its light has left you it can find you again, for as long once more. */
 const PH = { mode: 'off', x: 0, y: 0, h: 0, vx: 0, vy: 0, ang: 0, roll: 0, pitch: 0, spin: 0, vh: 0, sx: 0, sy: 0, hp: 0, sees: false,
-  gunT: 0, burst: 0, shotT: 0, bombT: 0, sweep: 0, orb: 0, next: 0, wreckT: 0, hurt: 0, mesh: null, beam: null, pool: null, shadow: null };
+  gunT: 0, burst: 0, shotT: 0, bombT: 0, sweep: 0, orb: 0, next: 0, wreckT: 0, hurt: 0, lost: false, lockT: 0, mesh: null, beam: null, pool: null, shadow: null };
 const heliLive = () => PH.mode === 'hunt' || PH.mode === 'leave';   // in the air and in one piece: it can be shot at
 const HELI_ORBIT = 150;                                           // it circles its light at about this distance
-function heliReset() { PH.mode = 'off'; PH.next = 0; PH.sees = false; heliHide(); }
+function heliReset() { PH.mode = 'off'; PH.next = 0; PH.sees = false; PH.lost = false; PH.lockT = 0; heliHide(); }
 function heliHide() { for (const o of [PH.mesh, PH.beam, PH.pool, PH.shadow]) if (o) o.visible = false; }
 const _hb = [];
 function roofAt(x, y, m) {               // the highest roof within m of a point (0: open ground)
@@ -34,7 +36,7 @@ function updateHeli(dt) {
     heliFly(PH.x + ax * 2000, PH.y + ay * 2000, dt); PH.sx = PH.x + Math.cos(PH.ang) * 60; PH.sy = PH.y + Math.sin(PH.ang) * 60;
     if (d > visRadius() * 1.6 + 500) { PH.mode = 'off'; PH.next = gameT + 15; heliHide(); }
   } else {
-    PH.sees = heliSeesYou();
+    PH.sees = heliSeesYou(dt);
     let gx, gy;                                                    // where the light wants to be
     if (PH.sees || PS.seen) { gx = P.x; gy = P.y; }
     else { PH.sweep += dt; const a = PH.sweep * 0.8, r = Math.max(PS.r, 60) * (0.55 + 0.45 * Math.sin(PH.sweep * 0.43)); gx = PS.lx + Math.cos(a) * r; gy = PS.ly + Math.sin(a * 1.3) * r; }
@@ -54,16 +56,22 @@ function heliLift() {                   // how far north of where it really is t
   const D = camDist(), tl = CAM_TILT_DEG * Math.PI / 180, hc = D * Math.cos(tl); return clamp(PH.h / Math.max(60, hc - PH.h), 0, 1.2) * D * Math.sin(tl);
 }
 function heliNoise() { Snd.setRotor(clamp(1 - dist(PH.x, PH.y, cam.x, cam.y) / 1800, 0, 1)); }
-function heliSeesYou() {                 // you are in the light, and not under a car park deck
-  if (P.dead || zOf(P.car || P) > 15) return false;
-  const tg = P.car || P; return dist(PH.sx, PH.sy, tg.x, tg.y) < COP.heliLight + (P.car ? P.car.t.len * 0.3 : 6);
+function heliSeesYou(dt) {               // you are in the light - not under a car park deck, not under a tree (js/12g) - and it has not lost you
+  const tg = P.car || P, lit = !P.dead && zOf(tg) <= 15 && dist(PH.sx, PH.sy, tg.x, tg.y) < COP.heliLight + (P.car ? P.car.t.len * 0.3 : 6) && !treeCover();
+  if (!feat('heliLose')) return lit;
+  if (PS.ground) PH.lost = false;                                  // a cop on the ground sees you: it is told where you are
+  if (PH.lost) { if (!lit) PH.lost = false; return false; }        // it lost you: once its light has left you it can find you again
+  if (!lit) { PH.lockT = 0; return false; }
+  PH.lockT = PS.ground ? 0 : PH.lockT + dt;                        // its light alone holds you only so long
+  if (PH.lockT > COP.heliLose) { PH.lost = true; PH.lockT = 0; return false; }
+  return true;
 }
 function heliSpawn() {                   // in from the side of the nearest police station, from beyond the edge of the view
   let st = null, bd = Infinity; for (const s of SVC.police) { const d = dist(s.r.cx, s.r.cy, P.x, P.y); if (d < bd) { bd = d; st = s.r; } }
   const a = st && bd > 1 ? Math.atan2(st.cy - P.y, st.cx - P.x) : rand(0, TAU), R = visRadius() * 1.3 + 300, x = P.x + Math.cos(a) * R, y = P.y + Math.sin(a) * R;
   Object.assign(PH, { mode: 'hunt', x, y, h: Math.max(COP.heliHeight, roofAt(x, y, 90) + 8 * MPS), vx: 0, vy: 0, ang: a + Math.PI, roll: 0, pitch: 0, spin: 0, vh: 0,
     sx: x + Math.cos(a + Math.PI) * 60, sy: y + Math.sin(a + Math.PI) * 60, hp: Math.round(COP.heliSniper), sees: false, gunT: COP.heliBurstEvery * 0.5, burst: 0, shotT: 0,
-    bombT: COP.heliBombEvery * 0.6, sweep: 0, orb: a, hurt: 0 });
+    bombT: COP.heliBombEvery * 0.6, sweep: 0, orb: a, hurt: 0, lost: false, lockT: 0 });
   toast('POLICE HELICOPTER!', true);
 }
 function heliFly(gx, gy, dt) {           // toward a point: speed, acceleration, the nose into the way it goes, tilting with it; over the roofs

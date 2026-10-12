@@ -47,7 +47,8 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "towerFloorsMax", "group": "City", "name": "Towers rise at most", "unit": "floors", "min": 3, "max": 40, "v": 20, "note": "Each tower picks its height between the two."},
   {"id": "forestMin", "group": "City", "name": "A lawn gets woods when it is at least", "unit": "m", "min": 20, "max": 300, "v": 50, "note": "Across (the side of a square of the same area). The golf links, the big parks and the islands' greens - not the landmark parks or the designed ones; the space center's grounds get pine scrub."},
   {"id": "forestCover", "group": "City", "name": "Of such a lawn, woods cover", "unit": "%", "min": 0, "max": 100, "v": 55, "note": "In patches, meadows and clearings between them."},
-  {"id": "forestGap", "group": "City", "name": "Trees in the woods stand about this far apart", "unit": "m", "min": 2, "max": 12, "v": 3.5, "note": "Closer is a denser wood (and more for the graphics to draw)."}
+  {"id": "forestGap", "group": "City", "name": "Trees in the woods stand about this far apart", "unit": "m", "min": 2, "max": 12, "v": 3.5, "note": "Closer is a denser wood (and more for the graphics to draw)."},
+  {"id": "treeBack", "group": "City", "name": "A knocked-down tree is back after", "unit": "min", "min": 0.5, "max": 60, "v": 1.5, "note": "Every tree - in the woods, the parks, the palms along the streets and beaches - falls when a vehicle drives into it or a blast is near. It stands again after this long, once you are far enough away not to see it."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

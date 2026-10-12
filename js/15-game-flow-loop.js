@@ -124,7 +124,7 @@ function update(dt, idle) {
   gameT += dt; updateSky(dt);                                          // the clock and the weather (js/12d)
   const inp = idle ? null : readInput(), n = Math.min(4, Math.ceil(dt * 60 - 0.01)), h = dt / n;   // physics in steps of at most 1/60 s,
   for (let k = 0; k < n; k++) { if (!idle && !P.dead) updatePlayer(h, inp); updateCars(h); updateRockets(h); updateHoming(h); updatePlanes(h); updateShips(h); }       // so a fast car (or rocket) cannot pass through a wall
-  updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateGrenades(dt);   // street junk under wheels (js/12e)
+  updatePeds(dt); updateOfficers(dt); separatePeople(); updateBlast(dt); smashProps(dt); updateTrees(dt); updateGrenades(dt);   // street junk and trees under wheels (js/12e, js/12g)
   if (!idle) { updatePickups(dt); updateWeaponPicks(dt); autosaveTick(dt); rampTick(dt); jobTick(dt); raceTick(dt); pnsTick(dt); safeTick(dt); }   // safehouse doors and kept cars (js/08s)   // vehicle jobs (js/08n)   // the autosave (js/15b); rampages: found, the clock, people and cars brought in (js/08f)
   updateMedics(dt);                                                 // paramedics with their stretchers (js/08h)
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)

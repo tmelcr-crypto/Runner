@@ -10,9 +10,9 @@
    that ends in an arrest, shooting only where the level allows it, after a warning and never with a passer-by in the line of fire.
    Busted or wasted, you start again at a police station or a hospital and lose some score.
    Every number comes from the police table in js/01b-police-data.js (COP). */
-const PS = { seen: false, lx: 0, ly: 0, r: 0, lose: 0, seenT: -99, stopOn: false, holdT: 0, ignT: 0, armedT: -99, warned: false, fireAt: 0, dispT: 0, offT: 0, grab: 0, bustT: 0 };
+const PS = { seen: false, ground: false, lx: 0, ly: 0, r: 0, lose: 0, seenT: -99, stopOn: false, holdT: 0, ignT: 0, armedT: -99, warned: false, fireAt: 0, dispT: 0, offT: 0, grab: 0, bustT: 0 };
 function resetPolice() {
-  Object.assign(PS, { seen: false, r: COP.searchStart, lose: 0, seenT: -99, stopOn: false, holdT: 0, ignT: 0, armedT: -99, warned: false, fireAt: 0, dispT: 0, offT: 0, grab: 0, bustT: 0 });
+  Object.assign(PS, { seen: false, ground: false, r: COP.searchStart, lose: 0, seenT: -99, stopOn: false, holdT: 0, ignT: 0, armedT: -99, warned: false, fireAt: 0, dispT: 0, offT: 0, grab: 0, bustT: 0 });
 }
 
 /* ---------- seeing and hearing ---------- */
@@ -66,7 +66,8 @@ function updatePolice(dt) {
     if (P.heat > 0 && P.sinceCrime > 5) { P.heat = Math.max(0, P.heat - COP.coolBelow * dt); updateStars(); }
     PS.grab = 0; PS.bustT = 0; return;
   }
-  let seen = PH.sees; forCops((u, x, y, face) => { if (unitSees(u, x, y, face)) seen = true; });   // the helicopter's light counts too (js/08u)
+  let ground = false; forCops((u, x, y, face) => { if (unitSees(u, x, y, face)) ground = true; });
+  PS.ground = ground; const seen = ground || PH.sees;               // the helicopter's light counts too (js/08u)
   if (seen) { PS.seen = true; policeKnow(P.x, P.y); }
   else {
     PS.seen = false; PS.r = Math.min(COP.lv.searchMax[lv], PS.r + COP.searchGrow * dt);

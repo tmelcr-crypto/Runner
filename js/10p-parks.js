@@ -5,7 +5,8 @@
    rectangle of a lawn (off the streets, clear of the landmarks and the unique buildings), the biggest lawns first, spread apart.
    Each design is built in its site's frame: x along the street (width w), z from the back to the front (depth h), the front (+z) toward
    the street. Its name stands on a sign at the front corner, turned to whichever side the camera sees. What stands in it is solid (the
-   designs report their solids, js/04 genWorld registers them); the rest is walked on. Scenery: both modes. */
+   designs report their solids, js/04 genWorld registers them) but its trees, which fall when a vehicle drives into them (js/12g); the rest
+   is walked on. Scenery: both modes. */
 let PK_S = null;                          // while a design is being measured: the solids it reports, in its own frame
 const pkS = (x0, z0, x1, z1, soft) => { if (PK_S) PK_S.push([Math.min(x0, x1), Math.min(z0, z1), Math.max(x0, x1), Math.max(z0, z1), soft !== false]); };
 const PK_WOOD = '#7a5a3a', PK_IRON = '#2a2d3a', PK_STONE = '#e6e0f0', PK_GREEN = '#2f8f4e', PK_WATER = '#3fd0ff';
@@ -20,10 +21,10 @@ function pkBench(T, x, z, alongX, face) {                 // a park bench 16 lon
   else { box5(T, x - 2.4, 3.4, z - L, x + 2.4, 4.4, z + L, wood); box5(T, x - face * 2.4 - 0.5, 4.4, z - L, x - face * 2.4 + 0.5, 9, z + L, wood); for (const s of [-1, 1]) box5(T, x - 2, 0.8, z + s * (L - 1) - 0.5, x + 2, 3.4, z + s * (L - 1) + 0.5, iron); }
 }
 function pkLamp(T, G, x, z, h) { h = h || 26; T.prism(x, z, 0.8, 0, h, _C(PK_IRON), 6); box5(G, x - 2.4, h, z - 2.4, x + 2.4, h + 3, z + 2.4, _C('#fff3b0')); pkS(x - 1, z - 1, x + 1, z + 1); }
-function pkTree(T, x, z, r, h, col, solid) {              // a round shade tree: trunk, a full crown
-  col = col || pick(['#2f8f4e', '#3a9a52', '#2a7a46']); T.prism(x, z, Math.max(1, r * 0.12), 0, h * 0.5, _C('#6b4a2e'), 6);
+function pkTree(T, x, z, r, h, col) {                     // a round shade tree: trunk, a full crown (not solid: it falls, js/12g)
+  const v0 = T.pos.length / 3; col = col || pick(['#2f8f4e', '#3a9a52', '#2a7a46']); T.prism(x, z, Math.max(1, r * 0.12), 0, h * 0.5, _C('#6b4a2e'), 6);
   T.prism(x, z, r * 0.7, h * 0.4, h * 0.62, _C(col), 9, r); T.prism(x, z, r, h * 0.62, h * 0.82, _C(col), 9, r * 0.75); T.prism(x, z, r * 0.75, h * 0.82, h, _C(shade(col, 14)), 9, r * 0.2, true);
-  if (solid !== false) pkS(x - 2, z - 2, x + 2, z + 2);
+  treeNote(T, v0, { x, z, r, th: h * 0.55, kind: 'leafy', tc: '#6b4a2e', cc: col });
 }
 function pkBush(T, x, z, r, col) { T.prism(x, z, r, 0.8, 0.8 + r * 0.9, _C(col || '#2f7a3a'), 8, r * 0.55, true); }
 function pkBed(T, x0, z0, x1, z1, cols, step) {           // a raised flower bed, dotted with flowers
@@ -183,7 +184,7 @@ Object.assign(PK, {
   },
   palms(T, G, s) {                        // a grid of tall palms over pale paving, loungers in their shade
     const { w, h, c } = s; pkChecker(T, -w / 2, -h / 2, w / 2, h / 2, '#f0e8d8', '#e4dac6', 20);
-    for (let x = -w / 2 + 18; x < w / 2 - 10; x += 32) for (let z = -h / 2 + 18; z < h / 2 - 16; z += 30) { T.prism(x, z, 4, 0.8, 1.8, _C('#d8d0c0'), 8, 4, true); palm(T, x, z, 34 + ((x + z) % 7)); pkS(x - 2, z - 2, x + 2, z + 2);
+    for (let x = -w / 2 + 18; x < w / 2 - 10; x += 32) for (let z = -h / 2 + 18; z < h / 2 - 16; z += 30) { T.prism(x, z, 4, 0.8, 1.8, _C('#d8d0c0'), 8, 4, true); palm(T, x, z, 34 + ((x + z) % 7));
       const lx = x + 12; box5(T, lx - 2.6, 0.8, z - 6, lx + 2.6, 2.4, z + 4, _C(c)); face(T, [[lx - 2.6, 2.4, z + 4], [lx + 2.6, 2.4, z + 4], [lx + 2.6, 6, z + 8], [lx - 2.6, 6, z + 8]], [0, 1, -1], _C(c)); }
     return pkSign(T, s);
   },
@@ -496,7 +497,7 @@ Object.assign(PK, {
   lake(T, G, s) {                         // a lake with an island, a footbridge to it, swan boats, paths and benches round it
     const { w, h, c } = s, R = Math.min(w, h) * 0.36, cx = -w * 0.05, cz = -h * 0.05; flat(T, -w / 2, -h / 2, w / 2, h / 2, 0.7, _C('#4f8a3f'));
     T.prism(cx, cz, R + 8, 0.7, 0.9, _C('#d8d0c0'), 32, R + 8, true); pkPond(T, G, cx, cz, R, '#8a8478', 32);
-    const ix = cx + R * 0.3, iz = cz - R * 0.2, ir = R * 0.3; T.prism(ix, iz, ir, 3, 5, _C('#4f8a3f'), 16, ir * 0.9, true); pkTree(T, ix, iz, ir * 0.6, 30, null, false);
+    const ix = cx + R * 0.3, iz = cz - R * 0.2, ir = R * 0.3; T.prism(ix, iz, ir, 3, 5, _C('#4f8a3f'), 16, ir * 0.9, true); pkTree(T, ix, iz, ir * 0.6, 30);
     const bz0 = iz + ir * 0.8; for (let k = 0; k < 6; k++) { const z = bz0 + k * (cz + R - bz0) / 6, y = 4 + Math.sin(k / 5 * Math.PI) * 3; box5(T, ix - 4, y, z, ix + 4, y + 1, z + (cz + R - bz0) / 6, _C(PK_WOOD)); }   // the footbridge
     for (const [a, col] of [[2.4, '#f4f4f6'], [3.6, c], [4.4, '#f4f4f6']]) { const x = cx + Math.cos(a) * R * 0.6, z = cz + Math.sin(a) * R * 0.6; box5(T, x - 4, 3, z - 3, x + 4, 6, z + 3, _C(col)); beam(T, [x + 3, 6, z], [x + 4, 12, z], 1, _C(col)); box5(T, x + 3.4, 11, z - 0.8, x + 6, 12.4, z + 0.8, _C('#ff9f2e')); }   // swan boats
     for (let k = 0; k < 6; k++) { const a = k / 6 * TAU + 0.3; pkBench(T, cx + Math.cos(a) * (R + 14), cz + Math.sin(a) * (R + 14), Math.abs(Math.sin(a)) > 0.7, Math.abs(Math.sin(a)) > 0.7 ? -Math.sign(Math.sin(a)) : -Math.sign(Math.cos(a))); }
