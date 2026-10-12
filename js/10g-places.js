@@ -345,6 +345,7 @@ function drawPlaces(fb, fg, fc, fs, poles, heads, pools) {
     rect(R, S.vab[0] - S.vab[2] / 2 - 60, S.vab[1] - S.vab[3] / 2 - 40, S.vab[0] + S.vab[2] / 2 + 40, S.vab[1] + S.vab[3] / 2 + 40, 0.4, C('#7a786e'));
     for (const [x, y] of S.masts) lamp(x + 20, y, 50, '#fff1c0', 200);
   }
+  drawFactory(poles, heads, pools);                                // the cement works' floodlights (js/10r)
   if (PORTM) {                                                      // crane rails, a yellow safety line and fenders along the quay, floodlight masts
     const P2 = PORTM;
     for (const [[ax, ay], [bx, by]] of P2.quays) {

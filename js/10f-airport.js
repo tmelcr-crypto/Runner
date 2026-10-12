@@ -13,6 +13,7 @@ const FENCE_STYLE = {                                             // h: height; 
   compound: { h: 30, net: '#9a9a80', op: 0.38, wire: '#ffb02e', post: '#4a4f3a', kg: () => AIRP.fenceKg, barbed: true },
   lunapark: { h: 22, net: '#20182c', op: 0.6, wire: '#ffd23f', post: '#20182c', kg: () => Infinity },
   space: { h: 36, net: '#c8ccd4', op: 0.3, wire: '#ff3b5c', post: '#9aa0ab', kg: () => Infinity },
+  factory: { h: 26, net: '#8a8c90', op: 0.35, wire: '#c8ccd4', post: '#5d6273', kg: () => AIRP.fenceKg },
 };
 function addFence(lines, style) {                                 // fence panels of at most FENCE_PANEL along polylines; solids that stop people and cars
   for (const line of lines) for (let k = 0; k < line.length - 1; k++) {
