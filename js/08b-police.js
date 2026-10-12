@@ -213,6 +213,7 @@ function updateOfficers(dt) {
     if (o.dead) { o.deadT += dt; if (o.deadT > bodyTime(o)) officers.splice(k, 1); continue; }
     if (o.knocked) continue;
     if (o.stunT > 0) { o.stunT -= dt; continue; }                   // knocked down by a melee hit (js/06b)
+    if (o.rb && rbCop(o, dt)) continue;                              // a roadblock cop holds the place (js/08zr)
     const c = o.car;
     if (c && (c.dead || c.sunk || c.driver || !cars.includes(c))) crewLost(o);      // their car is gone, or someone drove off in it
     const tgt = P.car || P, d = dist(o.x, o.y, tgt.x, tgt.y);

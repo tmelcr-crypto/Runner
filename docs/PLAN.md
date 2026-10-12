@@ -134,6 +134,7 @@ rest of this step stands.)
   comes out, you are paid by kind and damage (economy table). Crushing a police car is a crime only if a cop sees it.
 
 ## 7. Police: roadblocks (the helicopter: see 4d.5, which replaces it)
+(Done October 2026: js/08zr; the police table's roadblock rows.)
 - **Roadblocks from 3 stars**: two police cars across a street ahead of you, cops behind them shooting; ram through or turn.
   (Asked October 2026: they grow with the stars) 3 stars: two cars, two cops with pistols; 4: three cars, four cops with SMGs; 5: an APC
   in the middle and cops with rifles. Set up 300-500 m ahead on the road you are on, about one a minute while you drive.

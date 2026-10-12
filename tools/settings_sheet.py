@@ -214,6 +214,7 @@ TIPS_POLICE = [('ID column', 'How the game finds each row. Do not change it; row
         ('Arrest', 'Other levels: cars pull up beside you (or ram you where Cars ram you = YES), the crew gets out and a cop who holds you long enough arrests you. Drive away and they run back to their car.', None),
         ('Shooting', 'Only on levels with Shoot on sight = YES, or Shoot back if attacked = YES after you fired, rammed a police car or hurt a cop. They shout a warning first and never shoot with a passer-by in the way.', None),
         ('Busted / wasted', 'With Carry on after busted or wasted = YES you start again at the nearest police station or hospital and lose a share of your score (and your weapons, if set).', None),
+        ('Roadblocks', 'From the levels with Roadblock police cars above 0: police cars across the street ahead of you while you drive, cops behind them with the level\'s guns, an APC in the middle where set. Ram through or turn off.', None),
         ('Armed people', 'Passers-by who carry a gun (weapon table: Carried by people) and turn on you shoot with the police\'s hit chance, which falls the farther you are, and the police\'s damage times their gun\'s damage against the pistol\'s. A revolver fires slower and harder, an SMG in short bursts.', None),
         ('Tank and APC', 'At the top wanted level the tank fires rockets at you; a police APC fires its turret gun in bursts when it sees you. The APC belt is also yours when you drive one (vehicle table: Weapon mg).', None)]
 
@@ -365,6 +366,7 @@ def do_import(path, dry):
         heat = next(r['v'] for r in t['levels'] if r['id'] == 'heat')
         if any(b_ <= a for a, b_ in zip(heat, heat[1:])): errors.append('Wanted levels / Heat needed must rise from level to level: %s' % heat)
         if st['gapMax'] < st['gapMin']: errors.append('Settings: Time between shots to (%s) is less than from (%s)' % (fmt(st['gapMax']), fmt(st['gapMin'])))
+        if st['rbAheadMax'] < st['rbAheadMin']: errors.append('Settings: Roadblocks ... to (%s) is less than from (%s)' % (fmt(st['rbAheadMax']), fmt(st['rbAheadMin'])))
         if st['pplGapMax'] < st['pplGapMin']: errors.append('Settings: Passer-by: time between shots to (%s) is less than from (%s)' % (fmt(st['pplGapMax']), fmt(st['pplGapMin'])))
         if st['pplBurstMax'] < st['pplBurstMin']: errors.append('Settings: Passer-by SMG burst to (%s) is less than from (%s)' % (fmt(st['pplBurstMax']), fmt(st['pplBurstMin'])))
     elif NAME == 'places':
