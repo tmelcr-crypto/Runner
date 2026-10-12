@@ -100,6 +100,9 @@ All of these are for **both** modes except the kill frenzies (free roam only).
      - done: the 60 places (44 plazas, 6 courts, 10 parks; the parks table js/01s, tools/parks_sheet.py)
    - More tall buildings (future obstacles for flying). - done (towers behind the street fronts downtown; the skyscrapers and condos)
    - Large empty areas filled with forests. - done (woods on the big lawns, scrub on the space center's grounds)
+   - (Asked on the way) Trees you knock down: not solid, a vehicle fells them and is slowed by weight (tank 0, motorbike 70%),
+     on foot you walk through; under a tree (on foot, or stopped) the helicopter's light cannot see you, and its light alone
+     holds you only 6 s without a cop on the ground. - done (js/12g; modes trees, heliLose)
    - One factory with tall smoking chimneys in Gravel Flats, next to the future junkyard.
    - Reroute the roads that make no real-life sense (decide and fix; no need to ask).
    - Both drag strips: a band from the city through a park and a forest to the strip, then forest again to the beach; each

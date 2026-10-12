@@ -2,7 +2,7 @@
 /* ---------- 7o. THE PALM GROVE BY THE LUNAPARK CAR PARK ----------
    Map remodel 6 (MAP.lunapark.grove) made the rest of the car park's knob of land a palm grove: lawn, a sandy strip along the shore,
    rocks all along the waterline and a wooden pier off the north shore with a few boats tied up - scenery now; the boats you can
-   drive, when they come, moor here. The palms and rocks are solid (a car stops at a trunk); the pier is walked on like land (js/04).
+   drive, when they come, moor here. The rocks are solid; the palms fall when a vehicle drives into them (js/12g); the pier is walked on like land (js/04).
    Built once with the city (js/04 genWorld), streamed in pieces like the landmarks; the boats bob on the water (js/13; mode: groveBoats). Scenery: both modes. */
 let GROVE = null;                           // { palms: [[x, y, h, lean, ang]], rocks: [[x, y, r, h]], boats: [...], meshes }
 const GROVE_CHUNK = 320;
@@ -28,7 +28,6 @@ function placeGrove() {                     // js/04 genWorld, after the car par
     }
     return { palms, rocks, boats: G.boats.map(b => ({ x: b[0], y: b[1], a: b[2] * Math.PI / 180, k: b[3], ph: rand(0, TAU) })), meshes: [] };
   });
-  for (const [x, y] of GROVE.palms) makeSolid(x, y, 6, 6, 0, { soft: true });         // trunks
   for (const [x, y, r] of GROVE.rocks) if (r > 8) makeSolid(x, y, r * 1.3, r * 1.3, rand(0, 1), { soft: true });
   const [hx0, hy0, hx1, hy1] = G.head, [px0, py0, px1, py1] = G.pier;                  // the pier's rails, open at the shore end and along the head where boats tie up
   for (const x of [px0 - 1, px1 + 1]) makeSolid(x, (py0 + py1) / 2 + 1, 2, py1 - py0 - 38, 0, { soft: true });
@@ -47,8 +46,8 @@ function placeGrove() {                     // js/04 genWorld, after the car par
 }
 
 /* ---------- models ---------- */
-function grovePalm(T, x, z, h, lean, ang) {   // a curved trunk in rings, a crown of drooping fronds, coconuts
-  const n = 7, lx = Math.cos(ang) * lean, lz = Math.sin(ang) * lean, bark = ['#6b4a2e', '#7a5636', '#5e4026'];
+function grovePalm(T, x, z, h, lean, ang) {   // a curved trunk in rings, a crown of drooping fronds, coconuts (it falls, js/12g)
+  const v0 = T.pos.length / 3, n = 7, lx = Math.cos(ang) * lean, lz = Math.sin(ang) * lean, bark = ['#6b4a2e', '#7a5636', '#5e4026'];
   let px = x, pz = z;
   for (let k = 0; k < n; k++) {
     const y0 = h * k / n, y1 = h * (k + 1) / n, b = (k + 1) / n, nx = x + lx * h * b * b, nz = z + lz * h * b * b;
@@ -63,6 +62,7 @@ function grovePalm(T, x, z, h, lean, ang) {   // a curved trunk in rings, a crow
     face(T, [[mid[0] + sx, mid[1], mid[2] + sz], [tip[0], tip[1], tip[2]], [tip[0], tip[1], tip[2]], [mid[0] - sx, mid[1], mid[2] - sz]], [0, 1, 0], col);
   }
   for (let c = 0; c < 3; c++) { const a = c * 2.1; T.prism(px + Math.cos(a) * 1.8, pz + Math.sin(a) * 1.8, 1.3, top - 2.6, top - 0.4, _C('#6b4a1e'), 5, 1.3, true); }
+  treeNote(T, v0, { x, z, cx: px, cz: pz, r: 16, th: h, kind: 'palm', tc: '#6b4a2e', cc: '#2bb36b' });
 }
 function groveRock(T, x, z, r, h) {           // a weathered boulder: two squat prisms, a lighter top
   const g = ['#6e6a72', '#7d7884', '#5e5a63', '#8a8478'][Math.floor(Math.random() * 4)], c = _C(g);

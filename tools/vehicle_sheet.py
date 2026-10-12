@@ -7,7 +7,7 @@ One column per vehicle, one row per setting, the vehicle IDs in the top row. Row
 rows may be moved; a row that is missing keeps the values already in the game. A vehicle whose column is gone is removed.
 The Excel workbook has grey Calc rows (simple formulas); a Numbers file is written without formulas and checked on import.
 Needs openpyxl for .xlsx and numbers-parser for .numbers."""
-import json, os, re, sys
+import json, math, os, re, sys
 
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
@@ -30,6 +30,7 @@ ROWS = [
     ('grip', 'Tyre grip', 'num', (0.5, 15), 'How quickly a sideways slide stops. Low = drifty, high = on rails.', 'number, about 2-8'),
     ('hp', 'Health', 'num', (1, 100000), 'Damage it takes before it catches fire and explodes. A pistol hit does about 15, a rifle 88, a hard crash 10-40, a rocket up to 110.', 'points'),
     ('kg', 'Weight (kg)', 'num', (50, 100000), 'Mass in crashes and blasts: the heavier vehicle pushes the lighter one and takes less damage.', 'kilograms'),
+    ('tree', 'Slowed by each tree (%)', 'num', (0, 100), 'Trees are not solid: a vehicle knocks down every tree it drives into and loses this share of its speed each time (no damage). Tank 0, motorbike 70, the rest by weight. Empty: worked out from the weight.', 'percent, 0 = not slowed'),
     ('armored', 'Armored: yes / no', 'yesno', None, 'yes: a sniper round does not go through it.', 'yes or no'),
     ('traffic', 'Traffic weight', 'num', (0, 1000), 'How often it drives in traffic, relative to the others (0 = never). This sets the whole traffic mix, police included.', 'number, 0 or more'),
     ('parked', 'Parked weight', 'num', (0, 1000), 'How often it is parked at the kerb or in a parking lot (0 = never).', 'number, 0 or more'),
@@ -48,11 +49,17 @@ ROW = {r[0]: r for r in ROWS}
 # how a row label in a returned file is recognised (lowercase start of the label), most specific first
 MATCH = [('id', 'id'), ('name', 'name on screen'), ('body', 'body'), ('role', 'role'), ('len', 'length'), ('wid', 'width'), ('top', 'top speed'),
          ('accTo', 'accelerates'), ('accS', '...in seconds'), ('accS', 'in seconds'), ('brake', 'braking'), ('steer', 'steering'), ('grip', 'tyre grip'),
-         ('hp', 'health'), ('kg', 'weight'), ('armored', 'armored'), ('traffic', 'traffic weight'), ('parked', 'parked weight'), ('chase', 'police chase'),
+         ('hp', 'health'), ('kg', 'weight'), ('tree', 'slowed by'), ('armored', 'armored'), ('traffic', 'traffic weight'), ('parked', 'parked weight'), ('chase', 'police chase'),
          ('chaseFrom', 'chase from'), ('hidden', 'hidden'), ('job', 'job'), ('weapon', 'weapon'), ('delivery', 'delivery price'), ('shifter', 'gear selector')] + [('c%d' % k, 'colour %d' % k) for k in range(1, 7)] + [('notes', 'notes')]
 DEFAULT = {'body': 'new', 'role': 'civilian', 'armored': False, 'traffic': 0, 'parked': 0, 'chase': 0, 'chaseFrom': 1, 'hidden': 0, 'job': '', 'weapon': '', 'delivery': 0, 'shifter': 'auto', 'colors': [], 'notes': ''}
-ORDER = ['id', 'name', 'body', 'role', 'len', 'wid', 'top', 'accTo', 'accS', 'brake', 'steer', 'grip', 'hp', 'kg', 'armored', 'traffic', 'parked', 'chase', 'chaseFrom',
+ORDER = ['id', 'name', 'body', 'role', 'len', 'wid', 'top', 'accTo', 'accS', 'brake', 'steer', 'grip', 'hp', 'kg', 'tree', 'armored', 'traffic', 'parked', 'chase', 'chaseFrom',
          'hidden', 'job', 'weapon', 'delivery', 'shifter', 'colors', 'notes']
+
+
+def tree_default(kg):
+    """how much a tree slows a vehicle of this weight (percent): the motorbike's 350 kg 70, the tank's 27 t 0, a curve between"""
+    if not isinstance(kg, (int, float)) or kg <= 0: return 40
+    return max(0, min(70, round(70 * (1 - (math.log(kg) - math.log(350)) / (math.log(27000) - math.log(350))))))
 
 
 def read_table():
@@ -252,6 +259,7 @@ def build(cols, present, old):
                 if n is None:
                     if key in ('traffic', 'parked', 'chase', 'hidden', 'delivery'): v[key] = 0
                     elif key == 'chaseFrom': v[key] = 1
+                    elif key == 'tree': v[key] = tree_default(v.get('kg'))
                     else: errors.append('%s / %s: missing or not a number' % (where, lab))
                 elif n < lo or n > hi: errors.append('%s / %s: %s is outside %s to %s' % (where, lab, fmt(n), fmt(lo), fmt(hi)))
                 elif kind == 'int' and not float(n).is_integer(): errors.append('%s / %s: %s must be a whole number' % (where, lab, fmt(n)))

@@ -69,6 +69,7 @@ function propStep(o, dt) {
   }
 }
 function throwProps(x, y, reach, K) {
+  fellTreesNear(x, y, reach * 0.5);                                // the trees close by fall (js/12g)
   const a0 = Math.floor((x - reach + SEA) / TG), a1 = Math.floor((x + reach + SEA) / TG), b0 = Math.floor((y - reach + SEA) / TG), b1 = Math.floor((y + reach + SEA) / TG);
   for (let a = a0; a <= a1; a++) for (let b = b0; b <= b1; b++) {
     const l = TGRID.get(a * 1024 + b); if (!l) continue;
@@ -163,6 +164,7 @@ function gfxBlast(dt) {
 }
 function resetBlast() {                 // a new game: everything thrown goes back where it stood
   for (const o of THROW) if (o.group || o.flying || o.broken) restoreProp(o);
+  resetTrees();                                                    // every tree stands again (js/12g)
   FLY.length = 0; MESSED.length = 0; SPRAYS.length = 0; for (const o of KNOCK) o.knocked = false; KNOCK.length = 0; P.knocked = false; P.air = 0;
   for (const f of FBALL) { f.t = 9; f.outer.visible = f.core.visible = false; }
 }

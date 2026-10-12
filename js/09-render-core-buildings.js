@@ -91,6 +91,7 @@ GeoBuilder.prototype.build = function () {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
+  if (this.trees) g.userData.trees = this.trees;                    // the trees in it (js/12g)
   g.computeBoundingSphere(); return g;
 };
 /* ---- building facades: 4 shared 256px atlases (tile = 4 bays x 4 floors) + 1 shopfront strip. Detail lives in textures, not triangles. ---- */
@@ -233,11 +234,12 @@ GeoBuilder.prototype.ring = function (ax0, az0, ax1, az1, ya, yb, wd, col) {    
   this.lbox(ax0, ya, az0 + wd, ax0 + wd, yb, az1 - wd, col); this.lbox(ax1 - wd, ya, az0 + wd, ax1, yb, az1 - wd, col);
 };
 function mergeBuilders(list) {
-  let pos = [], nor = [], uv = [], col = [], off = 0; const g = new THREE.BufferGeometry(), groups = [];
-  list.forEach((b, i) => { const n = b.pos.length / 3; if (!n) return; groups.push([off, n, i]); off += n; pos = pos.concat(b.pos); nor = nor.concat(b.nor); uv = uv.concat(b.uv); col = col.concat(b.col); });
+  let pos = [], nor = [], uv = [], col = [], off = 0; const g = new THREE.BufferGeometry(), groups = [], trees = [];
+  list.forEach((b, i) => { const n = b.pos.length / 3; if (!n) return; groups.push([off, n, i]); if (b.trees) for (const t of b.trees) trees.push(Object.assign({}, t, { v0: t.v0 + off, v1: t.v1 + off })); off += n; pos = pos.concat(b.pos); nor = nor.concat(b.nor); uv = uv.concat(b.uv); col = col.concat(b.col); });
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   for (const q of groups) g.addGroup(q[0], q[1], q[2]);
+  if (trees.length) g.userData.trees = trees;                      // the trees in it, by their vertices (js/12g)
   g.computeBoundingSphere(); return g;
 }
 

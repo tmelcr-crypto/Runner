@@ -142,7 +142,7 @@ function drawYards() {
   if ((MAP.alleys || []).length) T.mesh(groundMat(new THREE.MeshLambertMaterial({ vertexColors: true }))).frustumCulled = false;
 }
 /* the clutter as instanced boxes, cylinders, spheres and flat discs, merged with the street furniture */
-function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
+function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools, TV) {
   const off = (o, d, s) => [o.x + Math.cos(o.yaw) * d - Math.sin(o.yaw) * s, o.y + Math.sin(o.yaw) * d + Math.cos(o.yaw) * s];
   const lists = [[fb, GB, false], [fg, GB, true], [fc, GCyl, false], [fs, GSphLo, false], [crowns, GSph, false]];
   const MASS = { dump: 2.4, bags: 0.5, boxes: 0.4, crates: 1.1, pallet: 0.8, bins: 0.7, barrel: 1, ac: 1.2, bench: 1, planter: 1.8, cart: 1.4 };   // what a blast can throw, and how heavy
@@ -164,7 +164,7 @@ function drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools) {
       fb.push({ x: o.x, y: o.h, z: o.y, sx: o.len, sy: 0.5, sz: 0.5, ry, c: '#cfc8e8' });
       for (let t = -o.len / 2 + 8; t < o.len / 2 - 8; t += rand(7, 12)) { const [x, z] = off(o, t, 0); fb.push({ x, y: o.h - 4.4, z, sx: rand(4, 7), sy: rand(6, 9), sz: 0.6, ry, c: pick(['#f1f1ee', '#ff6fae', '#6fb8ff', '#ffe14a', '#9be8c8', '#ff7a3d']) }); }
     }
-    else if (o.k === 'palm') { trunks.push({ x: o.x, y: 16, z: o.y, sx: 2.4, sy: 32, sz: 2.4, c: '#3b2a1e' }); crowns.push({ x: o.x, y: 33, z: o.y, sx: 15, sy: 5, sz: 15, c: pick(['#14a37f', '#1ec9a6', '#0f8f86']) }); }
+    else if (o.k === 'palm') { const tm = partMark(TV), cc = pick(['#14a37f', '#1ec9a6', '#0f8f86']); trunks.push({ x: o.x, y: 16, z: o.y, sx: 2.4, sy: 32, sz: 2.4, c: '#3b2a1e' }); crowns.push({ x: o.x, y: 33, z: o.y, sx: 15, sy: 5, sz: 15, c: cc }); addTree(o.x, o.y, 15, 32, 'palm', '#3b2a1e', cc, partsSince(TV, tm)); }   // falls when driven into (js/12g)
     else if (o.k === 'bench') { fb.push({ x: o.x, y: 5, z: o.y, sx: 16, sy: 1.4, sz: 5, ry, c: '#7a5a3a' }); fb.push({ x: o.x - o.nx * 2.5, y: 8, z: o.y - o.ny * 2.5, sx: 16, sy: 5, sz: 1, ry, c: '#7a5a3a' }); fb.push({ x: o.x, y: 2.2, z: o.y, sx: 14, sy: 4.4, sz: 3, ry, c: '#2b2e38' }); }
     else if (o.k === 'plamp') { poles.push({ x: o.x, y: 15, z: o.y, sx: 1.2, sy: 30, sz: 1.2, c: '#14102a' }); heads.push({ x: o.x, y: 31, z: o.y, sx: 5, sy: 3, sz: 5, c: '#fff3b0' }); pools.push({ x: o.x, y: 1.5, z: o.y, sx: 90, sy: 1, sz: 90, c: '#ffd98a' }); }
     else if (o.k === 'planter') { fb.push({ x: o.x, y: 2.5, z: o.y, sx: 12, sy: 5, sz: 12, ry, c: '#8d86a8' }); fs.push({ x: o.x, y: 7, z: o.y, sx: 6, sy: 4, sz: 6, c: pick(['#1f9e7a', '#23b38a', '#7a35d6']) }); }

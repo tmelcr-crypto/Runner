@@ -44,9 +44,11 @@ function fasciaTex(text, col, aspect) {  // a name band for a facade, any width 
 }
 function fasciaSign(text, col, w, h) { return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: fasciaTex(text, col, w / h) })); }
 const fasciaFit = (text, h, max) => Math.min(max, h * Math.max(3, 0.62 * text.length + 1.2));   // a band about as long as its name needs
-function palm(T, x, z, h) {
+function palm(T, x, z, h) {                                      // a palm: it falls when a vehicle drives into it (js/12g)
+  const v0 = T.pos.length / 3, cc = pick(['#0f8f86', '#1ec9a6', '#14a37f']);
   T.prism(x, z, 2.4, 0, h, _C('#3b2a1e'), 5);
-  T.prism(x, z, 14, h - 2, h + 3, _C(pick(['#0f8f86', '#1ec9a6', '#14a37f'])), 7, 2, true);
+  T.prism(x, z, 14, h - 2, h + 3, _C(cc), 7, 2, true);
+  treeNote(T, v0, { x, z, r: 14, th: h, kind: 'palm', tc: '#3b2a1e', cc });
 }
 
 /* ---------- landmarks ---------- */

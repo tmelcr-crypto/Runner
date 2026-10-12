@@ -187,7 +187,8 @@ function buildCity() {
     pools.push({ x: ix, y: 1.5, z: iy, sx: 170, sy: 1, sz: 170, c: lc });
   }
   // street furniture along the sidewalks: palms at the kerb, benches, bins, hydrants, phone booths, newspaper boxes, bus shelters
-  const fb = [], fg = [], fc = [], fs = [], fp = [], trunks = [], crowns = [], furn = [[fb, GB, false], [fc, GCyl, false], [fs, GSphLo, false]];
+  const fb = [], fg = [], fc = [], fs = [], fp = [], trunks = [], crowns = [], pines = [], furn = [[fb, GB, false], [fc, GCyl, false], [fs, GSphLo, false]];
+  const TV = [[trunks, GCyl, false], [crowns, GSph, false], [pines, GPINE, false]];   // a tree's parts, so it can fall (js/12g)
   const METERED = { 'PALM HEIGHTS': 1, 'MERCADO': 1, 'SEAVIEW': 1, 'SUNSTRIP': 1, 'CORAL SHORE': 1, 'PEARL KEY': 1 };   // parking meters on the busy shopping streets
   const PALMY = { 'CORAL SHORE': 0.45, 'SUNSTRIP': 0.4, 'SEAVIEW': 0.4, 'PEARL KEY': 0.5, 'HERON KEY': 0.4, 'FAIRWAY ISLES': 0.4, 'MERCADO': 0.2, 'PALM HEIGHTS': 0.22, 'DOCKSIDE': 0.06, 'SKYPORT': 0.15 };
   for (const E of RE) for (const sd of [-1, 1]) {
@@ -202,7 +203,7 @@ function buildCity() {
         fb.push({ x: bx + ox, y: 24, z: by + oy, sx: 44, sy: 2, sz: 13, ry: yaw, c: '#3a3f5c' }); fg.push({ x: bx + ox * 2.6, y: 13, z: by + oy * 2.6, sx: 40, sy: 18, sz: 1, ry: yaw, c: '#2bd8ff' });
         for (const e of [-20, 20]) fb.push({ x: bx + c.tx * e, y: 12, z: by + c.ty * e, sx: 1.6, sy: 24, sz: 1.6, ry: yaw, c: '#2b2e38' });
         fg.push({ x: bx - c.tx * 26, y: 22, z: by - c.ty * 26, sx: 2, sy: 10, sz: 8, ry: yaw, c: '#ffe14a' });
-      } else if (r < pr) { trunks.push({ x: kx, y: 16, z: ky, sx: 2.4, sy: 32, sz: 2.4, c: '#3b2a1e' }); crowns.push({ x: kx, y: 33, z: ky, sx: 15, sy: 5, sz: 15, c: pick(['#14a37f', '#1ec9a6', '#0f8f86']) }); }
+      } else if (r < pr) { const tm = partMark(TV), cc = pick(['#14a37f', '#1ec9a6', '#0f8f86']); trunks.push({ x: kx, y: 16, z: ky, sx: 2.4, sy: 32, sz: 2.4, c: '#3b2a1e' }); crowns.push({ x: kx, y: 33, z: ky, sx: 15, sy: 5, sz: 15, c: cc }); addTree(kx, ky, 15, 32, 'palm', '#3b2a1e', cc, partsSince(TV, tm)); }
       else if (r < pr + 0.12) { fb.push({ x: bx, y: 5, z: by, sx: 16, sy: 1.4, sz: 5, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx + rx * 2.5, y: 8, z: by + ry * 2.5, sx: 16, sy: 5, sz: 1, ry: yaw, c: '#7a5a3a' }); fb.push({ x: bx, y: 2.2, z: by, sx: 14, sy: 4.4, sz: 3, ry: yaw, c: '#2b2e38' }); thr = [bx, by, 1, 'bench']; }
       else if (r < pr + 0.2) { fc.push({ x: bx, y: 4.5, z: by, sx: 3.2, sy: 9, sz: 3.2, c: pick(['#2f6f4f', '#3a3f5c']) }); thr = [bx, by, 0.6, 'bin']; BINS.push({ x: bx, y: by, t: -999 }); }   // a bin: the trash truck stops here (js/08c)
       else if (r < pr + 0.25) { fc.push({ x: kx, y: 3.5, z: ky, sx: 2.4, sy: 7, sz: 2.4, c: '#e0364f' }); thr = [kx, ky, 1.6, 'hydrant']; }
@@ -228,7 +229,7 @@ function buildCity() {
   // parks: trees off the roads; beaches: palms, umbrellas and towels
   const paths = (MAP.yards || []).filter(y => y.k === 'pk'), onPath = (x, y) => paths.some(p => inPoly(x, y, p));   // park paths (js/10d) stay clear
   const slabs = [], clear = (x, y, m) => shoreDist(x, y) > m && !nearestRoad(x, y, SWO + 8) && groundH(x, y) === 0 && !inLandmark(x, y) && !nearLot(x, y) && !onPath(x, y);
-  const pines = [], tufts = [], veg = [[crowns, GSph, false], [trunks, GCyl, false], [slabs, GB, false]], GREEN = ['#1f9e7a', '#178a6a', '#23b38a', '#2e8b57', '#3a9e4a', '#2a8a6a'];
+  const tufts = [], veg = [[crowns, GSph, false], [trunks, GCyl, false], [slabs, GB, false]], GREEN = ['#1f9e7a', '#178a6a', '#23b38a', '#2e8b57', '#3a9e4a', '#2a8a6a'];
   let parkTrees = 0, tuftN = 0;                                    // counted apart from the palms along the streets
   for (const p of MAP.grass) {                                     // parks: tall leafy trees, pines, bushes (a car flattens them, js/12e) and tall grass
     if (spwIn(p.o[0][0], p.o[0][1])) continue;                     // the speedway's infield stays open (js/10i)
@@ -236,14 +237,16 @@ function buildCity() {
     for (let k = 0; k < n && parkTrees++ < 3000; k++) {
       const pt = randomIn(p, (x, y) => clear(x, y, 14)); if (!pt) continue; const [x, y] = pt, r = Math.random();
       if (r < 0.28) {                                              // a pine: a short trunk under three tiers of needles
-        const h = rand(46, 74), w = h * rand(0.25, 0.31);
+        const h = rand(46, 74), w = h * rand(0.25, 0.31), tm = partMark(TV), col = pick(['#0f6b4f', '#145c46', '#1a7a5a', '#0d5a48']);
         trunks.push({ x, y: 4, z: y, sx: 1.8, sy: 8, sz: 1.8, c: '#3b2a1e' });
-        pines.push({ x, y: 3, z: y, sx: w, sy: h, sz: w, ry: rand(0, TAU), c: pick(['#0f6b4f', '#145c46', '#1a7a5a', '#0d5a48']) });
+        pines.push({ x, y: 3, z: y, sx: w, sy: h, sz: w, ry: rand(0, TAU), c: col });
+        addTree(x, y, w, h, 'pine', '#3b2a1e', col, partsSince(TV, tm));
       } else if (r < 0.72) {                                       // a leafy tree: a tall trunk, a crown of three lumps (now and then in flower)
-        const h = rand(18, 30), cr = rand(11, 18), col = Math.random() < 0.12 ? pick(['#7a35d6', '#d94fa0', '#2a7fb8']) : pick(GREEN);
+        const h = rand(18, 30), cr = rand(11, 18), col = Math.random() < 0.12 ? pick(['#7a35d6', '#d94fa0', '#2a7fb8']) : pick(GREEN), tm = partMark(TV);
         trunks.push({ x, y: h / 2, z: y, sx: 2.4, sy: h, sz: 2.4, c: '#3b2a1e' });
         crowns.push({ x, y: h + cr * 0.35, z: y, sx: cr, sy: cr * 0.9, sz: cr, c: col });
         for (let i = 0; i < 2; i++) { const a = rand(0, TAU), d = cr * 0.55; crowns.push({ x: x + Math.cos(a) * d, y: h + rand(-2, 4), z: y + Math.sin(a) * d, sx: cr * 0.72, sy: cr * 0.66, sz: cr * 0.72, c: shade(col, randi(-14, 14)) }); }
+        addTree(x, y, cr * 1.3, h, 'leafy', '#3b2a1e', col, partsSince(TV, tm));
       } else {                                                     // a bush: a few low lumps
         const col = pick(GREEN), m = randi(2, 4), mk = partMark(veg);
         for (let i = 0; i < m; i++) { const s = rand(5.5, 9.5); crowns.push({ x: x + rand(-7, 7), y: s * 0.6, z: y + rand(-7, 7), sx: s, sy: s * 0.75, sz: s, c: shade(col, randi(-12, 12)) }); }
@@ -257,12 +260,12 @@ function buildCity() {
       for (let i = 0; i < m; i++) { const a = rand(0, TAU), d = rand(0, 16), x = pt[0] + Math.cos(a) * d, y = pt[1] + Math.sin(a) * d, sc = rand(1.3, 2.1); if (!clear(x, y, 6)) continue; tuftN++; tufts.push({ x, y: 0, z: y, sx: sc, sy: sc * rand(0.85, 1.3), sz: sc, ry: rand(0, TAU), c: shade(col, randi(-12, 12)) }); }
     }
   }
-  plantForests(trunks, crowns, pines, tufts, clear);              // the woods on the big lawns and the space center's scrub (js/10q)
+  plantForests(trunks, crowns, pines, tufts, clear, TV);          // the woods on the big lawns and the space center's scrub (js/10q)
   for (const p of MAP.sand) {
     const n = Math.min(260, Math.floor(Math.abs(polyArea(p.o)) / 26000));
     for (let k = 0; k < n; k++) {
       const pt = randomIn(p, (x, y) => clear(x, y, 30)); if (!pt) continue; const [px, py] = pt;
-      if (k % 2 === 0) { trunks.push({ x: px, y: 12, z: py, sx: 2.6, sy: 24, sz: 2.6, c: '#24143c' }); crowns.push({ x: px, y: 26, z: py, sx: 13, sy: 5, sz: 13, c: pick(['#0f8f86', '#1ec9a6']) }); }
+      if (k % 2 === 0) { const tm = partMark(TV), cc = pick(['#0f8f86', '#1ec9a6']); trunks.push({ x: px, y: 12, z: py, sx: 2.6, sy: 24, sz: 2.6, c: '#24143c' }); crowns.push({ x: px, y: 26, z: py, sx: 13, sy: 5, sz: 13, c: cc }); addTree(px, py, 13, 24, 'palm', '#24143c', cc, partsSince(TV, tm)); }
       else { const mk = partMark(veg); trunks.push({ x: px, y: 8, z: py, sx: 1.1, sy: 16, sz: 1.1, c: '#e8e8e8' }); crowns.push({ x: px, y: 17, z: py, sx: 11, sy: 4, sz: 11, c: pick(['#ff2bd6', '#ffe14a', '#2bf3ff', '#a259ff']) }); slabs.push({ x: px + 14, y: 0.6, z: py + 8, sx: 14, sy: 0.8, sz: 7, c: pick(['#ff2bd6', '#2bf3ff', '#ffe14a']) }); registerThrow(px, py, partsSince(veg, mk), null, 0.3, 'umbrella'); }   // a beach umbrella and a towel: knocked flying
     }
   }
@@ -273,7 +276,7 @@ function buildCity() {
     const cs = solidCorners(r), ox = r.H * 0.38, oz = r.H * 0.5, hull = convexHull(cs.concat(cs.map(([x, y]) => [x + ox, y + oz])));
     for (let k = 1; k < hull.length - 1; k++) for (const v of [hull[0], hull[k], hull[k + 1]]) shadowTris.push(v[0], 1.2, v[1]);
   }
-  drawYards(); drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools);   // back alleys, yards and what lies about in them
+  drawYards(); drawClutter(fb, fg, fc, fs, fp, trunks, crowns, poles, heads, pools, TV);   // back alleys, yards and what lies about in them
   drawAirport(fb, fg, fc, poles, heads, pools);                    // the airfield: runway, taxiways, markings, lights (js/10f)
   drawPlaces(fb, fg, fc, fs, poles, heads, pools);                 // the base, the port, the lunapark, the space center: ground, roads, markings (js/10g)
   drawFences(fc);                                                  // every fence (js/10f)
@@ -305,6 +308,7 @@ function buildDrawable(o) {
   } else o.mesh = o.make();
   if (!o.world) { o.mesh.position.set(o.cx, 0, o.cy); o.mesh.rotation.y = -(o.a || 0); }
   cityGroup.add(o.mesh);
+  if (!o.bld) treesIn(o);                                          // its trees, where they stand in the world (js/12g)
 }
 function dropDrawable(o) {
   cityGroup.remove(o.mesh);
