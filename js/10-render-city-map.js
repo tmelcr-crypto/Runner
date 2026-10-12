@@ -257,6 +257,7 @@ function buildCity() {
       for (let i = 0; i < m; i++) { const a = rand(0, TAU), d = rand(0, 16), x = pt[0] + Math.cos(a) * d, y = pt[1] + Math.sin(a) * d, sc = rand(1.3, 2.1); if (!clear(x, y, 6)) continue; tuftN++; tufts.push({ x, y: 0, z: y, sx: sc, sy: sc * rand(0.85, 1.3), sz: sc, ry: rand(0, TAU), c: shade(col, randi(-12, 12)) }); }
     }
   }
+  plantForests(trunks, crowns, pines, tufts, clear);              // the woods on the big lawns and the space center's scrub (js/10q)
   for (const p of MAP.sand) {
     const n = Math.min(260, Math.floor(Math.abs(polyArea(p.o)) / 26000));
     for (let k = 0; k < n; k++) {

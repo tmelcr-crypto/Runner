@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1l. PLACES SETTINGS ----------
    The airport gates, the military base, the port, the lunapark, the space center, the Pay 'n' Spray garages and the Colony (js/08j, js/08k, js/08q, js/10g, js/10h):
-   guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet. tools/settings_sheet.py exports this table to Apple Numbers or
+   guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet; and the city's downtown towers (js/04). tools/settings_sheet.py exports this table to Apple Numbers or
    Excel and writes an edited copy back:  python3 tools/settings_sheet.py places export places.numbers  /  ... places import places.numbers
    Keep the JSON between the markers valid. */
 const PLACES_TABLE = /*PLACES-JSON*/{
@@ -41,7 +41,13 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "coaster", "group": "Lunapark", "name": "Coaster top speed", "unit": "km/h", "min": 20, "max": 160, "v": 75, "note": "At the bottom of the first drop; the trains speed up and slow down with the hills."},
   {"id": "spaceGuards", "group": "Space center", "name": "Guards at the space center gate", "unit": "count", "min": 0, "max": 4, "v": 2, "note": "The gate stays shut for now: the way in comes with the story."},
   {"id": "valetGreet", "group": "Colony", "name": "The valet greets you within", "unit": "m", "min": 2, "max": 30, "v": 9, "note": "On foot, or in a car going slower than 15 km/h, this close to the valet at the Colony door."},
-  {"id": "valetAgain", "group": "Colony", "name": "The valet greets you again after", "unit": "s", "min": 5, "max": 600, "v": 40, "note": "At most once in this long, and only after you have walked or driven away and come back."}
+  {"id": "valetAgain", "group": "Colony", "name": "The valet greets you again after", "unit": "s", "min": 5, "max": 600, "v": 40, "note": "At most once in this long, and only after you have walked or driven away and come back."},
+  {"id": "towerShare", "group": "City", "name": "Downtown back buildings that are towers", "unit": "%", "min": 0, "max": 100, "v": 50, "note": "In Palm Heights, Sunstrip and Seaview: of the bigger buildings behind the street fronts (their fronts not on a street, so no sidewalk hides behind them), this many rise as towers - the skyline a flight will have to clear."},
+  {"id": "towerFloorsMin", "group": "City", "name": "Towers rise at least", "unit": "floors", "min": 3, "max": 30, "v": 8, "note": "A floor is a little over 1 m of the game's height (14 units)."},
+  {"id": "towerFloorsMax", "group": "City", "name": "Towers rise at most", "unit": "floors", "min": 3, "max": 40, "v": 20, "note": "Each tower picks its height between the two."},
+  {"id": "forestMin", "group": "City", "name": "A lawn gets woods when it is at least", "unit": "m", "min": 20, "max": 300, "v": 50, "note": "Across (the side of a square of the same area). The golf links, the big parks and the islands' greens - not the landmark parks or the designed ones; the space center's grounds get pine scrub."},
+  {"id": "forestCover", "group": "City", "name": "Of such a lawn, woods cover", "unit": "%", "min": 0, "max": 100, "v": 55, "note": "In patches, meadows and clearings between them."},
+  {"id": "forestGap", "group": "City", "name": "Trees in the woods stand about this far apart", "unit": "m", "min": 2, "max": 12, "v": 3.5, "note": "Closer is a denser wood (and more for the graphics to draw)."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

@@ -98,8 +98,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
      - done: the 40 buildings (skyscrapers, condo towers, schools, the arena on a park, parking garages, gas stations, museums,
        civic buildings, supermarkets, car washes, bowling alleys)
      - done: the 60 places (44 plazas, 6 courts, 10 parks; the parks table js/01s, tools/parks_sheet.py)
-   - More tall buildings (future obstacles for flying).
-   - Large empty areas filled with forests.
+   - More tall buildings (future obstacles for flying). - done (towers behind the street fronts downtown; the skyscrapers and condos)
+   - Large empty areas filled with forests. - done (woods on the big lawns, scrub on the space center's grounds)
    - One factory with tall smoking chimneys in Gravel Flats, next to the future junkyard.
    - Reroute the roads that make no real-life sense (decide and fix; no need to ask).
    - Both drag strips: a band from the city through a park and a forest to the strip, then forest again to the beach; each
