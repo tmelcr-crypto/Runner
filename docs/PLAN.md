@@ -108,7 +108,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
    - Reroute the roads that make no real-life sense (decide and fix; no need to ask). - done (remodel 8: the avenue's U detour
      straightened, the base road ends at its gate, the south tip's zigzag coast road straightened with a beach below it)
    - Both drag strips: a band from the city through a park and a forest to the strip, then forest again to the beach; each
-     strip gets a one-way exit toward the city, passable only from inside once a race is over.
+     strip gets a one-way exit toward the city, passable only from inside once a race is over. - done (remodel 9; the owner chose
+     the band for the Sandbar strip only - the Palm strip has no room - and a sliding EXIT gate past the finish on both)
 8. Then the plan's steps 5-8 below.
 
 ## 5. Car showroom and tuning (Sunstrip)

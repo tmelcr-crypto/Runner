@@ -65,7 +65,11 @@ function genSpeedway() {
   FENCE_STYLE.track = FENCE_STYLE.track || { h: 26, net: '#c8ccd4', op: 0.32, wire: '#ffd23f', post: '#9aa0ab', kg: () => Infinity };
   for (const S of SPW_STRIPS) {                                     // each drag strip: fences, the tree, the timing boards, its booth
     const p = (d, o) => { const q = stripPt(S, d, o); return [q.x, q.y]; }, w = S.hw + 8;
-    addFence([[p(0, -w), p(S.wall + 6, -w)], [p(0, w), p(S.wall + 6, w)], [p(S.wall + 6, -w), p(S.wall + 6, w)]], 'track');
+    const X = S.exit;                                               // the exit past the finish: a gap in the city-side fence, a sliding gate (js/08o opens it)
+    addFence([[p(0, -w), p(S.wall + 6, -w)], [p(S.wall + 6, -w), p(S.wall + 6, w)]].concat(X ? [[p(0, w), p(X.d - X.w / 2, w)], [p(X.d + X.w / 2, w), p(S.wall + 6, w)]] : [[p(0, w), p(S.wall + 6, w)]]), 'track');
+    if (X) { const g = stripPt(S, X.d, w); S.gate = { open: 0, solid: makeSolid(g.x, g.y, X.w, 5, S.a, { gate: true }), x: g.x, y: g.y };
+      for (const e of [-1, 1]) { const q = stripPt(S, X.d + e * (X.w / 2 + 3), w); makeSolid(q.x, q.y, 6, 6, 0, {}); }
+      add(g.x, g.y, X.w / 2 + 70, 40, () => makeStripGate(S), S.a); }
     const t = stripPt(S, 40, 0); makeSolid(t.x, t.y, 6, 6, 0, {}); add(t.x, t.y, 12, 12, () => makeTree(S.id), S.a - Math.PI / 2);
     const m = stripPt(S, S.finish, -(S.hw + 50)); makeSolid(m.x, m.y, 8, 24, S.a + Math.PI / 2, {}); add(m.x, m.y, 20, 30, makeTimers, S.a + Math.PI / 2);
     const [bx, by] = S.booth, ba = Math.atan2(S.sy - by, S.sx - bx) + Math.PI;   // its window to the strip
@@ -105,6 +109,7 @@ function drawSpeedway(R, Mk, rect, road, lamp, fb) {
     for (let d = 300; d < S.end; d += 520) { const q = p(d, -(w + 30)); lamp(q[0], q[1], 60, '#fff3d0', 300); }
   }
   if (SPW.access) road(SPW.access, SPW.aw, 0.46, '#2c2a33', '#ffd23f');   // the lane to the Sandbar strip
+  for (const S of SPW_STRIPS) if (S.exit) road(S.exit.lane, S.exit.lw, 0.46, '#2c2a33', '#ffd23f');   // each strip's way out to the street
   for (const off of [O.w / 2 + 5, -(O.w / 2 + 5)]) {                       // the walls: concrete, a coloured band on the outer one
     const n = Math.ceil(O.L / 40), a = {}, b = {}, outer = off > 0, hgt = outer ? 12 : 6;
     for (let k = 0; k < n; k++) {
@@ -176,6 +181,22 @@ function makeTree(id) {                   // a drag strip's start lights: a pole
   m.userData.lights = lights; const T0 = DRAG_TREE[id] || (DRAG_TREE[id] = { stage: -1 }); T0.mesh = m; if (T0.stage >= 0) setTimeout(() => treeLights(id, T0.stage)); return m;
 }
 const DRAG_TREE = {};                     // per strip: its tree's mesh (while it is near) and what it shows - js/08o lights it: 0..2 ambers, 3 green, 4 red
+function makeStripGate(S) {               // the exit gate: posts, a sliding chain-link leaf (slides along the fence as it opens), EXIT over it, a lamp red or green
+  const X = S.exit, T = new GeoBuilder(), G = new GeoBuilder(), hw = X.w / 2, post = _C('#9aa0ab'), dark = _C('#2b2e38');
+  for (const e of [-1, 1]) box5(T, e * (hw + 3) - 3, 0, -3, e * (hw + 3) + 3, 34, 3, post);
+  box5(T, -hw - 6, 34, -2, hw + 6, 38, 2, dark);
+  const m = lmMesh(T, G), leaf = new THREE.Group(), L = new GeoBuilder();
+  box5(L, -hw, 2, -1, hw, 4, 1, post); box5(L, -hw, 26, -1, hw, 28, 1, post); for (const e of [-1, 1]) box5(L, e * hw - 1.5, 2, -1, e * hw + 1.5, 28, 1, post);
+  for (let x = -hw + 8; x < hw; x += 8) box5(L, x - 0.4, 4, -0.4, x + 0.4, 26, 0.4, _C('#c8ccd4'));
+  for (const z of [-1.6, 1.6]) face(L, [[-hw + 4, 18, z], [hw - 4, 18, z], [hw - 4, 24, z], [-hw + 4, 24, z]], [0, 0, z], _C('#ffd23f'));
+  leaf.add(lmMesh(L, new GeoBuilder())); m.add(leaf);
+  const sg = fasciaSign('EXIT', '#3dffa6', 46, 14); sg.position.set(0, 50, 0); sg.rotation.y = S.a; m.add(sg);   // turned to the camera
+  const lamp = new THREE.Mesh(GSph, mBas(0xff3b5c)); lamp.scale.set(2.4, 2.4, 2.4); lamp.position.set(hw + 3, 37, 0); m.add(lamp);
+  m.userData.own.push(sg.material);
+  m.userData.anim = () => { const o = S.gate ? S.gate.open : 0; leaf.position.x = o * (X.w + 4); lamp.material = o > 0.5 ? STRIP_GO : STRIP_STOP; };
+  return m;
+}
+const STRIP_GO = mBas(0x3dffa6), STRIP_STOP = mBas(0xff3b5c);
 function treeLights(id, stage) {
   const T0 = DRAG_TREE[id] || (DRAG_TREE[id] = { stage: -1 }); T0.stage = stage; const m = T0.mesh; if (!m) return;
   m.userData.lights.forEach((l, i) => { const k = Math.floor(i / 2), on = k < 3 ? stage === k || (stage > k && stage < 3) : k === 3 ? stage === 3 : stage === 4;
@@ -201,5 +222,7 @@ function mapSpeedway(m, X, Y, k) {
     poly([p(S.apron, -S.hw), p(S.end, -S.hw), p(S.end, S.hw), p(S.apron, S.hw)], '#3a3448');
     poly([p(S.finish - 10, -S.hw), p(S.finish + 10, -S.hw), p(S.finish + 10, S.hw), p(S.finish - 10, S.hw)], '#ffd23f');
   }
-  if (SPW.access) { m.strokeStyle = '#3a3448'; m.lineWidth = SPW.aw * k; m.beginPath(); SPW.access.forEach(([x, y], i) => i ? m.lineTo(X(x), Y(y)) : m.moveTo(X(x), Y(y))); m.stroke(); }
+  const lane = (pts, lw) => { m.strokeStyle = '#3a3448'; m.lineWidth = lw * k; m.beginPath(); pts.forEach(([x, y], i) => i ? m.lineTo(X(x), Y(y)) : m.moveTo(X(x), Y(y))); m.stroke(); };
+  if (SPW.access) lane(SPW.access, SPW.aw);
+  for (const S of SPW_STRIPS) if (S.exit) lane(S.exit.lane, S.exit.lw);
 }

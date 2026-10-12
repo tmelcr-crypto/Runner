@@ -200,6 +200,7 @@ Object.assign(UQ_SITE, {                  // the arena takes a park of its own: 
   arena(row, used) {
     let best = null;
     for (const g of MAP.grass) {
+      if (g.k === 'wood') continue;
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of g.o) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
       const w = x1 - x0, h = y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
       if (w < 420 || h < 420 || w > 900 || h > 900 || inLandmark(cx, cy) || UQ_NOT.includes(districtAt(cx, cy)) || used.some(u => dist(u.r.cx, u.r.cy, cx, cy) < 600)) continue;
