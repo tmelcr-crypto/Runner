@@ -30,7 +30,7 @@ const hearV = (x, y) => clamp(1 - dist(x, y, P.x, P.y) / 800, 0, 1);   // how lo
 function killPed(p, how, byPlayer, ang) {
   if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm();   // a soldier killed: the base is on alert (js/08j)
   if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
-  if (byPlayer) { P.kills++; if (p.cop) { addHeat(COP.crime.killCop); PS.armedT = gameT; } else if (!p.crim) reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }   // a criminal of the vigilante job: no crime (js/08n)
+  if (byPlayer) { P.kills++; if (p.cop) { STAT.cops++; addHeat(COP.crime.killCop); PS.armedT = gameT; } else if (!p.crim) reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }   // a criminal of the vigilante job: no crime (js/08n)
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
   alertPeds(p.x, p.y, 300, !byPlayer, 160); if (!p.gibbed) callFor('ambulance', p.x, p.y, p);   // an ambulance comes for the body (js/08c)
 }
@@ -39,7 +39,7 @@ function killOfficer(o, byPlayer, how, ang) {
   if (how === 'blast' && feat('gibs')) gibPerson(o, ang); else bloodFx(o.x, o.y, 16);
   crewLost(o); if (!o.gibbed) callFor('ambulance', o.x, o.y, o);
   dropLoot(o, true);                                               // cash and the officer's pistol (js/08g)
-  if (byPlayer) { P.kills++; popup(o.x, o.y - 14, 'COP DOWN', '#3f6bff'); addHeat(COP.crime.killCop); PS.armedT = gameT; rampHit('people', o.x, o.y); }
+  if (byPlayer) { P.kills++; STAT.cops++; popup(o.x, o.y - 14, 'COP DOWN', '#3f6bff'); addHeat(COP.crime.killCop); PS.armedT = gameT; rampHit('people', o.x, o.y); }
 }
 function gibPerson(p, ang) {             // torn apart by a blast (js/01j gibs): no body - a burst of blood, pieces flung out that lie a while and fade, a big mark
   p.gibbed = true; if (ang === undefined) ang = rand(0, TAU);
@@ -233,6 +233,7 @@ function enterCar(c) {
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0);
   } else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
   else if (!c.free) reportCrime(COP.crime.steal, 0);             // the NASCAR special in the speedway's paddock is free to take (js/08o)
+  statSteal(c);                                                    // counted once per car (js/08zs)
   if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
   c.driver = 'player'; c.mode = 'player'; P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
   carWeapon(c);

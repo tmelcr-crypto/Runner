@@ -538,7 +538,7 @@ function raceFinish(Ro) {
   if (Ro.kind === 'street' && Ro.id !== 'random') { if (!RACE.best[Ro.id] || time < RACE.best[Ro.id]) { record = true; RACE.best[Ro.id] = time; } }
   else if (Ro.kind === 'nascar') { if (!RACE.nascar || time < RACE.nascar) { record = true; RACE.nascar = time; } if (Ro.bestLap && (!RACE.lap || Ro.bestLap < RACE.lap)) RACE.lap = Ro.bestLap; }
   else if (Ro.kind === 'drag') { const id = Ro.S.id; if (!RACE.drag[id] || time < RACE.drag[id]) { record = true; RACE.drag[id] = time; } RACE.top = Math.max(RACE.top, Ro.top / KMH); }
-  if (place === 1 && !Ro.test) RACE.wins++;
+  if (place === 1 && !Ro.test) { RACE.wins++; statWon(Ro); }      // each race won counts toward 100% (js/08zs)
   if (prize > 0) { P.score += prize; popup(c.x, c.y - 30, '+' + money(prize), RACE_GREEN); }
   RACE.dirty = true;
   const rows = [['PLACE', ordinal(place) + ' OF ' + n]];

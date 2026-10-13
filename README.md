@@ -28,7 +28,7 @@ python3 tools/mode_sheet.py import modes.numbers [--dry-run]
   - *Streets*: quiet, busy or packed - how much traffic and how many people.
   - *Start in*: the usual spot (the door of your room at the Colony, your car in its reserved space in the guests' lot), a random street, or any of the 13 districts.
 - **Pause** with Esc, P or the MENU button (top; inside a tower too); the game also pauses when you switch to another app or tab. From there: resume, load, new game, help, quit to the title.
-- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away, quit to the title, buy something, leave a safehouse), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. The slots are chosen only when you **SLEEP in a safehouse** (*Safehouses*); the pause menu has no SAVE any more (with the mode row `safehouses` off it has). You cannot save while you are wanted. A save keeps where you are (and the car you are in), health and body armor, weapons and ammo, the rampages found and passed, score and kills, the clock, the weather, the New game choices, and the safehouses you own, the cars they keep and the weapon stash. Saves live in the browser (localStorage); *Download save file* and *Open save file* (on the save slots after sleeping, and on Load game) move a game to another device.
+- **Saving**: an autosave every minute while no police are after you (and when you pause by switching away, quit to the title, buy something, leave a safehouse), plus three slots, each with a small picture of the screen, the time, the weather, the district and the score. The slots are chosen only when you **SLEEP in a safehouse** (*Safehouses*); the pause menu has no SAVE any more (with the mode row `safehouses` off it has). You cannot save while you are wanted. A save keeps where you are (and the car you are in), health and body armor, weapons and ammo, the rampages found and passed, score and kills, the clock, the weather, the New game choices, and the safehouses you own, the cars they keep and the weapon stash, and the stats (*Stats and 100%*). Saves live in the browser (localStorage); *Download save file* and *Open save file* (on the save slots after sleeping, and on Load game) move a game to another device.
 - **Help**: five pages - controls (keyboard and touch), playing (points, cars, pickups, stores, rampages, wasted and busted), the weapons (from the weapon table), the police, and the city (map, day and weather, services, saving).
 
 ## The city
@@ -532,6 +532,18 @@ The houses stand on plots of their own (map remodel version 5, `safe` in the map
 - **The guard dog** (tan and black, a red collar) lies by its kennel. Come into the yard on foot - or within 22 m of it - and it runs at you (faster than you run) and bites (4 health about every second) until you are 44 m away or in a car. It stays back while the crane works on your car and for 15 s after you are paid. Kill it - a gun, a swing, a car, a blast (40 health) - and a new one is there 3 minutes after, once you are out of sight of the yard.
 - Numbers: the vehicles table's **Scrap price** (also in the economy sheet, JUNKYARD), the places table's *Junkyard* group (what a wreck still pays, the crane's and the crusher's times, cubes kept, the dog's range, speed, bite, health and how soon a new one comes).
 
+## Stats and 100%
+
+**STATS** in the pause menu (mode `stats`, both modes; `js/08zs-stats.js`) - its button and the pause line show how much of the city you have done, as a per cent. The card has three tabs:
+
+- **100%** - everything findable, each thing counted once, with a bar per group: **safehouses bought** (the nine with a price), **rampages passed** (50 in free roam, 20 in story), **hidden weapons found** (each of the 14 kinds that lie hidden - walking up to its bubble counts, even when you do not take it; one bought, dropped by the dead or from the base's armoury does not), **hidden items found** (health, body armor, the heat reducer - not the one on the road), **races won** (the five fixed street races, the NASCAR race, both drag strips - not random races or test runs), **jobs to level 10** (taxi, paramedic, firefighter, vigilante), **cars delivered** at the docks (10) and **Pay 'n' Spray garages used** (each once). 102 things in free roam; the per cent is the things done out of all of them, rounded down, so 100% means every one. When only a few are left in a group, it says which (*TO GO: BRIDGE DASH, SANDBAR STRIP*). Stunt jumps join the list once they exist.
+- **STATS** - time played, cash, kills and cops killed, cars stolen (once per car; not your own from a garage), distance on foot and driven, top speed, the most wanted you have been, busted and wasted, races won, rampages passed, cars delivered, crushed and tuned, resprays, safehouses.
+- **RECORDS** - the best time on each fixed street race, the NASCAR race and its best lap, each drag strip and the fastest trap speed, a ✓ on every race you have won; and your best level in each job.
+
+**The reward at 100%**: health and body armor go up to **200** for the rest of the saved game (you are healed to the top there and then, and again each time you sleep), and a one-of-a-kind **gold AUREA** - a supercar in gold with black stripes, gold rims and gold underglow, a glint running over it, 355 km/h - waits in the dearest safehouse you own that has a free garage bay or space (no free one: it waits until there is). It is never in traffic, parked about or for sale; tune it, paint it or crush it like any car. Lost - wrecked, crushed, sunk, or left somewhere when you save - a new one is back in your garage 5 minutes later.
+
+Saved games keep the counters (an older save counts the weapons you have as found). Numbers: the stats table, `js/01t-stats-data.js` - which groups count, the job level and the deliveries that count, the reward's health and armor and how soon a lost gold car comes back: `python3 tools/settings_sheet.py stats export stats.numbers` / `... stats import stats.numbers`; the car itself is the vehicles table's `gold` row.
+
 ## Clothes shops
 
 Ten clothes shops, each with its own range, take shop buildings spread over the city (always the same ones, clear of the six weapon stores). Each is a coat hanger in its colour on the minimap and the city map; its name over the door (and on a blade where the front faces east or west), at the door a ring of light and a turning shirt. Walk up on foot and tap **SHOP** (or press **E**).
@@ -651,6 +663,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/01q-safehouse-data.js` | the ten safehouses (kind, district, price, cars, floors) and their settings (`tools/safehouse_sheet.py`), `SAFE`, `SAFE_HOUSES` |
 | `js/01r-buildings-data.js` | the 160 unique buildings (name, kind, wall and neon colours) and where they go (`tools/buildings_sheet.py`), `UNIQUE_TABLE`, `UNIQ` |
 | `js/01s-parks-data.js` | the 60 parks, squares and plazas (name, kind, colour) and how the parks are picked (`tools/parks_sheet.py`), `PARKS_TABLE`, `PARKS` |
+| `js/01t-stats-data.js` | what counts toward 100% and the reward at 100% (`tools/settings_sheet.py stats`), converted to `STS` |
 | `js/02-audio.js` | synthesized Web Audio (including the rain and thunder) |
 | `js/02c-music.js` | the cutscenes' music, played by the game itself: a sequencer (drums, bass, pads, arpeggio, lead) and the track *Neon Skyline* |
 | `js/02d-city-sound.js` | the city's own sound: traffic hum, horns and brakes, people's chatter and screams, birds, crickets, gulls, surf, wind and far-off sounds |
@@ -672,6 +685,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/08t-sideview.js` | the side-on view inside a tower: floors, doors, stairs, the elevator and its panel, neighbours, the clerk, your flat, walking and the buttons, drawn on its own canvas |
 | `js/08w-showroom.js` | Sunstrip Motors: the BUY button by a turntable, the car card (colours, where to deliver it), buying, the map icon |
 | `js/08zr-roadblocks.js` | police roadblocks: where one goes on the road ahead, the cars across the street and the cops behind them by wanted level, how they hold their places and shoot (pistols, SMG bursts, rifles), taking it down |
+| `js/08zs-stats.js` | stats and 100%: the counters (steals, distance, top speed, cops, busted and wasted, finds, races won, sprays), the 100% list, the STATS card, the reward - health and armor up to 200 and the gold car in your best garage, back when lost - and the saved counters |
 | `js/08z-salvage.js` | the junkyard: the spot and what it pays, the crane and the crusher at work, the cube pile, the police car crime, the guard dog (a target for bullets, blasts and swings), the map icon |
 | `js/08y-tuning.js` | the tuning workshop: where each part goes on each model, the parts on the car, the door and the bay, the card (LOOKS, PARTS, PERFORMANCE), the mechanic's work, the tuning kept with the car |
 | `js/08x-visitors.js` | visitors at the Colony and the cement works: a car from the traffic turns into the site's street, parks in a free bay, its driver walks in; later someone walks out and drives it away |
@@ -739,7 +753,7 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
-What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom, the tuning workshop, the junkyard at the docks, roadblocks; next: stats and 100%; then new places - prison island, construction site, casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
+What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom, the tuning workshop, the junkyard at the docks, roadblocks, stats and 100%; next: new places - prison island, construction site, casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
 
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
@@ -751,12 +765,12 @@ What comes next, in order and with every detail agreed with the owner (done: the
    - *Construction site*: a half-built tower with cranes, ramps and scaffolding for stunt jumps.
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats*: yachts and speedboats to steal and drive on the water (a new vehicle type).
-   - *Junkyard and car crusher*: stacks of wrecks; drop a car in the crusher for cash.
+   - *Junkyard and car crusher*: built - Dockside Salvage (see The junkyard).
 6. **Side jobs, world events and activities, agreed with the owner** (each will be asked about in detail first; the vehicle jobs, street races and the speedway with its drag strip are built - see Vehicle jobs and Races):
    - *Robberies and the cash van*: robbers run out of a store to a getaway car; an armoured cash van to ram open for its money bags.
    - *Fires, crashes and blackouts*: burning buildings with fire engines racing there, pile-ups with tow trucks, storm blackouts with the traffic lights flashing amber.
    - *Scheduled moments*: a rocket launch at the space center, a plane in trouble at the airport (the fireworks at midnight are built).
-   - *Stats and a 100% screen*: everything found and done, with a completion percentage.
+   - *Stats and a 100% screen*: built - see Stats and 100%.
 7. **Building interiors, more of them** (agreed with the owner; each will be asked about in detail first): both kinds now exist - top-down with a see-through roof (the Pay 'n' Spray, the houses) and the side-on view with hallways, stairs and elevators (the towers). Next for the top-down kind: storages, hangars, warehouses and the like.
 8. **Flying, later** (agreed with the owner; will be asked about in detail first - which aircraft, free roam or story, how hard to fly): a new vehicle type that leaves the ground, seen from above with its shadow on the ground and the camera pulling back as it climbs. Ideas to choose from:
    - *Helicopters*: the military helicopter on the base's helipad made flyable; a police or news helicopter on a rooftop pad; hovering, landing on roofs and pads.

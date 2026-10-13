@@ -225,7 +225,7 @@ function closeTune(go) {                  // LEAVE: the car as it came in, the d
   if (state !== 'tune' || !TNC.car) return;
   const c = TNC.car, tot = tnTotal(); state = 'play'; closeMenus();
   if (!go || tot <= 0 || P.score < tot || P.car !== c) { c.color = TNC.orig.color; tuneSet(c, TNC.orig.tune); rebuildCar(c); TN.phase = 'out'; TN.used = true; TNC.car = null; return; }
-  P.score -= tot; c.color = TNC.d.color; tuneSet(c, TNC.d.tune); rebuildCar(c);
+  P.score -= tot; STAT.tuned++; c.color = TNC.d.color; tuneSet(c, TNC.d.tune); rebuildCar(c);
   TN.phase = 'work'; TN.t = 0; TN.car = c; TN.engineUp = TNC.d.tune.engine > TNC.orig.tune.engine; TNC.car = null;
   Snd.tone(880, 1320, 0.08, 0.14, 'square');
 }

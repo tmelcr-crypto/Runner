@@ -147,12 +147,22 @@
       <button id="saveBtn" class="big alt" type="button">SAVE GAME</button>
       <p class="warn" id="saveWhy" hidden></p>
       <p class="sub" id="sleepNote" hidden>TO SAVE, SLEEP IN A SAFEHOUSE (THE GAME ALSO SAVES ITSELF)</p>
+      <button id="pStatsBtn" class="big alt" type="button">STATS</button>
       <button id="pLoadBtn" class="big alt" type="button">LOAD GAME</button>
       <button id="pNewBtn" class="big alt" type="button">NEW GAME</button>
       <button id="pHelpBtn" class="big alt" type="button">HELP</button>
       <button id="quitBtn" class="big alt" type="button">QUIT TO TITLE</button>
     </div>
     <p class="keys">ESC OR P CARRIES ON</p>
+  </div>
+
+  <div class="card" id="statsCard" hidden>
+    <h2>STATS</h2>
+    <div class="tabs" id="ssTabs"><button type="button" class="on" data-t="pct">100%</button><button type="button" data-t="num">STATS</button><button type="button" data-t="rec">RECORDS</button></div>
+    <div id="ss_pct"></div>
+    <div id="ss_num" class="stats ssList" hidden></div>
+    <div id="ss_rec" class="stats ssList" hidden></div>
+    <div class="row"><button class="big alt back pri" type="button">BACK</button></div>
   </div>
 
   <div class="card" id="helpCard" hidden>
@@ -165,7 +175,7 @@
       <div><h3>IN A CAR</h3><ul>
         <li><b>W / UP</b> gas</li><li><b>S / DOWN</b> brake, reverse</li><li><b>A D / LEFT RIGHT</b> steer</li>
         <li><b>SPACE</b> handbrake, drift</li><li><b>SHIFT or N</b> nitro in a taxi (the taxi job's reward)</li><li><b>E or F</b> get out</li><li><b>R</b> next radio station, then off</li><li><b>CLICK / J</b> with a pistol, revolver, SMG or machine gun: a drive-by at the nearest target ahead; otherwise grenades go into your hand and drop out of the window; in the tank: rockets; in the fire engine: the water cannon</li></ul>
-        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: load, help (you save by sleeping in a safehouse)</li><li><b>INSIDE A TOWER</b> arrows or A / D walk, <b>W or E</b> up at a door, the stairs or the elevator, <b>S</b> down the stairs</li><li><b>M</b> sound on / off</li></ul></div>
+        <h3 class="gap">ANY TIME</h3><ul><li><b>TAB</b> or click the minimap: city map</li><li><b>ESC or P</b> pause menu: stats and 100%, load, help (you save by sleeping in a safehouse)</li><li><b>INSIDE A TOWER</b> arrows or A / D walk, <b>W or E</b> up at a door, the stairs or the elevator, <b>S</b> down the stairs</li><li><b>M</b> sound on / off</li></ul></div>
       <div><h3>TOUCH</h3><ul>
         <li><b>LEFT STICK</b> push to 40% turns, to 80% walks, then runs; or point where to drive</li><li><b>IN A CAR</b> point the left stick where to drive - the car turns that way, almost on the spot; <b>BRAKE</b> and <b>FIRE</b> sit side by side for the right thumb</li><li><b>FIRE</b> button: tap to punch, swing or shoot, hold for automatics; rifle and rockets: stand still, hold FIRE, drag to the target (anywhere on the screen, the scope may run off the edge), let go; grenades and pipe bombs: FIRE turns into a little stick - hold it and drag toward where it should land (to the edge for the full range), let go to throw; drag back to the middle to keep it</li>
         <li><b>ENTER/EXIT</b> button</li><li><b>SHOP</b> / <b>RAMPAGE</b> / <b>BUY</b> / <b>GO IN</b> button: shows by you at a store's door, a rampage's skull or a safehouse; inside one, <b>SLEEP</b>, <b>WARDROBE</b> and <b>STASH</b></li><li><b>INSIDE A TOWER</b> the arrow buttons (or a drag on the screen) walk; <b>▲</b> at a door, the stairs or the elevator, <b>▼</b> down the stairs; MENU top right</li><li><b>DASH</b> button on foot, <b>BRAKE</b> in a car</li><li><b>NITRO</b> button in a taxi, once the taxi job's reward is yours</li><li><b>WEAPON</b> icon (top left, under your cash, health and armor) opens the weapon wheel</li><li><b>MINIMAP</b> tap it for the city map; <b>MENU</b> is up in its corner; tap the map to close</li><li><b>RADIO</b> icon next to the weapon in a car. Sound: your device's volume</li><li>No car health bar: smoke, then flames from the bonnet tell you the car is going</li></ul></div>
@@ -228,6 +238,10 @@
       <div><h3>JUNKYARD</h3><ul>
         <li><b>DOCKSIDE SALVAGE</b> at the port (a magnet over a cube on the maps): drive onto the yellow spot inside the gate, stop and get out - the crane lifts the car into the crusher and you are paid for the cube, less for damage.</li>
         <li>Mind the <b>guard dog</b> on foot. Crushing a police car with a cop watching is a crime.</li></ul></div>
+      <div><h3>STATS AND 100%</h3><ul>
+        <li><b>STATS</b> in the pause menu: your kills, cars stolen, distance, top speed and more, your best race times and job levels, and how much of the city you have done.</li>
+        <li><b>100%</b> counts each thing once: safehouses bought, rampages passed, hidden weapons and items found (walk up to the bubble), races won, jobs to level 10, 10 cars delivered at the docks, every Pay 'n' Spray used.</li>
+        <li>At 100%: health and armour up to 200, and a one-of-a-kind <b>gold AUREA</b> waits in your best garage - lose it and a new one is back there 5 minutes later.</li></ul></div>
       <div><h3>STORES</h3><ul>
         <li>Six stores, each with a <b>€</b> in its own colour on the maps, its name over the door and a ring of light at it. Each sells its own weapons with their ammo, and health or body armor - not everything in one place.</li>
         <li>The <b>BLACK MARKET</b> at the docks sells the <b>AA LAUNCHER</b> (€25,000) and its rockets (€5,000): keep a helicopter, tank or APC inside the sight for 2 s until it locks, then let go - one rocket destroys it. You carry three at most; one more launcher lies hidden in the city.</li>
@@ -478,6 +492,7 @@
 <script src="js/01q-safehouse-data.js"></script>
 <script src="js/01r-buildings-data.js"></script>
 <script src="js/01s-parks-data.js"></script>
+<script src="js/01t-stats-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/02c-music.js"></script>
@@ -516,6 +531,7 @@
 <script src="js/08y-tuning.js"></script>
 <script src="js/08z-salvage.js"></script>
 <script src="js/08zr-roadblocks.js"></script>
+<script src="js/08zs-stats.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>

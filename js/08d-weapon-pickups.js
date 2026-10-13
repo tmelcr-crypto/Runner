@@ -110,6 +110,7 @@ function updateWeaponPicks(dt) {
     if (p.drop && gameT > p.until) { WPICKS.splice(k, 1); continue; }   // dropped by the dead (js/08g) and left lying too long
     if (P.dead || (inCar && !(p.item === 'bribe' && feat('carHeat'))) || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
     if (RAMP.on && p.wi === RAMP.on.wi) continue;                     // the rampage's own weapon and ammo wait until it is over (js/08f)
+    statFound(p);                                                     // found, even when not taken (js/08zs)
     if (p.item) { if (!takeItem(p)) continue; }
     else { const w = WEAPONS[p.wi], i = p.wi, col = w.color;
     if (p.ammo) {                                                    // ammo: kept even before you have the gun

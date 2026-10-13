@@ -142,7 +142,7 @@ function pnsSpraying(G, dt) {
   if ((G.hiss -= dt) <= 0) { G.hiss = 0.32; Snd.burst(0.36, 7000, 3500, 0.05, 'highpass'); }
 }
 function pnsDone(G) {                     // done: repaired and repainted; nobody saw you go in, nobody is after you
-  const c = G.car; G.phase = 'out'; G.used = true;
+  const c = G.car; G.phase = 'out'; G.used = true; statSpray(G);   // js/08zs
   if (c && !c.dead) { if (!G.liv) pnsPaint(c, G.to); c.hp = c.maxhp; c.burn = 0; c.hpShown = -1; }
   let msg = G.liv ? 'REPAIRED' : 'RESPRAYED ' + colourName(G.to);
   if (P.stars > 0 && feat('police')) {

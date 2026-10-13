@@ -264,7 +264,7 @@ function serviceDoor(kind, x, y) {        // the nearest hospital (or police sta
   return refugeSpot(x, y);
 }
 function respawn() {
-  const busted = P.busted, lose = Math.round(P.score * (busted ? COP.bustedCash : COP.wastedCash));
+  const busted = P.busted, lose = Math.round(P.score * (busted ? COP.bustedCash : COP.wastedCash)); STAT[busted ? 'busted' : 'wasted']++;
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
   const sp = serviceDoor(busted ? 'police' : 'hospital', P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: hpMax(), armor: 0, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
