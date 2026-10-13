@@ -17,10 +17,18 @@ function drownTick(dt) {                   // js/06 in a car gone into the water
   if (Math.ceil(P.drown) !== was && P.drown > 0) { toast('THE CAR IS SINKING - GET OUT! ' + Math.ceil(P.drown), true); Snd.tone(330, 220, 0.08, 0.1, 'square'); }
   if (P.drown <= 0) { P.drown = 0; c.driver = null; $('wasted').textContent = 'DROWNED'; killPlayer(); }
 }
+function boatWreck(c) {                   // js/07: a boat that has burned out does not blow up: a burning wreck, and you go over the side
+  c.burn = 0; c.dead = true; c.deadT = 0; c.hp = 0; c.wreckT = 0; c.wreckFire = true;
+  if (P.car === c) { exitCar(true); splashFx(P.x, P.y, 14); toast('OVER THE SIDE - SWIM!', true); }
+  if (c.byPlayer && c.t.cop) { addScore(ECO.copCarBoom, c.x, c.y, 'COP ' + c.t.name); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
+  else if (c.byPlayer) addScore(ECO.carBoom, c.x, c.y, 'WRECKED');
+  c.vx *= 0.4; c.vy *= 0.4; c.driver = null; Snd.thud(140);
+}
 function boatShore(c) {                   // js/07 after collideCarWorld: a boat is held on the water; a hard knock against the shore hurts it
   if (c.sunk) return;
   if (c.dead) {                                                       // wrecked: it burns a while, then goes under (you are thrown in the water)
     c.wreckT = (c.wreckT || 0) + 1 / 60;
+    if (c.wreckFire && Math.random() < 0.6) { const o = rand(-0.4, 0.4) * c.t.len; fireFx(c.x + Math.cos(c.ang) * o, c.y + Math.sin(c.ang) * o, 1.3); if (Math.random() < 0.4) smokeFx(c.x, c.y, true, 1.4); }
     if (c.wreckT > 5) { c.sunk = true; c.sinkT = 0; c.burn = 0; splashFx(c.x, c.y, 30); if (P.car === c) exitCar(true); c.driver = null; }
     return;
   }

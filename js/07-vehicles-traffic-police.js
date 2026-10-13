@@ -277,7 +277,7 @@ function updateCars(dt) {
       else { c.smokeT = 0.22; smokeFx(bx, by, false, 0.8, true); }
     }
     if (c.dead && !c.sunk && !c.doused && c.deadT < 25 && c.smokeT <= 0) { c.smokeT = 0.18; smokeFx(c.x, c.y, true); if (Math.random() < 0.4) fireFx(c.x, c.y); }
-    if (c.burn > 0 && !c.dead) { c.burn -= dt; if (c.burn <= 0) explodeCar(c); }
+    if (c.burn > 0 && !c.dead) { c.burn -= dt; if (c.burn <= 0) { if (c.t.boat) boatWreck(c); else explodeCar(c); } }   // a boat burns out and sinks (js/08zv)
   }
   collideCars();
 }
