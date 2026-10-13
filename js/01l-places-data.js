@@ -1,7 +1,8 @@
 'use strict';
 /* ---------- 1l. PLACES SETTINGS ----------
-   The airport gates, the military base, the port, the lunapark, the space center, the Pay 'n' Spray garages, the Colony and Iron Key (js/08j, js/08k, js/08q, js/10g, js/10h,
-   js/08zp): guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet, the prison island's ferry, alarm and guards; and the city's downtown towers (js/04). tools/settings_sheet.py exports this table to Apple Numbers or
+   The airport gates, the military base, the port, the lunapark, the space center, the Pay 'n' Spray garages, the Colony, Iron Key and Skyline One (js/08j, js/08k, js/08q, js/10g, js/10h,
+   js/08zp, js/08zt): guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet, the prison island's ferry, alarm and guards,
+   the construction site's hours, workers, night guard, jumps and drops; and the city's downtown towers (js/04). tools/settings_sheet.py exports this table to Apple Numbers or
    Excel and writes an edited copy back:  python3 tools/settings_sheet.py places export places.numbers  /  ... places import places.numbers
    Keep the JSON between the markers valid. */
 const PLACES_TABLE = /*PLACES-JSON*/{
@@ -73,7 +74,18 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "towerAcc", "group": "Iron Key", "name": "Tower guard hit chance", "unit": "%", "min": 0, "max": 100, "v": 30, "note": "Per rifle shot, at middle range."},
   {"id": "towerDmg", "group": "Iron Key", "name": "Damage per tower guard hit", "unit": "hp", "min": 1, "max": 100, "v": 14, "note": "To you on foot."},
   {"id": "guardBack", "group": "Iron Key", "name": "A dead guard is replaced after", "unit": "s", "min": 10, "max": 3600, "v": 180, "note": "The tower guards and the two at the gate; only while you are away from the island."},
-  {"id": "prisoners", "group": "Iron Key", "name": "Prisoners in the yard", "unit": "count", "min": 0, "max": 30, "v": 12, "note": "In orange, walking about the yard and shooting hoops while you are near."}
+  {"id": "prisoners", "group": "Iron Key", "name": "Prisoners in the yard", "unit": "count", "min": 0, "max": 30, "v": 12, "note": "In orange, walking about the yard and shooting hoops while you are near."},
+  {"id": "siteOpen", "group": "Construction site", "name": "Skyline One opens at", "unit": "hour", "min": 0, "max": 23, "v": 7, "note": "From then the gate is open, the workers are about and the machines work."},
+  {"id": "siteClose", "group": "Construction site", "name": "and shuts at", "unit": "hour", "min": 1, "max": 24, "v": 19, "note": "Then the gate is locked and the night guard walks the yard until it opens again."},
+  {"id": "siteWorkers", "group": "Construction site", "name": "Workers walking the yard by day", "unit": "count", "min": 0, "max": 30, "v": 8, "note": "In hi-vis and hard hats; three more stand on the decks."},
+  {"id": "guardSight", "group": "Construction site", "name": "The night guard sees you from", "unit": "m", "min": 3, "max": 80, "v": 22, "note": "In front of him (his torch's way), with nothing in between."},
+  {"id": "guardStars", "group": "Construction site", "name": "Seen trespassing at night gives", "unit": "stars", "min": 0, "max": 5, "v": 1, "note": "Once each time you are in the site."},
+  {"id": "jumpLift", "group": "Construction site", "name": "How hard the ramps throw a car up", "unit": "%", "min": 50, "max": 250, "v": 115, "note": "Of the climb's own speed when it leaves a plank ramp, a mound or the launch ramp on the top deck. 100: just what the slope gives."},
+  {"id": "dropSafe", "group": "Construction site", "name": "A car falling from higher than this is damaged", "unit": "m", "min": 1, "max": 40, "v": 8, "note": "On landing, the more the higher - off the top deck's launch ramp (about 16 m) a car takes a knock."},
+  {"id": "footDrop", "group": "Construction site", "name": "On foot, a drop from higher than this hurts", "unit": "m", "min": 0, "max": 30, "v": 4, "note": "Walking off the edge of a roof - the roofs across the avenue, where a car off the launch ramp can come down and you can get out."},
+  {"id": "footDropHurt", "group": "Construction site", "name": "and takes, for each metre above that", "unit": "hp", "min": 0, "max": 50, "v": 8, "note": "Health (body armour first)."},
+  {"id": "dumperSpeed", "group": "Construction site", "name": "The dump truck drives about the yard at", "unit": "km/h", "min": 3, "max": 40, "v": 12, "note": "By day, between the pit and the south fence, stopping at each end."},
+  {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

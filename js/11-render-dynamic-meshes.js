@@ -167,6 +167,38 @@ function buildCar(c) {                       // parts that never move on their o
     part(rg, GSph, mc(pick([0x14161d, 0xe0364f, 0xf1f1ee, 0x2bf3ff])), 3.3, 3.3, 3.3, 3.4, 26.4, 0);
     for (const s of [-1, 1]) { const a = part(rg, GB, mc(0x2a2d3a), 9, 2.2, 2.2, 5, 20.5, s * 4.6); a.rotation.z = -0.25; const lg = part(rg, GB, mc(0x2a2d3a), 8, 2.6, 2.8, 2, 13.5, s * 4.2); lg.rotation.z = 0.5; }
     m.drv = rg;
+  } else if (B === 'mixer') {                // a cement mixer: a white cab, the chassis, the drum turning at the back (js/08zt), its chute
+    merged('c', E.white, [[GB, L * 0.22, 15, Wd, L * 0.39, 11, 0]]);
+    m.cabin = merged('g', E.glass, [[GB, 0.6, 6, Wd - 4, L / 2 + 0.05, 13.5, 0], [GB, L * 0.1, 5, Wd + 0.2, L * 0.4, 13.5, 0]]);
+    merged('k', E.black, [[GB, L * 0.74, 4, Wd - 6, -L * 0.12, 5, 0], [GB, L * 0.06, 9, Wd - 4, L * 0.24, 12, 0]]);
+    const dt0 = new THREE.Group(); dt0.position.set(-L * 0.13, 17, 0); dt0.rotation.z = 0.2; tilt.add(dt0);
+    const drum = new THREE.Group(); dt0.add(drum); m.drum = drum;
+    const dm = part(drum, GCylZ, body, Wd * 0.44, Wd * 0.44, L * 0.5, 0, 0, 0); dm.rotation.y = Math.PI / 2;
+    for (let k = 0; k < 4; k++) { const b = part(drum, GCylZ, mc(0xff7a1a), Wd * 0.46, Wd * 0.46, 2.4, -L * 0.18 + k * L * 0.12, 0, 0); b.rotation.y = Math.PI / 2; b.rotation.x = 0.4; }
+    const cone = part(drum, GCylZ, body, Wd * 0.26, Wd * 0.26, L * 0.12, -L * 0.29, 0, 0); cone.rotation.y = Math.PI / 2;
+    part(tilt, GB, mc(0x8a8f9c), L * 0.14, 1.6, 4, -L * 0.48, 10, 0);
+    axle(L * 0.33, 5.5); axle(-L * 0.14, 5.5); axle(-L * 0.32, 5.5);
+    lamps(8, 3, 8, 3, 5);
+  } else if (B === 'dumper') {               // a dump truck: a short cab and a big tipper box with its sloped front
+    merged('c', body, [[GB, L * 0.24, 16, Wd, L * 0.37, 12, 0]]);
+    m.cabin = merged('g', E.glass, [[GB, 0.6, 6, Wd - 4, L / 2 + 0.05, 15, 0], [GB, L * 0.1, 5, Wd + 0.2, L * 0.38, 15, 0]]);
+    merged('k', E.black, [[GB, L * 0.7, 5, Wd - 6, -L * 0.1, 5, 0]]);
+    merged('t', body, [[GB, L * 0.64, 13, Wd, -L * 0.17, 15.5, 0], [GB, L * 0.1, 4, Wd, L * 0.12, 23, 0]]);
+    merged('d', mc(0x5a4a38), [[GB, L * 0.6, 0.6, Wd - 3, -L * 0.17, 22.2, 0]]);              // the load of dirt in it
+    for (const x of [L * 0.32, -L * 0.12, -L * 0.33]) axle(x, 6);
+    lamps(8, 3, 9, 3, 5);
+  } else if (B === 'digger') {               // a tracked excavator: tracks, the turning house with its cab, the boom, the stick and the bucket (move: js/08zt)
+    merged('k', E.tire, [[GB, L * 0.82, 8, 9, -L * 0.04, 5, Wd / 2 - 4.5], [GB, L * 0.82, 8, 9, -L * 0.04, 5, -(Wd / 2 - 4.5)]]);
+    merged('b', body, [[GB, L * 0.62, 11, Wd - 4, -L * 0.1, 14.5, 0], [GB, L * 0.22, 4, Wd - 8, -L * 0.3, 21.5, 0]]);
+    merged('d', mc(0x2a2d38), [[GB, L * 0.12, 9, Wd - 6, -L * 0.42, 14, 0]]);
+    merged('c', body, [[GB, L * 0.24, 13, Wd * 0.42, L * 0.08, 26, -Wd * 0.22]]);
+    m.cabin = merged('g', E.glass, [[GB, L * 0.2, 8, Wd * 0.44, L * 0.08, 27, -Wd * 0.22], [GB, 0.6, 8, Wd * 0.38, L * 0.2 + 0.05, 27, -Wd * 0.22]]);
+    const arm = new THREE.Group(); arm.position.set(L * 0.18, 20, Wd * 0.12); tilt.add(arm); arm.rotation.z = 0.35; m.arm = arm;
+    part(arm, GB, body, L * 0.62, 5.5, 5, L * 0.31, 0, 0);
+    const stick = new THREE.Group(); stick.position.set(L * 0.6, 0, 0); arm.add(stick); stick.rotation.z = 0.9; m.stick = stick;
+    part(stick, GB, body, 4.5, L * 0.42, 4.5, 0, -L * 0.21, 0);
+    part(stick, GB, mc(0x2a2d38), 9, 8, 11, 2.5, -L * 0.43, 0);
+    lamps(9, 2, 9, 2, 5);
   } else {                                   // sedan, police (and any body without a model yet)
     merged('b', body, [[GB, L, 8, Wd, 0, 7, 0], [GB, L * 0.34, 1.4, Wd - 8, -L * 0.04, 18.6, 0]]);
     m.cabin = part(tilt, GB, GLASS, L * 0.4, 7, Wd - 5, -L * 0.04, 14.5, 0);
@@ -191,8 +223,8 @@ function syncCar(c, time, dt) {
   if (!c.mesh) buildCar(c); track(c);
   const gy = groundH(c.x, c.y); c.gy = c.gy === undefined ? gy : c.gy + (gy - c.gy) * Math.min(1, dt * 14);
   if (c.sunk) { c.mesh.visible = c.sinkT < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, c.sinkT * c.sinkT * 9 + c.sinkT * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, c.sinkT * 0.3); return; }
-  c.mesh.position.set(c.x, c.gy + (c.air || 0) + (c.z || 0), c.y); c.mesh.rotation.y = -c.ang;   // z: up a car park deck (js/10k)
-  c.tilt.rotation.z = c.zg ? Math.atan(c.zg * Math.sin(c.ang)) : 0;               // nose up or down a ramp
+  c.mesh.position.set(c.x, c.gy + (c.air || 0) + (c.z || 0) + (c.rz || 0), c.y); c.mesh.rotation.y = -c.ang;   // z: up a car park deck (js/10k); rz: on a site ramp or mound (js/08zt)
+  c.tilt.rotation.z = c.rzp ? c.rzp : c.zg ? Math.atan(c.zg * Math.sin(c.ang)) : 0;   // nose up or down a ramp
   const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), bike = c.t.body === 'bike';
   const want = c.air > 0 ? clamp(c.av * 0.07, -0.6, 0.6) : bike ? (c.driver ? clamp(c.av * vf / 260, -0.55, 0.55) : 0.22) : -clamp(c.av * vf / 450, -0.12, 0.12);   // rolls a little (in the air: a lot); a bike leans into the bend, parked it stands on its stand
   c.roll += (want - c.roll) * Math.min(1, dt * 8); c.tilt.rotation.x = c.roll;
@@ -239,6 +271,7 @@ function buildPerson(kind, shirt, skin, pants) {
 function syncPerson(p, kind, time, dt) {
   if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
   if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0', p.pants); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.headG, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, -0.5, 3.9, 0);   // a soldier's helmet (js/08j)
+    if (p.hardhat) { part(o.headG, GSph, mc(p.hardhat), 4.6, 2.6, 4.6, -0.2, 4.2, 0); part(o.headG, GB, mc(p.hardhat), 6.2, 0.5, 6, 0.2, 3.4, 0); }   // a site worker's hard hat (js/08zt)
     if (p.valet) { part(o.headG, GB, mc(0xb3122a), 5.6, 2.4, 6.8, -0.5, 5.3, 0); part(o.headG, GB, mc(0xffd23f), 5.7, 0.6, 6.9, -0.5, 4.4, 0); part(o.headG, GB, mc(0x111111), 2.6, 0.7, 6.2, 2.9, 4.1, 0); } }   // the valet's cap, gold band, peak
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }

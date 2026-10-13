@@ -109,7 +109,7 @@ function separatePeople() {
 }
 function bumpCars(o, r, h) {                  // push o out of every car it overlaps; adds the push direction to h
   for (const c of cars) {
-    if (c.sunk || Math.abs(zOf(c) - zOf(o)) > 15) continue; const reach = c.t.len / 2 + r + 2; if (Math.abs(c.x - o.x) > reach || Math.abs(c.y - o.y) > reach) continue;   // not a car on another deck (js/10k)
+    if (c.sunk || Math.abs(zOf(c) + (c.air || 0) - zOf(o)) > 15) continue; const reach = c.t.len / 2 + r + 2; if (Math.abs(c.x - o.x) > reach || Math.abs(c.y - o.y) > reach) continue;   // not a car on another deck (js/10k)
     for (const q of carCircles(c)) {
       const dx = o.x - q[0], dy = o.y - q[1], d = Math.hypot(dx, dy), rr = q[2] + r;
       if (d < rr && d > 0.001) { o.x += dx / d * (rr - d); o.y += dy / d * (rr - d); if (h) { h.nx += dx / d; h.ny += dy / d; } }

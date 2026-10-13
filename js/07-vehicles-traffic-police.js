@@ -7,7 +7,7 @@ const REAL = { acc: 1, brake: 1, grip: 1, hbGrip: 0.28, turn: 1, lat: LAT_GRIP, 
 function stepCar(c, dt) {
   const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, H = c.driver === 'player' || c.driver === 'race' ? ARCADE : REAL;   // racers (js/08o) drive like you
   if (c.air > 0 || c.vz > 0) {                                    // thrown by a blast: no grip in the air - it flies, spins and comes down (with a small bounce)
-    c.vz -= 900 * dt; c.air = Math.max(0, (c.air || 0) + c.vz * dt); if (c.air === 0) c.vz = c.vz < -200 ? -c.vz * 0.25 : 0;
+    c.vz -= 900 * dt; c.air = Math.max(0, (c.air || 0) + c.vz * dt); if (c.air === 0) { landHard(c); c.vz = c.vz < -200 ? -c.vz * 0.25 : 0; c.rzp = 0; }   // a hard landing damages it (js/08zt)
     c.x += c.vx * dt; c.y += c.vy * dt; c.ang += c.av * dt; c.av *= Math.exp(-0.4 * dt); if (c.hitCd > 0) c.hitCd -= dt; return;
   }
   if (c.dead || c.burn > 0 && !c.driver) { c.thr = 0; c.str = 0; }
@@ -43,7 +43,7 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { if ((rc.gate && c.t.cop) || !solidAt(rc, zOf(c))) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      for (const rc of _nb) { if ((rc.gate && c.t.cop) || rc.foot || !solidAt(rc, zOf(c)) || ((rc.h3 || (rc.bld && rc.H)) && zOf(c) + (c.air || 0) + (c.rz || 0) > (rc.h3 || rc.H) - 1)) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       nearRails(q[0], q[1], _nr);
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
@@ -67,7 +67,7 @@ function collideCars() {
     const A = cars[a];
     for (let b = a + 1; b < cars.length; b++) {
       const Bc = cars[b]; if (A.hook || Bc.hook) continue;
-      const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach || Math.abs(zOf(A) - zOf(Bc)) > 15) continue;   // a car on another deck (js/10k)
+      const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach || Math.abs(zOf(A) + (A.air || 0) - zOf(Bc) - (Bc.air || 0)) > 15) continue;   // a car on another deck (js/10k), or flying high over it
       let hit = false, nx = 0, ny = 0, pen = 0;
       for (const p of carCircles(A)) for (const q of carCircles(Bc)) {
         const dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), rr = p[2] + q[2];
@@ -94,7 +94,7 @@ function collideCars() {
   }
 }
 function carHitsPeds(c) {
-  const spd = carSpeed(c); if (spd < 40 || c.dead || zOf(c) > 15) return;   // up a car park deck: nobody on foot up there but you (js/10k)
+  const spd = carSpeed(c); if (spd < 40 || c.dead || zOf(c) + (c.air || 0) > 15) return;   // up a car park deck: nobody on foot up there but you (js/10k); flying high over them
   const cc = carCircles(c);
   for (const p of peds) {
     if (p.dead || Math.abs(p.x - c.x) > c.t.len / 2 + 30 || Math.abs(p.y - c.y) > c.t.len / 2 + 30) continue;
@@ -237,7 +237,7 @@ function updateCars(dt) {
   for (const c of cars) {
     if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
-    else if (c.driver === 'ai') { if (!(c.visit && visitDrive(c, dt))) aiDrive(c, dt); }   // a visitor parking or leaving drives itself (js/08x)
+    else if (c.driver === 'ai') { if (c.siteAI) siteDrive(c, dt); else if (!(c.visit && visitDrive(c, dt))) aiDrive(c, dt); }   // a site machine's driver (js/08zt)   // a visitor parking or leaving drives itself (js/08x)
     else if (c.driver === 'cop') { copDrive(c, dt); copHeavy(c, dt); }   // a tank's rockets, an APC's turret gun (js/08r)
     else if (c.driver === 'race') raceDrive(c, dt);                // a race's rivals (js/08o)
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
@@ -253,7 +253,9 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
-    if (c.z || inCarpark(c.x, c.y, 40)) cpLift(c);                 // up the car park's ramps (js/10k)
+    if (c.z || inCarpark(c.x, c.y, 40) || inTower(c.x, c.y, 40)) cpLift(c);   // up the car park's ramps (js/10k), Skyline One's (js/08zt)
+    if (c.rz || inSite(c.x, c.y, 60)) siteJump(c, dt);               // the site's ramps and mounds (js/08zt)
+    if (c.roof || c.air > 0) roofTick(c);                            // high in the air over a roof, or up on one (js/08zt)
     if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.sunk) {   // and nobody shoves them in: the shore holds them like a kerb
       const sd = shoreDist(c.x, c.y);
       if (sd < 0) { const g = shoreGrad(c.x, c.y), vin = c.vx * g[0] + c.vy * g[1]; c.x -= g[0] * sd; c.y -= g[1] * sd; if (vin < 0) { c.vx -= vin * g[0]; c.vy -= vin * g[1]; } }

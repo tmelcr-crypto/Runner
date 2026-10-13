@@ -55,6 +55,7 @@ function postsTick() {                                            // js/15: guar
   }
 }
 function postStep(p, dt) {                                        // js/08 updatePeds: someone at a post, when not busy otherwise; true when handled
+  if (p.post.step) return p.post.step(p, dt);                       // a post with its own ways: a site worker, the site's night guard (js/08zt)
   if (p.soldier) { soldierStep(p, dt); return true; }
   if (p.pguard) return towerStep(p, dt);                            // up a prison watchtower (js/08zp)
   if (p.valet) return valetStep(p, dt);

@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 13): see the comment above each remodelN below.
+  - Later versions (2 to 14): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -743,7 +743,27 @@ def remodel13(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13]
+# version 14: SKYLINE ONE, the construction site - the downtown Palm Heights block south of the middle cross street, between the two
+# avenues, on the main east-west avenue: everything on it goes, and the site takes it (site: the hoarding's line, the gate on the west
+# street, the broken panel on the north street, the tower - six levels, ramps up its side strips, the launch ramp on its top deck's south
+# edge over the avenue - and in the yard the cranes, the office cabins, the materials, the dirt mounds, the plank ramps, the dig pit).
+def remodel14(M):
+    x0, y0, x1, y1 = 6692, 2088, 7372, 2512
+    gone = clear_ground(M, box(x0, y0, x1, y1)); move_services(M, gone)
+    a0, b0, a1, b1 = x0 + 4, y0 + 4, x1 - 4, y1 - 4
+    M['site'] = {'name': 'SKYLINE ONE', 'area': [a0, b0, a1, b1], 'gate': [a0, 2300, 100], 'panel': [6810, b0, 24],
+                 'tower': {'x0': 7020, 'y0': 2100, 'x1': 7360, 'y1': 2500, 'levels': 6, 'dh': 36, 'S': 80, 'r0': 70, 'r1': 330},
+                 'kicker': [7150, 7230, 2440, 2500, 14],
+                 'cranes': [[6722, 2168, 340, 300], [6722, 2468, 340, 300]],
+                 'office': [6745, 2118, 80, 36], 'mounds': [[6880, 2190, 44, 18], [6935, 2440, 36, 14]],
+                 'ramps': [[6778, 2330, 0, 62, 40, 16], [6960, 2335, -90, 60, 40, 14]],
+                 'pit': [6872, 2330, 66, 50], 'piles': [[6850, 2114, 56, 20, 'rebar'], [6935, 2118, 46, 34, 'bricks'], [6994, 2470, 22, 48, 'pipes'], [6722, 2240, 30, 40, 'pallets']],
+                 'mixer': [6990, 2200, -90], 'digger': [6872, 2283, 90], 'dumper': [[6765, 2440], [6870, 2398]]}
+    M['remodel'] = 14
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14]
 
 
 if __name__ == '__main__':
@@ -793,5 +813,8 @@ if __name__ == '__main__':
                         "   junkyard in the port's maintenance yard (salvage: area, gate, spot, crane, crusher, pile, shack, kennel); version 13: Iron Key, the\n"
                         "   prison island in the bay west of Heron Key (a land polygon of its own; prison: island, walls, towers, gate, blocks, office, yard, path,\n"
                         "   pier, the mainland ferry pier, the ferry's route), and its district. */")
+    head = head.replace("   pier, the mainland ferry pier, the ferry's route), and its district. */",
+                        "   pier, the mainland ferry pier, the ferry's route), and its district; version 14: Skyline One, the construction site on a downtown\n"
+                        "   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

@@ -163,6 +163,19 @@ rest of this step stands.)
      Palm Heights shore across the bay** (not the port's docks, which are 10 km away), a crossing of about 30 s.
      (Done October 2026: map remodel 13, js/10u, js/08zp, the places table's Iron Key group.)
    - *Construction site*: a half-built tower, cranes, ramps and scaffolding.
+     (Asked October 2026:) a whole block of **downtown Palm Heights** among the towers, cleared for it, hoardings along the streets. The
+     **half-built tower**: concrete decks joined by ramps like the lunapark car park - **drive or walk up** floor by floor to the open top
+     and launch off a ramp there (a stunt jump once they exist). On site: **workers in hi-vis** walking about, carrying things, some up
+     on the decks (they run from trouble like anyone); **two tower cranes** turning slowly, lifting beams and pallets to the top floor;
+     **a security guard at night** - the gate locked, a guard with a torch walking the fence, trespassing at night gives a star if he
+     sees you; **trucks and machines** - a cement mixer, an excavator and dump trucks moving about the site, which you can steal. To play
+     with: **ramps and dirt mounds** in the yard to jump cars and bikes off, and **hidden pickups up on the decks** worth the climb.
+     Then: the tower is called **SKYLINE ONE** ('SKYLINE ONE - OPENING 1998' on the hoardings, the developer's logo on the crane jibs);
+     **6 decks** (the ground, five decks, the open top); the **launch ramp on the top deck sends you over the street** off the tower's
+     street side, landing on the avenue or the roofs across it (a hard landing damages the car); at night the gate is locked and you get
+     in **on foot through a broken hoarding panel** on a side street (cars wait for the gate to open in the morning).
+     (Done October 2026: map remodel 14, js/10v, js/08zt, the places table's Construction site group, the mixer, digger and dump truck
+     in the vehicles table. A car flying higher than a building now comes down on its roof; you can get out and walk up there.)
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
      and at the grove pier; a police patrol boat from 3 stars.

@@ -218,7 +218,7 @@ function exitCar(forced) {
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, s = c.t.wid / 2 + 14, l = c.t.len / 2 + 14;
   const spots = [[rx * s, ry * s], [-rx * s, -ry * s], [-fx * l, -fy * l], [fx * l, fy * l]];
   let sp = spots[0];
-  for (const o of spots) { if (!pedBlocked(c.x + o[0], c.y + o[1]) && shoreDist(c.x + o[0], c.y + o[1]) > 4) { sp = o; break; } }
+  for (const o of spots) { if (c.roof ? inSolid(c.x + o[0], c.y + o[1], c.roof, -9) : !pedBlocked(c.x + o[0], c.y + o[1]) && shoreDist(c.x + o[0], c.y + o[1]) > 4) { sp = o; break; } }   // up on a roof (js/08zt): a side that is still roof
   P.x = clamp(c.x + sp[0], BX0 + 10, BX1 - 10); P.y = clamp(c.y + sp[1], BY0 + 10, BY1 - 10); P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
   c.driver = null; c.thr = 0; c.str = 0; c.hb = false; P.car = null;
   if (P.carSwap && P.weapon === P.carSwap.to && P.has[P.carSwap.from]) P.weapon = P.carSwap.from;   // the weapon you had before you got in
@@ -290,7 +290,7 @@ function updatePlayer(dt, inp) {
     else { c.assist = false; c.fs = 0; let thr = -inp.iy; if (Math.abs(thr) < 0.12) thr = 0; c.thr = clamp(thr, -1, 1); c.str = Math.abs(inp.ix) < 0.1 ? 0 : inp.ix; }
     c.hb = inp.sprint; jobNitro(c, dt);                            // nitro in a taxi, the taxi job's reward (js/08n)
     raceHold(c, dt); pnsHold(c, dt); tuneHold(c, dt);              // a race's countdown and results, a respray, the tuning hold the car still (js/08o, js/08q, js/08y)
-    P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; P.z = c.z || 0;
+    P.x = c.x; P.y = c.y; P.ang = c.ang; P.vx = c.vx; P.vy = c.vy; P.z = c.z || 0; P.roof = c.roof || null;
     if (raceLocked(inp.fire && !P.ctrig ? 'NO WEAPONS DURING A RACE' : '') || pnsLocked(inp.fire && !P.ctrig ? 'NOT IN THE SPRAY BOOTH' : '') || tuneLocked(inp.fire && !P.ctrig ? 'NOT IN THE WORKSHOP' : '')) { }   // a race, a respray: FIRE is locked
     else if (c.t.weapon) vehicleGun(c, inp, dt);                       // the tank: FIRE launches rockets (js/08c)
     else if (canDriveBy()) { updateReload(dt); driveBy(c, inp); }   // a gun that fires from a car: the drive-by
@@ -309,7 +309,7 @@ function updatePlayer(dt, inp) {
   const k = 1 - Math.exp(-14 * dt);
   P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
   P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;
-  resolveCircle(P, 7); if (P.z || inCarpark(P.x, P.y, 40)) cpLift(P);   // on foot up the car park's ramps (js/10k)
+  resolveCircle(P, 7); if (P.z || inCarpark(P.x, P.y, 40) || inTower(P.x, P.y, 40)) cpLift(P); if (P.roof) roofTick(P);   // on foot up the car park's ramps (js/10k)
   { const d2 = Math.max(0, -shoreDist(P.x, P.y));
     if (d2 > 0 && Math.hypot(P.vx, P.vy) > 30 && Math.random() < dt * 14) splashFx(P.x, P.y, 2);
     if (d2 > 0 && !P.wet) splashFx(P.x, P.y, 8); P.wet = d2 > 0;

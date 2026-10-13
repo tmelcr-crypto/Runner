@@ -40,6 +40,8 @@ function rampH(R, y) {                    // a ramp's height at y: low end k, hi
   return (R.k + (R.west ? 1 - u : u)) * K.dh;
 }
 function cpLift(o) {                      // js/06, js/07: an entity's height - the deck or ramp it is on - and the slope under it
+  if (o.roof) return;                                              // up on a roof: js/08zt roofTick
+  if (SK.T && inTower(o.x, o.y, 40)) { siteLift(o); return; }      // Skyline One's tower (js/08zt)
   if (!CPK) return;
   if (!inCarpark(o.x, o.y, 2)) { if (o.z) { o.z = 0; o.zg = 0; } return; }   // out of it (or thrown out): back on the ground
   const K = CPK, z = o.z || 0, ly = o.y - K.y0; o.zg = 0;
