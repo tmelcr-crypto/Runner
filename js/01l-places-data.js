@@ -85,6 +85,12 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "footDrop", "group": "Construction site", "name": "On foot, a drop from higher than this hurts", "unit": "m", "min": 0, "max": 30, "v": 4, "note": "Walking off the edge of a roof - the roofs across the avenue, where a car off the launch ramp can come down and you can get out."},
   {"id": "footDropHurt", "group": "Construction site", "name": "and takes, for each metre above that", "unit": "hp", "min": 0, "max": 50, "v": 8, "note": "Health (body armour first)."},
   {"id": "dumperSpeed", "group": "Construction site", "name": "The dump truck drives about the yard at", "unit": "km/h", "min": 3, "max": 40, "v": 12, "note": "By day, between the pit and the south fence, stopping at each end."},
+  {"id": "boatsOut", "group": "Sunset Harbor", "name": "Speedboats and jet skis out on the bay", "unit": "count", "min": 0, "max": 20, "v": 6, "note": "Cruising round the bay while you are near the water."},
+  {"id": "fishBoats", "group": "Sunset Harbor", "name": "Fishing boats off the port", "unit": "count", "min": 0, "max": 10, "v": 3, "note": "Working up and down off the port's quays."},
+  {"id": "tourBoat", "group": "Sunset Harbor", "name": "The tour boat sails", "unit": "yes/no", "min": 0, "max": 1, "v": true, "note": "Round Iron Key, all day."},
+  {"id": "moored", "group": "Sunset Harbor", "name": "Boats moored at the berths", "unit": "count", "min": 0, "max": 9, "v": 6, "note": "Speedboats, jet skis and a yacht, yours to take (your own berths stay free for your boats)."},
+  {"id": "boatPolice", "group": "Sunset Harbor", "name": "The police boat comes from", "unit": "stars", "min": 1, "max": 5, "v": 3, "note": "When you are on the water and wanted this much: it chases, rams and its cop shoots."},
+  {"id": "swimSpeed", "group": "Sunset Harbor", "name": "You swim at", "unit": "%", "min": 20, "max": 150, "v": 90, "note": "Of your running speed; no weapons in the water."},
   {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."}
 ]
 }/*END-PLACES-JSON*/;
