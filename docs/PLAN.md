@@ -283,6 +283,13 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   and the prize (races table, economy sheet); whether you must use a jet ski or any boat; what counts toward 100%.
 - Uses the races table (js/01p) and the race engine (js/08o); the course gates as rings on the water and on the maps.
 
+## Fix: street races always won (reported October 2026; check and fix)
+- In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o
+  `racePlace`: rivals that crossed the finish (`K.done`) or are further along the route (`K.d`) count ahead of you; a rival
+  marked out (`K.out`: wrecked, gone from the cars or no longer driving the race) does not. To check: whether the rivals ever
+  get `done` at the finish (their distance along the route reaching `finD` at the route's end), and whether rivals ahead are
+  being marked out or cleared away; then a test race where you finish last must show your real place.
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
