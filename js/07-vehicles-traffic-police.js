@@ -83,7 +83,7 @@ function collideCars() {
         const j = -1.4 * rv / (1 / ma + 1 / mb);
         A.vx -= j * nx / ma; A.vy -= j * ny / ma; Bc.vx += j * nx / mb; Bc.vy += j * ny / mb;
         const imp = -rv;
-        if (imp > 60 && A.hitCd <= 0) {
+        if (imp > 60 && A.hitCd <= 0 && !(A.t.boat && Bc.t.boat && A.driver !== 'player' && Bc.driver !== 'player')) {   // two boats nobody is racing: a soft bump on the water (js/08zv)
           A.hitCd = Bc.hitCd = 0.2;
           damageCar(A, (imp - 60) * 0.1 * Math.sqrt(mb / ma), Bc.driver === 'player');
           damageCar(Bc, (imp - 60) * 0.1 * Math.sqrt(ma / mb), A.driver === 'player');
@@ -238,12 +238,13 @@ function updateCars(dt) {
   for (const c of cars) {
     if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
+    else if (c.boatAI && (c.driver === 'ai' || c.driver === 'cop')) boatDrive(c, dt);   // a boat's helmsman, the police boat (js/08zv)
     else if (c.driver === 'ai') { if (c.siteAI) siteDrive(c, dt); else if (!(c.visit && visitDrive(c, dt))) aiDrive(c, dt); }   // a site machine's driver (js/08zt)   // a visitor parking or leaving drives itself (js/08x)
     else if (c.driver === 'cop') { copDrive(c, dt); copHeavy(c, dt); }   // a tank's rockets, an APC's turret gun (js/08r)
     else if (c.driver === 'race') raceDrive(c, dt);                // a race's rivals (js/08o)
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
     if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);
-    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
+    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.t.boat) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
       const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;
       const ahead = (30 + spd * 0.5) * back, hx = c.x + fx * ahead, hy = c.y + fy * ahead;
       if (shoreDist(hx, hy) < 6) {

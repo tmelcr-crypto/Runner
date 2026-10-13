@@ -1,8 +1,8 @@
 'use strict';
 /* ---------- 7o. THE PALM GROVE BY THE LUNAPARK CAR PARK ----------
    Map remodel 6 (MAP.lunapark.grove) made the rest of the car park's knob of land a palm grove: lawn, a sandy strip along the shore,
-   rocks all along the waterline and a wooden pier off the north shore with a few boats tied up - scenery now; the boats you can
-   drive, when they come, moor here. The rocks are solid; the palms fall when a vehicle drives into them (js/12g); the pier is walked on like land (js/04).
+   rocks all along the waterline and a wooden pier off the north shore with a few boats tied up - with the marina on (js/08zv) the
+   speedboats, the fishing boat and the yacht are real boats you can take; the sailboat stays scenery. The rocks are solid; the palms fall when a vehicle drives into them (js/12g); the pier is walked on like land (js/04).
    Built once with the city (js/04 genWorld), streamed in pieces like the landmarks; the boats bob on the water (js/13; mode: groveBoats). Scenery: both modes. */
 let GROVE = null;                           // { palms: [[x, y, h, lean, ang]], rocks: [[x, y, r, h]], boats: [...], meshes }
 const GROVE_CHUNK = 320;
@@ -115,5 +115,5 @@ function makeBoat(k) {                      // moored boats, pointing along +x: 
 }
 function gfxGrove(time) {                  // js/13: the boats bob and roll a little
   if (!GROVE) return; const on = feat('groveBoats');
-  for (const b of GROVE.boats) if (b.mesh) { b.mesh.visible = on; b.mesh.position.y = Math.sin(time * 1.3 + b.ph) * 0.9 - 0.4; b.mesh.rotation.x = Math.sin(time * 1.1 + b.ph) * 0.03; b.mesh.rotation.z = Math.sin(time * 0.9 + b.ph * 1.7) * 0.025; }
+  for (const b of GROVE.boats) if (b.mesh) { b.mesh.visible = on && !(feat('marina') && b.k !== 'sail'); b.mesh.position.y = Math.sin(time * 1.3 + b.ph) * 0.9 - 0.4; b.mesh.rotation.x = Math.sin(time * 1.1 + b.ph) * 0.03; b.mesh.rotation.z = Math.sin(time * 0.9 + b.ph * 1.7) * 0.025; }   // with the marina on, the motor boats are real ones (js/08zv)
 }

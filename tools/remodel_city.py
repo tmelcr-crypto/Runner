@@ -810,7 +810,8 @@ def remodel16(M):
 
 # version 17: eight small jetties round the coast (jetties: x, y where it leaves the shore, a: the way it points out over the water in
 # degrees, len, w, head: the T at its end, across and deep) - each where a street runs close by the open water, so a boat can land you
-# within a few steps of a road; walked on like land (js/04). The boats' water routes are worked out again, clear of them.
+# within a few steps of a road; walked on like land (js/04). The boats' water routes are worked out again, clear of them and of the
+# yacht moored off the marina's middle pier (marina.yacht).
 JETTIES = [(4944, 2227, 172), (8725, 2710, 64), (11130, 3065, -131), (6750, 7348, -44), (6283, 9808, -38), (8986, 9047, -42),
            (9001, 11856, -125), (10509, 15732, 128)]
 def jetty_shape(j):                                                    # the walkway from just up the shore, and the T at its end
@@ -827,8 +828,10 @@ def remodel17(M):
         assert not far.intersects(LAND), 'jetty at %d,%d runs into land' % (x, y)
         M['jetties'].append(j)
     mk, pz = M['marina'], M['prison']; gv = M['lunapark'].get('grove') or {}
+    p1 = mk['piers'][1]; mk['yacht'] = [p1[2] + 100, (p1[1] + p1[3]) // 2]   # the moored yacht's spot, off the middle pier's head
     LAND = unary_union([LAND] + [box(*b) for b in mk['piers']] + [box(*pz[k]) for k in ('pier', 'head', 'mpier', 'mhead')]
-                       + [box(*gv[k]) for k in ('pier', 'head') if k in gv] + [jetty_shape(j) for j in M['jetties']])
+                       + [box(*gv[k]) for k in ('pier', 'head') if k in gv] + [jetty_shape(j) for j in M['jetties']]
+                       + [box(mk['yacht'][0] - 90, mk['yacht'][1] - 30, mk['yacht'][0] + 90, mk['yacht'][1] + 30)])
     def ring(B, off):
         W = largest(box(*B).difference(LAND).buffer(-off).buffer(0)); return pts(W.exterior.simplify(25))
     IK = Polygon(pz['island']); Wk = box(8150, 3000, 9400, 4800).difference(LAND).buffer(-60).buffer(0)
@@ -900,6 +903,6 @@ if __name__ == '__main__':
                         "   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes). */")
     head = head.replace("   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes). */",
                         "   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes); version 17: eight small\n"
-                        "   jetties round the coast by the streets (jetties: x, y, a, len, w, head). */")
+                        "   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

@@ -10,7 +10,7 @@ function genMarina() {                    // js/04 genWorld: the office's and th
   for (const j of JETTIES) LMS.push({ cx: j.x, cy: j.y, a: j.a * Math.PI / 180, rad: j.len + 70, make: () => makeJetty(j), mesh: null });
   if (!MARINA) return;
   const [ox, oy, ow, od] = MARINA.office;
-  makeSolid(ox, oy, ow, od, 0, {});
+  makeSolid(ox, oy, ow, od, 0, {}); marinaPosts();                  // the boat owners on the piers (js/08zv)
   for (const [px, py] of MARINA.pumps) makeSolid(px, py, 6, 6, 0, {});
   const xs = MARINA.piers.flatMap(b => [b[0], b[2]]).concat([ox - ow / 2]), ys = MARINA.piers.flatMap(b => [b[1], b[3]]).concat([oy - od / 2, oy + od / 2]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
