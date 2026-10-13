@@ -7,7 +7,7 @@
 - Create pull requests and merge only when the owner asks ("Merge" = open a PR from the working branch to `main` and squash-merge it, then reset the working branch to `origin/main`).
 - Never commit the Vice City source image.
 - No AI model names in commits, code or docs.
-- **Usage limit (the owner's rule, October 2026): stop at 95%.** Read the usage before each bigger step and after each push: `list_events` on this session with kinds `["rate_limit_event"]`; the last event's `rate_limit_info.unifiedWindows` has `five_hour` and `seven_day`, each with a `utilization` (0.95 = 95%). At 95% or more in either window: commit and push the work in progress, stop working, and schedule a check in one hour (`send_later`, 60 minutes). At each hourly check read the usage again: still 95% or more - do nothing but schedule the next check in an hour; below 95% - carry on where the work stopped.
+- **Usage limit (the owner's rule, October 2026; lowered from 95%): stop at 92%.** Read the usage before each bigger step and after each push: `list_events` on this session with kinds `["rate_limit_event"]`; the last event's `rate_limit_info.unifiedWindows` has `five_hour` and `seven_day`, each with a `utilization` (0.92 = 92%). At 92% or more in either window: commit and push the work in progress, stop working, and schedule a check in one hour (`send_later`, 60 minutes). At each hourly check read the usage again: still 92% or more - do nothing but schedule the next check in an hour; below 92% - carry on where the work stopped.
 
 ## The game
 - Vanilla JS with three.js r128 from cdnjs; plain scripts sharing globals, loaded in order from `index.html` (data tables `01*` first). GitHub Pages deploys from `main`.
