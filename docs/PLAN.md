@@ -216,6 +216,7 @@ rest of this step stands.)
      gives a small TOO SLOW note. In the air: **slow motion only** (the usual camera). **Hidden until done** - no map icons; a done
      jump gets a small tick on the big map and the stats show how many are left. **Just the ramp** tells you: every stunt ramp looks
      the same (chevrons and two small flags on its lip). Every number in a data table.
+     (Done October 2026: map remodel 18, js/08zw, js/10y, the stunt table js/01v, mode row stunts, the stats table's countStunts.)
    - *Interiors, top-down first*: the airport hangars, the port warehouses and storage units you can walk and drive into, their
      roofs turning see-through, with things to find and take inside. (The side-on kind - hotels, offices - later.)
 2. **World events**: robberies with a getaway car and an armoured cash van to ram; fires, pile-ups with tow trucks, storm blackouts;
