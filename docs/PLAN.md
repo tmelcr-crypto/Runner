@@ -260,6 +260,14 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 - Likely a map remodel (`tools/remodel_city.py`, the bridge heights in the map data) and the bridge models; the boats' water field
   under the bridges stays as it is.
 
+## Rocks in the water with stunt jumps (asked October 2026; ask the details before building)
+- Rocks out in the water (the bay, round the islands, off the beaches) - solid for boats and swimmers - and **stunt jumps on
+  them**: ramps on the rocks for boats and jet skis to launch off (a new kind of unique stunt jump, like the twenty on land).
+- To ask first: how many rocks and where; only boat jumps or car ramps onto rocks too; whether these jumps count toward 100%
+  and pay the stunt bonus like the others; rocks as plain obstacles too, or only where the jumps are.
+- Likely a map remodel (`tools/remodel_city.py`: the rocks in the map data, cut out of the boats' water field), the stunt table
+  (js/01v) for the new jumps, and boats that can fly off a ramp (today only wheeled vehicles jump).
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
