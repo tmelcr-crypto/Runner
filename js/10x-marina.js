@@ -5,7 +5,9 @@
    cleats and lamp posts, the berths marked on the water; the fuel dock at the quay's south end with two pumps and a FUEL sign.
    Solid: the office and the pumps; the piers are walked on like land (js/04 buildShoreField). Mode: marina. */
 const MZ = { lm: null, view: null };
-function genMarina() {                    // js/04 genWorld: the office's and the pumps' solids, the drawable
+const JETTIES = MAP.jetties || [];          // eight small jetties round the coast by the streets (map remodel 17)
+function genMarina() {                    // js/04 genWorld: the office's and the pumps' solids, the drawables (the jetties too)
+  for (const j of JETTIES) LMS.push({ cx: j.x, cy: j.y, a: j.a * Math.PI / 180, rad: j.len + 70, make: () => makeJetty(j), mesh: null });
   if (!MARINA) return;
   const [ox, oy, ow, od] = MARINA.office;
   makeSolid(ox, oy, ow, od, 0, {});
@@ -48,4 +50,21 @@ function makeMarina() {
   const fs = fasciaSign('FUEL', '#ffd23f', 24, 8); fs.position.set(X(MARINA.pumps[0][0]) + 13, 20, Z(MARINA.pumps[0][1]) + 6); sub.push(fs);
   const m = lmMesh(T, G); for (const o of sub) { m.add(o); m.userData.own.push(o.material); } m.add(lamp); m.userData.own.push(lampMat);
   MZ.view = { lampMat }; return m;
+}
+
+/* a jetty (js/04 paints it as land): planks on piles from just up the shore out to a T, cleats along the T, a lamp, and a post at the
+   shore end with a life ring and the blue anchor sign - the same anchor as on the maps */
+function makeJetty(j) {
+  const T = new GeoBuilder(), G = new GeoBuilder(), L = j.len, w = j.w / 2, [hw, hd] = j.head, wood = _C('#8a6a48'), woodD = _C('#5a4430'), dark = _C('#2a2d38');
+  const deck = (u0, u1, v0, v1) => { box5(T, u0, 0, v0, u1, 2.2, v1, wood); for (let u = u0 + 3; u < u1; u += 6) box5(T, u - 0.3, 2.2, v0, u + 0.3, 2.3, v1, woodD); };
+  deck(-24, L - hd, -w, w); deck(L - hd, L, -hw / 2, hw / 2);
+  for (let u = 6; u < L - hd; u += 28) for (const v of [-w, w]) T.prism(u, v, 1.2, -6, 3, woodD, 8, 1.2, true);
+  for (const v of [-hw / 2, -hw / 6, hw / 6, hw / 2]) for (const u of [L - hd, L]) T.prism(u, v, 1.3, -6, 3, woodD, 8, 1.3, true);
+  for (const v of [-hw / 2 + 6, hw / 2 - 6]) for (const u of [L - hd + 2, L - 2]) box5(T, u - 0.8, 2.2, v - 1.6, u + 0.8, 3.4, v + 1.6, dark);   // cleats
+  T.prism(L - hd / 2, 0, 0.6, 2.2, 16, dark, 6, 0.6, true); box5(G, L - hd / 2 - 1.2, 16, -1.2, L - hd / 2 + 1.2, 18, 1.2, _C('#fff2c2'));   // the lamp
+  T.prism(-14, w + 4, 0.6, 0, 18, dark, 6, 0.6, true);             // the post: a life ring, the anchor sign on top
+  for (let k = 0; k < 8; k++) { const a0 = k / 8 * TAU, a1 = (k + 1) / 8 * TAU; box5(T, -14.6, 9 + Math.sin(a0) * 3.4 - 0.8, w + 4 + Math.cos(a0) * 3.4 - 0.8, -13.4, 9 + Math.sin(a0) * 3.4 + 0.8, w + 4 + Math.cos(a0) * 3.4 + 0.8, _C(k % 2 ? '#ffffff' : '#ff7a3d')); }
+  box5(G, -18, 18, w + 0.5, -10, 26, w + 7.5, _C('#2f6bff'));
+  box5(G, -14.3, 25.9, w + 2.4, -13.7, 26.2, w + 5.6, _C('#ffffff')); box5(G, -16.2, 25.9, w + 3.7, -11.8, 26.2, w + 4.3, _C('#ffffff')); box5(G, -16.4, 25.9, w + 1.6, -11.6, 26.2, w + 2.4, _C('#ffffff'));
+  return lmMesh(T, G);
 }

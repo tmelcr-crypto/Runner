@@ -68,6 +68,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   raceIcons(g, X, Y, q, inView); showIcons(g, X, Y, q, inView); flyIcons(g, X, Y, q, inView);      // a ringing phone booth, the speedway and the drag strip (js/08o); the showroom (js/08w); the flights booth (js/08v)
   pnsIcons(g, X, Y, q, inView); salvIcons(g, X, Y, q, inView); prisonIcons(g, X, Y, q, inView); siteIcons(g, X, Y, q, inView); casinoIcons(g, X, Y, q, inView);    // the Pay 'n' Spray garages: a spray can (js/08q); the junkyard: a magnet over a cube (js/08z)
   cpIcons(g, X, Y, q, inView);                                      // the lunapark car park: a P (js/10k)
+  marinaIcons(g, X, Y, q, inView);                                  // Sunset Harbor and the jetties: an anchor (js/08zv)
   safeIcons(g, X, Y, q, inView);                                    // safehouses: a green house for yours, a white one with a € for sale (js/08s)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge

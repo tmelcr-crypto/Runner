@@ -120,6 +120,9 @@ function buildShoreField() {
   const gv = MAP.lunapark && MAP.lunapark.grove; if (gv) for (const b of [gv.pier, gv.head]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the grove's pier: walked on like land (js/10m)
   const pz = MAP.prison; if (pz) for (const b of [pz.pier, pz.head, pz.mpier, pz.mhead]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Iron Key's piers (js/10u)
   if (MAP.marina) for (const b of MAP.marina.piers) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Sunset Harbor's piers and fuel dock (js/08zv)
+  for (const j of MAP.jetties || []) {                            // the small jetties round the coast (js/10x): the walkway and its T
+    g.save(); g.translate(j.x, j.y); g.rotate(j.a * Math.PI / 180); g.fillRect(-24, -j.w / 2, j.len + 24, j.w); g.fillRect(j.len - j.head[1], -j.head[0] / 2, j.head[1], j.head[0]); g.restore();
+  }
   const px = g.getImageData(0, 0, FW, FH).data, n = FW * FH, land = SHORE_LAND = new Uint8Array(n);
   for (let i = 0; i < n; i++) land[i] = px[i * 4] > 127 ? 1 : 0;
   FIELD = fieldOf(land);

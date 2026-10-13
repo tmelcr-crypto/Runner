@@ -35,3 +35,17 @@ function boatShore(c) {                   // js/07 after collideCarWorld: a boat
     if (vin > 0) { c.vx -= vin * g[0] * 1.4; c.vy -= vin * g[1] * 1.4; if (vin > 140 && c.hitCd <= 0) { c.hitCd = 0.2; damageCar(c, (vin - 140) * 0.12, false); splashFx(x, y, 6); } }
   }
 }
+
+/* the maps (js/14): an anchor at Sunset Harbor (on its sunset orange) and at the end of each jetty (on blue) */
+function anchorIcon(g, x, y, q, bg) {
+  g.fillStyle = '#000'; g.fillRect(x - q - 1, y - q - 1, 2 * q + 2, 2 * q + 2); g.fillStyle = bg; g.fillRect(x - q, y - q, 2 * q, 2 * q);
+  g.strokeStyle = '#ffffff'; g.lineWidth = Math.max(1.1, q * 0.2); g.beginPath();
+  g.arc(x, y - q * 0.58, q * 0.16, 0, TAU); g.moveTo(x, y - q * 0.42); g.lineTo(x, y + q * 0.62);
+  g.moveTo(x - q * 0.36, y - q * 0.2); g.lineTo(x + q * 0.36, y - q * 0.2);
+  g.moveTo(x - q * 0.62, y + q * 0.08); g.quadraticCurveTo(x - q * 0.5, y + q * 0.62, x, y + q * 0.62); g.quadraticCurveTo(x + q * 0.5, y + q * 0.62, x + q * 0.62, y + q * 0.08); g.stroke();
+}
+function marinaIcons(g, X, Y, q, inView) {
+  if (!feat('marina')) return;
+  if (MARINA) { const x = X(MARINA.door[0] + 60), y = Y(MARINA.door[1]); if (inView(x, y)) anchorIcon(g, x, y, q, '#ff7a3d'); }
+  for (const j of MAP.jetties || []) { const a = j.a * Math.PI / 180, x = X(j.x + Math.cos(a) * j.len), y = Y(j.y + Math.sin(a) * j.len); if (inView(x, y)) anchorIcon(g, x, y, q * 0.8, '#2f6bff'); }
+}
