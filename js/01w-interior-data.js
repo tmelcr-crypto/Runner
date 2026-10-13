@@ -21,11 +21,11 @@ const INTERIOR_TABLE = /*INTERIORS-JSON*/{
   {"id": "lockTime", "group": "At night", "name": "Forcing a lock takes", "unit": "s", "min": 0.5, "max": 10, "v": 2, "note": "On foot at a side door at night, or at a storage unit's lock, any time: hold still this long."},
   {"id": "stashes", "group": "Loot", "name": "Stashes in each place", "unit": "count", "min": 0, "max": 8, "v": 3, "note": "Crates and shelves with something in them (a storage unit: one at most)."},
   {"id": "cashShare", "group": "Loot", "name": "Stashes with cash", "unit": "%", "min": 0, "max": 100, "v": 50, "note": "The rest hold a gun or ammo (half and half)."},
-  {"id": "cashMin", "group": "Loot", "name": "Cash in a stash, at least", "unit": "EUR", "min": 0, "max": 100000, "v": 400, "note": "Each stash a random amount between the two."},
-  {"id": "cashMax", "group": "Loot", "name": "Cash in a stash, at most", "unit": "EUR", "min": 0, "max": 100000, "v": 2500, "note": ""},
+  {"id": "cashMin", "group": "Loot", "name": "Cash in a stash, at least", "unit": "€", "min": 0, "max": 100000, "v": 400, "note": "Each stash a random amount between the two."},
+  {"id": "cashMax", "group": "Loot", "name": "Cash in a stash, at most", "unit": "€", "min": 0, "max": 100000, "v": 2500, "note": ""},
   {"id": "restock", "group": "Loot", "name": "A stash is full again after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after you emptied it (24: a game day)."},
   {"id": "rareBack", "group": "Rare vehicles", "name": "A new one is back after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after you took it - if it was lost or left (one kept in your garage stays yours, and no new one comes)."},
-  {"id": "vanCash", "group": "Rare vehicles", "name": "Money in the armoured van", "unit": "EUR", "min": 0, "max": 100000, "v": 8000, "note": "Yours the first time you get in a new van."}
+  {"id": "vanCash", "group": "Rare vehicles", "name": "Money in the armoured van", "unit": "€", "min": 0, "max": 100000, "v": 8000, "note": "Yours the first time you get in a new van."}
 ]
 }/*END-INTERIORS-JSON*/;
 /* IXT: the same settings in game units: m and km/h become game distances and speeds, % a fraction */

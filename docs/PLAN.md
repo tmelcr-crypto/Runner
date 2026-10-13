@@ -227,6 +227,8 @@ rest of this step stands.)
      lost or left, **a new one is back at its place a game day later**. **Open by day** (workers, open doors; taking things is a
      crime if seen); **at night the doors are shut** - ram the roller door or slip in at the side door; a **night guard** with a torch
      and a pistol, and an **alarm brings 2 stars** if he sees you or a door is rammed.
+     (Done October 2026: js/10z, js/08zx, the interiors table js/01w; the storage yard took the office block at the port's south-west
+     corner and the hangars' old closed model went.)
 2. **World events**: robberies with a getaway car and an armoured cash van to ram; fires, pile-ups with tow trucks, storm blackouts;
    a rocket launch at the space center; a plane in trouble at the airport.
 3. **Flying and people with real lives** (below).
