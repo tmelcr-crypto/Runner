@@ -42,6 +42,42 @@ cutscenes (camera words WIDE, CLOSE, FOLLOW, OVERHEAD, FIXED, PAN; a shot list p
 seconds, line), rewards and start (marker or phone call, failing and retrying), notes for building (places, people and things,
 music, anything new, the pictures to send). Waiting for: the owner's pictures and changes to the test mission.
 
+## MISSIONS TEST mode (asked October 2026)
+
+A third mode where every new mission is played in the game before it goes into STORY. As answered:
+
+- **On the NEW GAME screen**, a third button next to FREE ROAM and STORY (for anyone who opens the game).
+- **Picking a mission: only a list** - MISSIONS (on starting the mode and in the pause menu); pick one and it starts. No markers on the map.
+- **The world: like STORY** - a third column `test` in the modes table, copied from STORY, so missions are tested as they will be played.
+- **Helpers**: restart the mission, jump to any step, replay a cutscene; **mission info on screen** (the step's number and word, timers,
+  the fail checks).
+- **Never saved**: every test starts fresh (no saving, no autosave).
+- **Start kit: everything** - lots of cash, every weapon full, full health and armour.
+- **Approval: the owner tells me in chat** ("Quest 01 approved", or what to change); the list below keeps each quest's state.
+- **Quest 01 (Harbour Favour) is built first**, from the sample in the Word file, with placeholder portraits (a plain silhouette with the
+  character's letter) until the owner's pictures come.
+
+## Approval list
+
+| Quest | State | Notes |
+| --- | --- | --- |
+| 01 Harbour Favour | sample sent; to be built in MISSIONS TEST; waiting for the owner's changes and pictures | the player says nothing in it - asked whether the player should speak |
+
+## Connectors - joining the quests into STORY
+
+STORY mode is built in one piece once every quest is approved, from this list. Each quest page says how it starts and what it unlocks;
+the connectors below add what happens between quests. Filled in as each quest arrives.
+
+- **The start of STORY**: where you wake, what you carry and own (to settle with the owner), and how the first quest is found (Quest 01's
+  marker M at Sunset Harbor).
+- **Between two quests**, for each pair: how the next one starts (the giver's marker, or a phone call - who, and how long after), what the
+  one before unlocks (a contact, a place or property, a vehicle, clothes), anything that changes in the city (a gate opens, a shop, the
+  police), and whether you must be somewhere or at a time of day.
+- **01 -> 02**: Marco phones a game day after Quest 01 is passed; from Quest 01 on Marco is a contact who can call you. Quest 02 is not
+  written yet.
+- **Story-wide things to settle before STORY is built**: the space center's entry (open item 1); whether the player speaks; saving
+  between quests (STORY saves as now, never during a mission); what a failed or skipped quest does to the ones after it.
+
 ## Settled for story mode
 
 - Hidden pickups (weapons, ammo, health, body armor, heat reducers): 30% of the free roam count (modes table, `pickups`).
