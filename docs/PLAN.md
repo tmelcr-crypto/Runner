@@ -268,6 +268,13 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 - Likely a map remodel (`tools/remodel_city.py`: the rocks in the map data, cut out of the boats' water field), the stunt table
   (js/01v) for the new jumps, and boats that can fly off a ramp (today only wheeled vehicles jump).
 
+## Waves on the water (asked October 2026; ask the details before building)
+- Waves on the sea and the bay: the water surface moving instead of flat, swell and ripples, white crests on the open sea and
+  surf breaking along the beaches; calmer in the harbour and the canals.
+- To ask first: how strong, and whether the weather changes them (storms rougher); only a look, or boats rocking and bouncing
+  on them too (and jumping off a crest); waves washing up the beach; the phone's speed (a lighter look on small screens).
+- Goes with the boat models' wake and spray (Boat models above); the numbers in the places table's In the water group.
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
