@@ -275,6 +275,14 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   on them too (and jumping off a crest); waves washing up the beach; the phone's speed (a lighter look on small screens).
 - Goes with the boat models' wake and spray (Boat models above); the numbers in the places table's In the water group.
 
+## Jet ski races (asked October 2026; ask the details before building)
+- Races on the water on jet skis: a course of buoys (gates) round the bay or the islands, rivals on jet skis, a start and a finish,
+  best times kept - like the street races and the drag strip (js/08o), on the water.
+- To ask first: free roam, story or both (a modes table row); how a race starts (a booth or a buoy at Sunset Harbor, a phone call,
+  the race table's booths); how many courses and where (with the rocks and their jumps, and the waves?); how many rivals; the fee
+  and the prize (races table, economy sheet); whether you must use a jet ski or any boat; what counts toward 100%.
+- Uses the races table (js/01p) and the race engine (js/08o); the course gates as rings on the water and on the maps.
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
