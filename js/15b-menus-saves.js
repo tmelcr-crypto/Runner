@@ -161,6 +161,7 @@ function saveBlock() {                               // why you cannot save now 
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
   if (P.ferry) return 'NOT ON THE FERRY';
+  if (prisonOn() && inPrison((P.car || P).x, (P.car || P).y)) return 'NOT INSIDE THE PRISON';   // js/08zp: no saving, nor autosaves, in there
   if (P.swim || (P.car && P.car.t.boat)) return 'GET BACK ON LAND FIRST';   // js/08zv
   if (P.car && (P.car.dead || P.car.burn > 0 || P.car.sunk || P.car.air > 0)) return 'GET OUT OF THAT WRECK FIRST';
   return '';
@@ -171,16 +172,18 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe], boostH: P.boostH || 0 },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio, tune: c.tune || undefined } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(), marina: marinaSave(),
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(), marina: marinaSave(), stunts: stuntSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
   const p = sv.P || {}, c = sv.car, num = v => typeof v === 'number' && isFinite(v);
+  const jailed = (x, y) => PRZ && inPrison(x, y);                 // a save from inside the prison's walls (before saving there was stopped): outside the gate instead (js/08zp)
+  if ((c && num(c.x) && num(c.y) && jailed(c.x, c.y)) || (!c && num(p.x) && num(p.y) && jailed(p.x, p.y))) { const o = PRZ.path[1]; return { x: o[0], y: o[1], ang: Math.PI / 2 }; }
   if (c && CAR_TYPES[c.type] && num(c.x) && num(c.y) && shoreDist(c.x, c.y) > 0) {
     const car = makeCar(c.type, c.x, c.y, num(c.ang) ? c.ang : 0, null, typeof c.color === 'string' ? c.color : undefined);
     if (num(c.hp)) car.hp = clamp(c.hp, 1, car.hp);
     if (Number.isInteger(c.radio) && c.radio < RADIO.length) car.radio = Math.max(-1, c.radio);
-    tuneSet(car, c.tune);                                          // its tuning (js/08y)
+    tuneSet(car, c.tune); car.taken = car.searched = true;         // its tuning (js/08y); the car you saved in is yours
     return { x: car.x, y: car.y, ang: car.ang, car };
   }
   if (num(p.x) && num(p.y) && !pedBlocked(p.x, p.y) && shoreDist(p.x, p.y) > 4) return { x: p.x, y: p.y, ang: num(p.ang) ? p.ang : 0 };
@@ -212,6 +215,7 @@ function applySave(sv) {                             // called by resetGame (js/
   raceLoad(sv.races);                                             // best times and wins (js/08o)
   safeLoad(sv.safe);                                              // safehouses owned, the stash, cars kept (js/08s)
   marinaLoad(sv.marina);                                          // your boats at Sunset Harbor (js/08zv)
+  stuntLoad(sv.stunts);                                           // the stunt jumps done (js/08zw)
   rampFound = new Set(ids(rp.found)); rampDone = new Set(ids(rp.done)); for (const id of rampDone) rampFound.add(id);
   const s = sv.sky;
   if (s) {

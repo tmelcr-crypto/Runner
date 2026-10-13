@@ -24,6 +24,28 @@ function boatWreck(c) {                   // js/07: a boat that has burned out d
   else if (c.byPlayer) addScore(ECO.carBoom, c.x, c.y, 'WRECKED');
   c.vx *= 0.4; c.vy *= 0.4; c.driver = null; Snd.thud(140);
 }
+function ferryBox() {                    // the Iron Key ferry as a box: centre, axes, half length and width, velocity (js/08zp)
+  if (!PRZ || !feat('prison') || !PRI.route) return null;
+  const F = FERRY, ca = Math.cos(F.ang), sa = Math.sin(F.ang), v = F.state === 'sail' ? F.v * (F.end ? -1 : 1) : 0;
+  return { x: F.x, y: F.y, ca, sa, L: PRZ.ferry.len / 2, W: PRZ.ferry.wid / 2, vx: ca * v, vy: sa * v };
+}
+function pushOffFerry(o, r, B) {          // o {x, y, vx, vy} as a circle of radius r: out of the ferry's box; returns the impact speed
+  const dx = o.x - B.x, dy = o.y - B.y, lx = dx * B.ca + dy * B.sa, ly = -dx * B.sa + dy * B.ca;
+  const px = B.L + r - Math.abs(lx), py = B.W + r - Math.abs(ly); if (px <= 0 || py <= 0) return 0;
+  const n = px < py ? [B.ca * Math.sign(lx || 1), B.sa * Math.sign(lx || 1)] : [-B.sa * Math.sign(ly || 1), B.ca * Math.sign(ly || 1)], pen = Math.min(px, py);
+  o.x += n[0] * pen; o.y += n[1] * pen;
+  const vn = ((o.vx || 0) - B.vx) * n[0] + ((o.vy || 0) - B.vy) * n[1];
+  if (vn < 0 && o.vx !== undefined) { o.vx -= 1.3 * vn * n[0]; o.vy -= 1.3 * vn * n[1]; }
+  return Math.max(0, -vn);
+}
+function boatFerry(c) {                   // js/07: a boat cannot pass through the ferry - it is pushed off and bumps
+  const B = ferryBox(); if (!B || c.sunk || Math.abs(c.x - B.x) > B.L + 80 || Math.abs(c.y - B.y) > B.L + 80) return;
+  for (const q of carCircles(c)) {
+    const o = { x: q[0], y: q[1], vx: c.vx, vy: c.vy }, imp = pushOffFerry(o, q[2], B); if (o.x === q[0] && o.y === q[1]) continue;
+    c.x += o.x - q[0]; c.y += o.y - q[1]; c.vx = o.vx; c.vy = o.vy;
+    if (imp > 140 && c.hitCd <= 0) { c.hitCd = 0.25; damageCar(c, (imp - 140) * 0.12, false); splashFx(q[0], q[1], 6); if (P.car === c) { cam.shake = Math.max(cam.shake, 6); Snd.thud(imp); } }
+  }
+}
 function boatShore(c) {                   // js/07 after collideCarWorld: a boat is held on the water; a hard knock against the shore hurts it
   if (c.sunk) return;
   if (c.dead) {                                                       // wrecked: it burns a while, then goes under (you are thrown in the water)
@@ -107,6 +129,7 @@ function marinaTick(dt) {                 // js/15 every frame
     MB.lost.add(c); const i = MB.boats.indexOf(c.mine); if (i >= 0) { MB.boats.splice(i, 1); toast('YOUR ' + c.t.name + ' IS LOST', true); }
   }
   groveBoats(); boatTraffic(dt); policeBoat(dt);
+  if (P.swim && !P.ferry) { const B = ferryBox(); if (B) pushOffFerry(P, 7, B); }   // a swimmer is pushed aside by the ferry too
 }
 function groveBoats() {                   // the boats tied up at the grove's pier by the lunapark car park (js/10m): real ones while you are near
   if (!GROVE || !feat('groveBoats')) return;
@@ -151,6 +174,7 @@ function buyBoat(id) {
 
 /* ---------- out on the water: speedboats and jet skis round the bay, fishing boats off the port, the tour boat round Iron Key ---------- */
 function boatTraffic(dt) {
+  for (let k = cars.length - 1; k >= 0; k--) if (cars[k].gone && P.car !== cars[k]) cars.splice(k, 1);
   if ((MB.trafT = (MB.trafT || 0) - dt) > 0) return; MB.trafT = 1;
   const R = MARINA.routes, want = { bay: Math.round(PLC.boatsOut), docks: Math.round(PLC.fishBoats), tour: PLC.tourBoat ? 1 : 0 };
   for (const k of ['bay', 'docks', 'tour']) {
@@ -168,6 +192,7 @@ function boatTraffic(dt) {
   }
 }
 function boatDrive(c, dt) {               // js/07 for a boat with a computer at the helm
+  if (c.gone) { c.thr = 0; return; }
   if (c.boatAI === 'police' && c.driver === 'cop') { copBoatDrive(c, dt); return; }
   const pts = MARINA.routes[c.boatAI] || MARINA.routes.bay, n = pts.length;
   if (c.wi === undefined || c.wi >= n) { c.wi = 0; c.dir = 1; c.cruise = c.cruise || 30 * KMH; }
@@ -175,15 +200,24 @@ function boatDrive(c, dt) {               // js/07 for a boat with a computer at
   let q = lane(c.wi, c.dir); if (dist(c.x, c.y, q[0], q[1]) < 140) { c.wi = (c.wi + c.dir + n) % n; q = lane(c.wi, c.dir); }
   let want = Math.atan2(q[1] - c.y, q[0] - c.x), cruise = c.cruise;
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang);
-  for (const o of cars) {                                           // something in the way: ease off and pass it to starboard (both turn right)
-    if (o === c || o.sunk || Math.abs(o.x - c.x) > 260 || Math.abs(o.y - c.y) > 260) continue;
-    const dx = o.x - c.x, dy = o.y - c.y, ah = dx * fx + dy * fy, sd = -dx * fy + dy * fx;
-    if (ah > 0 && ah < 90 + c.t.len + carSpeed(c) * 0.6 && Math.abs(sd) < (c.t.wid + o.t.wid) * 0.6 + 24) { cruise *= 0.35; want += 0.7; }
+  const obst = [];                                                  // what is in the way: boats (a moored or empty one stands still), the ferry along its length
+  for (const o of cars) if (o !== c && !o.sunk && o.t.boat && Math.abs(o.x - c.x) < 260 && Math.abs(o.y - c.y) < 260) obst.push([o.x, o.y, o.t.wid, carSpeed(o) > 10 * KMH]);
+  const B = ferryBox(); if (B && Math.abs(B.x - c.x) < B.L + 300 && Math.abs(B.y - c.y) < B.L + 300) for (let k = -1; k <= 1; k += 0.5) obst.push([B.x + B.ca * B.L * k, B.y + B.sa * B.L * k, B.W * 2, FERRY.state === 'sail']);
+  for (const [ox, oy, ow, moving] of obst) {                        // ease off; pass a moving one to starboard (both turn right), steer away from one standing still
+    const dx = ox - c.x, dy = oy - c.y, ah = dx * fx + dy * fy, sd = -dx * fy + dy * fx;
+    if (ah > -10 && ah < 90 + c.t.len + carSpeed(c) * 0.6 && Math.abs(sd) < (c.t.wid + ow) * 0.6 + 24) { cruise *= 0.35; want += moving ? 0.7 : sd > 0 ? -0.9 : 0.9; }
   }
   if (P.swim) { const dx = P.x - c.x, dy = P.y - c.y, ah = dx * fx + dy * fy; if (ah > 0 && ah < 160 && Math.abs(-dx * fy + dy * fx) < c.t.wid * 0.6 + 20) cruise *= 0.2; }   // a swimmer ahead
   const spd = carSpeed(c), look = 50 + spd * 0.9, hx = c.x + fx * look, hy = c.y + fy * look;
   if (boatDist(hx, hy) > -70) { const g = boatGrad(hx, hy), away = Math.atan2(-g[1], -g[0]); want = away + clamp(angDiff(away, want), -1.2, 1.2); cruise *= 0.5; }   // the shore ahead: turn off it
   c.str = clamp(angDiff(c.ang, want) * 2.2, -1, 1); c.thr = spd < cruise ? 1 : spd > cruise * 1.2 ? -0.6 : 0.01; c.hb = false;
+  if (c.backT > 0) { c.backT -= dt; c.thr = -1; c.str = c.backS; return; }   // stuck: astern a moment, swinging the bow away
+  c.stuckT = spd < 6 * KMH && c.thr > 0.5 ? (c.stuckT || 0) + dt : 0;
+  if (c.stuckT > 1.5) {
+    c.stuckT = 0; c.stuckN = (c.stuckN || 0) + 1;
+    if (c.stuckN > 3 && dist(c.x, c.y, P.x, P.y) > 700) { c.gone = true; return; }   // hopeless and out of sight: taken away (boatTraffic)
+    c.backT = 1.6; c.backS = c.str >= 0 ? -1 : 1; c.wi = (c.wi + c.dir + pts.length) % pts.length;
+  }
 }
 
 /* ---------- the police boat: on the water and wanted enough, it comes for you; the helicopter's light shows it where you are ---------- */

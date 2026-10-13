@@ -2,12 +2,12 @@
 /* ---------- 6zp. IRON KEY: the prison and its ferry (js/01j prison; places table: Iron Key; the island and the models: js/10u) ----------
    Busted, you are let out of the prison gate on Iron Key (no longer at a police station) and walk down to the pier, where the ferry
    waits for you. The ferry - free, on foot only - shuttles all day between the island's pier and the ferry pier off the Palm Heights
-   promenade, waiting at each end; walk aboard over its ramp and walk about the deck while it crosses (SKIP or E: straight across),
-   walk off at the other end. While you are wanted it will not sail. Inside the walls is restricted like the military base: a warning
+   promenade, waiting at each end; walk aboard over its ramp and you sit on a bench on its open deck while it crosses (SKIP or E:
+   straight across; E before it casts off: back ashore), stepping off onto the pier at the other end. While you are wanted it will not sail. Inside the walls is restricted like the military base: a warning
    counts down, then the alarm gives stars and the guards in the four watchtowers fire rifles from their posts at you anywhere on the
    island (so does shooting inside the walls, or at a guard). Prisoners in orange walk the yard; two guards stand at the gate. */
 const PRX = { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, area: null, ball: 0, sayT: 0 };
-const FERRY = { s: 0, end: 0, state: 'dock', t: 0, v: 0, x: 0, y: 0, ang: 0, hold: false, rider: false, lx: 0, ly: 0, mesh: null };
+const FERRY = { s: 0, end: 0, state: 'dock', t: 0, v: 0, x: 0, y: 0, ang: 0, hold: false, rider: false, lx: 0, ly: 0, offT: 0, mesh: null };
 const prisonOn = () => !!PRZ && feat('prison');
 const inPrison = (x, y) => { const [x0, y0, x1, y1] = PRZ.walls, h = PRZ.wt / 2; return x > x0 + h && x < x1 - h && y > y0 + h && y < y1 - h; };
 const onIsland = (x, y) => !!PRZ && districtAt(x, y) === 'IRON KEY' && shoreDist(x, y) > -40;
@@ -100,7 +100,8 @@ function ferryTick(dt, on) {
   if (!on) { F.state = 'dock'; F.hold = false; return; }
   if (F.state === 'dock') {
     if (!F.rider) ferryBoard();
-    if (F.rider && F.fresh && F.t > PLC.ferryBoard) F.t = PLC.ferryBoard;   // just came aboard here: off soon (arriving, you get the usual wait to walk off)
+    if (F.rider && F.fresh && F.t > PLC.ferryBoard) F.t = PLC.ferryBoard;   // just came aboard here: off soon
+    if (F.rider && !F.fresh && (F.offT -= dt) <= 0) ferryOff();      // arrived: you get up and step off onto the pier
     if (F.hold) { if (F.rider) F.hold = false; }
     else F.t -= dt;
     if (F.t <= 0) {
@@ -112,44 +113,42 @@ function ferryTick(dt, on) {
     const dir = F.end ? -1 : 1, left = F.end ? F.s : R.L - F.s, vmax = PLC.ferrySpeed, acc = vmax / 4;
     F.v = Math.min(F.v + acc * dt, vmax, Math.sqrt(2 * acc * Math.max(0, left)) + 4);
     F.s = clamp(F.s + dir * F.v * dt, 0, R.L);
-    if ((dir > 0 && F.s >= R.L) || (dir < 0 && F.s <= 0)) { F.end = 1 - F.end; F.state = 'dock'; F.v = 0; F.t = PLC.ferryWait; if (F.rider) toast(F.end ? 'IRON KEY - WALK OFF OVER THE RAMP' : 'PALM HEIGHTS FERRY PIER'); }
+    if ((dir > 0 && F.s >= R.L) || (dir < 0 && F.s <= 0)) { F.end = 1 - F.end; F.state = 'dock'; F.v = 0; F.t = PLC.ferryWait; F.offT = 1; }
   }
   ferryAt(F.s, _fq); F.x = _fq.x; F.y = _fq.y; F.ang = _fq.ang;
   if (F.rider) ferryCarry();
   $('ferrySkip').hidden = !(F.rider && F.state === 'sail' && state === 'play');
 }
 function ferryLocal(x, y) { const F = FERRY, dx = x - F.x, dy = y - F.y, ca = Math.cos(F.ang), sa = Math.sin(F.ang); return [dx * ca + dy * sa, -dx * sa + dy * ca]; }
-function ferryBoard() {                   // docked: walking over the ramp from the pier puts you aboard
+function ferryBoard() {                   // docked: walking over the ramp from the pier puts you aboard, on a bench by the ramp
   if (P.car || P.dead || P.knocked || state !== 'play') return;
   const L = PRZ.ferry.len / 2, W = PRZ.ferry.wid / 2, [lx, ly] = ferryLocal(P.x, P.y), side = FERRY.end ? 1 : -1;
-  if (Math.abs(ly) < W - 6 && lx * side < L - 2 && lx * side > L - 40) { FERRY.rider = true; FERRY.fresh = true; FERRY.lx = lx; FERRY.ly = ly; P.ferry = FERRY; P.z = 9.6; }
+  if (Math.abs(ly) < W - 6 && lx * side < L - 2 && lx * side > L - 40) {
+    const s = Math.cos(FERRY.ang) >= 0 ? 1 : -1;                 // the bench on the side nearer the camera (seen from the south): you show on the deck, not over the rail
+    Object.assign(FERRY, { rider: true, fresh: true, lx: side * (L - 22), ly: s * (W - 10), seatS: s }); P.ferry = FERRY; P.z = 9.6; P.vx = P.vy = 0; P.act = null; P.swing = null; P.swim = false;   // a swimmer can climb aboard too
+    toast('ABOARD - TAKE A SEAT');
+  }
 }
-function ferryCarry() {                   // you go where the ferry goes
+function ferryCarry() {                   // you go where the ferry goes, seated on the bench by the rail, facing the deck
   const F = FERRY, ca = Math.cos(F.ang), sa = Math.sin(F.ang), dir = F.state === 'sail' ? (F.end ? -1 : 1) : 0;
-  P.x = F.x + F.lx * ca - F.ly * sa; P.y = F.y + F.lx * sa + F.ly * ca; P.z = 9.6;
-  if (dir) { const ux = Math.cos(_fq.ang), uy = Math.sin(_fq.ang); P.vx = ux * F.v * dir; P.vy = uy * F.v * dir; }
+  P.x = F.x + F.lx * ca - F.ly * sa; P.y = F.y + F.lx * sa + F.ly * ca; P.z = 9.6; P.ang = F.ang - (F.seatS || -1) * Math.PI / 2;
+  if (dir) { const ux = Math.cos(_fq.ang), uy = Math.sin(_fq.ang); P.vx = ux * F.v * dir; P.vy = uy * F.v * dir; } else P.vx = P.vy = 0;
 }
-function ferryMove(dt, inp, mg) {         // js/06 updatePlayer on foot, aboard: walk about the open decks and the side walkways
-  const F = FERRY, L = PRZ.ferry.len / 2, W = PRZ.ferry.wid / 2, ca = Math.cos(F.ang), sa = Math.sin(F.ang);
-  const sp = mg > 0.4 ? (inp.sprint ? RUN * 0.8 : lerp(WALK, 2.4 * MPS, clamp((mg - 0.4) / 0.4, 0, 1))) * FOOT : 0, m = Math.hypot(inp.ix, inp.iy) || 1;
-  const wx = inp.ix / m * sp, wy = inp.iy / m * sp;                  // the wish in the world, turned into the ferry's frame
-  F.lx += (wx * ca + wy * sa) * dt; F.ly += (-wx * sa + wy * ca) * dt; P.bob += sp * dt * 0.1;
-  const side = F.end ? 1 : -1, lim = L - 8;
-  if (F.state === 'dock') {
-    if (F.lx * side > L - 2) {                                      // over the ramp onto the pier: ashore
-      const p = F.end ? [(PRZ.head[0] + PRZ.head[2]) / 2, PRZ.head[1] - 6] : [PRZ.mhead[0] - 10, (PRZ.mhead[1] + PRZ.mhead[3]) / 2];
-      F.rider = false; P.ferry = null; P.z = 0; P.x = p[0]; P.y = p[1]; P.vx = P.vy = 0; return;
-    }
-    F.lx = clamp(F.lx, side > 0 ? -lim : -L, side > 0 ? L : lim);
-  } else F.lx = clamp(F.lx, -lim, lim);
-  F.ly = clamp(F.ly, -W + 6, W - 6);
-  if (Math.abs(F.lx) < 42 && Math.abs(F.ly) < W - 10) F.ly = F.ly < 0 ? -W + 10 : W - 10;   // round the cabin, not through it
-  ferryCarry(); P.vx += wx; P.vy += wy;
+function ferryMove(dt) { ferryCarry(); }  // js/06 updatePlayer: aboard, you stay in your seat - the stick does nothing
+function ferryOff() {                     // up from the bench and off over the ramp onto the pier the ferry lies at
+  const F = FERRY, p = F.end ? [(PRZ.head[0] + PRZ.head[2]) / 2, PRZ.head[1] - 6] : [PRZ.mhead[0] - 10, (PRZ.mhead[1] + PRZ.mhead[3]) / 2];
+  F.rider = false; F.fresh = false; P.ferry = null; P.swim = false; P.z = 0; P.x = p[0]; P.y = p[1]; P.vx = P.vy = 0;
+  P.ang = F.end ? -Math.PI / 2 : Math.PI; cam.x = P.x; cam.y = P.y;
+  toast(F.end ? 'IRON KEY' : 'PALM HEIGHTS FERRY PIER');
 }
-function ferrySkip() {                    // SKIP (or E): straight across
+function ferryUse() {                     // E or the enter button aboard: sailing - straight across; still docked - back ashore
+  if (!FERRY.rider) return;
+  if (FERRY.state === 'sail') ferrySkip(); else ferryOff();
+}
+function ferrySkip() {                    // SKIP (or E): straight across, and off
   const F = FERRY; if (!F.rider || F.state !== 'sail') return;
-  F.s = F.end ? 0 : PRI.route.L; F.end = 1 - F.end; F.state = 'dock'; F.v = 0; F.t = PLC.ferryWait; ferryAt(F.s, _fq); F.x = _fq.x; F.y = _fq.y; F.ang = _fq.ang; ferryCarry();
-  cam.x = P.x; cam.y = P.y; toast(F.end ? 'IRON KEY - WALK OFF OVER THE RAMP' : 'PALM HEIGHTS FERRY PIER');
+  F.s = F.end ? 0 : PRI.route.L; F.end = 1 - F.end; F.state = 'dock'; F.v = 0; F.t = PLC.ferryWait; F.offT = 0.3; ferryAt(F.s, _fq); F.x = _fq.x; F.y = _fq.y; F.ang = _fq.ang; ferryCarry();
+  cam.x = P.x; cam.y = P.y;
 }
 $('ferrySkip').addEventListener('click', ferrySkip);
 function prisonReset() {                  // js/15 resetGame: the ferry at the Palm Heights pier, no alarm

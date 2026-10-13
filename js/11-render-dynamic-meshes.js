@@ -373,8 +373,11 @@ function syncPlayer(time, dt) {
   const sw = P.swing, u = sw ? clamp(sw.t / SWING_T, 0, 1) : 0, e = u * u * (3 - 2 * u);
   if (isMelee(w)) { P3.held.rotation.set(0, sw ? lerp(1.3, -1.3, e) : 0.7, sw ? lerp(0.9, 0.1, e) : 1.05); o.arms[1].rotation.z = sw ? -1.4 * Math.sin(Math.PI * u) : -0.5; }
   else P3.held.rotation.set(0, 0, 0);
-  P3.held.visible = !P.swim; o.tilt.position.x = 0;
-  if (P.swim) {                                                      // swimming (js/08zv): face down, a crawl stroke and a flutter kick
+  P3.held.visible = !P.swim && !P.ferry; o.tilt.position.x = 0;
+  if (P.ferry) {                                                     // seated on a bench on the ferry (js/08zp): hips on the seat, legs out, hands on the knees
+    o.tilt.position.y = -5.6; o.tilt.rotation.set(0, 0, 0); o.legs[0].rotation.z = o.legs[1].rotation.z = 1.45; o.arms[0].rotation.set(0, 0, 0.7); o.arms[1].rotation.set(0, 0, 0.7);
+  }
+  if (P.swim && !P.ferry) {                                          // swimming (js/08zv): face down, a crawl stroke and a flutter kick
     const sp2 = Math.min(1, sp / 60), u = time * (3 + 4 * sp2);
     o.tilt.rotation.z = -1.42; o.tilt.position.set(-13, 0.5, 0); o.tilt.rotation.y = 0;
     o.arms[0].rotation.set(0, 0, sp2 > 0.1 ? u : -2.6 + 0.3 * Math.sin(u)); o.arms[1].rotation.set(0, 0, sp2 > 0.1 ? u + Math.PI : -2.6 - 0.3 * Math.sin(u));

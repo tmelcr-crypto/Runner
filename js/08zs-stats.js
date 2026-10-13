@@ -32,6 +32,7 @@ function statList() {
   if (STS.countJobs) { const j = Object.keys(JOBK).filter(jobOn), lv = Math.round(STS.jobLevel);
     add('jobs', 'JOBS TO LEVEL ' + lv, j.filter(k => (JOB.best[k] || 0) >= lv).length, j.length, j.filter(k => (JOB.best[k] || 0) < lv).map(k => JOBK[k].name + ' ' + (JOB.best[k] || 0)).join(', ')); }
   if (STS.deliveries > 0 && feat('carDelivery')) add('dlv', 'CARS DELIVERED', DLV.done, Math.round(STS.deliveries));
+  if (STS.countStunts && stuntOn() && STUNTS.length) add('stunts', 'UNIQUE STUNT JUMPS', STUNTS.filter(s => STX.done.has(s.k)).length, STUNTS.length, STUNTS.filter(s => !STX.done.has(s.k)).map(s => s.name).join(', '));
   if (STS.countSprays && feat('sprayGarage')) add('sprays', "PAY 'N' SPRAYS USED", PNS.filter(G => STAT.sprays.has(G.i)).length, PNS.length);
   return L;
 }

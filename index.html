@@ -41,6 +41,7 @@
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vinfo"></div></div>
   <div id="toast"></div>
   <div id="warnBanner" hidden></div>
+  <div id="stuntBanner" hidden></div>
   <button id="ferrySkip" type="button" hidden>SKIP THE CROSSING ▸▸</button>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
   <button id="flyBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><b>SKYPORT</b><span class="go">FLIGHTS</span></button>
@@ -258,7 +259,7 @@
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your cash.</li>
         <li><b>BUSTED</b> you walk out of the prison gate on <b>IRON KEY</b>: bail is 10%, and they keep every weapon you found. The ferry waits at the pier.</li></ul></div>
       <div><h3>IRON KEY</h3><ul>
-        <li>The prison island in the bay west of Heron Key (orange bars on the maps). Its free <b>FERRY</b> (on foot only) shuttles to the pier off the Palm Heights promenade (a cyan boat): walk aboard over the ramp, walk about the deck, walk off at the far end. <b>SKIP THE CROSSING</b> or <b>E</b> goes straight across. It won't sail while you are wanted.</li>
+        <li>The prison island in the bay west of Heron Key (orange bars on the maps). Its free <b>FERRY</b> (on foot only) shuttles to the pier off the Palm Heights promenade (a cyan boat): walk aboard over the ramp and take a seat; at the far end you step off onto the pier. <b>SKIP THE CROSSING</b> or <b>E</b> goes straight across (<b>E</b> before it sails gets you off). It won't sail while you are wanted.</li>
         <li>Inside the walls is restricted: leave before the countdown ends, or the alarm gives 3 stars and the tower guards open fire.</li></ul></div>
       <div><h3>THE CASINO STRIP</h3><ul>
         <li>On the Sunstrip beach avenue: the <b>ROYAL FLAMINGO</b> casino (a pink chip on the maps), <b>THE PULSE</b> nightclub beside it (a heartbeat) and a row of bars across the avenue.</li>
@@ -272,6 +273,10 @@
         <li>Out of your depth you <b>swim</b>, as fast as you run, under the bridges too - but no weapons in the water. Boats pass under the bridges as well.</li>
         <li>A car in the water sinks: <b>4 seconds</b> to get out (<b>E</b>) and swim, or you drown.</li>
         <li>Eight small <b>jetties</b> round the coast (blue anchors) let you land a boat by a street. Wanted on the water with 3 stars or more, the <b>police boat</b> comes after you.</li></ul></div>
+      <div><h3>STUNT JUMPS</h3><ul>
+        <li>Twenty hidden stunt jumps: steel ramps with yellow chevrons and two checkered flags, on lawns, beaches and by the canals - and Skyline One's launch ramp.</li>
+        <li>Hit one fast enough and time slows in the air. Land on your wheels, far enough, for a <b>UNIQUE STUNT BONUS</b> (once per jump) - each counts toward 100%. Too slow or a crash: try again.</li>
+        <li>A done jump gets a yellow tick on the big map.</li></ul></div>
       <div><h3>SKYLINE ONE</h3><ul>
         <li>The construction site downtown in Palm Heights (a crane on the maps). Drive or walk up the half-built tower's ramps, deck by deck; the <b>launch ramp</b> on the top deck sends you over the avenue - onto the street, or onto the roofs across it if you are fast. A hard landing damages the car.</li>
         <li>Up on a roof you can drive about or get out; off the edge you drop, and a long drop hurts.</li>
@@ -542,6 +547,7 @@
 <script src="js/01s-parks-data.js"></script>
 <script src="js/01t-stats-data.js"></script>
 <script src="js/01u-casino-data.js"></script>
+<script src="js/01v-stunt-data.js"></script>
 <script src="js/02-audio.js"></script>
 <script src="js/02b-radio.js"></script>
 <script src="js/02c-music.js"></script>
@@ -585,6 +591,7 @@
 <script src="js/08zt-site.js"></script>
 <script src="js/08zu-casino.js"></script>
 <script src="js/08zv-marina.js"></script>
+<script src="js/08zw-stunts.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -610,6 +617,7 @@
 <script src="js/10v-site.js"></script>
 <script src="js/10w-casino.js"></script>
 <script src="js/10x-marina.js"></script>
+<script src="js/10y-stunts.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>

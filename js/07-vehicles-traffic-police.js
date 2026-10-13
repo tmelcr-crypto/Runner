@@ -7,7 +7,7 @@ const REAL = { acc: 1, brake: 1, grip: 1, hbGrip: 0.28, turn: 1, lat: LAT_GRIP, 
 function stepCar(c, dt) {
   const t = c.t, fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, H = c.driver === 'player' || c.driver === 'race' ? ARCADE : REAL;   // racers (js/08o) drive like you
   if (c.air > 0 || c.vz > 0) {                                    // thrown by a blast: no grip in the air - it flies, spins and comes down (with a small bounce)
-    c.vz -= 900 * dt; c.air = Math.max(0, (c.air || 0) + c.vz * dt); if (c.air === 0) { landHard(c); c.vz = c.vz < -200 ? -c.vz * 0.25 : 0; c.rzp = 0; }   // a hard landing damages it (js/08zt)
+    c.vz -= (c.stuntG || 900) * dt; c.air = Math.max(0, (c.air || 0) + c.vz * dt); if (c.air === 0) { landHard(c); c.vz = c.vz < -200 ? -c.vz * 0.25 : 0; c.rzp = 0; c.stuntG = 0; }   // stuntG: off a stunt ramp it floats longer (js/08zw)   // a hard landing damages it (js/08zt)
     c.x += c.vx * dt; c.y += c.vy * dt; c.ang += c.av * dt; c.av *= Math.exp(-0.4 * dt); if (c.hitCd > 0) c.hitCd -= dt; return;
   }
   if (c.dead || c.burn > 0 && !c.driver) { c.thr = 0; c.str = 0; }
@@ -255,15 +255,15 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
-    if (c.t.boat) boatShore(c);                                      // a boat stays on the water (js/08zv)
+    if (c.t.boat) { boatShore(c); boatFerry(c); }                    // a boat stays on the water, and off the Iron Key ferry (js/08zv)
     if (c.z || inCarpark(c.x, c.y, 40) || inTower(c.x, c.y, 40)) cpLift(c);   // up the car park's ramps (js/10k), Skyline One's (js/08zt)
-    if (c.rz || inSite(c.x, c.y, 60)) siteJump(c, dt);               // the site's ramps and mounds (js/08zt)
+    if (c.rz || inSite(c.x, c.y, 60) || nearStunt(c.x, c.y)) siteJump(c, dt);   // the site's ramps and mounds (js/08zt), the stunt ramps (js/10y)
     if (c.roof || c.air > 0) roofTick(c);                            // high in the air over a roof, or up on one (js/08zt)
     if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.sunk && !c.t.boat) {   // and nobody shoves them in: the shore holds them like a kerb
       const sd = shoreDist(c.x, c.y);
       if (sd < 0) { const g = shoreGrad(c.x, c.y), vin = c.vx * g[0] + c.vy * g[1]; c.x -= g[0] * sd; c.y -= g[1] * sd; if (vin < 0) { c.vx -= vin * g[0]; c.vy -= vin * g[1]; } }
     }
-    if (!c.sunk && !c.t.boat && shoreDist(c.x, c.y) < -8) sinkCar(c);
+    if (!c.sunk && !c.t.boat && !(c.air > 0) && shoreDist(c.x, c.y) < -8) sinkCar(c);   // flying over the water (a stunt jump, js/08zw): only once it comes down
     if (c.sunk && c.sinkT < 1.4 && Math.random() < 0.3) splashFx(c.x + rand(-14, 14), c.y + rand(-14, 14), 3);
     carHitsPeds(c);
     // damage you can see (there is no health bar): thin white wisps from the bonnet, then thick grey smoke and sparks, then black smoke
