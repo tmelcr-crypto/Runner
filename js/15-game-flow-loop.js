@@ -157,7 +157,7 @@ function frame(ts) {
   if (state === 'cut') cutFrame(rdt);                              // a cutscene: the shots move their actors and the camera (js/15c)
   else if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt * stuntSlow(), false); }   // in the air off a stunt ramp: slow motion (js/08zw)
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race' && state !== 'pns' && state !== 'tune' && state !== 'safe' && state !== 'sleep' && state !== 'fly' && state !== 'casino' && state !== 'marina') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
+  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race' && state !== 'pns' && state !== 'tune' && state !== 'safe' && state !== 'sleep' && state !== 'fly' && state !== 'casino' && state !== 'marina' && state !== 'talk') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
   Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);

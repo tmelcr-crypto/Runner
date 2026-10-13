@@ -179,11 +179,12 @@ function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y
   const shots = list.map((s, i) => ({ dur: s.dur, bars: true, fadeIn: i === 0 ? 0.6 : false, fadeOut: s.fadeOut || (i === list.length - 1 ? 0.6 : 0),
     enter() { s.said = false; if (s.enter) s.enter(A); this.tick(0, 0, 0); },
     tick(dt, t, u) {
-      if (MS.talk) { CUT.t = Math.max(0, CUT.t - dt); return; }                 // a line on screen: the shot waits for it
-      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([s.line], () => {}); return; }
+      const place = () => { const p = s.at ? s.at(A) : P, q = s.cam === 'PAN' && s.to ? s.to(A) : null;
+        cam.x = q ? lerp(p.x, q.x, smooth01(0, 1, u)) : p.x; cam.y = q ? lerp(p.y, q.y, smooth01(0, 1, u)) : p.y; cam.zoom = MS_CAM[s.cam] || 1.2; };
+      if (MS.talk) { CUT.t = Math.max(0, CUT.t - dt); place(); return; }        // a line on screen: the shot waits for it, the camera stays
+      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([s.line], () => {}); place(); return; }
       if (s.tick) s.tick(A, dt, u);
-      const p = s.at ? s.at(A) : P, q = s.cam === 'PAN' && s.to ? s.to(A) : null;
-      cam.x = q ? lerp(p.x, q.x, smooth01(0, 1, u)) : p.x; cam.y = q ? lerp(p.y, q.y, smooth01(0, 1, u)) : p.y; cam.zoom = MS_CAM[s.cam] || 1.2;
+      place();
     } }));
   cutPlay({ skip: 'SKIP', shots, end: () => { msTalkClose(); done(); } });
 }
@@ -242,7 +243,7 @@ MSCRIPT.q01 = (() => {
     { enter(A) { const c = A.tboat; MARINA.routes.msTito = A.route; Object.assign(c, { driver: 'ai', boatAI: 'msTito', wi: 1, dir: 1, cruise: N().titoBoat * KMH }); MS.mark = () => A.tboat; },   // CHASE on the water
       tick(A) { const c = A.tboat, d = dist(me().x, me().y, c.x, c.y);
         c.cruise = N().titoBoat * KMH * (d > 1500 ? 0.75 : d < 450 ? 1.2 : 1);                           // he keeps the chase close
-        if (c.wi >= A.route.length - 1 || dist(c.x, c.y, A.jetty.water.x, A.jetty.water.y) < 110) { c.driver = null; c.thr = 0; c.vx *= 0.3; c.vy *= 0.3; return true; }
+        if (dist(c.x, c.y, A.jetty.water.x, A.jetty.water.y) < 200) { c.driver = null; c.thr = 0; c.vx *= 0.3; c.vy *= 0.3; return true; }
         return false; },
       info: A => Math.round(dist(me().x, me().y, A.tboat.x, A.tboat.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayWater + ')',
       jump(A) { const w = A.route[Math.max(0, A.route.length - 3)]; A.tboat.x = A.jetty.water.x; A.tboat.y = A.jetty.water.y; if (P.car !== A.boat) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } A.boat.x = w[0]; A.boat.y = w[1]; P.x = w[0]; P.y = w[1]; } },

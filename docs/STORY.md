@@ -61,7 +61,7 @@ A third mode where every new mission is played in the game before it goes into S
 
 | Quest | State | Notes |
 | --- | --- | --- |
-| 01 Harbour Favour | sample sent; to be built in MISSIONS TEST; waiting for the owner's changes and pictures | the player says nothing in it - asked whether the player should speak |
+| 01 Harbour Favour | built in MISSIONS TEST (placeholder portraits); waiting for the owner's test, changes and pictures | Tito heads for the jetty in Mercado, across the bay (Dockside is 8 km away). The player says nothing - asked whether the player should speak |
 
 ## Connectors - joining the quests into STORY
 
