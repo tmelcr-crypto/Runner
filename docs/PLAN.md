@@ -170,6 +170,10 @@ rest of this step stands.)
      **a security guard at night** - the gate locked, a guard with a torch walking the fence, trespassing at night gives a star if he
      sees you; **trucks and machines** - a cement mixer, an excavator and dump trucks moving about the site, which you can steal. To play
      with: **ramps and dirt mounds** in the yard to jump cars and bikes off, and **hidden pickups up on the decks** worth the climb.
+     Then: the tower is called **SKYLINE ONE** ('SKYLINE ONE - OPENING 1998' on the hoardings, the developer's logo on the crane jibs);
+     **6 decks** (the ground, five decks, the open top); the **launch ramp on the top deck sends you over the street** off the tower's
+     street side, landing on the avenue or the roofs across it (a hard landing damages the car); at night the gate is locked and you get
+     in **on foot through a broken hoarding panel** on a side street (cars wait for the gate to open in the morning).
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
      and at the grove pier; a police patrol boat from 3 stars.
