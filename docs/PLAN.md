@@ -159,7 +159,8 @@ rest of this step stands.)
      with prisoners in orange walking and playing ball, closed cell blocks); the cell blocks' interiors come with the story's
      breakouts. The **ferry** is free, **on foot only**, and **shuttles all day** (about 20 s at each pier; busted, it waits for you at
      the island); you **ride it for real**, standing on deck while it crosses (skippable), and walk off at the docks. **Wanted, it will
-     not sail** (lose the police first).
+     not sail** (lose the police first). The island is called **IRON KEY**; the ferry's mainland end is a **new ferry pier on the
+     Palm Heights shore across the bay** (not the port's docks, which are 10 km away), a crossing of about 30 s.
    - *Construction site*: a half-built tower, cranes, ramps and scaffolding.
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
