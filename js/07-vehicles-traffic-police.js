@@ -19,8 +19,8 @@ function stepCar(c, dt) {
     const a = braking ? t.brake * (tk ? tk.brake : 1) * H.brake * (0.55 + 0.45 * SKY.grip) : acc * H.acc * (1 - Math.min(1, Math.abs(vf) / (c.thr > 0 ? top : Math.min(t.max * 0.45, 35 * KMH))));
     vf += c.thr * a * dt;
   }
-  vf *= Math.exp(-(c.thr === 0 ? (c.driver ? H.coast : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little
-  vl *= Math.exp(-(c.hb ? t.grip * H.hbGrip : t.grip * H.grip) * SKY.grip * dt);   // wet roads: less grip (js/12d)
+  vf *= Math.exp(-(t.boat ? (c.thr === 0 ? 0.9 : 0.08) : c.thr === 0 ? (c.driver ? H.coast : 0.6) : 0.02) * dt);   // rolling and air drag; off the throttle the engine slows you a little (a boat: the water's drag)
+  vl *= Math.exp(-(c.hb ? t.grip * H.hbGrip : t.grip * H.grip) * (t.boat ? 1 : SKY.grip) * dt);   // wet roads: less grip (js/12d)
   if (c.hb) vf *= Math.exp(-0.9 * dt);
   c.vx = fx * vf + rx * vl; c.vy = fy * vf + ry * vl;            // velocity keeps its direction while the nose turns: that is the drift
   const sp = Math.max(c.assist ? 0.5 : 0, Math.min(1, Math.abs(vf) / H.full)), sgn = c.fs || (vf >= 0 ? 1 : -1);
@@ -30,7 +30,7 @@ function stepCar(c, dt) {
   c.x += c.vx * dt; c.y += c.vy * dt;
   // skid marks from the rear wheels
   const spd = Math.hypot(c.vx, c.vy);
-  if (c.slip > 85 && spd > 90 && !c.dead) {
+  if (c.slip > 85 && spd > 90 && !c.dead && !t.boat) {
     const ex = Math.cos(c.ang), ey = Math.sin(c.ang), qx = -ey, qy = ex, bx = c.x - ex * t.len * 0.32, by = c.y - ey * t.len * 0.32, w = t.wid * 0.38;
     const nw = [[bx + qx * w, by + qy * w], [bx - qx * w, by - qy * w]];
     if (c.sk) for (let k = 0; k < 2; k++) skids.push({ x1: c.sk[k][0], y1: c.sk[k][1], x2: nw[k][0], y2: nw[k][1], a: 0.55 });
@@ -43,8 +43,8 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { if ((rc.gate && c.t.cop) || rc.foot || !solidAt(rc, zOf(c)) || ((rc.h3 || (rc.bld && rc.H)) && zOf(c) + (c.air || 0) + (c.rz || 0) > (rc.h3 || rc.H) - 1)) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
-      nearRails(q[0], q[1], _nr);
+      for (const rc of _nb) { if ((rc.gate && c.t.cop) || rc.foot || (c.t.boat && onDeck(rc.cx, rc.cy)) || !solidAt(rc, zOf(c)) || ((rc.h3 || (rc.bld && rc.H)) && zOf(c) + (c.air || 0) + (c.rz || 0) > (rc.h3 || rc.H) - 1)) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      if (!c.t.boat) nearRails(q[0], q[1], _nr); else _nr.length = 0;   // a boat passes under the bridges, between their rails (js/08zv)
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
       if (q[1] < CY0 + q[2]) { c.y += CY0 + q[2] - q[1]; ny += 1; hit = true; } else if (q[1] > CY1 - q[2]) { c.y -= q[1] - (CY1 - q[2]); ny -= 1; hit = true; }
@@ -68,6 +68,7 @@ function collideCars() {
     for (let b = a + 1; b < cars.length; b++) {
       const Bc = cars[b]; if (A.hook || Bc.hook) continue;
       const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach || Math.abs(zOf(A) + (A.air || 0) - zOf(Bc) - (Bc.air || 0)) > 15) continue;   // a car on another deck (js/10k), or flying high over it
+      if (A.t.boat !== Bc.t.boat && shoreDist(A.t.boat ? Bc.x : A.x, A.t.boat ? Bc.y : A.y) > 0) continue;   // a boat under a bridge, a car on it (js/08zv)
       let hit = false, nx = 0, ny = 0, pen = 0;
       for (const p of carCircles(A)) for (const q of carCircles(Bc)) {
         const dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), rr = p[2] + q[2];
@@ -82,7 +83,7 @@ function collideCars() {
         const j = -1.4 * rv / (1 / ma + 1 / mb);
         A.vx -= j * nx / ma; A.vy -= j * ny / ma; Bc.vx += j * nx / mb; Bc.vy += j * ny / mb;
         const imp = -rv;
-        if (imp > 60 && A.hitCd <= 0) {
+        if (imp > 60 && A.hitCd <= 0 && !(A.t.boat && Bc.t.boat && A.driver !== 'player' && Bc.driver !== 'player')) {   // two boats nobody is racing: a soft bump on the water (js/08zv)
           A.hitCd = Bc.hitCd = 0.2;
           damageCar(A, (imp - 60) * 0.1 * Math.sqrt(mb / ma), Bc.driver === 'player');
           damageCar(Bc, (imp - 60) * 0.1 * Math.sqrt(ma / mb), A.driver === 'player');
@@ -237,12 +238,13 @@ function updateCars(dt) {
   for (const c of cars) {
     if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
+    else if (c.boatAI && (c.driver === 'ai' || c.driver === 'cop')) boatDrive(c, dt);   // a boat's helmsman, the police boat (js/08zv)
     else if (c.driver === 'ai') { if (c.siteAI) siteDrive(c, dt); else if (!(c.visit && visitDrive(c, dt))) aiDrive(c, dt); }   // a site machine's driver (js/08zt)   // a visitor parking or leaving drives itself (js/08x)
     else if (c.driver === 'cop') { copDrive(c, dt); copHeavy(c, dt); }   // a tank's rockets, an APC's turret gun (js/08r)
     else if (c.driver === 'race') raceDrive(c, dt);                // a race's rivals (js/08o)
     else if (c.driver !== 'player') { c.thr = 0; c.str = 0; c.hb = !!c.medics; }   // an ambulance whose paramedics are out stays put (js/08h)
     if (P.act && P.act.occ && P.act.c === c && !c.dead) wrestle(c, dt);
-    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
+    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.t.boat) {   // computer drivers do not drive into the sea or a lake, forwards or backing up
       const spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang), vf = c.vx * fx + c.vy * fy, back = c.thr < 0 && vf < 25 ? -1 : 1;
       const ahead = (30 + spd * 0.5) * back, hx = c.x + fx * ahead, hy = c.y + fy * ahead;
       if (shoreDist(hx, hy) < 6) {
@@ -253,14 +255,15 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
+    if (c.t.boat) boatShore(c);                                      // a boat stays on the water (js/08zv)
     if (c.z || inCarpark(c.x, c.y, 40) || inTower(c.x, c.y, 40)) cpLift(c);   // up the car park's ramps (js/10k), Skyline One's (js/08zt)
     if (c.rz || inSite(c.x, c.y, 60)) siteJump(c, dt);               // the site's ramps and mounds (js/08zt)
     if (c.roof || c.air > 0) roofTick(c);                            // high in the air over a roof, or up on one (js/08zt)
-    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.sunk) {   // and nobody shoves them in: the shore holds them like a kerb
+    if ((c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race') && !c.dead && !c.sunk && !c.t.boat) {   // and nobody shoves them in: the shore holds them like a kerb
       const sd = shoreDist(c.x, c.y);
       if (sd < 0) { const g = shoreGrad(c.x, c.y), vin = c.vx * g[0] + c.vy * g[1]; c.x -= g[0] * sd; c.y -= g[1] * sd; if (vin < 0) { c.vx -= vin * g[0]; c.vy -= vin * g[1]; } }
     }
-    if (!c.sunk && shoreDist(c.x, c.y) < -8) sinkCar(c);
+    if (!c.sunk && !c.t.boat && shoreDist(c.x, c.y) < -8) sinkCar(c);
     if (c.sunk && c.sinkT < 1.4 && Math.random() < 0.3) splashFx(c.x + rand(-14, 14), c.y + rand(-14, 14), 3);
     carHitsPeds(c);
     // damage you can see (there is no health bar): thin white wisps from the bonnet, then thick grey smoke and sparks, then black smoke
@@ -274,7 +277,7 @@ function updateCars(dt) {
       else { c.smokeT = 0.22; smokeFx(bx, by, false, 0.8, true); }
     }
     if (c.dead && !c.sunk && !c.doused && c.deadT < 25 && c.smokeT <= 0) { c.smokeT = 0.18; smokeFx(c.x, c.y, true); if (Math.random() < 0.4) fireFx(c.x, c.y); }
-    if (c.burn > 0 && !c.dead) { c.burn -= dt; if (c.burn <= 0) explodeCar(c); }
+    if (c.burn > 0 && !c.dead) { c.burn -= dt; if (c.burn <= 0) { if (c.t.boat) boatWreck(c); else explodeCar(c); } }   // a boat burns out and sinks (js/08zv)
   }
   collideCars();
 }

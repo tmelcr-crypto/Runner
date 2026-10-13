@@ -37,6 +37,7 @@ function splashFx(x, y, n) { for (let k = 0; k < n; k++) { const a = rand(0, TAU
 function sinkCar(c) {
   c.sunk = true; c.sinkT = 0; c.dead = true; c.deadT = 0; c.burn = 0; c.hp = 0; c.thr = 0; c.str = 0;
   splashFx(c.x, c.y, 40); cam.shake = Math.max(cam.shake, 6);
+  if (P.car === c && feat('swim')) { P.drown = PLC.sinkTime; c.slowSink = true; toast('THE CAR IS SINKING - GET OUT!', true); return; }   // a few seconds to get out and swim (js/08zv)
   if (P.car === c) { $('wasted').textContent = 'DROWNED'; killPlayer(); }
   c.driver = null;
 }

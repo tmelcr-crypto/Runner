@@ -190,6 +190,22 @@ rest of this step stands.)
      (Done October 2026: map remodel 15, js/10w, js/08zu, the casino table js/01u, the clothes table's Smart column, mode rows casino and club.)
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
      and at the grove pier; a police patrol boat from 3 stars.
+     (Asked October 2026:) the marina is **SUNSET HARBOR** (an orange sunset sign on the harbour office), on the **inner bay** near the Palm
+     Heights shore and Iron Key's ferry pier, for **both modes**. Boats handle **arcade with a slide**: steered like cars but drifting
+     through turns, slowing when you let go, bouncing a little on waves - the jet ski nimble, the yacht slow and heavy. You get in and out
+     **anywhere and swim**: jump out on open water and swim (**fast and free** - nearly running speed, as long as you like, **no weapons
+     in the water**), climb into a boat from the water or from a pier or beach. At the marina: **boats moored to steal** (speedboats, jet
+     skis, a yacht, some with owners on deck), a **boat shop** (a bought boat waits at **your own berths at Sunset Harbor**, up to three,
+     kept in your saves like a garage), a **fuel dock and a harbour office**, and **boats out on the water** - speedboats and jet skis
+     along the coast and across the bay, fishing boats near the docks, a tour boat on a fixed loop. The **police patrol boat from 3 stars
+     chases and shoots** (a cop at the bow; it rams; the helicopter's light helps it). A **wrecked boat burns and sinks** like a car, and
+     you swim.
+     (Added October 2026, the owner:) a **car that drops into the water** gives you **4 s to get out** (E) and swim - after that you
+     drown. **About 8 small jetties round the coast** (the bay, the beaches, the islands, near the port), each by a street, where you can
+     safely land a boat and go on on foot, **shown on the minimap and the big map with a small anchor**. **Boats sail under the bridges**
+     (the bridges stop cars, not boats).
+     (Done October 2026: map remodels 16 and 17, js/08zv, js/10x, the boat rows of the vehicles table, the places table's Sunset Harbor
+     and In the water groups, mode rows marina and swim; the grove pier's motor boats are real boats too.)
    - *Stunt jumps*: twenty around the city - ramps, loading docks, rooftop gaps, the construction site; hit one fast enough and the
      camera slows down in the air, a bonus for distance and height, each counted once toward 100%.
    - *Interiors, top-down first*: the airport hangars, the port warehouses and storage units you can walk and drive into, their

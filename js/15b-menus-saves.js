@@ -58,7 +58,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'tune' || state === 'safe' || state === 'sleep' || state === 'casino'); ov.classList.toggle('low', id === 'pnsCard' || id === 'tuneCard'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'tune' || state === 'safe' || state === 'sleep' || state === 'casino' || state === 'marina'); ov.classList.toggle('low', id === 'pnsCard' || id === 'tuneCard'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -76,6 +76,7 @@ function back() {
   else if (id === 'tuneCard') closeTune(false);
   else if (id === 'safeCard' || id === 'stashCard' || id === 'carCard') closeSafeCard();
   else if (id === 'casCard') closeCasCard();
+  else if (id === 'boatCard') closeBoatShop();
   else if (id === 'slotCard' && SAFEST.slotRet) closeSleepSave();     // the save slots after sleeping (js/08s)
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }
@@ -160,6 +161,7 @@ function saveBlock() {                               // why you cannot save now 
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
   if (P.ferry) return 'NOT ON THE FERRY';
+  if (P.swim || (P.car && P.car.t.boat)) return 'GET BACK ON LAND FIRST';   // js/08zv
   if (P.car && (P.car.dead || P.car.burn > 0 || P.car.sunk || P.car.air > 0)) return 'GET OUT OF THAT WRECK FIRST';
   return '';
 }
@@ -169,7 +171,7 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe], boostH: P.boostH || 0 },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio, tune: c.tune || undefined } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(),
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(), marina: marinaSave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -209,6 +211,7 @@ function applySave(sv) {                             // called by resetGame (js/
   const rp = sv.ramp || {}, ids = v => Array.isArray(v) ? v.filter(id => RAMPAGES.some(r => r.id === id)) : [];   // rampages found and passed (js/08f)
   raceLoad(sv.races);                                             // best times and wins (js/08o)
   safeLoad(sv.safe);                                              // safehouses owned, the stash, cars kept (js/08s)
+  marinaLoad(sv.marina);                                          // your boats at Sunset Harbor (js/08zv)
   rampFound = new Set(ids(rp.found)); rampDone = new Set(ids(rp.done)); for (const id of rampDone) rampFound.add(id);
   const s = sv.sky;
   if (s) {

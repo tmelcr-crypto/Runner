@@ -73,9 +73,9 @@ function resolveCircle(o, r) {
   let hit = null;
   const push = h => { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; };
   nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { if (rc.gate || rc.walk || rc.barrier || !solidAt(rc, zOf(o)) || (rc.bld && rc.H && zOf(o) > rc.H - 1)) continue; const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }   // solidAt: a car park wall at another height (js/10k)   // people duck under gates and barriers, through turnstiles
-  nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); }
+  if (!o.swim) { nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); } }   // swimming: under the bridges, out to sea (js/08zv)
   const sd = shoreDist(o.x, o.y);
-  if (sd < -WADE) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
+  if (sd < -WADE && !o.swim) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
   if (o.x < BX0 + r) { o.x = BX0 + r; hit = hit || { nx: 0, ny: 0 }; hit.nx += 1; } else if (o.x > BX1 - r) { o.x = BX1 - r; hit = hit || { nx: 0, ny: 0 }; hit.nx -= 1; }
   if (o.y < BY0 + r) { o.y = BY0 + r; hit = hit || { nx: 0, ny: 0 }; hit.ny += 1; } else if (o.y > BY1 - r) { o.y = BY1 - r; hit = hit || { nx: 0, ny: 0 }; hit.ny -= 1; }
   return hit;
@@ -109,7 +109,7 @@ const softSolid = rc => !!(rc.clutter || rc.soft);             // dumpsters, cra
 
 /* ---------- water: signed distance to the shore, sampled from a field built from the land polygons ---------- */
 const FR = 14;                                                 // field cell size in world units
-let FW = 0, FH = 0, FIELD = null;
+let FW = 0, FH = 0, FIELD = null, BFIELD = null, SHORE_LAND = null;   // BFIELD: the water for boats and swimmers (bridges open)
 function traceRing(g, ring) { g.moveTo(ring[0][0], ring[0][1]); for (let k = 1; k < ring.length; k++) g.lineTo(ring[k][0], ring[k][1]); g.closePath(); }
 function buildShoreField() {
   FW = Math.ceil((MW + 2 * SEA) / FR); FH = Math.ceil((MH + 2 * SEA) / FR);
@@ -119,8 +119,16 @@ function buildShoreField() {
   for (const s of Object.values(MAP.safe || {})) for (const b of [s.deck, s.plank]) if (b) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the houseboat's deck and gangplank: walked on like land (js/10l)
   const gv = MAP.lunapark && MAP.lunapark.grove; if (gv) for (const b of [gv.pier, gv.head]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the grove's pier: walked on like land (js/10m)
   const pz = MAP.prison; if (pz) for (const b of [pz.pier, pz.head, pz.mpier, pz.mhead]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Iron Key's piers (js/10u)
-  const px = g.getImageData(0, 0, FW, FH).data, n = FW * FH, land = new Uint8Array(n);
+  if (MAP.marina) for (const b of MAP.marina.piers) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Sunset Harbor's piers and fuel dock (js/08zv)
+  for (const j of MAP.jetties || []) {                            // the small jetties round the coast (js/10x): the walkway and its T
+    g.save(); g.translate(j.x, j.y); g.rotate(j.a * Math.PI / 180); g.fillRect(-24, -j.w / 2, j.len + 24, j.w); g.fillRect(j.len - j.head[1], -j.head[0] / 2, j.head[1], j.head[0]); g.restore();
+  }
+  const px = g.getImageData(0, 0, FW, FH).data, n = FW * FH, land = SHORE_LAND = new Uint8Array(n);
   for (let i = 0; i < n; i++) land[i] = px[i * 4] > 127 ? 1 : 0;
+  FIELD = fieldOf(land);
+}
+function fieldOf(land) {                                       // signed distance (world units) from each cell to the shore
+  const n = FW * FH;
   const toOther = cls => {                                     // chamfer distance (cells) from each cell to the nearest cell not of class cls
     const d = new Float32Array(n), D = Math.SQRT2;
     for (let i = 0; i < n; i++) d[i] = land[i] === cls ? 1e6 : 0;
@@ -138,15 +146,39 @@ function buildShoreField() {
     }
     return d;
   };
-  const dw = toOther(1), dl = toOther(0); FIELD = new Float32Array(n);
-  for (let i = 0; i < n; i++) FIELD[i] = (land[i] ? dw[i] - 0.5 : -(dl[i] - 0.5)) * FR;
+  const dw = toOther(1), dl = toOther(0), F = new Float32Array(n);
+  for (let i = 0; i < n; i++) F[i] = (land[i] ? dw[i] - 0.5 : -(dl[i] - 0.5)) * FR;
+  return F;
 }
-function shoreDist(x, y) {                                     // > 0 on land, < 0 in the water
+/* the water as a boat or a swimmer sees it: the decks of the bridges are open water, so they pass under (js/08zv) */
+function buildBoatField() {
+  const land = SHORE_LAND.slice(), q = {}, hw = ROAD_HALF + SW_W + 4;
+  for (const b of BRIDGES) {
+    const E = RE[b.e], n = Math.max(2, Math.ceil((b.s1 - b.s0) / 8));
+    for (let k = 0; k <= n; k++) {
+      edgeAt(E.i, b.s0 + (b.s1 - b.s0) * k / n, q); const ox = -q.ty, oy = q.tx;
+      if (shoreDist(q.x + ox * (hw + 20), q.y + oy * (hw + 20)) >= 0 || shoreDist(q.x - ox * (hw + 20), q.y - oy * (hw + 20)) >= 0) continue;   // water on both sides only: the abutments stay land
+      for (let o = -hw - 20; o <= hw + 20; o += FR * 0.5) {   // the deck, and any land left along its sides
+        const ix = Math.round((q.x + ox * o + SEA) / FR - 0.5), iy = Math.round((q.y + oy * o + SEA) / FR - 0.5);
+        if (ix >= 0 && iy >= 0 && ix < FW && iy < FH) land[iy * FW + ix] = 0;
+      }
+    }
+  }
+  BFIELD = fieldOf(land);
+}
+function sampleField(F, x, y) {
   const fx = (x + SEA) / FR - 0.5, fy = (y + SEA) / FR - 0.5;
   if (!(fx >= 0 && fy >= 0 && fx < FW - 1 && fy < FH - 1)) return -1e4;
-  const ix = fx | 0, iy = fy | 0, tx = fx - ix, ty = fy - iy, k = iy * FW + ix, F = FIELD;
+  const ix = fx | 0, iy = fy | 0, tx = fx - ix, ty = fy - iy, k = iy * FW + ix;
   return (F[k] * (1 - tx) + F[k + 1] * tx) * (1 - ty) + (F[k + FW] * (1 - tx) + F[k + FW + 1] * tx) * ty;
 }
+function boatDist(x, y) { return sampleField(BFIELD || FIELD, x, y); }   // like shoreDist, with the bridges' decks as water
+function onDeck(x, y) { return shoreDist(x, y) > 0 && boatDist(x, y) < 0; }   // up on a bridge, over the water
+function boatGrad(x, y) {
+  const gx = boatDist(x + FR, y) - boatDist(x - FR, y), gy = boatDist(x, y + FR) - boatDist(x, y - FR), m = Math.hypot(gx, gy) || 1;
+  return [gx / m, gy / m];
+}
+function shoreDist(x, y) { return sampleField(FIELD, x, y); }   // > 0 on land, < 0 in the water
 function shoreGrad(x, y) {                                     // unit vector toward land
   const gx = shoreDist(x + FR, y) - shoreDist(x - FR, y), gy = shoreDist(x, y + FR) - shoreDist(x, y - FR), m = Math.hypot(gx, gy) || 1;
   return [gx / m, gy / m];
@@ -292,7 +324,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genMarina(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill && !b.uniq).concat(LMS, fillChunks());   // fill buildings stream as merged chunks; a unique building is its own drawable (js/10n)
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck
@@ -315,5 +347,6 @@ function genWorld() {
       }
     }
   }
+  buildBoatField();
   worldReady = true;
 }

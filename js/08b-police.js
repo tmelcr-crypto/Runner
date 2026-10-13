@@ -102,13 +102,13 @@ function resist() {
 
 /* ---------- sending cars and officers ---------- */
 function chasingCars() {
-  let n = 0; for (const c of cars) if (c.t.cop && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;
+  let n = 0; for (const c of cars) if (c.t.cop && !c.t.boat && !c.dead && c.burn <= 0 && (c.driver === 'cop' || c.crewOut > 0)) n++; return n;   // the police boat comes on its own (js/08zv)
 }
 function dispatch(dt) {
   const lv = P.stars, cap = lv ? Math.max(1, Math.round(COP.lv.cars[lv] * OPT.police)) : 0; let n = chasingCars();
   for (const c of cars) {                // patrol cars that see you, or are near where you were last seen, join first
     if (n >= cap) break;
-    if (c.t.cop && c.t.chaseFrom <= lv && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
+    if (c.t.cop && !c.t.boat && c.t.chaseFrom <= lv && c.driver === 'ai' && !c.dead && c.burn <= 0 && (c.sees || dist(c.x, c.y, PS.lx, PS.ly) < COP.lv.respond[lv])) { c.driver = 'cop'; c.e = -1; n++; }
   }
   if (n < cap && (PS.dispT -= dt) <= 0) PS.dispT = spawnCop() ? COP.lv.every[lv] : 0.5;   // then cars from further away
   let foot = 0; for (const o of officers) if (!o.dead && !o.car) foot++;

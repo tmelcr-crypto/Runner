@@ -651,3 +651,12 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #casCard .betRow button:disabled{opacity:.35}
 #casCard .warn.ok{color:var(--lime,#3dffa6);text-shadow:0 0 8px rgba(61,255,166,.6)}
 @media (max-height:560px){ #casCard .pays,#casCard .keys,#casCard .sub{display:none} #casCard .reels,#casCard .dice{margin:6px auto} }
+#bsList{display:grid;gap:8px;margin:12px auto;max-width:520px}
+#bsList .bsRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;border:2px solid rgba(255,122,61,.55);border-radius:6px;background:rgba(255,122,61,.08)}
+#bsList .bsRow span{display:flex;flex-direction:column;text-align:left}
+#bsList .bsRow b{font-weight:400;font-size:22px;color:#ff9d5c}
+#bsList .bsRow small{font-size:13px;opacity:.75}
+#bsList .bsRow button{min-width:150px;padding:8px 10px;font-size:17px;cursor:pointer;touch-action:manipulation}
+#bsList .bsRow button:disabled{opacity:.35}
+#boatCard .warn.ok{color:var(--lime,#3dffa6)}
+#bsOwn{margin-bottom:12px}

@@ -53,6 +53,7 @@
   <button id="shopBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 6H2zM4 11h16v9H4zm3 2v5h4v-5zm7 0v3h4v-3z"/></svg></span><b></b><span class="go">SHOP</span></button>
   <button id="safeBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11.5h3V21h5v-6h4v6h5v-9.5h3z"/></svg></span><b></b><span class="go">GO IN</span></button>
   <button id="carBtn" class="doorBtn" type="button" style="--sc:#ff2bd6" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11h1a1 1 0 0 1 1 1v5h-2v1.5a1.5 1.5 0 0 1-3 0V17H8v1.5a1.5 1.5 0 0 1-3 0V17H3v-5a1 1 0 0 1 1-1zm2.2 0h9.6l-1.2-3.4H8.4zM6.5 15a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6zm11 0a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z"/></svg></span><b></b><span class="go">BUY</span></button>
+  <button id="boatBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 6.5V21M8 10h8M4 14c0 4 4 7 8 7s8-3 8-7"/></svg></span><b></b><span class="go">ENTER</span></button>
   <button id="casBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM11 0h2v5h-2zm0 19h2v5h-2zM0 11h5v2H0zm19 0h5v2h-5z"/><circle cx="12" cy="12" r="3"/></svg></span><b></b><span class="go">PLAY</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
   <div id="wheel" hidden><div id="wgTitle" hidden>WEAPONS</div><div id="wgrid" hidden></div><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
@@ -265,6 +266,12 @@
         <li>In the casino: tap <b>SLOTS</b> at a machine (a pull is €10, three flamingos win the jackpot) or <b>DICE</b> at a table (7 or 11 wins, 2, 3 or 12 loses, any other number is the point - roll it again before a 7).</li>
         <li>Trouble inside brings the armed guards and the police. With a gun at the cashier's window you can <b>ROB</b> the cage: stay there while the bag is filled.</li>
         <li>THE PULSE opens at 22:00: walk past the queue, dance floor, DJ, music.</li></ul></div>
+      <div><h3>SUNSET HARBOR AND THE WATER</h3><ul>
+        <li>The marina on the inner bay south of Iron Key's ferry pier (an orange anchor on the maps). Boats lie moored at the piers: get in with <b>E</b> and take one - an owner on the pier may come after you.</li>
+        <li>The <b>BOAT SHOP</b> at the office door sells a speedboat, a jet ski and a yacht; yours wait at your own berths (the yellow lines, up to three) and are kept in your saves.</li>
+        <li>Out of your depth you <b>swim</b>, as fast as you run, under the bridges too - but no weapons in the water. Boats pass under the bridges as well.</li>
+        <li>A car in the water sinks: <b>4 seconds</b> to get out (<b>E</b>) and swim, or you drown.</li>
+        <li>Eight small <b>jetties</b> round the coast (blue anchors) let you land a boat by a street. Wanted on the water with 3 stars or more, the <b>police boat</b> comes after you.</li></ul></div>
       <div><h3>SKYLINE ONE</h3><ul>
         <li>The construction site downtown in Palm Heights (a crane on the maps). Drive or walk up the half-built tower's ramps, deck by deck; the <b>launch ramp</b> on the top deck sends you over the avenue - onto the street, or onto the roofs across it if you are fast. A hard landing damages the car.</li>
         <li>Up on a roof you can drive about or get out; off the edge you drop, and a long drop hurts.</li>
@@ -452,6 +459,17 @@
     <p class="keys">ENTER PLAYS · ESC OR E LEAVES</p>
   </div>
 
+  <div class="card" id="boatCard" hidden>
+    <p class="tag">SUNSET HARBOR · BOAT SHOP</p>
+    <h2>BOATS FOR SALE</h2>
+    <p class="sub" id="bsCash"></p>
+    <div id="bsList"></div>
+    <p class="sub" id="bsOwn"></p>
+    <p class="warn" id="bsMsg"></p>
+    <div class="menu"><button id="bsBack" class="big alt back pri" type="button">LEAVE</button></div>
+    <p class="keys">ESC OR E LEAVES</p>
+  </div>
+
   <div class="card" id="stashCard" hidden>
     <p class="tag">WEAPON STASH · <span id="stName">HOME</span></p>
     <p class="sub">THE SAME STASH IN EVERY SAFEHOUSE · KEPT WHEN YOU ARE BUSTED OR WASTED</p>
@@ -566,6 +584,7 @@
 <script src="js/08zp-prison.js"></script>
 <script src="js/08zt-site.js"></script>
 <script src="js/08zu-casino.js"></script>
+<script src="js/08zv-marina.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -590,6 +609,7 @@
 <script src="js/10u-prison.js"></script>
 <script src="js/10v-site.js"></script>
 <script src="js/10w-casino.js"></script>
+<script src="js/10x-marina.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>

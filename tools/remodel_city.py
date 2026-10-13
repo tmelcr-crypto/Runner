@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 15): see the comment above each remodelN below.
+  - Later versions (2 to 17): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -777,7 +777,72 @@ def remodel15(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15]
+# version 16: SUNSET HARBOR, the marina on the inner bay just south of Iron Key's ferry pier. A paved quay is filled out along the coast
+# south of the street's end (land, yard q) with the harbour office and boat shop on it and the fuel dock at its south end; three finger
+# piers with berths on both sides reach out into the bay (marina.piers - walked on like land, js/04), the first pier's north side being
+# your own berths. Water routes for the boats (marina.routes, rings well clear of every shore and pier): the bay, round Iron Key (the
+# tour boat), and off the port's quays (the fishing boats).
+def remodel16(M):
+    Q = Polygon([(8040, 4124), (8112, 4124), (8112, 4532), (7955, 4532), (7975, 4300)])
+    clear_ground(M, Q)
+    edit_land(M, (8000, 4200), lambda G: G.union(Q).buffer(0))
+    M['yards'] += rings(Q, 'q')
+    piers = [[8112, 4213, 8296, 4227], [8112, 4313, 8296, 4327], [8112, 4413, 8296, 4427]]
+    berths = []                                                        # [x, y, side]: a boat lies along the pier, its bow out to sea
+    for k, (x0, y0, x1, y1) in enumerate(piers):
+        for side in (-1, 1):
+            for j in range(2): berths.append([x0 + 54 + j * 92, round((y0 + y1) / 2 + side * 24), side, k])
+    fuel = [8112, 4486, 8190, 4500]
+    M['marina'] = {'name': 'SUNSET HARBOR', 'quay': rings(Q)[0]['o'], 'office': [8034, 4280, 80, 64], 'door': [8074, 4280], 'fuel': fuel,
+                   'pumps': [[8150, 4480], [8176, 4480]], 'piers': piers + [fuel], 'berths': berths, 'own': [0, 1, 4]}
+    pz = M['prison']; gv = M['lunapark'].get('grove') or {}
+    LAND = unary_union([poly(p) for p in M['land']] + [box(*b) for b in piers + [fuel]] + [box(*pz[k]) for k in ('pier', 'head', 'mpier', 'mhead')]
+                       + [box(*gv[k]) for k in ('pier', 'head') if k in gv])
+    def ring(B, off):                                                  # the water in box B shrunk by off from every shore: its biggest piece's outline
+        W = largest(box(*B).difference(LAND).buffer(-off).buffer(0)); return pts(W.exterior.simplify(25))
+    IK = Polygon(pz['island']); Wk = box(8150, 3000, 9400, 4800).difference(LAND).buffer(-60).buffer(0)   # the channel west of it is narrow
+    holes = [h for g in getattr(Wk, 'geoms', [Wk]) for h in g.interiors if Polygon(h).contains(IK.centroid)]
+    assert holes, 'no water ring round Iron Key'
+    M['marina']['routes'] = {'bay': ring([7300, 2650, 9900, 7100], 150), 'tour': pts(LineString(holes[0].coords).simplify(25)), 'docks': ring([7060, 11900, 8800, 15400], 150)}
+    M['remodel'] = 16
+    return M
+
+
+# version 17: eight small jetties round the coast (jetties: x, y where it leaves the shore, a: the way it points out over the water in
+# degrees, len, w, head: the T at its end, across and deep) - each where a street runs close by the open water, so a boat can land you
+# within a few steps of a road; walked on like land (js/04). The boats' water routes are worked out again, clear of them and of the
+# yacht moored off the marina's middle pier (marina.yacht).
+JETTIES = [(4944, 2227, 172), (8725, 2710, 64), (11130, 3065, -131), (6750, 7348, -44), (6283, 9808, -38), (8986, 9047, -42),
+           (9001, 11856, -125), (10509, 15732, 128)]
+def jetty_shape(j):                                                    # the walkway from just up the shore, and the T at its end
+    a = math.radians(j['a']); ca, sa = math.cos(a), math.sin(a)
+    def r(u0, u1, v0, v1): return Polygon([(j['x'] + ca * u - sa * v, j['y'] + sa * u + ca * v) for u, v in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))])
+    hw, hd = j['head']
+    return unary_union([r(-24, j['len'], -j['w'] / 2, j['w'] / 2), r(j['len'] - hd, j['len'], -hw / 2, hw / 2)])
+def remodel17(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    M['jetties'] = []
+    for x, y, a in JETTIES:
+        j = {'x': x, 'y': y, 'a': a, 'len': 150, 'w': 26, 'head': [92, 24]}
+        J = jetty_shape(j); far = J.difference(Point(x, y).buffer(60))
+        assert not far.intersects(LAND), 'jetty at %d,%d runs into land' % (x, y)
+        M['jetties'].append(j)
+    mk, pz = M['marina'], M['prison']; gv = M['lunapark'].get('grove') or {}
+    p1 = mk['piers'][1]; mk['yacht'] = [p1[2] + 100, (p1[1] + p1[3]) // 2]   # the moored yacht's spot, off the middle pier's head
+    LAND = unary_union([LAND] + [box(*b) for b in mk['piers']] + [box(*pz[k]) for k in ('pier', 'head', 'mpier', 'mhead')]
+                       + [box(*gv[k]) for k in ('pier', 'head') if k in gv] + [jetty_shape(j) for j in M['jetties']]
+                       + [box(mk['yacht'][0] - 90, mk['yacht'][1] - 30, mk['yacht'][0] + 90, mk['yacht'][1] + 30)])
+    def ring(B, off):
+        W = largest(box(*B).difference(LAND).buffer(-off).buffer(0)); return pts(W.exterior.simplify(25))
+    IK = Polygon(pz['island']); Wk = box(8150, 3000, 9400, 4800).difference(LAND).buffer(-60).buffer(0)
+    holes = [h for g in getattr(Wk, 'geoms', [Wk]) for h in g.interiors if Polygon(h).contains(IK.centroid)]
+    assert holes, 'no water ring round Iron Key'
+    mk['routes'] = {'bay': ring([7300, 2650, 9900, 7100], 150), 'tour': pts(LineString(holes[0].coords).simplify(25)), 'docks': ring([7060, 11900, 8800, 15400], 150)}
+    M['remodel'] = 17
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15, remodel16, remodel17]
 
 
 if __name__ == '__main__':
@@ -833,5 +898,11 @@ if __name__ == '__main__':
     head = head.replace("   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks). */",
                         "   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks); version 15: the\n"
                         "   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue). */")
+    head = head.replace("   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue). */",
+                        "   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue); version 16: Sunset Harbor, the marina\n"
+                        "   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes). */")
+    head = head.replace("   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes). */",
+                        "   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes); version 17: eight small\n"
+                        "   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
