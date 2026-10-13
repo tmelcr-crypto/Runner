@@ -119,6 +119,7 @@ function buildShoreField() {
   for (const s of Object.values(MAP.safe || {})) for (const b of [s.deck, s.plank]) if (b) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the houseboat's deck and gangplank: walked on like land (js/10l)
   const gv = MAP.lunapark && MAP.lunapark.grove; if (gv) for (const b of [gv.pier, gv.head]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the grove's pier: walked on like land (js/10m)
   const pz = MAP.prison; if (pz) for (const b of [pz.pier, pz.head, pz.mpier, pz.mhead]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Iron Key's piers (js/10u)
+  if (MAP.marina) for (const b of MAP.marina.piers) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Sunset Harbor's piers and fuel dock (js/08zv)
   const px = g.getImageData(0, 0, FW, FH).data, n = FW * FH, land = new Uint8Array(n);
   for (let i = 0; i < n; i++) land[i] = px[i * 4] > 127 ? 1 : 0;
   const toOther = cls => {                                     // chamfer distance (cells) from each cell to the nearest cell not of class cls
