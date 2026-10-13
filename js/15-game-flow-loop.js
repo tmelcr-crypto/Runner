@@ -55,7 +55,7 @@ function startGame(sv) {                     // sv: a saved game to carry on (js
   $('hud').hidden = false;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   if (gameMode === 'test') testKit();                             // MISSIONS TEST: everything, and the list of missions (js/08zy)
-  toast(sv ? 'GAME LOADED' : gameMode === 'test' ? 'MISSIONS TEST - PICK A MISSION' : 'FIND A CAR. CAUSE SOME TROUBLE.');
+  toast(sv ? 'GAME LOADED' : gameMode === 'test' ? (MS.on ? 'MISSION ' + MS.m.no + ' · ' + MS.m.title : 'MISSIONS TEST - PICK A MISSION') : 'FIND A CAR. CAUSE SOME TROUBLE.');
 }
 function showOver() {
   state = 'over'; toggleBigMap(false); toggleWheel(false);

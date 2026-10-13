@@ -7,26 +7,32 @@
    cutscene engine (js/15c) with the usual camera from above: WIDE, CLOSE, FOLLOW, OVERHEAD, FIXED, PAN.
    MISSIONS TEST (mode test, docs/STORY.md): picked from a list (MISSIONS on the pause menu, and when the mode starts), you start with
    everything, never saved; helpers: restart, jump to any step, replay a cutscene; the step's info in a corner. */
-const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null };
+const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null };
 const MSCRIPT = {};                        // each mission's script: { setup(A), steps: [{ enter, tick → true when done, jump, info }], fail(A) → why, cuts: { name: A => shots } }
 const msTest = () => gameMode === 'test';
 
 /* ---------- MISSIONS TEST: the kit and the list ---------- */
-function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the list
+function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the mission picked
   P.score = Math.max(P.score, 1000000);
   WEAPONS.forEach((w, i) => { P.has[i] = true; if (!isMelee(w)) { P.mag[i] = Math.max(P.mag[i] || 0, w.mag || 0); P.ammo[i] = Math.max(P.ammo[i] || 0, w.maxAmmo || 0); } });
   P.hp = hpMax(); P.armor = armorMax();
-  setTimeout(() => { if (state === 'play' && msTest() && !MS.on) msOpenList(); }, 600);
+  const id = MS.next; MS.next = null;
+  if (id) msStart(id, 0); else setTimeout(() => { if (state === 'play' && msTest() && !MS.on) msOpenList(); }, 600);
 }
-function msOpenList() { pauseRet = 'play'; toggleBigMap(false); toggleWheel(false); state = 'pause'; hush(); showCard('pauseCard', true); showCard('msCard'); }
+function msOpenList() { MS.fromNew = false; pauseRet = 'play'; toggleBigMap(false); toggleWheel(false); state = 'pause'; hush(); showCard('pauseCard', true); showCard('msCard'); }
+function msPick(id) {                       // a mission picked: from NEW GAME a fresh MISSIONS TEST game starts with it; in a test game it starts now
+  if (MS.fromNew || gameMode !== 'test' || (state !== 'pause' && state !== 'play')) { MS.fromNew = false; msClear(); Object.assign(OPT, NEWOPT); gameMode = 'test'; MS.next = id; startGame(); return; }
+  msStart(id, 0);
+}
 function paintMsCard() {
   const L = $('msList'); L.innerHTML = '';
   for (const m of MISSION_TABLE.missions) {
     const g = (m.chars.find(c => c.id === m.giver) || {}).name || '', b = document.createElement('button');
     b.type = 'button'; b.className = 'big alt msPick'; b.innerHTML = m.no + ' · ' + m.title + '<small>' + g + ' · ' + m.where.toUpperCase() + '</small>';
-    b.addEventListener('click', () => msStart(m.id, 0)); L.appendChild(b);
+    b.addEventListener('click', () => msPick(m.id)); L.appendChild(b);
   }
-  const on = MS.on, H = $('msHelp'); H.hidden = !on; if (!on) return;
+  $('msSub').textContent = MS.fromNew ? 'MISSIONS TEST · PICK A MISSION TO START' : 'MISSIONS TEST · PICK ONE TO PLAY';
+  const on = MS.on && !MS.fromNew, H = $('msHelp'); H.hidden = !on; if (!on) return;
   $('msNow').textContent = 'NOW: ' + MS.m.no + ' · ' + MS.m.title + ' · STEP ' + (MS.k + 1) + '/' + MS.m.steps.length;
   const S = $('msSteps'); S.innerHTML = '';
   MS.m.steps.forEach((st, k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'alt msStep' + (k === MS.k ? ' on' : ''); b.textContent = (k + 1) + ' ' + st.word; b.title = st.show;
@@ -37,7 +43,7 @@ function paintMsCard() {
 }
 $('msRestart').addEventListener('click', () => msStart(MS.id, 0));
 $('msQuit').addEventListener('click', () => { msClear(); closeMenus(); state = 'play'; toast('MISSION STOPPED'); });
-$('pMsBtn').addEventListener('click', () => showCard('msCard'));
+$('pMsBtn').addEventListener('click', () => { MS.fromNew = false; showCard('msCard'); });
 
 /* ---------- running a mission ---------- */
 function msStart(id, k) {                  // from the list (or RETRY / a step): fresh, at its start, or set up as if the steps before were done
