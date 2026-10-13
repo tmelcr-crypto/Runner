@@ -10,7 +10,7 @@ const MODE_TABLE = /*MODE-JSON*/{
 "modes": [
   {"id": "free", "name": "FREE ROAM", "ready": true, "note": "The whole city and no story: steal cars, fight, shop, find weapons, play rampages."},
   {"id": "story", "name": "STORY", "ready": false, "note": "Missions told as a story. Coming later."},
-  {"id": "test", "name": "MISSIONS TEST", "ready": true, "note": "Every new mission, to try before it goes into STORY: pick one from the list. The city as STORY will have it; you start with everything; never saved."}
+  {"id": "test", "name": "MISSIONS TEST", "ready": false, "note": "Every new mission, to try before it goes into STORY: pick one from the list. The city as STORY will have it; you start with everything; never saved."}
 ],
 "features": [
   {"id": "police", "name": "Police and wanted levels", "free": true, "story": true, "test": true, "note": "Crimes add heat; stars, chases, arrests. Off: the police never come after you."},

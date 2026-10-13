@@ -59,7 +59,7 @@ function showCard(id, fresh) {                       // fresh: start a new stack
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
   const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'tune' || state === 'safe' || state === 'sleep' || state === 'casino' || state === 'marina'); ov.classList.toggle('low', id === 'pnsCard' || id === 'tuneCard'); document.documentElement.classList.add('menus');
-  if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
+  if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes(); else if (id === 'msCard') paintMsCard();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
 }
@@ -110,7 +110,7 @@ function paintPause() {
   $('pauseInfo').textContent = MODE[gameMode].name + '  ·  ' + skyText() + '  ·  ' + (districtAt(P.x, P.y) || 'THE CITY') + '  ·  ' + money(P.score) + (feat('rampages') ? '  ·  RAMPAGES ' + rampsHere().filter(r => rampDone.has(r.id)).length + '/' + rampsHere().length : '') + (statOn() ? '  ·  ' + statPct() + '% DONE' : '');
   $('pStatsBtn').hidden = !statOn(); $('pStatsBtn').textContent = 'STATS · ' + statPct() + '%';   // js/08zs
   const why = saveBlock(), sh = feat('safehouses'); $('saveBtn').hidden = sh; $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why || sh;   // with safehouses you save by sleeping in one (js/08s)
-  $('sleepNote').hidden = !sh;
+  $('sleepNote').hidden = !sh || gameMode === 'test'; $('pMsBtn').hidden = gameMode !== 'test';   // MISSIONS TEST: the list (js/08zy)
 }
 function quitToTitle() {
   if (!saveBlock()) putSave('auto', makeSave(lastThumb));

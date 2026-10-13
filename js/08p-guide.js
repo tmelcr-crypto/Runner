@@ -10,6 +10,7 @@ const GUIDE = { pts: null, key: '', t: -9, mesh: null, mx: 0, my: 0, ri: -99, G:
 const GUIDE_COL = '#b6ff3c', GUIDE_W = 9, GUIDE_FAR = 6500;
 const guideMat = new THREE.MeshBasicMaterial({ color: GUIDE_COL, transparent: true, opacity: 0.36, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 function guideTarget() {                 // where to: { x, y } or { route, i } (a race's own line); null: nothing to show
+  const ms = msGuide(); if (ms) return ms;                         // a mission's target (js/08zy)
   const Ro = RACE.on;
   if (Ro) {
     if (Ro.kind !== 'street') return null;
