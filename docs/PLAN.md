@@ -243,6 +243,53 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 - Then test (screenshots of each boat, still and moving, phone size too), and **merge** - the Quest 01 fixes still on the working
   branch go live with it (the owner's answer).
 
+## For the future (asked October 2026; ask the details before building)
+- **City sounds**: improve the city's own sound (js/02d, the places table's city sound group) - the mix of traffic, people,
+  the harbour, the port and the weather; what exactly to improve is to be asked first.
+- **People's mumbling**: improve the passers-by voices and the mumbles in the quests' dialogue (js/02, js/08zy) - more varied,
+  more like real speech without words; each character keeps their own.
+- **The dialogue UI**: a new look for the quests' dialogue box (portrait, bubble, name, the next-line hint; js/08zy and the
+  styles) - the layout and style to be asked first.
+
+## Bridges boats sail under (asked October 2026; ask the details before building)
+- Today a boat passing a bridge dips out of sight under the deck (js/08zv boatShore, `c.under`) - it seems to disappear. Instead the
+  bridges over water are **lifted**: the span over the water high enough that boats (and the police boat, the tour boat, Tito in
+  Quest 01) are seen sailing under it, the deck drawn above them, the road ramping up to it from the shore.
+- To ask first: all bridges or only those over the boats' routes; a fixed high span, an arched span, or drawbridges that open for
+  big boats; how steep the ramps (cars jumping off the top?); the yacht and the tour boat too (taller).
+- Likely a map remodel (`tools/remodel_city.py`, the bridge heights in the map data) and the bridge models; the boats' water field
+  under the bridges stays as it is.
+
+## Rocks in the water with stunt jumps (asked October 2026; ask the details before building)
+- Rocks out in the water (the bay, round the islands, off the beaches) - solid for boats and swimmers - and **stunt jumps on
+  them**: ramps on the rocks for boats and jet skis to launch off (a new kind of unique stunt jump, like the twenty on land).
+- To ask first: how many rocks and where; only boat jumps or car ramps onto rocks too; whether these jumps count toward 100%
+  and pay the stunt bonus like the others; rocks as plain obstacles too, or only where the jumps are.
+- Likely a map remodel (`tools/remodel_city.py`: the rocks in the map data, cut out of the boats' water field), the stunt table
+  (js/01v) for the new jumps, and boats that can fly off a ramp (today only wheeled vehicles jump).
+
+## Waves on the water (asked October 2026; ask the details before building)
+- Waves on the sea and the bay: the water surface moving instead of flat, swell and ripples, white crests on the open sea and
+  surf breaking along the beaches; calmer in the harbour and the canals.
+- To ask first: how strong, and whether the weather changes them (storms rougher); only a look, or boats rocking and bouncing
+  on them too (and jumping off a crest); waves washing up the beach; the phone's speed (a lighter look on small screens).
+- Goes with the boat models' wake and spray (Boat models above); the numbers in the places table's In the water group.
+
+## Jet ski races (asked October 2026; ask the details before building)
+- Races on the water on jet skis: a course of buoys (gates) round the bay or the islands, rivals on jet skis, a start and a finish,
+  best times kept - like the street races and the drag strip (js/08o), on the water.
+- To ask first: free roam, story or both (a modes table row); how a race starts (a booth or a buoy at Sunset Harbor, a phone call,
+  the race table's booths); how many courses and where (with the rocks and their jumps, and the waves?); how many rivals; the fee
+  and the prize (races table, economy sheet); whether you must use a jet ski or any boat; what counts toward 100%.
+- Uses the races table (js/01p) and the race engine (js/08o); the course gates as rings on the water and on the maps.
+
+## Fix: street races always won (reported October 2026; check and fix)
+- In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o
+  `racePlace`: rivals that crossed the finish (`K.done`) or are further along the route (`K.d`) count ahead of you; a rival
+  marked out (`K.out`: wrecked, gone from the cars or no longer driving the race) does not. To check: whether the rivals ever
+  get `done` at the finish (their distance along the route reaching `finD` at the route's end), and whether rivals ahead are
+  being marked out or cleared away; then a test race where you finish last must show your real place.
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
