@@ -1,5 +1,5 @@
 """Settings tables <-> spreadsheet (Apple Numbers or Excel): the police (js/01b-police-data.js), day, night & weather (js/01d-sky-data.js),
-the airport (js/01k-airport-data.js), the places - airport gates, military base, port, lunapark, space center, spray garages, the Colony's valet, Iron Key (js/01l-places-data.js) - and
+the airport (js/01k-airport-data.js), the places - airport gates, military base, port, lunapark, space center, spray garages, the Colony's valet, Iron Key, Skyline One (js/01l-places-data.js) - and
 the streets - traffic lights, rules of the road, walk signals, sirens, heat reducers (js/01m-streets-data.js) - and the vehicle jobs -
 taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and rewards (js/01o-jobs-data.js) - and the races - phone
 booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the fixed routes' junctions stay in the file) - and the stats -
@@ -187,7 +187,8 @@ TIPS_PLACES = [('ID column', 'How the game finds each row. Do not change it; row
             ('Colony', 'The valet at the hotel door greets you when you come close on foot or slowly in a car - once, until you have been away and come back.', None),
             ('City', 'Towers: in Palm Heights, Sunstrip and Seaview, this share of the bigger buildings behind the street fronts rise as towers, each between the two heights (a floor is 14 units of the game). Picked once with the city.', None),
             ('Factory', 'The cement works in Gravel Flats: the height of its tallest chimney (the other two are a little lower) and how much smoke rises from each.', None),
-            ('Iron Key', 'The prison island: the free ferry shuttles between its pier and the pier on the Palm Heights shore, waiting at each end. Inside the walls a RESTRICTED AREA warning counts down; then the alarm gives stars and the tower guards fire. Busted, you are let out of its gate.', None)]
+            ('Iron Key', 'The prison island: the free ferry shuttles between its pier and the pier on the Palm Heights shore, waiting at each end. Inside the walls a RESTRICTED AREA warning counts down; then the alarm gives stars and the tower guards fire. Busted, you are let out of its gate.', None),
+            ('Construction site', 'Skyline One downtown: open (gate, workers, machines) between the two hours, locked with the night guard about the rest of the time. The ramps throw a car up by this share of its climbing speed; a car falls this far without damage; on foot a drop this high starts to hurt, and so much for each metre more. Taken machines and deck pickups come back after the time given, while you are away.', None)]
 TIPS_JOBS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds, distances in metres by road (a street block is about 100 m), speeds in km/h, money in euros, % as 0 to 100; a level and points are whole numbers.', None),
             ('Starting a job', 'Drive the right vehicle into the marker at its dispatch point and stop: taxi at a taxi rank, ambulance at a hospital, fire engine at a fire station, police car at a police station. The START card shows.', None),

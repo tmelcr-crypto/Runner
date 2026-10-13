@@ -66,7 +66,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   if (feat('rampages')) for (const r of RAMPAGES) { if (!rampOn(r) || !rampFound.has(r.id)) continue; const x = X(r.x), y = Y(r.y); if (inView(x, y)) skullIcon(g, x, y, q, rampDone.has(r.id)); }   // rampages you have found (js/08f)
   jobIcons(g, X, Y, q, inView);                                     // taxi ranks and fire stations (js/08n)
   raceIcons(g, X, Y, q, inView); showIcons(g, X, Y, q, inView); flyIcons(g, X, Y, q, inView);      // a ringing phone booth, the speedway and the drag strip (js/08o); the showroom (js/08w); the flights booth (js/08v)
-  pnsIcons(g, X, Y, q, inView); salvIcons(g, X, Y, q, inView); prisonIcons(g, X, Y, q, inView);    // the Pay 'n' Spray garages: a spray can (js/08q); the junkyard: a magnet over a cube (js/08z)
+  pnsIcons(g, X, Y, q, inView); salvIcons(g, X, Y, q, inView); prisonIcons(g, X, Y, q, inView); siteIcons(g, X, Y, q, inView);    // the Pay 'n' Spray garages: a spray can (js/08q); the junkyard: a magnet over a cube (js/08z)
   cpIcons(g, X, Y, q, inView);                                      // the lunapark car park: a P (js/10k)
   safeIcons(g, X, Y, q, inView);                                    // safehouses: a green house for yours, a white one with a € for sale (js/08s)
 }

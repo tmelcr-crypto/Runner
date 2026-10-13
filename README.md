@@ -197,7 +197,7 @@ Gravel Flats is the Bay Space Center, behind a security fence: the launch pad wi
 
 **The cement works.** The space center's empty south-east corner, between its fence and the shore, is a cement works behind a chain-link fence (`js/10r-factory.js`, scenery in both modes): a long hall with a saw-tooth roof and GRAVEL FLATS CEMENT along its front; behind it three tall chimneys (46, 40 and 35 m), concrete with red and white bands at the top and red lights blinking on them, smoke rising from them and drifting off on the wind (further in a storm); a steel preheater tower with its cyclones, the long kiln on its piers, the cooler, three silos with a catwalk over their tops, piles of gravel and clinker with a conveyor up to the hall, a cement mixer with its drum turning, a tanker and a wheel loader, a gatehouse by the open gate and floodlights over the yard at night. Everything there is solid (the police helicopter climbs over the chimneys); a heavy vehicle fast enough breaks through the fence. Between it and the street corner to the east lies an empty gravel yard, kept for the junkyard. The chimneys' height and the smoke are in the places table (*Factory*).
 
-Every number for the gates, the base, the port, the lunapark, the space center (and the Pay 'n' Spray garages, the Colony's valet, the city's towers, woods and trees, the cement works and Iron Key) is in `js/01l-places-data.js`: `python3 tools/settings_sheet.py places export places.numbers` / `... places import places.numbers`.
+Every number for the gates, the base, the port, the lunapark, the space center (and the Pay 'n' Spray garages, the Colony's valet, the city's towers, woods and trees, the cement works, Iron Key and Skyline One) is in `js/01l-places-data.js`: `python3 tools/settings_sheet.py places export places.numbers` / `... places import places.numbers`.
 
 Every number of the airport is in `js/01k-airport-data.js` (how often, gates, taxi, take-off and landing speeds, the take-off run and landing roll, the climb angle, plane health, blast distance, explosion radius, burn time, the speed above which a plane kills, the heat, and the fence): `python3 tools/settings_sheet.py airport export airport.numbers` / `... airport import airport.numbers`. The mode table's `planes` row turns the movements off (the planes then only stand at their gates).
 
@@ -280,6 +280,8 @@ Street races, a NASCAR race and a drag strip, in both modes. Every number - fees
 | Fire engine | 8 m | 120 km/h | comes to explosions and burning wrecks and hoses them down |
 | Police car | 4.5 m | 220 km/h | patrols in traffic and chases you |
 | APC | 5 m | 130 km/h | armoured police, in traffic and in chases from 3 stars |
+| Cement mixer, dump truck | 8 m, 7.5 m | 80, 70 km/h | the construction site's machines: the mixer's drum turns; the dump truck shuttles about the yard by day; both armoured, yours to take (see Skyline One) |
+| Digger | 6.5 m | 12 km/h | the excavator at the construction site's pit: tracks, a turning cab and a digging arm |
 | Tank | 6 m | 80 km/h | one stands at a secret spot (always the same parking lot) for you to find; driving it, FIRE launches rockets straight ahead (one every 1.5 s, no ammo needed); the police send their own only at 5 stars, and it just rams |
 
 Ambulances and fire engines on a call take the shortest way by road at up to 65 km/h; one already in traffic nearby takes the call, otherwise one comes from further away.
@@ -542,6 +544,17 @@ The houses stand on plots of their own (map remodel version 5, `safe` in the map
 - The cell blocks' insides are not built yet: they come with the story's breakouts.
 - Numbers: the places table's *Iron Key* group - the ferry's speed and its waits, the warning, the alarm's stars and how long it lasts, the tower guards' range, hit chance and damage, how soon a guard is replaced, how many prisoners are in the yard.
 
+## Skyline One, the construction site
+
+**SKYLINE ONE** (mode `site`, both modes; `js/08zt-site.js`, the site and its models in `js/10v-site.js`; map remodel 14) fills a whole downtown block of Palm Heights, cleared for it: blue hoardings along the streets with SKYLINE ONE - OPENING 1998 on them, a gate on the west street and a site office of stacked cabins. On the east half stands the **half-built tower**: six concrete decks (the ground and five above it, the top one open to the sky) on columns, with yellow and black barriers along the edges, rebar and formwork, and scaffolding up its street side. Two **tower cranes** with SKYLINE ONE on their jibs turn slowly, lifting loads. In the yard: piles of rebar, bricks, pipes and pallets, a pit, dirt mounds and two plank ramps.
+
+- **Up the tower**: drive or walk up from deck to deck by the **ramps** in the side strips (like the lunapark car park; the decks above you fade so you can see). On the top deck the **launch ramp** at the street edge throws you **over the avenue**: you come down on the street or, fast enough, on the **roofs across it** - a car flying higher than a building clears it and lands on its roof. Up there you can drive about and get out and walk; off the edge the car falls and you drop (a long drop on foot hurts). A hard landing damages the car (higher than 8 m).
+- **The yard's ramps and mounds** throw a fast car or bike into the air.
+- **By day** (7:00 to 19:00) the gate is open, workers in hi-vis and hard hats walk the yard (three more stand up on the decks), the cement mixer's drum turns, the **digger** digs at the pit and a **dump truck** shuttles across the yard - all three yours to take (an armoured MIXER and DUMPER, and the slow DIGGER on tracks).
+- **At night** the gate is locked - cars wait for the morning - but there is a **broken hoarding panel** on the north street to get in on foot. A **security guard** walks the yard with his torch: if he sees you inside you get a star.
+- **Pickups on the decks**: a weapon on the top deck and health or armour three decks up; taken, they come back a while after you have gone.
+- Numbers: the places table's *Construction site* group - opening hours, how many workers, the guard's sight and stars, how hard the ramps throw a car, the drop a car takes without damage, the drop on foot that hurts and how much, the dump truck's speed, how soon a machine or a deck pickup comes back. The machines are rows of the vehicles table.
+
 ## Stats and 100%
 
 **STATS** in the pause menu (mode `stats`, both modes; `js/08zs-stats.js`) - its button and the pause line show how much of the city you have done, as a per cent. The card has three tabs:
@@ -696,6 +709,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/08w-showroom.js` | Sunstrip Motors: the BUY button by a turntable, the car card (colours, where to deliver it), buying, the map icon |
 | `js/08zr-roadblocks.js` | police roadblocks: where one goes on the road ahead, the cars across the street and the cops behind them by wanted level, how they hold their places and shoot (pistols, SMG bursts, rifles), taking it down |
 | `js/08zp-prison.js` | Iron Key: the ferry (shuttling, boarding over the ramp, walking its deck, skipping the crossing, not while wanted), the tower and gate guards, the prisoners in the yard, the restricted area and the alarm, being let out when busted, the gate, the searchlights, the map icons |
+| `js/08zt-site.js` | Skyline One at work: the tower's decks and ramps (heights for cars and people), the ramps and mounds that throw a car, the launch over the avenue and the roofs a flying car comes down on, hard landings, the workers and the night guard with his torch, the machines and the dump truck's driver, the deck pickups, the gate, the fading decks and the cranes' and machines' movement |
 | `js/08zs-stats.js` | stats and 100%: the counters (steals, distance, top speed, cops, busted and wasted, finds, races won, sprays), the 100% list, the STATS card, the reward - health and armor up to 200 and the gold car in your best garage, back when lost - and the saved counters |
 | `js/08z-salvage.js` | the junkyard: the spot and what it pays, the crane and the crusher at work, the cube pile, the police car crime, the guard dog (a target for bullets, blasts and swings), the map icon |
 | `js/08y-tuning.js` | the tuning workshop: where each part goes on each model, the parts on the car, the door and the bay, the card (LOOKS, PARTS, PERFORMANCE), the mechanic's work, the tuning kept with the car |
@@ -733,6 +747,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10q-forests.js` | the woods on the big lawns and the space center's scrub: which lawns, the patches (a fixed noise), the trees |
 | `js/10t-salvage.js` | the junkyard: where the wreck stacks go, the fence and the solids, the model - ground, fence, gateway and sign, the spot, the stacks, the crusher and its press, the crane (tracks, the turning house and boom, cable and magnet), the shack, the kennel, the floodlights |
 | `js/10u-prison.js` | Iron Key's models and solids: the island's rocks and scrub, the wall, the towers and their searchlights, the cell blocks, the office, the yard and court, the gate, the path and the pier; the ferry pier on the Palm Heights shore; the ferry; the ferry's route |
+| `js/10v-site.js` | Skyline One's solids and model: the hoardings with their signs, the broken panel and the gate, the tower's decks, ramps, columns, barriers and scaffolding (a group per deck so they can fade), the launch ramp, the yard's ramps, mounds, pit and piles, the site office, the cranes |
 | `js/10s-showroom.js` | the showroom: walls, doors with bollards, turntables, counter, the tuning workshop (bay, tool chests, tyres, rims, lift, engine stand, its own roof, roller door, lamp and mechanic) and stock yard; the model, the cars on show (turning), the roofs that fade |
 | `js/10r-factory.js` | the cement works in Gravel Flats: its solids and fence, the model (hall, chimneys, tower, kiln, silos, piles, trucks), the smoke and the blinking lights, the floodlights |
 | `js/10f-airport.js` | the airport: airfield, runway and taxiway markings and lights, apron lines, terminal with jet bridges, hangars, tower, booths, windsock, the fence (breaking and mending); the terminal's hall inside, under a roof that the scenic flight lifts off |
@@ -765,7 +780,7 @@ Not yet used by the preview: `bounds`, `edges` (city limit and edge style).
 
 ## Next steps
 
-What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom, the tuning workshop, the junkyard at the docks, roadblocks, stats and 100%, Iron Key (the prison island); next: new places - construction site, casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
+What comes next, in order and with every detail agreed with the owner (done: the Pay 'n' Spray, the fixes, the Colony on the beach, the lunapark car park, the safehouses, the sounds of street junk and of people, the palm grove, the Colony's ring drive and valet, 120 unique buildings, the showroom, the tuning workshop, the junkyard at the docks, roadblocks, stats and 100%, Iron Key (the prison island), Skyline One (the construction site); next: new places - casino strip, marina with boats, stunt jumps, hangar and warehouse interiors - world events, flying and people with real lives): **`docs/PLAN.md`**. The list below is the older, rougher one.
 
 1. Make Octagrid exports playable: they already have roads and building outlines, so they can be turned into the same map format as `js/00-map-data.js`.
 2. Honor `bounds` and `edges` from the export.
@@ -774,7 +789,7 @@ What comes next, in order and with every detail agreed with the owner (done: the
 5. **New places, agreed with the owner, to build next** (each will be asked about in detail first; the spray garages are built - see Pay 'n' Spray):
    - *Car showroom and your garage*: built - Sunstrip Motors, the tuning workshop behind it, and the safehouses' garages.
    - *Prison island*: built - Iron Key (see Iron Key, the prison island); breakouts come with the story.
-   - *Construction site*: a half-built tower with cranes, ramps and scaffolding for stunt jumps.
+   - *Construction site*: built - Skyline One (see Skyline One, the construction site).
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats*: yachts and speedboats to steal and drive on the water (a new vehicle type).
    - *Junkyard and car crusher*: built - Dockside Salvage (see The junkyard).

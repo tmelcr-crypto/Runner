@@ -16,7 +16,8 @@ const TOWER_LOOK = {                      // the building each tower takes: its 
 
 function placeSafes() {                   // js/04 genWorld, after the Pay 'n' Spray garages
   SAFES = SAFE_HOUSES.map(h => Object.assign({}, h, { own: false, door: null, spots: [], keep: [], live: [], site: null, plan: null, doors: [], uses: [], lm: null }));
-  withSeed(8800, () => { for (const h of SAFES) if (h.kind === 'tower') placeTower(h); else placeHouse(h); });
+  const top = h => !!(TOWER_LOOK[h.id] || {}).top;                 // the penthouse picks its tower first: it keeps it when a remodel clears a block (Skyline One took the loft's)
+  withSeed(8800, () => { for (const h of SAFES.filter(top).concat(SAFES.filter(h => !top(h)))) if (h.kind === 'tower') placeTower(h); else placeHouse(h); });
   SAFES = SAFES.filter(h => h.door);                                  // a place with no room for it on this map is left out
   for (const h of SAFES) { h.keep = h.spots.map(() => null); h.live = h.spots.map(() => null); }
 }

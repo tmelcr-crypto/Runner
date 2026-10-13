@@ -331,10 +331,10 @@ function streamCity(all) {
 const _fb = [], faded = new Set();
 function fadeBuildings() {
   const t = P.car || P, tan = Math.tan(CAM_TILT_DEG * Math.PI / 180);
-  XRAY.value.set(t.x, 8, t.y); XRAY_CAM.value.copy(camera.position);   // fill buildings and landmarks cut a hole over this point instead
+  XRAY.value.set(t.x, 8 + zOf(t), t.y); XRAY_CAM.value.copy(camera.position);   // fill buildings and landmarks cut a hole over this point instead
   bHash.query(t.x - 60, t.y - 30, t.x + 60, t.y + 240, _fb);
   for (const r of _fb) {
-    if (!r.mesh) continue;
+    if (!r.mesh || zOf(t) > r.H - 1) continue;                         // a roof you are up on, or lower: hides nothing
     const reach = r.H * tan * 1.25 + 24, tol = 22 + r.H * 0.1;
     if (t.x > r.x - tol && t.x < r.x + r.w + tol && t.y < r.y + 20 && r.y - t.y < reach) { r.hideF = frameId; faded.add(r); }
   }

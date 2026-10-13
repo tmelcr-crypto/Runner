@@ -174,6 +174,8 @@ rest of this step stands.)
      **6 decks** (the ground, five decks, the open top); the **launch ramp on the top deck sends you over the street** off the tower's
      street side, landing on the avenue or the roofs across it (a hard landing damages the car); at night the gate is locked and you get
      in **on foot through a broken hoarding panel** on a side street (cars wait for the gate to open in the morning).
+     (Done October 2026: map remodel 14, js/10v, js/08zt, the places table's Construction site group, the mixer, digger and dump truck
+     in the vehicles table. A car flying higher than a building now comes down on its roof; you can get out and walk up there.)
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
      and at the grove pier; a police patrol boat from 3 stars.

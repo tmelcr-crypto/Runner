@@ -108,7 +108,7 @@ function updateWeaponPicks(dt) {
   for (let k = WPICKS.length - 1; k >= 0; k--) {
     const p = WPICKS[k]; p.bob += dt * 3;
     if (p.drop && gameT > p.until) { WPICKS.splice(k, 1); continue; }   // dropped by the dead (js/08g) and left lying too long
-    if (P.dead || (inCar && !(p.item === 'bribe' && feat('carHeat'))) || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
+    if (P.dead || (inCar && !(p.item === 'bribe' && feat('carHeat'))) || Math.abs((p.z || 0) - zOf(P)) > 14 || Math.abs(p.x - px) > reach || Math.abs(p.y - py) > reach || dist(p.x, p.y, px, py) > reach) continue;
     if (RAMP.on && p.wi === RAMP.on.wi) continue;                     // the rampage's own weapon and ammo wait until it is over (js/08f)
     statFound(p);                                                     // found, even when not taken (js/08zs)
     if (p.item) { if (!takeItem(p)) continue; }
@@ -132,6 +132,7 @@ function updateWeaponPicks(dt) {
     Snd.pickup();
     if (p.fixed) continue;
     if (p.base) { baseTaken(p); WPICKS.splice(k, 1); continue; }       // from the base's armoury: restocked later (js/08j)
+    if (p.site) { siteTaken(p); WPICKS.splice(k, 1); continue; }       // up on a Skyline One deck: back later (js/08zt)
     if (p.drop) { WPICKS.splice(k, 1); continue; }                    // gone for good
     if (p.road) { WPICKS.splice(k, 1); HEAT.road = null; HEAT.t = gameT + STR.roadBack; continue; }   // the next one on the road later
     if (p.alley) { WPICKS.splice(k, 1); wpQ.push({ t: gameT + STR.alleyBack, alley: p.spot }); continue; }   // back in the same alley later
@@ -168,7 +169,7 @@ function syncWeaponPicks(time) {
     track(p); const u = p.mesh.userData;
     if (u.faint !== faint) { u.faint = faint; u.bub.material = bubbleMat(w.color, faint); u.rim.visible = !faint; }   // a melee weapon you carry: faint, no rim
     if (p.item === 'bribe') { const c = Math.floor(time / 0.35) % 2 ? '#2f6bff' : w.color; u.bub.material = bubbleMat(c, false); u.rim.material = rimMat(c); }   // flashing like a light bar
-    p.mesh.position.set(p.x, groundH(p.x, p.y), p.y); p.mesh.visible = !(p.drop && p.until - gameT < 10 && Math.floor(gameT * 6) % 2);   // blinking: about to go
+    p.mesh.position.set(p.x, groundH(p.x, p.y) + (p.z || 0), p.y); p.mesh.visible = !(p.drop && p.until - gameT < 10 && Math.floor(gameT * 6) % 2);   // blinking: about to go
     u.spin.position.y = 13 + Math.sin(p.bob) * 1.6; u.spin.rotation.y = time * 1.4; u.bub.scale.setScalar(11 + Math.sin(p.bob * 1.3) * 0.5);
   }
 }
