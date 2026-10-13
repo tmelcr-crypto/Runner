@@ -139,20 +139,6 @@ function makeTower() {                                           // air traffic 
   T.prism(0, 0, 21, 126, 129, _C('#2a2348'), 12, 21, true); T.prism(0, 0, 1, 129, 150, _C('#14102a'), 4); box5(G, -2, 150, -2, 2, 154, 2, _C('#ff3b5c'));
   return lmMesh(T, G);
 }
-function makeHangars(L) {                                        // three arched hangars, doors to the south
-  const T = new GeoBuilder(), G = new GeoBuilder(), w = L.w, h = L.h, n = 3, hw = (w - 40) / n / 2 - 8, roof = _C('#b9bcc4'), dark = _C('#2a2d38');
-  for (let i = 0; i < n; i++) {
-    const cx = -w / 2 + 20 + (i + 0.5) * (w - 40) / n, seg = 12, H = hw * 0.7, z0 = -h / 2 + 10, z1 = h / 2 - 10;
-    for (let k = 0; k < seg; k++) {
-      const a0 = k / seg * Math.PI, a1 = (k + 1) / seg * Math.PI, p = (a, z) => [cx + Math.cos(a) * hw, Math.sin(a) * H, z], am = (a0 + a1) / 2;
-      face(T, [p(a0, z0), p(a1, z0), p(a1, z1), p(a0, z1)], [Math.cos(am), Math.sin(am), 0], k % 2 ? roof : roof.clone().multiplyScalar(0.9));
-      T.tri([cx, 0, z1], p(a0, z1), p(a1, z1), [0, 0, 1], _C('#8f939d'));
-    }
-    face(G, [[cx - hw * 0.7, 0, z1 + 0.4], [cx + hw * 0.7, 0, z1 + 0.4], [cx + hw * 0.7, H * 0.7, z1 + 0.4], [cx - hw * 0.7, H * 0.7, z1 + 0.4]], [0, 0, 1], dark);
-    face(G, [[cx - 12, H * 0.74, z1 + 0.5], [cx + 12, H * 0.74, z1 + 0.5], [cx + 12, H * 0.74 + 6, z1 + 0.5], [cx - 12, H * 0.74 + 6, z1 + 0.5]], [0, 0, 1], _C('#ffe14a'));
-  }
-  return lmMesh(T, G);
-}
 function makeStudio(L) {                                         // three sound stages, a water tower and the gate sign
   const T = new GeoBuilder(), G = new GeoBuilder(), w = L.w, h = L.h, wall = _C('#c9c4d6');
   for (const [a, b, c, d] of studioStages(L)) {
@@ -670,7 +656,6 @@ function genLandmarks() {
       for (const sx of [-1, 1]) makeSolid(L.x + sx * L.w * 0.3, L.y + L.h * 0.25, 60, L.h * 0.4, 0, {});
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeTerminal(L), L.w / 2, L.h / 2);
     } else if (L.t === 'tower') { makeSolid(L.x, L.y, 50, 50, 0, {}); add(L.x, L.y, 0, 60, makeTower); }
-    else if (L.t === 'hangars') { makeSolid(L.x, L.y, L.w - 40, L.h - 20, 0, {}); add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeHangars(L), L.w / 2, L.h / 2); }
     else if (L.t === 'colony' && COLONY && COLONY.big) {                                              // the Colony on the beach, its park and fountain
       const c = COLONY, [fx, fy, fr] = L.fountain, [px0, py0, px1, py1] = L.park, [dx0, dy0, dx1, dy1] = L.drive;
       makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {}); solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_BIG_SIGN / 2, 0, COLONY_BIG_SIGN + 4, 54, true);   // the hotel and its sign pylon

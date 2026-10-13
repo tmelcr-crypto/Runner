@@ -219,6 +219,16 @@ rest of this step stands.)
      (Done October 2026: map remodel 18, js/08zw, js/10y, the stunt table js/01v, mode row stunts, the stats table's countStunts.)
    - *Interiors, top-down first*: the airport hangars, the port warehouses and storage units you can walk and drive into, their
      roofs turning see-through, with things to find and take inside. (The side-on kind - hotels, offices - later.)
+     (Asked October 2026:) **both modes**, **about 12 places**, each different inside: the **3 airport hangars**, **3 port
+     warehouses**, a **storage yard with 8 units** you can open, and **3 more warehouses** in the industrial streets (Dockside, Gravel
+     Flats). Inside: **cash, weapon and ammo stashes** in crates and on shelves, and **four rare vehicles** - a 1960s **classic car**
+     under a dust sheet in a storage unit, a **race bike** (the fastest thing on two wheels) in a warehouse, a **prototype supercar**
+     in a hangar, an **armoured van** with money in the back at a warehouse. A rare vehicle taken is **yours** (keep it in a garage);
+     lost or left, **a new one is back at its place a game day later**. **Open by day** (workers, open doors; taking things is a
+     crime if seen); **at night the doors are shut** - ram the roller door or slip in at the side door; a **night guard** with a torch
+     and a pistol, and an **alarm brings 2 stars** if he sees you or a door is rammed.
+     (Done October 2026: js/10z, js/08zx, the interiors table js/01w; the storage yard took the office block at the port's south-west
+     corner and the hangars' old closed model went.)
 2. **World events**: robberies with a getaway car and an armoured cash van to ram; fires, pile-ups with tow trucks, storm blackouts;
    a rocket launch at the space center; a plane in trouble at the airport.
 3. **Flying and people with real lives** (below).

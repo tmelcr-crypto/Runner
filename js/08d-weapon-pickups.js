@@ -131,6 +131,7 @@ function updateWeaponPicks(dt) {
     } }
     Snd.pickup();
     if (p.fixed) continue;
+    if (p.ix) { WPICKS.splice(k, 1); ixTaken(p.ix); continue; }   // a stash in a hangar or warehouse: full again a game day later (js/08zx)
     if (p.base) { baseTaken(p); WPICKS.splice(k, 1); continue; }       // from the base's armoury: restocked later (js/08j)
     if (p.site) { siteTaken(p); WPICKS.splice(k, 1); continue; }       // up on a Skyline One deck: back later (js/08zt)
     if (p.drop) { WPICKS.splice(k, 1); continue; }                    // gone for good

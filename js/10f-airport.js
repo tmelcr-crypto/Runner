@@ -121,7 +121,7 @@ function genAirport() {                                          // js/04 genWor
   FENCE = []; if (!AIRF) return;
   const add = (cx, cy, hw, hh, make) => { LMS.push({ cx, cy, a: 0, rad: Math.hypot(hw, hh), make: () => withSeed(7001 + Math.round(cx + cy), make), mesh: null }); LM_CLEAR.push([cx, cy, hw + 30, hh + 30]); };
   const [x0, y0, x1, y1] = AIRF.terminal; makeSolid((x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0, 0, {}); add((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, makeTerminalHall);
-  const H = AIRF.hangars; makeSolid(H.x, H.y, H.w - 40, H.h - 20, 0, {}); add(H.x, H.y, H.w / 2, H.h / 2, () => makeHangars(H));
+  // the three hangars: js/10z genInteriors (walls, doors, the arched roof that fades over you)
   const [tx, ty] = AIRF.tower; makeSolid(tx, ty, 50, 50, 0, {}); add(tx, ty, 30, 30, makeTower);
   CHECKIN.x = x1 + 118; CHECKIN.y = (y0 + y1) / 2 + 20;                                         // on the open forecourt, past the canopy, in front of the middle door
   makeSolid(CHECKIN.x, CHECKIN.y, 46, 34, 0, {}); makeSolid(CHECKIN.x, CHECKIN.y - 30, 8, 6, 0, {}); add(CHECKIN.x, CHECKIN.y, 30, 30, makeCheckIn);
