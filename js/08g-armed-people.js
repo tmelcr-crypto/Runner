@@ -14,6 +14,7 @@ function provoke(p) {                    // an armed passer-by turns on you; fal
 }
 function calmDown(p) {                    // you got away, or they have had enough: back to walking
   p.hostile = false; p.hostT = 0; p.state = 'walk'; p.swingT = 0;
+  if (p.post) { p.state = 'post'; return; }                         // a guard at a post: back to it (js/08zu)
   if (p.stroll) strollTarget(p); else snapPed(p);
 }
 function fightBack(p, dt) {              // js/08 updatePeds, every frame while they are after you; false once they give up

@@ -58,7 +58,7 @@ const curCard = () => cardStack[cardStack.length - 1];
 function showCard(id, fresh) {                       // fresh: start a new stack (the title, the pause menu, game over)
   if (fresh) cardStack = []; if (curCard() !== id) cardStack.push(id);
   for (const c of document.querySelectorAll('#overlay > .card')) c.hidden = c.id !== id;
-  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'tune' || state === 'safe' || state === 'sleep'); ov.classList.toggle('low', id === 'pnsCard' || id === 'tuneCard'); document.documentElement.classList.add('menus');
+  const ov = $('overlay'); ov.hidden = false; ov.classList.toggle('dim', state === 'pause' || state === 'shop' || state === 'ramp' || state === 'job' || state === 'race' || state === 'pns' || state === 'tune' || state === 'safe' || state === 'sleep' || state === 'casino'); ov.classList.toggle('low', id === 'pnsCard' || id === 'tuneCard'); document.documentElement.classList.add('menus');
   if (id === 'startCard') paintTitle(); else if (id === 'pauseCard') paintPause(); else if (id === 'newCard') { $('newWarn').hidden = state !== 'pause'; optTip(NEW_OPTS[0]); } else if (id === 'modeCard') paintModes();
   const first = $(id).querySelector('.pri:not([hidden])') || $(id).querySelector('button:not([hidden]):not(:disabled)'); if (first) first.focus({ preventScroll: true });   // .pri: what Enter does
   $('overlay').scrollTop = 0;
@@ -75,6 +75,7 @@ function back() {
   else if (id === 'pnsCard') closePns(false);
   else if (id === 'tuneCard') closeTune(false);
   else if (id === 'safeCard' || id === 'stashCard' || id === 'carCard') closeSafeCard();
+  else if (id === 'casCard') closeCasCard();
   else if (id === 'slotCard' && SAFEST.slotRet) closeSleepSave();     // the save slots after sleeping (js/08s)
   else if (cardStack.length > 1) { cardStack.pop(); const prev = cardStack.pop(); showCard(prev); }
 }

@@ -39,7 +39,7 @@ function resetGame(sv) {                     // a new game with the options in O
   for (let k = 0; k < COP.footPatrols; k++) spawnFootCop(true);
   if (feat('townCash')) for (let k = 0; k < ECO.townN; k++) spawnPickup();   // cash stacks around town (js/01i)
   CALLS = []; clearTeams(); if (feat('hiddenCars')) placeHidden();               // the tank at its secret spot (js/08c)
-  placeWeapons(); siteReset(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
+  placeWeapons(); siteReset(); casinoReset(); clearGrenades();                                 // weapons and ammo hidden off the streets (js/08d)
   placeStores(); placeFlights(); placeClothes(); jobLoad(null); placeRaces(); raceLoad(null); statReset(); prisonReset(); pnsReset(); tuneReset(); salvReset(); rbReset(); fwReset();   // the six stores (js/08e); no job levels or rewards yet (a saved game fills them in, js/08n); the phone booths, no race (js/08o)
   resetFence(); resetPlanes();                                     // the airport fence whole again, planes at the gates (js/10f, js/08i)
   resetPlaces(); resetShips();                                     // guards, barriers, the base and its armoury, ships at their berths (js/08j, js/08k)
@@ -78,6 +78,7 @@ function handleKeys() {
   else if (state === 'tune') { if (pressed.KeyE || pressed.KeyF) closeTune(false); }   // and the tuning workshop's card (js/08y)
   else if (state === 'safe') { if (pressed.KeyE || pressed.KeyF) closeSafeCard(); }    // a safehouse's FOR SALE card, the stash (js/08s)
   else if (state === 'fly') { if (pressed.KeyE || pressed.KeyF) closeFlyCard(); }      // the departures desk (js/08v)
+  else if (state === 'casino') { if (pressed.KeyE || pressed.KeyF) closeCasCard(); }   // a slot machine, a dice table (js/08zu)
   else if (state === 'cut') { if (pressed.Escape || pressed.Enter || pressed.Space) cutSkip(); }   // a cutscene: only its skip button (js/15c)
   else if (state === 'side') {                                     // inside a tower (js/08t): UP at doors, the stairs, the elevator; DOWN takes the stairs down
     if (pressed.ArrowUp || pressed.KeyW || pressed.KeyE || pressed.KeyF) svPress('up');
@@ -99,7 +100,7 @@ function handleKeys() {
       if (pressed.Tab) toggleBigMap(); else if (pressed.Escape && bigOpen) toggleBigMap(false); else if (pressed.Escape || pressed.KeyP) pauseGame();
       if ((pressed.KeyE || pressed.KeyF || pressed.Enter || pressed.NumpadEnter) && RACE.res) closeRaceRes();   // the race's results (js/08o)
       else if ((pressed.KeyE || pressed.KeyF) && FERRY.rider && FERRY.state === 'sail') ferrySkip();   // aboard the ferry: straight across (js/08zp)
-      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(), h = safeKey(), v = showKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (flyKey()) openFlyCard(); else if (h) safeUse(h); else if (v) openCarCard(v); else if (s) openShop(s); else tryEnterExit(); }   // a safehouse's door, bed, wardrobe or stash (js/08s)   // at a store's door E goes in, at a skull the rampage's screen
+      else if ((pressed.KeyE || pressed.KeyF) && !bigOpen) { const s = shopKey(), r = rampKey(), k = raceKey(), h = safeKey(), v = showKey(), cz = casKey(); if (r) openRamp(r); else if (k) openRaceCard(k); else if (flyKey()) openFlyCard(); else if (h) safeUse(h); else if (v) openCarCard(v); else if (cz) casUse(cz); else if (s) openShop(s); else tryEnterExit(); }   // a safehouse's door, bed, wardrobe or stash (js/08s)   // at a store's door E goes in, at a skull the rampage's screen
     }
   }
   if (pressed.KeyM) Snd.toggle();
@@ -132,7 +133,7 @@ function update(dt, idle) {
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
   placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
-  if (!idle) { updatePolice(dt); updateHeli(dt); rbTick(dt); statTick(dt); prisonTick(dt); siteTick(dt); }   // roadblocks ahead of you (js/08zr); distance, 100% and the gold car (js/08zs)                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
+  if (!idle) { updatePolice(dt); updateHeli(dt); rbTick(dt); statTick(dt); prisonTick(dt); siteTick(dt); casinoTick(dt); }   // roadblocks ahead of you (js/08zr); distance, 100% and the gold car (js/08zs)                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }
@@ -154,7 +155,7 @@ function frame(ts) {
   if (state === 'cut') cutFrame(rdt);                              // a cutscene: the shots move their actors and the camera (js/15c)
   else if (state === 'play') { if (!bigOpen && !wheelOpen) update(rdt, false); }
   else if (state === 'dying') { update(rdt * 0.35, false); deadTimer += rdt; if (deadTimer > 2.4) { if (COP.respawn) respawn(); else showOver(); } }
-  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race' && state !== 'pns' && state !== 'tune' && state !== 'safe' && state !== 'sleep' && state !== 'fly') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
+  else if (state !== 'pause' && state !== 'shop' && state !== 'ramp' && state !== 'job' && state !== 'race' && state !== 'pns' && state !== 'tune' && state !== 'safe' && state !== 'sleep' && state !== 'fly' && state !== 'casino') update(rdt, true);   // paused, in a store, at a rampage or a job's card: the picture stands still behind the menu
   Radio.update(rdt);                                                // the car radio: which station, fading in and out
   render(ts / 1000); afterRender();                                 // afterRender: a picture of the screen for a saved game (js/15b)
   if (state === 'play' || state === 'dying') updateHud(ts / 1000);
