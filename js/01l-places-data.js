@@ -90,7 +90,8 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "tourBoat", "group": "Sunset Harbor", "name": "The tour boat sails", "unit": "yes/no", "min": 0, "max": 1, "v": true, "note": "Round Iron Key, all day."},
   {"id": "moored", "group": "Sunset Harbor", "name": "Boats moored at the berths", "unit": "count", "min": 0, "max": 9, "v": 6, "note": "Speedboats, jet skis and a yacht, yours to take (your own berths stay free for your boats)."},
   {"id": "boatPolice", "group": "Sunset Harbor", "name": "The police boat comes from", "unit": "stars", "min": 1, "max": 5, "v": 3, "note": "When you are on the water and wanted this much: it chases, rams and its cop shoots."},
-  {"id": "swimSpeed", "group": "Sunset Harbor", "name": "You swim at", "unit": "%", "min": 20, "max": 150, "v": 90, "note": "Of your running speed; no weapons in the water."},
+  {"id": "swimSpeed", "group": "In the water", "name": "You swim at", "unit": "%", "min": 20, "max": 150, "v": 90, "note": "Of your running speed, as far as you like; no weapons in the water. You swim under the bridges too."},
+  {"id": "sinkTime", "group": "In the water", "name": "A car in the water: time to get out", "unit": "s", "min": 1, "max": 20, "v": 4, "note": "It sinks; get out (E, or the car button) and swim. Still inside when the time is up: drowned. A boat wrecked burns, then sinks with you thrown in."},
   {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."}
 ]
 }/*END-PLACES-JSON*/;

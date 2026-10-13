@@ -138,7 +138,7 @@ function updateHud(time) {
   setText('clock', 'clock', skyText());
   const hot = P.stars > 0; if (H.hot !== hot) { H.hot = hot; miniCv.classList.toggle('hot', hot); }
   if (Snd.muted !== H.mute) { H.mute = Snd.muted; $('mute').textContent = Snd.muted ? 'MUTED' : 'SND'; }
-  const c = P.car; let vname = 'ON FOOT', vinfo = '', hint = '';
+  const c = P.car; let vname = P.swim ? 'SWIMMING' : 'ON FOOT', vinfo = '', hint = '';
   if (c) {
     vname = c.t.name; vinfo = Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.t.weapon === 'mg' && feat('apcGun')) vinfo += '  ·  ' + apcBeltText(c);   // the turret's belt (js/08r)

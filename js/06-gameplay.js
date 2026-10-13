@@ -219,8 +219,9 @@ function exitCar(forced) {
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), rx = -fy, ry = fx, s = c.t.wid / 2 + 14, l = c.t.len / 2 + 14;
   const spots = [[rx * s, ry * s], [-rx * s, -ry * s], [-fx * l, -fy * l], [fx * l, fy * l]];
   let sp = spots[0];
-  for (const o of spots) { if (c.roof ? inSolid(c.x + o[0], c.y + o[1], c.roof, -9) : !pedBlocked(c.x + o[0], c.y + o[1]) && shoreDist(c.x + o[0], c.y + o[1]) > 4) { sp = o; break; } }   // up on a roof (js/08zt): a side that is still roof
+  for (const o of spots) { if (c.roof ? inSolid(c.x + o[0], c.y + o[1], c.roof, -9) : !pedBlocked(c.x + o[0], c.y + o[1]) && shoreDist(c.x + o[0], c.y + o[1]) > 4 && (!c.t.boat || boatDist(c.x + o[0], c.y + o[1]) > 4)) { sp = o; break; } }   // up on a roof (js/08zt): a side that is still roof; from a boat onto a pier or the shore, not up onto a bridge (js/08zv)
   P.x = clamp(c.x + sp[0], BX0 + 10, BX1 - 10); P.y = clamp(c.y + sp[1], BY0 + 10, BY1 - 10); P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
+  P.swim = feat('swim') && (c.t.boat || c.sunk) && boatDist(P.x, P.y) < -SWIM_OUT; P.drown = 0;   // into the water: swimming (js/08zv)
   c.driver = null; c.thr = 0; c.str = 0; c.hb = false; P.car = null;
   if (P.carSwap && P.weapon === P.carSwap.to && P.has[P.carSwap.from]) P.weapon = P.carSwap.from;   // the weapon you had before you got in
   P.carSwap = null;
@@ -231,7 +232,7 @@ function enterCar(c) {
     const ped = makePed(c.x + Math.cos(c.ang + 1.6) * 30, c.y + Math.sin(c.ang + 1.6) * 30);
     if (cop) ped.arm = -1;
     if (!provoke(ped)) { ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; }   // an armed driver comes back at you (js/08g)
-    if (!pedBlocked(ped.x, ped.y)) peds.push(ped);
+    if (!pedBlocked(ped.x, ped.y) && (!c.t.boat || shoreDist(ped.x, ped.y) > 4)) peds.push(ped); else if (c.t.boat) splashFx(ped.x, ped.y, 14);   // a boat's owner goes over the side (js/08zv)
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0);
   } else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
   else if (!c.free) reportCrime(COP.crime.steal, 0);             // the NASCAR special in the speedway's paddock is free to take (js/08o)
@@ -254,7 +255,7 @@ function letGo(c) {                                              // a carjacking
 }
 function tryEnterExit() {
   if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
-  if (P.car) { if (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET') || tuneLocked('WAIT - THE MECHANIC IS STILL AT IT')) return; exitCar(); return; }   // js/08o, js/08q
+  if (P.car) { if (!P.car.sunk && (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET') || tuneLocked('WAIT - THE MECHANIC IS STILL AT IT'))) return; exitCar(); return; }   // js/08o, js/08q; out of a sinking car whatever (js/08zv)
   const c = nearestCar(); if (!c || rampLocked('ON FOOT DURING A RAMPAGE')) return;
   const occ = c.driver === 'ai' || c.driver === 'cop' || c.driver === 'race';
   P.act = { k: 'steal', c, t: 0, dur: occ ? 3 : 1, occ }; P.vx = P.vy = 0;       // an empty car takes a second; pulling a driver out takes three
@@ -281,6 +282,7 @@ function updatePlayer(dt, inp) {
   if (P.act) updateAct(dt);
   if (P.act) { if (!P.act.occ) { P.vx = P.vy = 0; } P.cool = Math.max(P.cool, 0.1); return; }
   if (P.car) {
+    if (P.drown) { drownTick(dt); if (!P.car) return; }           // the car is sinking (js/08zv)
     const c = P.car, sm = Math.hypot(TS.mx, TS.my);
     if (touchMode && sm > 0.12) {          // joystick = where you want to go: the car drives that way, turning almost on the spot (no reverse on touch)
       const mag = Math.min(1, sm), want = Math.atan2(TS.my, TS.mx);
@@ -303,20 +305,22 @@ function updatePlayer(dt, inp) {
   const mg = inp.mag === undefined ? Math.min(1, Math.hypot(inp.ix, inp.iy)) : inp.mag;
   if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
   if (P.ferry) ferryMove(dt, inp, mg); else {                    // aboard the Iron Key ferry: about its deck (js/08zp)
-  const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
+  swimCheck();                                                     // out of your depth: swimming (js/08zv)
+  const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = P.swim ? 1 : 1 - 0.6 * Math.min(1, dep / WADE);
   // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
-  const gait = mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(WALK, 2.4 * MPS, (mg - 0.4) / 0.4) : lerp(3.5 * MPS, RUN, (mg - 0.8) / 0.2);
-  const sp = (inp.sprint && mg > 0.4 ? SPRINT : gait) * wk * FOOT * flyBoostK(), m = Math.hypot(inp.ix, inp.iy) || 1;   // faster for a day after a scenic flight (js/08v)
+  const gait = mg <= 0.4 ? 0 : P.swim ? lerp(0.5, 1, (mg - 0.4) / 0.6) * RUN * PLC.swimSpeed : mg <= 0.8 ? lerp(WALK, 2.4 * MPS, (mg - 0.4) / 0.4) : lerp(3.5 * MPS, RUN, (mg - 0.8) / 0.2);   // swimming: no sprint
+  const sp = (inp.sprint && mg > 0.4 && !P.swim ? SPRINT : gait) * wk * FOOT * flyBoostK(), m = Math.hypot(inp.ix, inp.iy) || 1;   // faster for a day after a scenic flight (js/08v)
   const k = 1 - Math.exp(-14 * dt);
   P.vx = lerp(P.vx, inp.ix / m * sp, k); P.vy = lerp(P.vy, inp.iy / m * sp, k);
   P.x += P.vx * dt; P.y += P.vy * dt; P.bob += Math.hypot(P.vx, P.vy) * dt * 0.1;
   resolveCircle(P, 7); if (P.z || inCarpark(P.x, P.y, 40) || inTower(P.x, P.y, 40)) cpLift(P); if (P.roof) roofTick(P);   // on foot up the car park's ramps (js/10k)
   { const d2 = Math.max(0, -shoreDist(P.x, P.y));
-    if (d2 > 0 && Math.hypot(P.vx, P.vy) > 30 && Math.random() < dt * 14) splashFx(P.x, P.y, 2);
+    if (d2 > 0 && Math.hypot(P.vx, P.vy) > 30 && Math.random() < dt * (P.swim ? 22 : 14)) splashFx(P.x + Math.cos(P.ang) * 8, P.y + Math.sin(P.ang) * 8, 2);
     if (d2 > 0 && !P.wet) splashFx(P.x, P.y, 8); P.wet = d2 > 0;
-    if (d2 > WADE - 12 && Math.hypot(inp.ix, inp.iy) > 0.2 && (P.deepT = (P.deepT || 0) - dt) <= 0) { P.deepT = 2.5; toast('TOO DEEP TO SWIM'); } }
+    if (!feat('swim') && d2 > WADE - 12 && Math.hypot(inp.ix, inp.iy) > 0.2 && (P.deepT = (P.deepT || 0) - dt) <= 0) { P.deepT = 2.5; toast('TOO DEEP TO SWIM'); } }
   for (const c of cars) {
     if (Math.abs(c.x - P.x) > 90 || Math.abs(c.y - P.y) > 90 || Math.abs(zOf(c) - zOf(P)) > 15) continue;   // a car on another deck (js/10k)
+    if (c.t.boat ? !P.swim && shoreDist(P.x, P.y) > 0 : P.swim) continue;   // a boat reaches only swimmers, a car on a bridge not one below it (js/08zv)
     for (const q of carCircles(c)) {
       const dx = P.x - q[0], dy = P.y - q[1], d = Math.hypot(dx, dy), rr = q[2] + 7;
       if (d < rr && d > 0.001) {
@@ -327,6 +331,7 @@ function updatePlayer(dt, inp) {
   }
   }
   updateReload(dt); updateSwing(dt);
+  if (P.swim) { TA.on = TA.ok = false; SCOPE.on = false; P.swing = null; if (inp.fire && !P.trig) toast('NO WEAPONS IN THE WATER'); P.trig = inp.fire; return; }   // swimming (js/08zv)
   const w = WEAPONS[P.weapon]; if (!isThrown(w)) TA.on = TA.ok = false;   // switched away mid-aim
   if (w.scope) updateScope(orig, dt);                              // the rifle: aim in the scope while FIRE is held, shoot on letting go
   else if (isThrown(w)) updateThrowAim(orig, dt);                   // a bomb: aim the arc (the mouse drags back like a slingshot, FIRE on a touch screen is a little stick), let go to throw (js/06b)

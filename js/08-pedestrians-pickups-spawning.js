@@ -109,7 +109,7 @@ function separatePeople() {
 }
 function bumpCars(o, r, h) {                  // push o out of every car it overlaps; adds the push direction to h
   for (const c of cars) {
-    if (c.sunk || Math.abs(zOf(c) + (c.air || 0) - zOf(o)) > 15) continue; const reach = c.t.len / 2 + r + 2; if (Math.abs(c.x - o.x) > reach || Math.abs(c.y - o.y) > reach) continue;   // not a car on another deck (js/10k)
+    if (c.sunk || Math.abs(zOf(c) + (c.air || 0) - zOf(o)) > 15 || (c.t.boat && !o.swim && shoreDist(o.x, o.y) > 0)) continue;   // a boat does not reach anyone on land, a pier or a bridge (js/08zv) const reach = c.t.len / 2 + r + 2; if (Math.abs(c.x - o.x) > reach || Math.abs(c.y - o.y) > reach) continue;   // not a car on another deck (js/10k)
     for (const q of carCircles(c)) {
       const dx = o.x - q[0], dy = o.y - q[1], d = Math.hypot(dx, dy), rr = q[2] + r;
       if (d < rr && d > 0.001) { o.x += dx / d * (rr - d); o.y += dy / d * (rr - d); if (h) { h.nx += dx / d; h.ny += dy / d; } }
@@ -220,7 +220,7 @@ function spawnCop() {                         // a police vehicle sent from furt
 let spawnT = 0;
 function manageSpawns(dt) {
   spawnT -= dt;
-  for (let k = cars.length - 1; k >= 0; k--) { const c = cars[k]; if (P.car !== c && ((!c.keep && dist(c.x, c.y, P.x, P.y) > 2200) || (c.dead && c.deadT > 30) || (c.sunk && c.sinkT > 4))) cars.splice(k, 1); }
+  for (let k = cars.length - 1; k >= 0; k--) { const c = cars[k]; if (P.car !== c && ((!c.keep && dist(c.x, c.y, P.x, P.y) > 2200) || (c.dead && c.deadT > 30) || (c.sunk && c.sinkT > (c.slowSink ? 6 : 4)))) cars.splice(k, 1); }
   for (let k = peds.length - 1; k >= 0; k--) { const p = peds[k]; if ((p.dead && p.deadT > bodyTime(p)) || (!p.keep && dist(p.x, p.y, P.x, P.y) > 1500)) peds.splice(k, 1); }   // keep: a fare, a patient, a criminal (js/08n)
   if (spawnT <= 0) {
     spawnT = 0.3; let traffic = 0, parked = 0, live = 0;

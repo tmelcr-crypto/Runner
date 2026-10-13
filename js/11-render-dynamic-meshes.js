@@ -255,15 +255,18 @@ const _dark = new THREE.Color(0x1b1b1f), _tmp = new THREE.Color();
 function syncCar(c, time, dt) {
   if (!c.mesh) buildCar(c); track(c);
   const gy = groundH(c.x, c.y); c.gy = c.gy === undefined ? gy : c.gy + (gy - c.gy) * Math.min(1, dt * 14);
-  if (c.sunk) { c.mesh.visible = c.sinkT < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, c.sinkT * c.sinkT * 9 + c.sinkT * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, c.sinkT * 0.3); return; }
+  if (c.sunk) { const st = c.sinkT * (c.slowSink ? 0.55 : 1); c.mesh.visible = st < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, st * st * 9 + st * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, st * 0.3); return; }   // slowSink: you are inside, with seconds to get out (js/08zv)
   c.mesh.position.set(c.x, c.gy + (c.air || 0) + (c.z || 0) + (c.rz || 0), c.y); c.mesh.rotation.y = -c.ang;   // z: up a car park deck (js/10k); rz: on a site ramp or mound (js/08zt)
-  if (c.t.boat) c.mesh.position.y = WATER_Y - 2.4 + Math.sin(time * 1.7 + c.x * 0.01) * 0.7 * (c.beached ? 0 : 1);   // a boat rides the water (js/08zv)
+  if (c.t.boat) {                                                  // a boat rides the water; under a bridge it sits low, out of sight below the deck (js/08zv)
+    c.dip = clamp((c.dip || 0) + (c.under ? 4 : -4) * dt, 0, 1);
+    c.mesh.position.y = WATER_Y - 2.4 + Math.sin(time * 1.7 + c.x * 0.01) * 0.7 * (c.beached ? 0 : 1) - c.dip * 6; c.mesh.scale.y = 1 - 0.75 * c.dip;
+  }
   c.tilt.rotation.z = c.rzp ? c.rzp : c.zg ? Math.atan(c.zg * Math.sin(c.ang)) : 0;   // nose up or down a ramp
   const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), bike = c.t.body === 'bike';
   const want = c.air > 0 ? clamp(c.av * 0.07, -0.6, 0.6) : bike ? (c.driver ? clamp(c.av * vf / 260, -0.55, 0.55) : 0.22) : -clamp(c.av * vf / 450, -0.12, 0.12);   // rolls a little (in the air: a lot); a bike leans into the bend, parked it stands on its stand
   c.roll += (want - c.roll) * Math.min(1, dt * 8); c.tilt.rotation.x = c.roll;
   const f = c.hp / c.maxhp, m = c.m;
-  m.ug.visible = !c.dead; m.hb.visible = !!c.driver && !c.dead;
+  m.ug.visible = !c.dead && !c.t.boat; m.hb.visible = !!c.driver && !c.dead && !c.t.boat;   // no glow or headlights on a boat
   if (m.drv) m.drv.visible = !!c.driver && !c.dead;
   if (m.rider) m.rider.material = c.driver === 'player' ? playerTopMat() : m.riderM;   // you on the bike: in your top's colour
   if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; if (m.tp) for (const o of m.tp) o.material = E.black; }
@@ -353,8 +356,8 @@ function syncPlayer(time, dt) {
     P3.gy = 0; { const pg = new THREE.Mesh(GP, glowMat('#2bf3ff', 0.85)); pg.scale.set(52, 1, 52); pg.position.y = 1.4; o.g.add(pg); }
   }
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over' && !CUT.hideP; P3.mesh.visible = vis; if (!vis) return;   // CUT.hideP: on board a plane in a cutscene (js/15c)
-  const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
-  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - (P.ferry ? 0 : Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32)), P.y); P3.mesh.rotation.y = -P.ang;
+  const o = P3.pm, gy = P.swim ? WATER_Y - 1.5 : groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
+  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - (P.ferry || P.swim ? 0 : Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32)), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8, live = feat('liveWalk'), run = live ? clamp((sp - 30) / 50, 0, 1) : 0;
   o.legs[0].rotation.z = k * (1 + 0.25 * run); o.legs[1].rotation.z = -k * (1 + 0.25 * run); o.arms[0].rotation.z = -k * (live ? 0.9 : 0.5); o.arms[1].rotation.z = 0;
   o.arms[0].rotation.x = 0.18 * run; o.tilt.position.y = Math.abs(k) * (0.8 + 1.2 * run); o.tilt.rotation.y = live ? k * 0.1 : 0;
@@ -370,6 +373,13 @@ function syncPlayer(time, dt) {
   const sw = P.swing, u = sw ? clamp(sw.t / SWING_T, 0, 1) : 0, e = u * u * (3 - 2 * u);
   if (isMelee(w)) { P3.held.rotation.set(0, sw ? lerp(1.3, -1.3, e) : 0.7, sw ? lerp(0.9, 0.1, e) : 1.05); o.arms[1].rotation.z = sw ? -1.4 * Math.sin(Math.PI * u) : -0.5; }
   else P3.held.rotation.set(0, 0, 0);
+  P3.held.visible = !P.swim; o.tilt.position.x = 0;
+  if (P.swim) {                                                      // swimming (js/08zv): face down, a crawl stroke and a flutter kick
+    const sp2 = Math.min(1, sp / 60), u = time * (3 + 4 * sp2);
+    o.tilt.rotation.z = -1.42; o.tilt.position.set(-13, 0.5, 0); o.tilt.rotation.y = 0;
+    o.arms[0].rotation.set(0, 0, sp2 > 0.1 ? u : -2.6 + 0.3 * Math.sin(u)); o.arms[1].rotation.set(0, 0, sp2 > 0.1 ? u + Math.PI : -2.6 - 0.3 * Math.sin(u));
+    o.legs[0].rotation.z = 0.35 * Math.sin(u * 2); o.legs[1].rotation.z = -0.35 * Math.sin(u * 2); o.headG.rotation.set(0, 0.35 * Math.sin(u), 0);
+  }
   P3.flash.visible = P.flash > 0; P3.flash.position.set(6 + P3.gl, 14, 3.6);
   flashLight.intensity = P.flash > 0 ? 1.6 : 0; flashLight.position.set(P.x + Math.cos(P.ang) * 20, P3.gy + 16, P.y + Math.sin(P.ang) * 20);
 }

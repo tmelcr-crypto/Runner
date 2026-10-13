@@ -43,8 +43,8 @@ function collideCarWorld(c) {
   for (let it = 0; it < 2; it++) {
     for (const q of carCircles(c)) {
       nearBuildings(q[0], q[1], _nb);
-      for (const rc of _nb) { if ((rc.gate && c.t.cop) || rc.foot || !solidAt(rc, zOf(c)) || ((rc.h3 || (rc.bld && rc.H)) && zOf(c) + (c.air || 0) + (c.rz || 0) > (rc.h3 || rc.H) - 1)) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
-      nearRails(q[0], q[1], _nr);
+      for (const rc of _nb) { if ((rc.gate && c.t.cop) || rc.foot || (c.t.boat && onDeck(rc.cx, rc.cy)) || !solidAt(rc, zOf(c)) || ((rc.h3 || (rc.bld && rc.H)) && zOf(c) + (c.air || 0) + (c.rz || 0) > (rc.h3 || rc.H) - 1)) continue; const h = circleSolid(q[0], q[1], q[2], rc); if (h && ((rc.fence && fenceBreak(rc, c)) || (rc.barrier && barrierHit(rc, c)))) continue; if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
+      if (!c.t.boat) nearRails(q[0], q[1], _nr); else _nr.length = 0;   // a boat passes under the bridges, between their rails (js/08zv)
       for (const sg of _nr) { const h = circleSeg(q[0], q[1], q[2], sg); if (h) { c.x += h.nx * h.pen; c.y += h.ny * h.pen; q[0] += h.nx * h.pen; q[1] += h.ny * h.pen; nx += h.nx; ny += h.ny; hit = true; } }
       if (q[0] < CX0 + q[2]) { c.x += CX0 + q[2] - q[0]; nx += 1; hit = true; } else if (q[0] > CX1 - q[2]) { c.x -= q[0] - (CX1 - q[2]); nx -= 1; hit = true; }
       if (q[1] < CY0 + q[2]) { c.y += CY0 + q[2] - q[1]; ny += 1; hit = true; } else if (q[1] > CY1 - q[2]) { c.y -= q[1] - (CY1 - q[2]); ny -= 1; hit = true; }
@@ -68,6 +68,7 @@ function collideCars() {
     for (let b = a + 1; b < cars.length; b++) {
       const Bc = cars[b]; if (A.hook || Bc.hook) continue;
       const reach = (A.t.len + Bc.t.len) / 2 + 4; if (Math.abs(A.x - Bc.x) > reach || Math.abs(A.y - Bc.y) > reach || Math.abs(zOf(A) + (A.air || 0) - zOf(Bc) - (Bc.air || 0)) > 15) continue;   // a car on another deck (js/10k), or flying high over it
+      if (A.t.boat !== Bc.t.boat && shoreDist(A.t.boat ? Bc.x : A.x, A.t.boat ? Bc.y : A.y) > 0) continue;   // a boat under a bridge, a car on it (js/08zv)
       let hit = false, nx = 0, ny = 0, pen = 0;
       for (const p of carCircles(A)) for (const q of carCircles(Bc)) {
         const dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy), rr = p[2] + q[2];
