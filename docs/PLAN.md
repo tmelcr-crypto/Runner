@@ -251,6 +251,15 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 - **The dialogue UI**: a new look for the quests' dialogue box (portrait, bubble, name, the next-line hint; js/08zy and the
   styles) - the layout and style to be asked first.
 
+## Bridges boats sail under (asked October 2026; ask the details before building)
+- Today a boat passing a bridge dips out of sight under the deck (js/08zv boatShore, `c.under`) - it seems to disappear. Instead the
+  bridges over water are **lifted**: the span over the water high enough that boats (and the police boat, the tour boat, Tito in
+  Quest 01) are seen sailing under it, the deck drawn above them, the road ramping up to it from the shore.
+- To ask first: all bridges or only those over the boats' routes; a fixed high span, an arched span, or drawbridges that open for
+  big boats; how steep the ramps (cars jumping off the top?); the yacht and the tour boat too (taller).
+- Likely a map remodel (`tools/remodel_city.py`, the bridge heights in the map data) and the bridge models; the boats' water field
+  under the bridges stays as it is.
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
