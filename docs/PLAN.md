@@ -234,6 +234,15 @@ rest of this step stands.)
 3. **Flying and people with real lives** (below).
 Story mode is not started yet: when it is, the open items in docs/STORY.md come first.
 
+## Boat models (asked October 2026; to build after the weekly usage window resets on 19 October)
+- **Which**: the speedboat and the jet ski (the ones you drive most, and Tito's escape boat in Quest 01), the yacht and the fishing
+  boat, the police boat and the tour boat. (Not the ferry or the cargo ships.)
+- **Better shapes**: curved hulls with a pointed bow, a windshield, seats, rails, an outboard engine, a cabin where it fits.
+- **Wake and spray**: a white V-wake behind a moving boat and spray at the bow, bigger with speed (its numbers in the places table's
+  In the water group).
+- Then test (screenshots of each boat, still and moving, phone size too), and **merge** - the Quest 01 fixes still on the working
+  branch go live with it (the owner's answer).
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,

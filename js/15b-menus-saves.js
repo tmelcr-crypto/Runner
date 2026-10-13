@@ -49,7 +49,8 @@ function paintModes() {
     document.querySelector('#modeCard .modeNote[data-mode="' + m.id + '"]').textContent = m.note;
   }
 }
-for (const b of document.querySelectorAll('#modeCard .modeBtn')) b.addEventListener('click', () => { newMode = b.dataset.mode; $('newTitle').textContent = MODE[newMode].name; showCard('newCard'); });
+for (const b of document.querySelectorAll('#modeCard .modeBtn')) b.addEventListener('click', () => { newMode = b.dataset.mode; $('newTitle').textContent = MODE[newMode].name;
+  if (newMode === 'test') { MS.fromNew = true; showCard('msCard'); } else showCard('newCard'); });   // MISSIONS TEST: pick the mission first (js/08zy)
 const modeOf = d => (MODE[d && d.mode] && MODE[d.mode].ready ? d.mode : 'free');   // a saved game's mode (older saves: free roam)
 
 /* ---------- the cards: one shows at a time; Back returns to the one before ---------- */

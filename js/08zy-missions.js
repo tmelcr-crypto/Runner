@@ -7,26 +7,32 @@
    cutscene engine (js/15c) with the usual camera from above: WIDE, CLOSE, FOLLOW, OVERHEAD, FIXED, PAN.
    MISSIONS TEST (mode test, docs/STORY.md): picked from a list (MISSIONS on the pause menu, and when the mode starts), you start with
    everything, never saved; helpers: restart, jump to any step, replay a cutscene; the step's info in a corner. */
-const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null };
+const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null, start: null };
 const MSCRIPT = {};                        // each mission's script: { setup(A), steps: [{ enter, tick → true when done, jump, info }], fail(A) → why, cuts: { name: A => shots } }
 const msTest = () => gameMode === 'test';
 
 /* ---------- MISSIONS TEST: the kit and the list ---------- */
-function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the list
+function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the mission picked
   P.score = Math.max(P.score, 1000000);
   WEAPONS.forEach((w, i) => { P.has[i] = true; if (!isMelee(w)) { P.mag[i] = Math.max(P.mag[i] || 0, w.mag || 0); P.ammo[i] = Math.max(P.ammo[i] || 0, w.maxAmmo || 0); } });
   P.hp = hpMax(); P.armor = armorMax();
-  setTimeout(() => { if (state === 'play' && msTest() && !MS.on) msOpenList(); }, 600);
+  const id = MS.next; MS.next = null;
+  if (id) msStart(id, 0); else setTimeout(() => { if (state === 'play' && msTest() && !MS.on) msOpenList(); }, 600);
 }
-function msOpenList() { pauseRet = 'play'; toggleBigMap(false); toggleWheel(false); state = 'pause'; hush(); showCard('pauseCard', true); showCard('msCard'); }
+function msOpenList() { MS.fromNew = false; pauseRet = 'play'; toggleBigMap(false); toggleWheel(false); state = 'pause'; hush(); showCard('pauseCard', true); showCard('msCard'); }
+function msPick(id) {                       // a mission picked: from NEW GAME a fresh MISSIONS TEST game starts with it; in a test game it starts now
+  if (MS.fromNew || gameMode !== 'test' || (state !== 'pause' && state !== 'play')) { MS.fromNew = false; msClear(); Object.assign(OPT, NEWOPT); gameMode = 'test'; MS.next = id; startGame(); return; }
+  msStart(id, 0);
+}
 function paintMsCard() {
   const L = $('msList'); L.innerHTML = '';
   for (const m of MISSION_TABLE.missions) {
     const g = (m.chars.find(c => c.id === m.giver) || {}).name || '', b = document.createElement('button');
     b.type = 'button'; b.className = 'big alt msPick'; b.innerHTML = m.no + ' · ' + m.title + '<small>' + g + ' · ' + m.where.toUpperCase() + '</small>';
-    b.addEventListener('click', () => msStart(m.id, 0)); L.appendChild(b);
+    b.addEventListener('click', () => msPick(m.id)); L.appendChild(b);
   }
-  const on = MS.on, H = $('msHelp'); H.hidden = !on; if (!on) return;
+  $('msSub').textContent = MS.fromNew ? 'MISSIONS TEST · PICK A MISSION TO START' : 'MISSIONS TEST · PICK ONE TO PLAY';
+  const on = MS.on && !MS.fromNew, H = $('msHelp'); H.hidden = !on; if (!on) return;
   $('msNow').textContent = 'NOW: ' + MS.m.no + ' · ' + MS.m.title + ' · STEP ' + (MS.k + 1) + '/' + MS.m.steps.length;
   const S = $('msSteps'); S.innerHTML = '';
   MS.m.steps.forEach((st, k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'alt msStep' + (k === MS.k ? ' on' : ''); b.textContent = (k + 1) + ' ' + st.word; b.title = st.show;
@@ -37,7 +43,7 @@ function paintMsCard() {
 }
 $('msRestart').addEventListener('click', () => msStart(MS.id, 0));
 $('msQuit').addEventListener('click', () => { msClear(); closeMenus(); state = 'play'; toast('MISSION STOPPED'); });
-$('pMsBtn').addEventListener('click', () => showCard('msCard'));
+$('pMsBtn').addEventListener('click', () => { MS.fromNew = false; showCard('msCard'); });
 
 /* ---------- running a mission ---------- */
 function msStart(id, k) {                  // from the list (or RETRY / a step): fresh, at its start, or set up as if the steps before were done
@@ -51,7 +57,7 @@ function msStart(id, k) {                  // from the list (or RETRY / a step):
   msEnter(k || 0);
 }
 function msEnter(k) {
-  MS.k = k; MS.t = 0; MS.guide = null; MS.mark = null;
+  MS.k = k; MS.t = 0; MS.guide = null; MS.mark = null; MS.start = null;
   const st = MS.s.steps[k]; if (st.enter) st.enter(MS.A);
   msObjective(MS.m.steps[k].show);
 }
@@ -71,7 +77,7 @@ function msTick(dt) {                       // js/15 update
 function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPassed(); else msEnter(MS.k + 1); }
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
-  MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; msTalkClose();
+  MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd();   // a mission's cutscene still playing: over if ($('msBtn')) $('msBtn').hidden = true;
   $('msObj').hidden = true; $('msInfo').textContent = ''; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
@@ -98,10 +104,10 @@ $('msToList').addEventListener('click', () => { showCard('pauseCard', true); sho
 
 /* ---------- actors: people and vehicles the mission brings, gone when it ends ---------- */
 function msPed(x, y, a, o) {
-  const p = makePed(x, y); Object.assign(p, { arm: -1, umb: false, speed: 0, state: 'post', ms: true }, o);
+  const p = makePed(x, y); Object.assign(p, { arm: -1, umb: false, speed: 0, state: 'post', ms: true, keep: true }, o);   // keep: never cleared away for being far (js/08)
   p.post = { x, y, a, step: o.step || standStep, i: 0 }; p.e = -1; p.ang = p.hd = a; peds.push(p); MS.A.list.push(p); return p;
 }
-function msCar(type, x, y, ang, color) { const c = makeCar(type, x, y, ang, null, color); c.searched = true; c.ms = true; cars.push(c); MS.A.list.push(c); return c; }
+function msCar(type, x, y, ang, color) { const c = makeCar(type, x, y, ang, null, color); c.searched = true; c.ms = true; c.keep = true; cars.push(c); MS.A.list.push(c); return c; }
 function msWho(id) { return MS.m.chars.find(c => c.id === id); }
 
 /* ---------- the target: the guide line (js/08p) and an arrow over it ---------- */
@@ -119,7 +125,22 @@ function gfxMs(time) {
     MS_BAG.visible = true; MS_BAG.position.set(b.x, groundH(b.x, b.y) + 4 + Math.sin(time * 3) * 1.5, b.y); MS_BAG.rotation.y = time;
   } else if (MS_BAG) MS_BAG.visible = false;
 }
-const msGuide = () => { const g = MS.on && MS.guide; if (!g) return null; const t = typeof g === 'function' ? g() : g; return t ? { x: t.x, y: t.y, key: 'ms' + MS.k } : null; };
+const msGuide = () => { const g = MS.on && !CUT.on && !MS.talk && MS.guide; if (!g) return null;   // no line while a cutscene or a dialogue plays
+  const t = typeof g === 'function' ? g() : g; return t ? { x: t.x, y: t.y, key: 'ms' + MS.k } : null; };
+
+/* ---------- START MISSION: a button by the mission's giver (MS.start = { at() → the giver, label, go() }) ---------- */
+function msKey() {
+  const s = MS.on && MS.start; if (!s || P.car || P.dead || P.act || state !== 'play' || CUT.on || MS.talk) return null;
+  const t = s.at(); return t && !t.dead && dist(P.x, P.y, t.x, t.y) < 60 ? s : null;
+}
+function msUse(s) { MS.start = null; $('msBtn').hidden = true; s.go(); }
+function msUi() {                          // every frame (js/14): the button by you
+  const k = msKey(), b = $('msBtn'); if (!b) return;
+  if (!k) { if (!b.hidden) b.hidden = true; return; }
+  if (b.hidden) { b.hidden = false; b.querySelector('b').textContent = k.label; b.style.setProperty('--sc', '#b6ff3c'); }
+  doorBtnAt(b);
+}
+$('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey(); if (k) msUse(k); });
 
 /* ---------- dialogue: the portrait, the bubble, the mumble; the game waits ---------- */
 const MS_PICS = {};
@@ -186,7 +207,7 @@ function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y
       if (s.tick) s.tick(A, dt, u);
       place();
     } }));
-  cutPlay({ skip: 'SKIP', shots, end: () => { msTalkClose(); done(); } });
+  cutPlay({ skip: 'SKIP', ms: true, shots, end: () => { msTalkClose(); done(); } });
 }
 
 /* ---------- a path over the water from a to b (for a boat to follow): a grid search over the water field ---------- */
@@ -213,6 +234,30 @@ function msWaterPath(a, b) {
   return out;
 }
 
+/* ---------- a way to run along the sidewalks from (x, y): the nearest street, then on, keeping as straight as the streets allow ---------- */
+function msRunRoute(x, y, len) {
+  const rd = nearestRoad(x, y, 900); if (!rd) return [];
+  const E0 = RE[rd.e], fw0 = E0.len - rd.s >= rd.s ? 1 : -1, q0 = edgeAt(rd.e, rd.s, {}), near = ((x - q0.x) * (-q0.ty * fw0) + (y - q0.y) * (q0.tx * fw0)) >= 0 ? 1 : -1;
+  const walk = side => {                    // along one sidewalk, on at each junction as straight as it goes; never a long jump over water or walls
+    let e = rd.e, fw = fw0, s = fw > 0 ? rd.s : E0.len - rd.s, total = 0, gap = 0; const seen = new Set([e]), pts = [];
+    while (total < len) {
+      for (; s <= RE[e].len && total < len; s += 50, total += 50) {
+        const q = sidewalkPoint({ e, fw, s, side }, 0, {});
+        if (shoreDist(q.x, q.y) > 4 && !pedBlocked(q.x, q.y)) { pts.push({ x: q.x, y: q.y }); gap = 0; } else if ((gap += 50) > 150) return pts;
+      }
+      if (total >= len) break;
+      const node = fw > 0 ? RE[e].b : RE[e].a, t = edgeAt(e, fw > 0 ? RE[e].len : 0, {}), tx = t.tx * fw, ty = t.ty * fw;
+      let best = null, bd = -2;
+      for (const ne of RN[node].e) { if (seen.has(ne)) continue; const F = RE[ne], f2 = F.a === node ? 1 : -1, u = edgeAt(ne, f2 > 0 ? 0 : F.len, {}), d = u.tx * f2 * tx + u.ty * f2 * ty; if (d > bd) { bd = d; best = ne; } }
+      if (best === null) break;
+      e = best; fw = RE[e].a === node ? 1 : -1; s = 0; seen.add(e);
+    }
+    return pts;
+  };
+  const mine = walk(near); if (mine.length * 50 >= len * 0.6) return mine;   // his own side of the street if it goes far enough, otherwise across
+  const other = walk(-near); return other.length > mine.length ? other : mine;
+}
+
 /* ================= QUEST 01 - HARBOUR FAVOUR ================= */
 MSCRIPT.q01 = (() => {
   const N = () => MS.m.numbers, me = () => P.car || P;
@@ -220,38 +265,63 @@ MSCRIPT.q01 = (() => {
   function setup(A) {
     const M = MARINA, d = M.door;
     A.door = at(d[0] + 22, d[1] + 4);                                   // Marco: on the quay at the office door
-    A.marco = msPed(A.door.x, A.door.y, 0, { shirt: msWho('marco').shirt, pants: msWho('marco').pants, msName: 'marco' });
+    A.marco = msPed(A.door.x, A.door.y, 0, { shirt: msWho('marco').shirt, pants: msWho('marco').pants, msName: 'marco',
+      step: (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); } });   // he stays at his door whatever happens
     const b = M.berths[2]; A.boat = msCar('speedboat', b[0], b[1], 0, '#f4f4f6');            // berth two
     A.empty = at(M.berths[0][0], M.berths[0][1]);                     // pier 1's empty berth
     A.tboat = msCar('speedboat', M.fuel[2] + 40, M.fuel[3] + 30, 0, '#ff2bd6');               // Tito, idling off the fuel dock
     const J = JETTIES.reduce((best, j) => !best || dist(j.x, j.y, 7450, 6950) < dist(best.x, best.y, 7450, 6950) ? j : best, null), ja = J.a * Math.PI / 180;
     A.jetty = { head: at(J.x + Math.cos(ja) * (J.len - 14), J.y + Math.sin(ja) * (J.len - 14)), base: at(J.x - Math.cos(ja) * 10, J.y - Math.sin(ja) * 10), water: at(J.x + Math.cos(ja) * (J.len + 50), J.y + Math.sin(ja) * (J.len + 50)) };
-    const rd = nearestRoad(A.jetty.base.x, A.jetty.base.y, 900); A.street = rd ? at(rd.x, rd.y) : A.jetty.base;
-    A.route = msWaterPath([A.tboat.x + 260, A.tboat.y], [A.jetty.water.x, A.jetty.water.y]);
+    A.run = [A.jetty.base, ...msRunRoute(A.jetty.base.x, A.jetty.base.y, N().runLen * UNITS_PER_M)];   // Tito's way off the jetty: along the sidewalks
+    const bay = MARINA.routes.bay, snap = (x, y) => bay.reduce((b, q) => !b || dist(q[0], q[1], x, y) < dist(b[0], b[1], x, y) ? q : b, null);
+    const legs = [[A.tboat.x + 260, A.tboat.y], snap(9300, 4600), snap(8526, 5320), snap(7450, 5188), snap(7450, 6950), [A.jetty.water.x, A.jetty.water.y]];
+    A.route = [legs[0]]; for (let k = 1; k < legs.length; k++) A.route.push(...msWaterPath(legs[k - 1], legs[k]).slice(1));   // out round the bay, then for the jetty
     P.x = A.door.x + 70; P.y = A.door.y + 60; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;
   }
-  function titoRuns(A) {                                               // Tito ashore: along the jetty, off it, up the street and away
-    const p = A.tito, path = [A.jetty.base, A.street, at(A.street.x + (A.street.x - A.jetty.base.x) * 3, A.street.y + (A.street.y - A.jetty.base.y) * 3)];
-    p.post = { x: p.x, y: p.y, a: 0, i: 0, step: (q, dt) => { const w = path[Math.min(q.post.i, path.length - 1)]; if (walkTo(q, w.x, w.y, RUN * N().titoRun / 100, dt) < 12 && q.post.i < path.length - 1) q.post.i++; return true; } };
+  function titoRuns(A) {                                               // Tito ashore: off the jetty and away along his fixed way on the sidewalks
+    const p = A.tito, path = A.run; p.state = 'post';
+    p.post = { x: p.x, y: p.y, a: 0, i: p.post ? p.post.i : 0, lx: p.x, ly: p.y, lt: 0, step: (q, dt) => {
+      const po = q.post, w = path[Math.min(po.i, path.length - 1)];
+      const crossing = nearestRoad(w.x, w.y, ROAD_HALF + 6) || nearestRoad(q.x, q.y, ROAD_HALF + 6);   // only where his way crosses the carriageway
+      if (crossing && (po.wt || 0) < 3 && cars.some(o => !o.t.boat && !o.dead && carSpeed(o) > 3 * KMH && dist(o.x, o.y, q.x, q.y) < 150 && dist(o.x + o.vx * 0.6, o.y + o.vy * 0.6, q.x, q.y) < dist(o.x, o.y, q.x, q.y))) { po.wt = (po.wt || 0) + dt; q.vx = q.vy = 0; return true; }   // a car coming: he waits (3 s at most)
+      if (!crossing) po.wt = 0;
+      if (walkTo(q, w.x, w.y, RUN * N().titoRun / 100, dt) < 14 && po.i < path.length - 1) po.i++;
+      if ((po.lt += dt) > 0.8) { if (dist(q.x, q.y, po.lx, po.ly) < 6 && po.i < path.length - 1) po.i++; po.lt = 0; po.lx = q.x; po.ly = q.y; }   // stuck: on to the next point
+      return true; } };
   }
+  function fleeBoat(c, dt) {                                           // js/07: Tito at the helm - round the bay for the jetty, off the shore, round boats, weaving when you close in
+    const R = A0().route; if (!R || !MS.on) { c.thr = 0; c.str = 0; return; }
+    if (c.wi < R.length - 1 && dist(c.x, c.y, R[c.wi][0], R[c.wi][1]) < 140) c.wi++;
+    const w = R[c.wi], m = me(), dp = dist(c.x, c.y, m.x, m.y), spd = carSpeed(c), fx = Math.cos(c.ang), fy = Math.sin(c.ang);
+    let want = Math.atan2(w[1] - c.y, w[0] - c.x), cruise = N().titoBoat * KMH * (dp > 1500 ? 0.8 : dp < 450 ? 1.25 : 1);
+    if (dp < 420) want += 0.3 * Math.sin(gameT * 1.7);
+    for (const o of cars) { if (o === c || o.sunk || !o.t.boat) continue; const dx = o.x - c.x, dy = o.y - c.y; if (Math.abs(dx) > 280 || Math.abs(dy) > 280) continue;
+      const ah = dx * fx + dy * fy, sd = -dx * fy + dy * fx; if (ah > -10 && ah < 80 + c.t.len + spd * 0.5 && Math.abs(sd) < (c.t.wid + o.t.wid) * 0.6 + 34) want += sd > 0 ? -0.9 : 0.9; }
+    const look = 60 + spd * 0.8, hx = c.x + fx * look, hy = c.y + fy * look;
+    if (boatDist(hx, hy) > -70) { const g = boatGrad(hx, hy), away = Math.atan2(-g[1], -g[0]); want = away + clamp(angDiff(away, want), -1.1, 1.1); cruise *= 0.7; }
+    c.str = clamp(angDiff(c.ang, want) * 2.4, -1, 1); c.thr = spd < cruise ? 1 : spd > cruise * 1.15 ? -0.4 : 0.05; c.hb = false;
+    if (c.backT > 0) { c.backT -= dt; c.thr = -1; c.str = c.backS; return; }
+    c.stuckT = spd < 6 * KMH && c.thr > 0.5 ? (c.stuckT || 0) + dt : 0;
+    if (c.stuckT > 1) { c.stuckT = 0; c.backT = 1.1; c.backS = Math.random() < 0.5 ? -1 : 1; }   // stuck: astern a moment, swinging the bow away
+  }
+  const A0 = () => MS.A;
   const steps = [
-    { enter(A) { MS.guide = A.door; MS.mark = () => A.marco; },                                         // GO TO Marco: the opening
-      tick(A) { if (P.car || dist(P.x, P.y, A.door.x, A.door.y) > 60 || A.opened) return false; A.opened = true; msCut('THE TAKINGS', () => msNext()); return false; } },
+    { enter(A) { MS.guide = A.door; MS.mark = () => A.marco; MS.start = { at: () => A.marco, label: msWho('marco').name, go: () => { A.opened = true; msCut('THE TAKINGS', () => msNext()); } }; },   // GO TO Marco: START MISSION by him
+      tick(A) { if (P.car && !A.hinted && dist(P.car.x, P.car.y, A.door.x, A.door.y) < 140) { A.hinted = true; toast('GET OUT - TALK TO MARCO ON FOOT'); } return false; } },
     { enter(A) { MS.mark = () => A.boat; },                                                              // GET IN
       tick(A) { return P.car === A.boat; },
       jump(A) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } },
-    { enter(A) { const c = A.tboat; MARINA.routes.msTito = A.route; Object.assign(c, { driver: 'ai', boatAI: 'msTito', wi: 1, dir: 1, cruise: N().titoBoat * KMH }); MS.mark = () => A.tboat; },   // CHASE on the water
-      tick(A) { const c = A.tboat, d = dist(me().x, me().y, c.x, c.y);
-        c.cruise = N().titoBoat * KMH * (d > 1500 ? 0.75 : d < 450 ? 1.2 : 1);                           // he keeps the chase close
-        if (dist(c.x, c.y, A.jetty.water.x, A.jetty.water.y) < 200) { c.driver = null; c.thr = 0; c.vx *= 0.3; c.vy *= 0.3; return true; }
+    { enter(A) { const c = A.tboat; Object.assign(c, { driver: 'ai', msDrive: fleeBoat, wi: 1 }); MS.mark = () => A.tboat; },   // CHASE on the water
+      tick(A) { const c = A.tboat;
+        if (c.wi >= A.route.length - 1 && dist(c.x, c.y, A.jetty.water.x, A.jetty.water.y) < 200) { c.driver = null; c.msDrive = null; c.thr = 0; c.vx *= 0.3; c.vy *= 0.3; A.landed = true; return true; }
         return false; },
       info: A => Math.round(dist(me().x, me().y, A.tboat.x, A.tboat.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayWater + ')',
-      jump(A) { const w = A.route[Math.max(0, A.route.length - 3)]; A.tboat.x = A.jetty.water.x; A.tboat.y = A.jetty.water.y; if (P.car !== A.boat) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } A.boat.x = w[0]; A.boat.y = w[1]; P.x = w[0]; P.y = w[1]; } },
+      jump(A) { const w = A.route[Math.max(0, A.route.length - 3)]; A.tboat.x = A.jetty.water.x; A.tboat.y = A.jetty.water.y; A.landed = true; if (P.car !== A.boat) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } A.boat.x = w[0]; A.boat.y = w[1]; P.x = w[0]; P.y = w[1]; } },
     { enter(A) { const h = A.jetty.head; A.tito = msPed(h.x, h.y, 0, { shirt: msWho('tito').shirt, pants: msWho('tito').pants, msName: 'tito', speed: 1 }); titoRuns(A); MS.mark = () => A.tito; MS.guide = () => A.tito; },   // CATCH on foot
       tick(A) { if (A.caught || P.car || dist(P.x, P.y, A.tito.x, A.tito.y) > N().catch * UNITS_PER_M + 14) return false;
-        A.caught = true; msCut('CAUGHT', () => { A.bag = at(A.tito.x + 10, A.tito.y + 6); A.tito.post = null; A.tito.state = 'flee'; msNext(); }); return false; },
+        A.caught = true; msCut('CAUGHT', () => { msNext(); }); return false; },
       info: A => A.tito ? Math.round(dist(me().x, me().y, A.tito.x, A.tito.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayFoot + ')' : '',
-      jump(A) { if (P.car) exitCar(true); const h = A.jetty.head; P.x = A.jetty.base.x; P.y = A.jetty.base.y; A.tboat.driver = null; void h; } },
+      jump(A) { if (P.car) exitCar(true); P.x = A.jetty.base.x; P.y = A.jetty.base.y; A.tboat.driver = null; A.tboat.msDrive = null; A.landed = true; } },
     { enter(A) { if (!A.bag) A.bag = at(P.x + 30, P.y); MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = () => A.bag; },   // COLLECT the bag
       tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > 26) return false; A.bag = null; A.hasBag = true; Snd.pickup(); popup(P.x, P.y - 14, 'THE BAG', '#b6ff3c'); return true; },
       jump(A) { A.bag = null; A.hasBag = true; } },
@@ -263,6 +333,8 @@ MSCRIPT.q01 = (() => {
   function fail(A) {
     const F = MS.m.fails;
     if (A.marco.dead) return F.marcoDead;
+    if (!A.landed && A.tboat && (A.tboat.dead || A.tboat.sunk || A.tboat.hp <= 0)) return F.boatSank;   // shot to pieces or sunk with Tito aboard
+    if (!A.landed && A.tboat && !cars.includes(A.tboat)) return F.away;
     if (A.tito && A.tito.dead && !A.caught) return F.titoDead;
     if (A.tboat && MS.k === 2 && dist(me().x, me().y, A.tboat.x, A.tboat.y) > N().awayWater * UNITS_PER_M) return F.away;
     if (A.tito && MS.k === 3 && !A.caught && dist(me().x, me().y, A.tito.x, A.tito.y) > N().awayFoot * UNITS_PER_M) return F.away;
@@ -278,13 +350,13 @@ MSCRIPT.q01 = (() => {
       { dur: 5, cam: 'FOLLOW', at: () => A.tboat, line: 3, tick: (A2, dt, u) => { if (u > 0.45) { A.tboat.ang = 0; A.tboat.x += 520 * dt * smooth01(0.45, 0.7, u); } } },   // he waves, then roars off
       { dur: 4, cam: 'CLOSE', at: () => A.boat, line: 4 }],
     CAUGHT: A => [
-      { dur: 3, cam: 'OVERHEAD', at: () => A.tito, line: 5, enter: () => { A.tito.post.step = q => { q.vx = q.vy = 0; return true; }; face(A.tito, P); } },
-      { dur: 2, cam: 'FIXED', at: () => A.tito }],
+      { dur: 3, cam: 'OVERHEAD', at: () => A.tito, line: 5, enter: () => { A.tito.post.step = q => { q.vx = q.vy = 0; return true; }; face(A.tito, P); A.bag = at(A.tito.x + 10, A.tito.y + 6); } },   // he throws the bag down
+      { dur: 2, cam: 'FIXED', at: () => A.tito, enter: () => titoRuns(A) }],   // and runs on along his way
     SQUARE: A => [
       { dur: 4, cam: 'CLOSE', at: () => A.marco, line: 6, enter: () => face(A.marco, P) },
       { dur: 5, cam: 'WIDE', at: () => at(MARINA.door[0] + 160, MARINA.door[1] + 40), line: 7 }]
   };
   function walkToP(x, y, dt) { if (P.car) return; const d = dist(P.x, P.y, x, y); if (d < 6) return; const s = Math.min(d, WALK * dt); P.x += (x - P.x) / d * s; P.y += (y - P.y) / d * s; P.ang = Math.atan2(y - P.y, x - P.x); }
-  function cleanup() { if (MARINA && MARINA.routes) delete MARINA.routes.msTito; }
+  function cleanup() { }
   return { setup, steps, fail, cuts, cleanup };
 })();

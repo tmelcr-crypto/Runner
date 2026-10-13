@@ -238,6 +238,7 @@ function updateCars(dt) {
   for (const c of cars) {
     if (c.hook) continue;                                          // on the crane at the docks (js/08m): it moves with the hook
     if (c.dead) { c.deadT += dt; c.thr = 0; c.str = 0; }
+    else if (c.msDrive && c.driver === 'ai') c.msDrive(c, dt);          // a mission's own driver: Tito fleeing (js/08zy)
     else if (c.boatAI && (c.driver === 'ai' || c.driver === 'cop')) boatDrive(c, dt);   // a boat's helmsman, the police boat (js/08zv)
     else if (c.driver === 'ai') { if (c.siteAI) siteDrive(c, dt); else if (!(c.visit && visitDrive(c, dt))) aiDrive(c, dt); }   // a site machine's driver (js/08zt)   // a visitor parking or leaving drives itself (js/08x)
     else if (c.driver === 'cop') { copDrive(c, dt); copHeavy(c, dt); }   // a tank's rockets, an APC's turret gun (js/08r)
