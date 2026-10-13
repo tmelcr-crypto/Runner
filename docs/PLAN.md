@@ -177,6 +177,16 @@ rest of this step stands.)
      (Done October 2026: map remodel 14, js/10v, js/08zt, the places table's Construction site group, the mixer, digger and dump truck
      in the vehicles table. A car flying higher than a building now comes down on its roof; you can get out and walk up there.)
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
+     (Asked October 2026:) on a main street of **Sunstrip**, for **both modes**. The casino is the **ROYAL FLAMINGO** (a pink neon
+     flamingo on the roof, gold lettering); you **go in top-down**, its roof turning see-through (like the Pay 'n' Spray), and walk
+     among the tables and machines. Games: **slot machines** (EUR 10 a pull, a rare jackpot) and **dice (craps)** (bets from EUR 50 to
+     EUR 5,000); the house wins slightly more often. **Dress code** at both doors: the bouncers turn you away unless you wear something
+     smart from the clothes shops (a suit, a dress, aviators...), and never while you are wanted. Trouble inside: shooting brings
+     **armed casino guards** and stars, and the **cashier's cage can be robbed** for a big payout and more stars. The club is
+     **THE PULSE** (a neon heartbeat line over the door): **inside, top-down**, a queue and a bouncer at the door, a dance floor with a
+     dancing crowd, a DJ booth, a bar and lights, music from the radio. **The casino never closes; the club is open 22:00-6:00** (the
+     queue and the crowd only then). Along the strip: **neon signs and more people about at night**, and **a row of bars and small clubs**
+     (lit fronts, not enterable).
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
      and at the grove pier; a police patrol boat from 3 stars.
    - *Stunt jumps*: twenty around the city - ramps, loading docks, rooftop gaps, the construction site; hit one fast enough and the
