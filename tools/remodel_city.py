@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 15): see the comment above each remodelN below.
+  - Later versions (2 to 16): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -777,7 +777,38 @@ def remodel15(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15]
+# version 16: SUNSET HARBOR, the marina on the inner bay just south of Iron Key's ferry pier. A paved quay is filled out along the coast
+# south of the street's end (land, yard q) with the harbour office and boat shop on it and the fuel dock at its south end; three finger
+# piers with berths on both sides reach out into the bay (marina.piers - walked on like land, js/04), the first pier's north side being
+# your own berths. Water routes for the boats (marina.routes, rings well clear of every shore and pier): the bay, round Iron Key (the
+# tour boat), and off the port's quays (the fishing boats).
+def remodel16(M):
+    Q = Polygon([(8040, 4124), (8112, 4124), (8112, 4532), (7955, 4532), (7975, 4300)])
+    clear_ground(M, Q)
+    edit_land(M, (8000, 4200), lambda G: G.union(Q).buffer(0))
+    M['yards'] += rings(Q, 'q')
+    piers = [[8112, 4213, 8296, 4227], [8112, 4313, 8296, 4327], [8112, 4413, 8296, 4427]]
+    berths = []                                                        # [x, y, side]: a boat lies along the pier, its bow out to sea
+    for k, (x0, y0, x1, y1) in enumerate(piers):
+        for side in (-1, 1):
+            for j in range(2): berths.append([x0 + 54 + j * 92, round((y0 + y1) / 2 + side * 24), side, k])
+    fuel = [8112, 4486, 8190, 4500]
+    M['marina'] = {'name': 'SUNSET HARBOR', 'quay': rings(Q)[0]['o'], 'office': [8034, 4280, 80, 64], 'door': [8074, 4280], 'fuel': fuel,
+                   'pumps': [[8150, 4480], [8176, 4480]], 'piers': piers + [fuel], 'berths': berths, 'own': [0, 1, 4]}
+    pz = M['prison']; gv = M['lunapark'].get('grove') or {}
+    LAND = unary_union([poly(p) for p in M['land']] + [box(*b) for b in piers + [fuel]] + [box(*pz[k]) for k in ('pier', 'head', 'mpier', 'mhead')]
+                       + [box(*gv[k]) for k in ('pier', 'head') if k in gv])
+    def ring(B, off):                                                  # the water in box B shrunk by off from every shore: its biggest piece's outline
+        W = largest(box(*B).difference(LAND).buffer(-off).buffer(0)); return pts(W.exterior.simplify(25))
+    IK = Polygon(pz['island']); Wk = box(8150, 3000, 9400, 4800).difference(LAND).buffer(-60).buffer(0)   # the channel west of it is narrow
+    holes = [h for g in getattr(Wk, 'geoms', [Wk]) for h in g.interiors if Polygon(h).contains(IK.centroid)]
+    assert holes, 'no water ring round Iron Key'
+    M['marina']['routes'] = {'bay': ring([7300, 2650, 9900, 7100], 150), 'tour': pts(LineString(holes[0].coords).simplify(25)), 'docks': ring([7060, 11900, 8800, 15400], 150)}
+    M['remodel'] = 16
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15, remodel16]
 
 
 if __name__ == '__main__':
@@ -833,5 +864,8 @@ if __name__ == '__main__':
     head = head.replace("   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks). */",
                         "   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks); version 15: the\n"
                         "   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue). */")
+    head = head.replace("   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue). */",
+                        "   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue); version 16: Sunset Harbor, the marina\n"
+                        "   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
