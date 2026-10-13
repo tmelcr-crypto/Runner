@@ -5,7 +5,12 @@
    (Work in progress: the marina's moored boats, the shop, boat traffic, swimming and the police boat come next.) */
 const MARINA = MAP.marina || null;
 function boatShore(c) {                   // js/07 after collideCarWorld: a boat is held on the water; a hard knock against the shore hurts it
-  if (c.dead && c.sunk) return;
+  if (c.sunk) return;
+  if (c.dead) {                                                       // wrecked: it burns a while, then goes under (you are thrown in the water)
+    c.wreckT = (c.wreckT || 0) + 1 / 60;
+    if (c.wreckT > 5) { c.sunk = true; c.sinkT = 0; c.burn = 0; splashFx(c.x, c.y, 30); if (P.car === c) exitCar(true); c.driver = null; }
+    return;
+  }
   const fx = Math.cos(c.ang), fy = Math.sin(c.ang), m = c.t.wid * 0.45 + 2;
   for (const k of [0, 0.42, -0.42]) {                                 // its middle, bow and stern
     const x = c.x + fx * c.t.len * k, y = c.y + fy * c.t.len * k, sd = shoreDist(x, y);
