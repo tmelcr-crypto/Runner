@@ -200,6 +200,10 @@ rest of this step stands.)
      along the coast and across the bay, fishing boats near the docks, a tour boat on a fixed loop. The **police patrol boat from 3 stars
      chases and shoots** (a cop at the bow; it rams; the helicopter's light helps it). A **wrecked boat burns and sinks** like a car, and
      you swim.
+     (Added October 2026, the owner:) a **car that drops into the water** gives you **4 s to get out** (E) and swim - after that you
+     drown. **About 8 small jetties round the coast** (the bay, the beaches, the islands, near the port), each by a street, where you can
+     safely land a boat and go on on foot, **shown on the minimap and the big map with a small anchor**. **Boats sail under the bridges**
+     (the bridges stop cars, not boats).
    - *Stunt jumps*: twenty around the city - ramps, loading docks, rooftop gaps, the construction site; hit one fast enough and the
      camera slows down in the air, a bonus for distance and height, each counted once toward 100%.
    - *Interiors, top-down first*: the airport hangars, the port warehouses and storage units you can walk and drive into, their
