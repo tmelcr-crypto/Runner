@@ -154,6 +154,7 @@ function getSave(s) { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY +
 function putSave(s, d) { try { localStorage.setItem(SAVE_KEY + s, JSON.stringify(d)); return true; } catch (e) { return false; } }
 function latestSave() { let b = null; for (const s of SLOTS) { const d = getSave(s); if (d && (!b || d.t > b.t)) b = d; } return b; }
 function saveBlock() {                               // why you cannot save now ('' = you can)
+  if (gameMode === 'test') return 'MISSIONS TEST IS NEVER SAVED';   // every test starts fresh (js/08zy)
   if (RAMP.on) return 'FINISH THE RAMPAGE FIRST';
   if (JOB.on) return 'FINISH THE JOB FIRST';
   if (RACE.on) return 'FINISH THE RACE FIRST';
