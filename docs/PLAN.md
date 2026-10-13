@@ -142,6 +142,7 @@ rest of this step stands.)
   harder; it can be shot down. (No spike strips.)
 
 ## 8. Stats and 100%
+(Done October 2026: js/08zs, the stats table js/01t, the vehicles table's gold row. Each thing found or done counts once toward 100%.)
 - A STATS page in the pause menu: kills, cars stolen, distance, best times, % done. 100% counts everything findable: safehouses
   bought, rampages passed, hidden weapons and items found, races won (each fixed route, the NASCAR race, both drag strips), level 10
   in each job, deliveries, sprays used (and stunt jumps once they exist).
