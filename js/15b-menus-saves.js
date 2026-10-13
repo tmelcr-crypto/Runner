@@ -158,6 +158,7 @@ function saveBlock() {                               // why you cannot save now 
   if (P.stars > 0) return 'LOSE THE POLICE FIRST';
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
+  if (P.ferry) return 'NOT ON THE FERRY';
   if (P.car && (P.car.dead || P.car.burn > 0 || P.car.sunk || P.car.air > 0)) return 'GET OUT OF THAT WRECK FIRST';
   return '';
 }

@@ -41,6 +41,7 @@
   <div id="vehicle" class="box"><div id="vname">ON FOOT</div><div id="vinfo"></div></div>
   <div id="toast"></div>
   <div id="warnBanner" hidden></div>
+  <button id="ferrySkip" type="button" hidden>SKIP THE CROSSING ▸▸</button>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
   <button id="flyBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><b>SKYPORT</b><span class="go">FLIGHTS</span></button>
   <button id="raceBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7c0-1.7 4-3.5 9-3.5S21 5.3 21 7v2.2c0 .6-.5 1-1 .9l-3-.6a1 1 0 0 1-.8-1V7.3C15 6.9 13.6 6.7 12 6.7s-3 .2-4.2.6v1.2a1 1 0 0 1-.8 1l-3 .6c-.5.1-1-.3-1-.9zm4 5h10l2 8H5zm5 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span><b></b><span class="go">ANSWER</span></button>
@@ -253,7 +254,10 @@
         <li>The first pass pays cash and you keep the weapon. You can play a passed rampage again, without the reward.</li></ul></div>
       <div><h3>WASTED OR BUSTED</h3><ul>
         <li><b>WASTED</b> you wake up at the nearest hospital: the bill is 10% of your cash.</li>
-        <li><b>BUSTED</b> you walk out of the nearest police station: bail is 10%, and they keep every weapon you found.</li></ul></div>
+        <li><b>BUSTED</b> you walk out of the prison gate on <b>IRON KEY</b>: bail is 10%, and they keep every weapon you found. The ferry waits at the pier.</li></ul></div>
+      <div><h3>IRON KEY</h3><ul>
+        <li>The prison island in the bay west of Heron Key (orange bars on the maps). Its free <b>FERRY</b> (on foot only) shuttles to the pier off the Palm Heights promenade (a cyan boat): walk aboard over the ramp, walk about the deck, walk off at the far end. <b>SKIP THE CROSSING</b> or <b>E</b> goes straight across. It won't sail while you are wanted.</li>
+        <li>Inside the walls is restricted: leave before the countdown ends, or the alarm gives 3 stars and the tower guards open fire.</li></ul></div>
     </div>
     <div class="ctl page" data-tab="arms" id="helpArms" hidden></div>
     <div class="ctl page" data-tab="cops" hidden>
@@ -532,6 +536,7 @@
 <script src="js/08z-salvage.js"></script>
 <script src="js/08zr-roadblocks.js"></script>
 <script src="js/08zs-stats.js"></script>
+<script src="js/08zp-prison.js"></script>
 <script src="js/09-render-core-buildings.js"></script>
 <script src="js/10-render-city-map.js"></script>
 <script src="js/10b-render-landmarks.js"></script>
@@ -553,6 +558,7 @@
 <script src="js/10r-factory.js"></script>
 <script src="js/10s-showroom.js"></script>
 <script src="js/10t-salvage.js"></script>
+<script src="js/10u-prison.js"></script>
 <script src="js/11-render-dynamic-meshes.js"></script>
 <script src="js/11b-weapon-models.js"></script>
 <script src="js/11c-clothes-models.js"></script>
