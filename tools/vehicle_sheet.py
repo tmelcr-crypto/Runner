@@ -13,7 +13,7 @@ import json, math, os, re, sys
 
 JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', '01c-vehicle-data.js')
 A, B = '/*VEHICLE-JSON*/', '/*END-VEHICLE-JSON*/'
-BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'nascar', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'super', 'convertible', 'muscle', 'mixer', 'digger', 'dumper', 'new']
+BODIES = ['sedan', 'sports', 'truck', 'police', 'taxi', 'nascar', 'estate', 'pickup', 'limo', 'bike', 'bus', 'trash', 'ambulance', 'fire', 'apc', 'tank', 'super', 'convertible', 'muscle', 'mixer', 'digger', 'dumper', 'speedboat', 'jetski', 'yacht', 'fishboat', 'tourboat', 'policeboat', 'new']
 KERB_W, STALL_W = 2.33, 2.5                  # widest vehicle that fits the kerb parking lane / a parking lot stall (m)
 # key, label, kind (text / choice / num / int / yesno / colour), choices or (min, max), what it means, unit / how to fill
 ROWS = [
@@ -22,7 +22,7 @@ ROWS = [
     ('body', 'Body (3D model)', 'choice', BODIES, 'Which 3D model it uses. new: a model that does not exist yet - describe it in Notes and Claude builds it.', 'pick from the list'),
     ('role', 'Role: civilian / police', 'choice', ['civilian', 'police'], 'police: light bar, patrols in traffic, joins chases (Police chase weight), and stealing it raises your wanted level more.', 'pick civilian or police'),
     ('len', 'Length (m)', 'num', (1, 20), 'Length of the body; also its collision size. Long vehicles turn wide.', 'metres'),
-    ('wid', 'Width (m)', 'num', (0.5, 4), 'Width of the body; also its collision size. Up to 2.33 m parks at the kerb, up to 2.5 m in parking lots.', 'metres'),
+    ('wid', 'Width (m)', 'num', (0.5, 6), 'Width of the body; also its collision size. Up to 2.33 m parks at the kerb, up to 2.5 m in parking lots (boats up to 6 m).', 'metres'),
     ('top', 'Top speed (km/h)', 'num', (5, 500), 'Highest speed on the flat. Traffic cruises at 40-55 km/h; police chase at 70-170 km/h by wanted level, never above this.', 'km/h'),
     ('accTo', 'Accelerates 0 to (km/h)', 'num', (5, 500), 'Speed used for the acceleration time below. At or above top speed it is read as the time to reach top speed.', 'km/h, usually 100'),
     ('accS', '...in seconds', 'num', (0.5, 120), 'Time from standstill to that speed, as the real vehicle does it. When you drive it, arcade handling makes it about 1.7x quicker.', 'seconds'),

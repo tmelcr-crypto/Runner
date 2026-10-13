@@ -24,6 +24,11 @@ function mergedGeo(key, parts) {            // scaled, moved copies of shared ge
 }
 /* Vehicle models, one per body (js/01c). Drivers sit inside, under the roof, seen through tinted glass; only the bike's rider is out in the open. */
 const GLASS = new THREE.MeshLambertMaterial({ color: 0x2a3a5c, transparent: true, opacity: 0.55 });
+function hullGeo(bow) {                      // a boat's hull, 1 long, 1 wide, 1 high: square at the stern, narrowing to a point (bow: the share that tapers)
+  const s = new THREE.Shape(), b = 0.5 - bow; s.moveTo(-0.5, -0.5); s.lineTo(b, -0.5); s.lineTo(0.5, -0.06); s.lineTo(0.5, 0.06); s.lineTo(b, 0.5); s.lineTo(-0.5, 0.5); s.lineTo(-0.5, -0.5);
+  return new THREE.ExtrudeGeometry(s, { depth: 1, bevelEnabled: false }).rotateX(-Math.PI / 2);
+}
+const GHULL = hullGeo(0.32), GHULLB = hullGeo(0.16);
 const BAR = { police: [E.redOn, E.redOff, E.blueOn, E.blueOff], ambulance: [E.redOn, E.redOff, mBas(0xffffff), mBas(0x4a4a52)],
   fire: [E.redOn, E.redOff, mBas(0xffb02e), mBas(0x5a3f1f)], trash: [mBas(0xffb02e), mBas(0x5a3f1f), mBas(0xffb02e), mBas(0x5a3f1f)] };
 const PLAYER_SHIRT = mc(0xffd23f);
@@ -199,6 +204,33 @@ function buildCar(c) {                       // parts that never move on their o
     part(stick, GB, body, 4.5, L * 0.42, 4.5, 0, -L * 0.21, 0);
     part(stick, GB, mc(0x2a2d38), 9, 8, 11, 2.5, -L * 0.43, 0);
     lamps(9, 2, 9, 2, 5);
+  } else if (t.boat) {                       // the boats (js/08zv): a hull riding low in the water, a deck, what stands on it; no wheels
+    const H = B === 'jetski' ? 5 : B === 'yacht' || B === 'tourboat' ? 9 : 7, wht = E.white, dark = mc(0x2a2d38);
+    part(tilt, B === 'fishboat' || B === 'tourboat' ? GHULLB : GHULL, body, L, H, Wd, 0, 0, 0);
+    part(tilt, B === 'fishboat' || B === 'tourboat' ? GHULLB : GHULL, wht, L * 0.96, 0.8, Wd * 0.9, 0, H, 0);   // the deck
+    if (B === 'speedboat') {
+      m.cabin = part(tilt, GB, GLASS, 3, 4.5, Wd * 0.8, L * 0.12, H + 2.8, 0); part(tilt, GB, mc(0xe8dcc8), L * 0.3, 2.6, Wd * 0.7, -L * 0.12, H + 1.6, 0);
+      part(tilt, GB, dark, 4, 7, 5, -L / 2 - 1.5, H - 1, 0); seat(L * 0.02, H + 8.4, 0.8);
+    } else if (B === 'jetski') {
+      part(tilt, GB, dark, L * 0.4, 3, Wd * 0.5, -L * 0.08, H + 1.6, 0); part(tilt, GB, dark, 1.4, 1.4, Wd * 1.1, L * 0.18, H + 4.2, 0);
+      seat(-L * 0.04, H + 9, 0.85);
+    } else if (B === 'yacht') {
+      part(tilt, GB, wht, L * 0.5, 9, Wd * 0.72, -L * 0.06, H + 4.6, 0); part(tilt, GB, E.glass, L * 0.46, 2.6, Wd * 0.74, -L * 0.06, H + 6, 0);
+      part(tilt, GB, wht, L * 0.24, 5, Wd * 0.6, -L * 0.04, H + 11.4, 0); m.cabin = part(tilt, GB, GLASS, 2.4, 3.6, Wd * 0.56, L * 0.09, H + 12, 0);
+      part(tilt, GCyl, dark, 0.6, 12, 0.6, -L * 0.12, H + 20, 0); seat(-L * 0.04, H + 17, 0.85);
+    } else if (B === 'fishboat') {
+      part(tilt, GB, wht, L * 0.26, 11, Wd * 0.7, L * 0.14, H + 5.4, 0); m.cabin = part(tilt, GB, GLASS, L * 0.27, 3.4, Wd * 0.72, L * 0.14, H + 7.6, 0);
+      part(tilt, GCyl, dark, 0.7, 22, 0.7, -L * 0.08, H + 11, 0); part(tilt, GB, dark, L * 0.4, 0.6, 0.6, -L * 0.24, H + 18, 0);
+      part(tilt, GB, mc(0x3a6a4a), L * 0.22, 3, Wd * 0.6, -L * 0.32, H + 1.8, 0); seat(L * 0.14, H + 10, 0.85);
+    } else if (B === 'tourboat') {
+      for (let k = 0; k < 4; k++) part(tilt, GB, mc(0x2f6bff), 2, 2.4, Wd * 0.76, -L * 0.3 + k * L * 0.16, H + 1.6, 0);
+      part(tilt, GB, mc(0xe0364f), L * 0.66, 0.8, Wd * 0.9, -L * 0.04, H + 12, 0); for (const s of [-1, 1]) for (const x of [-L * 0.34, L * 0.26]) part(tilt, GCyl, wht, 0.5, 11, 0.5, x, H + 6, s * Wd * 0.42);
+      for (let k = 0; k < 8; k++) part(tilt, GSph, mc(pick([0xf2c6a0, 0xd9a07a, 0x9a6a46, 0xffdcbc])), 2.6, 2.6, 2.6, -L * 0.32 + (k >> 1) * L * 0.16 + 1.5, H + 5, (k % 2 ? 1 : -1) * Wd * 0.2);
+      m.cabin = part(tilt, GB, GLASS, 3, 4, Wd * 0.6, L * 0.33, H + 3.4, 0); seat(L * 0.33, H + 7.6, 0.85);
+    } else {                                 // the police boat: dark blue, a white band, a cabin, the light bar
+      part(tilt, GB, wht, L * 0.8, 1.6, Wd + 0.4, -L * 0.04, H - 2, 0); part(tilt, GB, wht, L * 0.28, 8, Wd * 0.72, L * 0.04, H + 4, 0);
+      m.cabin = part(tilt, GB, GLASS, L * 0.29, 3, Wd * 0.74, L * 0.04, H + 5.6, 0); bar(L * 0.04, H + 8.6, 'police'); seat(L * 0.04, H + 8, 0.85);
+    }
   } else {                                   // sedan, police (and any body without a model yet)
     merged('b', body, [[GB, L, 8, Wd, 0, 7, 0], [GB, L * 0.34, 1.4, Wd - 8, -L * 0.04, 18.6, 0]]);
     m.cabin = part(tilt, GB, GLASS, L * 0.4, 7, Wd - 5, -L * 0.04, 14.5, 0);
@@ -216,6 +248,7 @@ function buildCar(c) {                       // parts that never move on their o
   { const ug = new THREE.Mesh(GP, glowMat((c.tune && c.tune.glow) || c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
     const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38, true)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool
     body.emissive = new THREE.Color(c.color).multiplyScalar(0.22); }
+  if (t.boat) { m.ug.visible = false; m.hb.visible = false; }       // no glow or headlights on the water
   c.mesh = g; c.tilt = tilt; c.m = m; c.roll = 0; c.baseCol = new THREE.Color(c.color); c.tailOn = false; c.dead3 = false; c.hpShown = -1; scene.add(g);
 }
 const _dark = new THREE.Color(0x1b1b1f), _tmp = new THREE.Color();
@@ -224,6 +257,7 @@ function syncCar(c, time, dt) {
   const gy = groundH(c.x, c.y); c.gy = c.gy === undefined ? gy : c.gy + (gy - c.gy) * Math.min(1, dt * 14);
   if (c.sunk) { c.mesh.visible = c.sinkT < 3; c.mesh.position.set(c.x, c.gy - Math.min(40, c.sinkT * c.sinkT * 9 + c.sinkT * 4), c.y); c.mesh.rotation.y = -c.ang; c.tilt.rotation.x = Math.min(0.5, c.sinkT * 0.3); return; }
   c.mesh.position.set(c.x, c.gy + (c.air || 0) + (c.z || 0) + (c.rz || 0), c.y); c.mesh.rotation.y = -c.ang;   // z: up a car park deck (js/10k); rz: on a site ramp or mound (js/08zt)
+  if (c.t.boat) c.mesh.position.y = WATER_Y - 2.4 + Math.sin(time * 1.7 + c.x * 0.01) * 0.7 * (c.beached ? 0 : 1);   // a boat rides the water (js/08zv)
   c.tilt.rotation.z = c.rzp ? c.rzp : c.zg ? Math.atan(c.zg * Math.sin(c.ang)) : 0;   // nose up or down a ramp
   const vf = c.vx * Math.cos(c.ang) + c.vy * Math.sin(c.ang), bike = c.t.body === 'bike';
   const want = c.air > 0 ? clamp(c.av * 0.07, -0.6, 0.6) : bike ? (c.driver ? clamp(c.av * vf / 260, -0.55, 0.55) : 0.22) : -clamp(c.av * vf / 450, -0.12, 0.12);   // rolls a little (in the air: a lot); a bike leans into the bend, parked it stands on its stand
