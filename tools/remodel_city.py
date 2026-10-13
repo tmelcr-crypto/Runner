@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 14): see the comment above each remodelN below.
+  - Later versions (2 to 15): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -763,7 +763,21 @@ def remodel14(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14]
+# version 15: the casino strip - the Sunstrip block at the north end of the beach avenue (between the avenue, the cross streets at
+# y 5900 and 6440 and the street at x 11418): its buildings and back alley go, and it holds the ROYAL FLAMINGO casino on the avenue side
+# (casino.hall, its door to the avenue) and THE PULSE nightclub beside it (casino.club, its door to the south street, the queue along
+# that sidewalk). The bars and small clubs are the beachfront row across the avenue (found by js/10w; the map keeps them as they are).
+def remodel15(M):
+    B = box(11506, 5988, 12291, 6352)
+    move_services(M, clear_ground(M, B.buffer(4)))
+    M['yards'] += rings(B, 'p')
+    M['casino'] = {'block': [11506, 5988, 12291, 6352], 'hall': [11880, 5996, 12284, 6344], 'door': [12284, 6170, 64],
+                   'club': [11512, 5996, 11872, 6344], 'cdoor': [11790, 6344, 44], 'queue': [11762, 6364, 11540]}
+    M['remodel'] = 15
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15]
 
 
 if __name__ == '__main__':
@@ -816,5 +830,8 @@ if __name__ == '__main__':
     head = head.replace("   pier, the mainland ferry pier, the ferry's route), and its district. */",
                         "   pier, the mainland ferry pier, the ferry's route), and its district; version 14: Skyline One, the construction site on a downtown\n"
                         "   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks). */")
+    head = head.replace("   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks). */",
+                        "   Palm Heights block (site: area, gate, panel, tower, kicker, cranes, office, mounds, ramps, pit, piles, trucks); version 15: the\n"
+                        "   casino strip's block on the Sunstrip beach avenue (casino: block, hall, door, club, cdoor, queue). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

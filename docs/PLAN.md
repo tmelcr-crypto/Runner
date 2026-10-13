@@ -83,8 +83,8 @@ All of these are for **both** modes except the kill frenzies (free roam only).
    drops pipe bombs toward you. Only a sniper rifle or the **AA launcher** (new) can bring it down. The AA launcher aims like the
    rocket launcher, locks on after 2 s on a target, and only a helicopter, a tank or an APC can be targeted; its rocket flies off
    in a random direction, swerves, and after 4 s hits the target - one shot kills. Carry 3 rockets at most. Very rare: one hidden
-   pickup (with one rocket), and the **black market** (new shop at the docks) sells it for EUR 25,000 and EUR 5,000 a rocket. - done
-6. **The airport**: flights to Prague and Norfolk (both COMING SOON) and a **scenic flight** for EUR 5,000: a cinematic - you walk
+   pickup (with one rocket), and the **black market** (new shop at the docks) sells it for €25,000 and €5,000 a rocket. - done
+6. **The airport**: flights to Prague and Norfolk (both COMING SOON) and a **scenic flight** for €5,000: a cinematic - you walk
    to the plane through the terminal hall (its roof see-through), the plane taxis to the runway, then 2 minutes flying round the
    city seen from your seat through an oval window; a random time of day and weather each time; the only button is LAND (skip).
    A new 90s-style synth track plays (made by the game). Build the cutscene engine so story mode can use it later. - done
@@ -121,7 +121,7 @@ js/10s, js/08w) and the tuning workshop (js/08y, October 2026).
   engine, brakes, armour in price steps (vehicle table). Tuning is kept with the car in your garages and saves.
   (Asked October 2026:) it takes every vehicle but police and army ones - taxis, buses, ambulances, fire engines and trash trucks keep
   their livery (no paint, roof or stripes; rims, underglow, parts and performance yes) - and nothing while you are wanted. Three levels
-  each, moderate at the top: engine +15% top speed and +35% acceleration, brakes +50%, armour -60% damage, level 3 about EUR 16-20,000.
+  each, moderate at the top: engine +15% top speed and +35% acceleration, brakes +50%, armour -60% damage, level 3 about €16-20,000.
 
 ## 6. Junkyard and car crusher (Gravel Flats)
 (Done October 2026: Dockside Salvage in the port's maintenance yard - map remodel 12, js/10t, js/08z.)
@@ -177,6 +177,17 @@ rest of this step stands.)
      (Done October 2026: map remodel 14, js/10v, js/08zt, the places table's Construction site group, the mixer, digger and dump truck
      in the vehicles table. A car flying higher than a building now comes down on its roof; you can get out and walk up there.)
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
+     (Asked October 2026:) on a main street of **Sunstrip**, for **both modes**. The casino is the **ROYAL FLAMINGO** (a pink neon
+     flamingo on the roof, gold lettering); you **go in top-down**, its roof turning see-through (like the Pay 'n' Spray), and walk
+     among the tables and machines. Games: **slot machines** (€10 a pull, a rare jackpot) and **dice (craps)** (bets from €50 to
+     €5,000); the house wins slightly more often. **Dress code** at both doors: the bouncers turn you away unless you wear something
+     smart from the clothes shops (a suit, a dress, aviators...), and never while you are wanted. Trouble inside: shooting brings
+     **armed casino guards** and stars, and the **cashier's cage can be robbed** for a big payout and more stars. The club is
+     **THE PULSE** (a neon heartbeat line over the door): **inside, top-down**, a queue and a bouncer at the door, a dance floor with a
+     dancing crowd, a DJ booth, a bar and lights, music from the radio. **The casino never closes; the club is open 22:00-6:00** (the
+     queue and the crowd only then). Along the strip: **neon signs and more people about at night**, and **a row of bars and small clubs**
+     (lit fronts, not enterable).
+     (Done October 2026: map remodel 15, js/10w, js/08zu, the casino table js/01u, the clothes table's Smart column, mode rows casino and club.)
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
      and at the grove pier; a police patrol boat from 3 stars.
    - *Stunt jumps*: twenty around the city - ramps, loading docks, rooftop gaps, the construction site; hit one fast enough and the

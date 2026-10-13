@@ -278,7 +278,7 @@ function syncPerson(p, kind, time, dt) {
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0) + (p.z || 0), p.y);       // z: a guard up a watchtower (js/08zp)
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && (p.hostile || p.soldier || (p.valet && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
+  if (kind === 'ped' && (p.hostile || p.soldier || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
   if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
@@ -295,6 +295,11 @@ function syncPerson(p, kind, time, dt) {
       o.headG.rotation.y += (look - o.headG.rotation.y) * Math.min(1, dt * 4); o.headG.rotation.z = -Math.abs(k) * 0.1;
     } else if (o.headG.rotation.y || o.headG.rotation.z) o.headG.rotation.set(0, 0, 0);
     if (kind === 'ped' && p.state === 'flee') { o.arms[0].rotation.z = -2.4; o.arms[1].rotation.z = -2.4; }
+    if (p.dance && p.state !== 'flee' && sp <= 8) {                // on THE PULSE's dance floor (js/08zu): bounce to the beat, arms up and down
+      const u = time * 124 / 60 * Math.PI + (p.x + p.y) * 0.05, b = Math.abs(Math.sin(u));
+      o.tilt.position.y = b * 1.6; o.tilt.rotation.z = 0.12 * Math.sin(u * 0.5); o.legs[0].rotation.z = 0.3 * Math.sin(u); o.legs[1].rotation.z = -0.3 * Math.sin(u);
+      o.arms[0].rotation.z = p.dj ? -1.2 : -2.2 - 0.6 * b; o.arms[1].rotation.z = p.dj ? -1.2 + 0.3 * Math.sin(u * 2) : -1.4 + 0.9 * Math.sin(u);
+    }
     if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
   }
   const hid = kind === 'ped' && (p.hostile || p.soldier) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)

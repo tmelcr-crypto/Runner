@@ -42,7 +42,7 @@ const Radio = {
   show(name, sub, col) { const e = $('radioName'); e.innerHTML = ''; e.append(name); if (sub) { const s = document.createElement('small'); s.textContent = sub; e.append(s); } e.style.color = col; e.classList.add('on'); this.shownT = 2.6; },
   update(dt) {                               // every frame (js/15): what should play, and fading in and out
     if (!this.el) return;
-    const c = P.car, want = state === 'play' && c && !P.dead ? c.radio : -1;
+    const c = P.car, want = state === 'play' && !P.dead ? (c ? c.radio : clubRadio()) : -1;   // on foot in THE PULSE: its station (js/08zu)
     if (want >= 0 && want !== this.cur) {                         // got in, or tuned: the new station at once, faded in
       if (this.cur >= 0) this.lvl = 0;
       this.tune(want); const s = RADIO[want];
