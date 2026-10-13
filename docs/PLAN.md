@@ -152,6 +152,14 @@ rest of this step stands.)
 1. **New places** (from the README's list):
    - *Prison island*: walls, watchtowers, guards. Busted, you walk out of the prison gate on its island (no longer at a police
      station), and a free ferry takes you back to the docks. Breakouts for story mode.
+     (Asked October 2026:) the island lies **in the bay by Heron Key**, between the lunapark island and the mainland, seen from the
+     beaches. You may go onto the island (the pier, the path to the gate) but not into the prison: the walls and the yard are
+     restricted **like the military base** - a RESTRICTED AREA warning counts down, then the alarm gives stars and the tower guards
+     fire rifles from their posts. Inside is seen **from above only** for now (walls, watchtowers with searchlights at night, a yard
+     with prisoners in orange walking and playing ball, closed cell blocks); the cell blocks' interiors come with the story's
+     breakouts. The **ferry** is free, **on foot only**, and **shuttles all day** (about 20 s at each pier; busted, it waits for you at
+     the island); you **ride it for real**, standing on deck while it crosses (skippable), and walk off at the docks. **Wanted, it will
+     not sail** (lose the police first).
    - *Construction site*: a half-built tower, cranes, ramps and scaffolding.
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina
