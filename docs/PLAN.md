@@ -243,6 +243,14 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 - Then test (screenshots of each boat, still and moving, phone size too), and **merge** - the Quest 01 fixes still on the working
   branch go live with it (the owner's answer).
 
+## For the future (asked October 2026; ask the details before building)
+- **City sounds**: improve the city's own sound (js/02d, the places table's city sound group) - the mix of traffic, people,
+  the harbour, the port and the weather; what exactly to improve is to be asked first.
+- **People's mumbling**: improve the passers-by voices and the mumbles in the quests' dialogue (js/02, js/08zy) - more varied,
+  more like real speech without words; each character keeps their own.
+- **The dialogue UI**: a new look for the quests' dialogue box (portrait, bubble, name, the next-line hint; js/08zy and the
+  styles) - the layout and style to be asked first.
+
 ## Later (not now)
 - **People with real lives** (asked again October 2026; to be asked about in detail before building): every passer-by and driver
   lives somewhere - a flat, a house, a hotel room - and goes through a day that makes sense: out of the front door in the morning,
