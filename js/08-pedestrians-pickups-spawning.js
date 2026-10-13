@@ -145,6 +145,7 @@ function updatePickups(dt) {
       const wi = WEAPONS.findIndex(w => w.id === p.type), w = WEAPONS[wi]; if (!w) { pickups.splice(k, 1); continue; }
       P.ammo[wi] = Math.min(Math.max(w.maxAmmo, P.ammo[wi]), P.ammo[wi] + w.pickup); if (isThrown(w)) P.has[wi] = true; popup(p.x, p.y - 12, '+' + w.pickup + ' ' + w.short, w.blast ? '#ff9d2b' : '#3fe0ff');
     }
+    if (p.ix) ixTaken(p.ix);                                     // a stash in a hangar or warehouse (js/08zx)
     Snd.pickup(); pickups.splice(k, 1); if (!p.drop) pickupQ.push(gameT + PICKUP_BACK);
   }
   while (pickupQ.length && pickupQ[0] <= gameT) { pickupQ.shift(); spawnPickup(); }
