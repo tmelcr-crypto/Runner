@@ -266,7 +266,7 @@ function serviceDoor(kind, x, y) {        // the nearest hospital (or police sta
 function respawn() {
   const busted = P.busted, lose = Math.round(P.score * (busted ? COP.bustedCash : COP.wastedCash)); STAT[busted ? 'busted' : 'wasted']++;
   if (P.score > best) { best = P.score; try { localStorage.setItem('blockrunner.best', String(best)); } catch (e) { } }
-  const sp = serviceDoor(busted ? 'police' : 'hospital', P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;
+  const sp = busted && prisonOn() ? prisonRelease() : serviceDoor(busted ? 'police' : 'hospital', P.x, P.y), strip = busted ? COP.bustedWeapons : COP.wastedWeapons;   // busted: let out of the prison on Iron Key (js/08zp)
   Object.assign(P, { x: sp.x, y: sp.y, ang: sp.ang || 0, vx: 0, vy: 0, hp: hpMax(), armor: 0, car: null, act: null, dead: false, busted: false, heat: 0, stars: 0, sinceCrime: 99,
     rel: 0, relW: -1, cool: 0, hurtT: 0, trig: false, dry: false, score: P.score - lose });
   if (P.knocked) { P.knocked = false; P.air = 0; P.kvx = P.kvy = P.kvz = 0; const i = KNOCK.indexOf(P); if (i >= 0) KNOCK.splice(i, 1); }

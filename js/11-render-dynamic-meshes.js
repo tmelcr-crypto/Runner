@@ -216,9 +216,9 @@ function syncCar(c, time, dt) {
 }
 
 const GUmb = new THREE.ConeGeometry(1, 1, 8);
-function buildPerson(kind, shirt, skin) {
+function buildPerson(kind, shirt, skin, pants) {
   const g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
-  const sm = mc(shirt), km = mc(skin), pm = mc(kind === 'officer' ? 0x1a2447 : 0x2a2d3a), o = { g, tilt, legs: [], arms: [], torso: null };
+  const sm = mc(shirt), km = mc(skin), pm = mc(pants || (kind === 'officer' ? 0x1a2447 : 0x2a2d3a)), o = { g, tilt, legs: [], arms: [], torso: null };
   part(g, GCirc, E.shadow, 8, 1, 8, 0, 1.3, 0);
   o.torso = part(tilt, GB, sm, 5, 11, 9.4, 0, 14.5, 0);
   for (const s of [-1, 1]) {
@@ -238,12 +238,12 @@ function buildPerson(kind, shirt, skin) {
 }
 function syncPerson(p, kind, time, dt) {
   if (p.gibbed || p.onStretcher) return;                             // torn apart (js/06), or under a sheet on a stretcher (js/08h): no figure (the mesh is swept)
-  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0'); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.headG, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, -0.5, 3.9, 0);   // a soldier's helmet (js/08j)
+  if (!p.mesh) { const o = buildPerson(kind, kind === 'officer' ? 0x2a4aa8 : p.shirt, p.skin || '#f2c6a0', p.pants); p.mesh = o.g; p.pm = o; scene.add(o.g); p.h3 = 0; p.held = null; p.heldId = null; if (p.soldier) part(o.headG, GSph, mc(0x3f4a2a), 4.6, 3.2, 4.6, -0.5, 3.9, 0);   // a soldier's helmet (js/08j)
     if (p.valet) { part(o.headG, GB, mc(0xb3122a), 5.6, 2.4, 6.8, -0.5, 5.3, 0); part(o.headG, GB, mc(0xffd23f), 5.7, 0.6, 6.9, -0.5, 4.4, 0); part(o.headG, GB, mc(0x111111), 2.6, 0.7, 6.2, 2.9, 4.1, 0); } }   // the valet's cap, gold band, peak
   track(p); const o = p.pm, g = p.mesh;
   if (o.umb) { const up = p.umb && !p.dead && SKY.rain > 0.25 && p.state !== 'flee'; if (o.umb.visible !== up) o.umb.visible = up; }
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
-  g.position.set(p.x, p.gy + (p.air || 0), p.y);
+  g.position.set(p.x, p.gy + (p.air || 0) + (p.z || 0), p.y);       // z: a guard up a watchtower (js/08zp)
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
   if (kind === 'ped' && (p.hostile || p.soldier || (p.valet && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
@@ -282,7 +282,7 @@ function syncPlayer(time, dt) {
   }
   const vis = !P.car && !(P.act && P.act.occ) && state !== 'over' && !CUT.hideP; P3.mesh.visible = vis; if (!vis) return;   // CUT.hideP: on board a plane in a cutscene (js/15c)
   const o = P3.pm, gy = groundH(P.x, P.y); P3.gy += (gy - P3.gy) * Math.min(1, dt * 12);
-  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32), P.y); P3.mesh.rotation.y = -P.ang;
+  P3.mesh.position.set(P.x, P3.gy + (P.air || 0) + (P.z || 0) - (P.ferry ? 0 : Math.min(8, Math.max(0, -shoreDist(P.x, P.y)) * 0.32)), P.y); P3.mesh.rotation.y = -P.ang;
   const sp = Math.hypot(P.vx, P.vy), k = Math.sin(P.bob * 3) * Math.min(1, sp / 90) * 0.8, live = feat('liveWalk'), run = live ? clamp((sp - 30) / 50, 0, 1) : 0;
   o.legs[0].rotation.z = k * (1 + 0.25 * run); o.legs[1].rotation.z = -k * (1 + 0.25 * run); o.arms[0].rotation.z = -k * (live ? 0.9 : 0.5); o.arms[1].rotation.z = 0;
   o.arms[0].rotation.x = 0.18 * run; o.tilt.position.y = Math.abs(k) * (0.8 + 1.2 * run); o.tilt.rotation.y = live ? k * 0.1 : 0;

@@ -49,13 +49,14 @@ function postsTick() {                                            // js/15: guar
     const p = po.ped, d = dist(po.x, po.y, P.x, P.y);
     if (p && p.dead && !po.deadAt) po.deadAt = gameT;
     if (p && peds.includes(p) && !p.dead) continue;
-    if (d > 1250 || (po.deadAt && (gameT - po.deadAt < (po.kind === 'soldier' ? PLC.soldierBack : 90) || d < 900))) continue;
-    const q = po.kind === 'cop' ? makeFootCop(po.x, po.y) : po.kind === 'valet' ? makeValet(po) : makeSoldier(po);
+    if (d > 1250 || (po.deadAt && (gameT - po.deadAt < (po.back || (po.kind === 'soldier' ? PLC.soldierBack : 90)) || d < 900))) continue;
+    const q = po.make ? po.make(po) : po.kind === 'cop' ? makeFootCop(po.x, po.y) : po.kind === 'valet' ? makeValet(po) : makeSoldier(po);   // make: the prison's tower guards (js/08zp)
     q.post = po; q.e = -1; q.ang = q.hd = po.a; po.ped = q; po.deadAt = 0; peds.push(q);
   }
 }
 function postStep(p, dt) {                                        // js/08 updatePeds: someone at a post, when not busy otherwise; true when handled
   if (p.soldier) { soldierStep(p, dt); return true; }
+  if (p.pguard) return towerStep(p, dt);                            // up a prison watchtower (js/08zp)
   if (p.valet) return valetStep(p, dt);
   const po = p.post;                                                // a cop at a post: back to it, then stand facing the road
   if (walkTo(p, po.x, po.y, WALK, dt) < 6) { p.ang = p.hd = po.a; p.vx = p.vy = 0; }
@@ -151,16 +152,16 @@ function raiseAlarm() {
 const baseHurt = (x, y) => { if (inBase(x, y)) raiseAlarm(); };     // js/06: a shot, a blast or a body inside the base
 function baseTick(dt) {
   const el = $('warnBanner');
-  if (!BASEM || !feat('base')) { if (!el.hidden) el.hidden = true; return; }
+  if (!BASEM || !feat('base')) { warnOff('base'); return; }       // the banner is shared with the prison (js/08zp)
   const t = P.car || P, inside = !P.dead && state === 'play' && inBase(t.x, t.y);
   if (inside) {
     BASEX.outT = 0;
-    if (RAMP.on) { BASEX.warnT = 0; el.hidden = true; }
-    else if (!BASEX.alarm) { BASEX.warnT += dt; const n = Math.max(0, Math.ceil(PLC.baseWarn - BASEX.warnT)); el.innerHTML = 'RESTRICTED AREA<br><small>LEAVE NOW ' + n + '</small>'; el.hidden = false; if (BASEX.warnT >= PLC.baseWarn) raiseAlarm(); }
-    else el.hidden = true;
+    if (RAMP.on) { BASEX.warnT = 0; warnOff('base'); }
+    else if (!BASEX.alarm) { BASEX.warnT += dt; const n = Math.max(0, Math.ceil(PLC.baseWarn - BASEX.warnT)); warnSet('base', 'RESTRICTED AREA<br><small>LEAVE NOW ' + n + '</small>'); if (BASEX.warnT >= PLC.baseWarn) raiseAlarm(); }
+    else warnOff('base');
   } else {
     if (BASEX.warnT > 0 || BASEX.alarm) BASEX.leftAt = gameT;
-    BASEX.warnT = 0; el.hidden = true;
+    BASEX.warnT = 0; warnOff('base');
     if (BASEX.alarm && (BASEX.outT += dt) > PLC.baseCalm) BASEX.alarm = false;
   }
   if (inside) BASEX.leftAt = gameT;
@@ -207,7 +208,7 @@ function placesTick(dt) {                                         // js/15, once
 function resetPlaces() {                                          // a new game
   for (const po of POSTS) { po.ped = null; po.deadAt = 0; po.i = 0; }
   for (const b of BARRIERS) { b.broken = 0; b.up = false; b.open = 0; b.stopT = 0; b.s.off = false; }
-  Object.assign(BASEX, { warnT: 0, alarm: false, outT: 0, leftAt: -1e9 }); $('warnBanner').hidden = true;
+  Object.assign(BASEX, { warnT: 0, alarm: false, outT: 0, leftAt: -1e9 }); warnOff('base');
   for (const v of BASEV) { v.car = null; v.taken = 0; }
   if (HELI && HELI.dead) heliRestore();
   placeArmoury();

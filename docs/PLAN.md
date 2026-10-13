@@ -161,6 +161,7 @@ rest of this step stands.)
      the island); you **ride it for real**, standing on deck while it crosses (skippable), and walk off at the docks. **Wanted, it will
      not sail** (lose the police first). The island is called **IRON KEY**; the ferry's mainland end is a **new ferry pier on the
      Palm Heights shore across the bay** (not the port's docks, which are 10 km away), a crossing of about 30 s.
+     (Done October 2026: map remodel 13, js/10u, js/08zp, the places table's Iron Key group.)
    - *Construction site*: a half-built tower, cranes, ramps and scaffolding.
    - *Casino and nightclub strip*: a neon casino, a club with a dancing crowd and a queue at the door.
    - *Marina with boats you drive*: a speedboat, a jet ski and a yacht, each with its own speed and handling, moored at the marina

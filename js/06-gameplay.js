@@ -28,7 +28,7 @@ function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away
 }
 const hearV = (x, y) => clamp(1 - dist(x, y, P.x, P.y) / 800, 0, 1);   // how loud something sounds from where you are
 function killPed(p, how, byPlayer, ang) {
-  if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm();   // a soldier killed: the base is on alert (js/08j)
+  if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm(); if (p.pguard && byPlayer) prisonAlarm();   // a soldier killed: the base is on alert (js/08j); a prison guard: the prison (js/08zp)
   if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
   if (byPlayer) { P.kills++; if (p.cop) { STAT.cops++; addHeat(COP.crime.killCop); PS.armedT = gameT; } else if (!p.crim) reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }   // a criminal of the vigilante job: no crime (js/08n)
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
@@ -88,7 +88,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R) * blastHurt()); }   // fireproof: less (js/08n)
   blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
-  blastTargets(x, y, R, src); if (byP) baseHurt(x, y);             // the helicopter; a blast you set off inside the base (js/08j)
+  blastTargets(x, y, R, src); if (byP) { baseHurt(x, y); prisonHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }
@@ -176,7 +176,7 @@ function fireWeapon(aim) {                                      // aim: a point 
     const pa = k ? P.ang + rand(-w.spread, w.spread) : a;
     h = w.pierce ? rifleRay(P.x, P.y, pa, w) : raycast(P.x, P.y, pa, w.range); bulletHit(h, w, pa);
   }
-  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true); baseHurt(P.x, P.y);   // shooting inside the base sets off the alarm (js/08j)
+  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true); baseHurt(P.x, P.y); prisonHurt(P.x, P.y);   // shooting inside the base sets off the alarm (js/08j)
   cam.shake = Math.max(cam.shake, w.shake);
 }
 /* the drive-by (js/01j driveBy): in a car, a gun the weapon table lets fire from a car shoots out of the window at the nearest target
@@ -206,6 +206,7 @@ function bulletHit(h, w, a) {                                   // one bullet: t
   else if (h.type === 'plane') { spark(h.x, h.y, 5); damagePlane(h.obj, w.dmg * w.carDmg, true); }   // js/08i
   else if (h.type === 'target') { spark(h.x, h.y, 5); damageTarget(h.obj, w.dmg * w.carDmg, true); }   // js/08j
   if (h.type === 'ped' && h.obj.soldier) raiseAlarm();               // a soldier hit: the base is on alert (js/08j)
+  else if (h.type === 'ped' && h.obj.pguard) prisonAlarm();          // a prison guard hit: the prison (js/08zp)
   else if (h.type === 'wall') spark(h.x, h.y, 4);
 }
 
@@ -300,6 +301,7 @@ function updatePlayer(dt, inp) {
   if (P.knocked) { updateReload(dt); P.trig = inp.fire; return; }   // thrown by a blast: no control until you land
   const mg = inp.mag === undefined ? Math.min(1, Math.hypot(inp.ix, inp.iy)) : inp.mag;
   if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
+  if (P.ferry) ferryMove(dt, inp, mg); else {                    // aboard the Iron Key ferry: about its deck (js/08zp)
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = 1 - 0.6 * Math.min(1, dep / WADE);
   // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
   const gait = mg <= 0.4 ? 0 : mg <= 0.8 ? lerp(WALK, 2.4 * MPS, (mg - 0.4) / 0.4) : lerp(3.5 * MPS, RUN, (mg - 0.8) / 0.2);
@@ -321,6 +323,7 @@ function updatePlayer(dt, inp) {
         const s2 = carSpeed(c); if (s2 > 130 && !c.dead) { damagePlayer((s2 - 90) * 0.12); P.vx += c.vx * 0.4; P.vy += c.vy * 0.4; }
       }
     }
+  }
   }
   updateReload(dt); updateSwing(dt);
   const w = WEAPONS[P.weapon]; if (!isThrown(w)) TA.on = TA.ok = false;   // switched away mid-aim

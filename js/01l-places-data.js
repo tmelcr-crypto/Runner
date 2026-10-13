@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1l. PLACES SETTINGS ----------
-   The airport gates, the military base, the port, the lunapark, the space center, the Pay 'n' Spray garages and the Colony (js/08j, js/08k, js/08q, js/10g, js/10h):
-   guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet; and the city's downtown towers (js/04). tools/settings_sheet.py exports this table to Apple Numbers or
+   The airport gates, the military base, the port, the lunapark, the space center, the Pay 'n' Spray garages, the Colony and Iron Key (js/08j, js/08k, js/08q, js/10g, js/10h,
+   js/08zp): guards and soldiers, the base's warning and stock, ship traffic, the rides, the valet, the prison island's ferry, alarm and guards; and the city's downtown towers (js/04). tools/settings_sheet.py exports this table to Apple Numbers or
    Excel and writes an edited copy back:  python3 tools/settings_sheet.py places export places.numbers  /  ... places import places.numbers
    Keep the JSON between the markers valid. */
 const PLACES_TABLE = /*PLACES-JSON*/{
@@ -62,7 +62,18 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "forestGap", "group": "City", "name": "Trees in the woods stand about this far apart", "unit": "m", "min": 2, "max": 12, "v": 3.5, "note": "Closer is a denser wood (and more for the graphics to draw)."},
   {"id": "treeBack", "group": "City", "name": "A knocked-down tree is back after", "unit": "min", "min": 0.5, "max": 60, "v": 1.5, "note": "Every tree - in the woods, the parks, the palms along the streets and beaches - falls when a vehicle drives into it or a blast is near. It stands again after this long, once you are far enough away not to see it."},
   {"id": "factoryChimney", "group": "Factory", "name": "The cement works' tallest chimney", "unit": "m", "min": 10, "max": 120, "v": 46, "note": "In Gravel Flats (js/10r); the other two are 88% and 76% of it. Also an obstacle the helicopter climbs over."},
-  {"id": "factorySmoke", "group": "Factory", "name": "Smoke puffs a second from each chimney", "unit": "count", "min": 0, "max": 10, "v": 3, "note": "0: no smoke. They drift off on the wind, further in a storm."}
+  {"id": "factorySmoke", "group": "Factory", "name": "Smoke puffs a second from each chimney", "unit": "count", "min": 0, "max": 10, "v": 3, "note": "0: no smoke. They drift off on the wind, further in a storm."},
+  {"id": "ferrySpeed", "group": "Iron Key", "name": "The ferry sails at", "unit": "km/h", "min": 3, "max": 40, "v": 10, "note": "Between the ferry pier on the Palm Heights shore and the island's pier; it speeds up and slows down at each end. At 10 km/h a crossing takes about half a minute."},
+  {"id": "ferryWait", "group": "Iron Key", "name": "It waits at each pier", "unit": "s", "min": 5, "max": 120, "v": 20, "note": "Then it sails to the other one, back and forth all day. Busted, you find it waiting for you at the island."},
+  {"id": "ferryBoard", "group": "Iron Key", "name": "With you aboard it casts off after", "unit": "s", "min": 0, "max": 30, "v": 3, "note": "Sooner than its usual wait. It does not sail while you are wanted."},
+  {"id": "prisonWarn", "group": "Iron Key", "name": "Warning before the alarm", "unit": "s", "min": 1, "max": 30, "v": 5, "note": "Inside the prison walls a RESTRICTED AREA countdown runs; still inside when it ends, the alarm goes."},
+  {"id": "prisonStars", "group": "Iron Key", "name": "The alarm gives", "unit": "stars", "min": 1, "max": 5, "v": 3, "note": "Wanted level the moment the alarm goes (so does shooting inside the walls or at a guard)."},
+  {"id": "prisonCalm", "group": "Iron Key", "name": "The alarm stops after you are out for", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Out of the walls this long and the tower guards stand down (the police may still be after you)."},
+  {"id": "towerRange", "group": "Iron Key", "name": "Tower guards fire from", "unit": "m", "min": 5, "max": 150, "v": 70, "note": "From the four watchtowers, over the walls, at you inside the walls or anywhere on the island while the alarm is on."},
+  {"id": "towerAcc", "group": "Iron Key", "name": "Tower guard hit chance", "unit": "%", "min": 0, "max": 100, "v": 30, "note": "Per rifle shot, at middle range."},
+  {"id": "towerDmg", "group": "Iron Key", "name": "Damage per tower guard hit", "unit": "hp", "min": 1, "max": 100, "v": 14, "note": "To you on foot."},
+  {"id": "guardBack", "group": "Iron Key", "name": "A dead guard is replaced after", "unit": "s", "min": 10, "max": 3600, "v": 180, "note": "The tower guards and the two at the gate; only while you are away from the island."},
+  {"id": "prisoners", "group": "Iron Key", "name": "Prisoners in the yard", "unit": "count", "min": 0, "max": 30, "v": 12, "note": "In orange, walking about the yard and shooting hoops while you are near."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

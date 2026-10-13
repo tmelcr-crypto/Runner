@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 12): see the comment above each remodelN below.
+  - Later versions (2 to 13): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -705,7 +705,45 @@ def remodel12(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12]
+# version 13: IRON KEY, the prison island in the bay between the Palm Heights shore and Heron Key - a rocky island (a land polygon of its
+# own) with the prison's walls, four watchtowers, the gate, two cell blocks, the office and the yard; a path from the gate down to a pier
+# at its south tip, and a ferry pier off the promenade on the Palm Heights shore. The ferry's route (a curve: the mainland berth, two
+# controls, the island berth) keeps clear of every shore.
+def remodel13(M):
+    U = unary_union([poly(L) for L in M['land']])
+    rough = [(8800, 3250), (8930, 3275), (9040, 3360), (9075, 3560), (9070, 3900), (9030, 4120), (8930, 4280), (8790, 4330), (8690, 4280),
+             (8625, 4140), (8560, 3900), (8555, 3560), (8580, 3370), (8660, 3278)]
+    isl = Polygon(rough).buffer(30, join_style=1).buffer(-30, join_style=1)
+    ring, out = list(isl.exterior.coords)[:-1], []
+    for k, (x, y) in enumerate(ring):                                 # a rocky edge: the outline nudged in and out a little
+        if k % 2: continue
+        cx, cy = isl.centroid.x, isl.centroid.y; d = math.hypot(x - cx, y - cy) or 1; j = 7 * math.sin(k * 2.3) + 5 * math.sin(k * 0.9)
+        out.append([round(x + (x - cx) / d * j), round(y + (y - cy) / d * j)])
+    island = Polygon(out)
+    assert island.is_valid and island.distance(U) > 120, island.distance(U)
+    M['land'].append({'o': out, 'h': []})
+    def bez(P, n=48):
+        return [[round(sum(w * q[i] for w, q in zip(((1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t * t, t ** 3), P))) for i in (0, 1)] for t in [k / n for k in range(n + 1)]]
+    fp = [[8362, 4080], [8560, 4100], [8790, 4850], [8790, 4530]]
+    route = LineString(bez(fp)); assert route.distance(U) > 150 and route.distance(island) > 90, (route.distance(U), route.distance(island))
+    P = {'name': 'IRON KEY', 'island': out, 'walls': [8640, 3420, 8990, 3920], 'wt': 14, 'wh': 62,
+         'towers': [[8640, 3420], [8990, 3420], [8640, 3920], [8990, 3920]], 'ts': 34, 'th': 118, 'gate': [8820, 3920, 60],
+         'blocks': [[8815, 3495, 290, 90], [8715, 3705, 90, 250]], 'office': [8920, 3845, 80, 90], 'yard': [8780, 3560, 8960, 3780],
+         'court': [8800, 3580, 8940, 3680], 'release': [8820, 3878], 'booth': [8892, 3962, 40, 30],
+         'path': [[8820, 3926], [8820, 4100], [8790, 4250], [8790, 4310]], 'pw': 40,
+         'pier': [8768, 4280, 8812, 4430], 'head': [8750, 4398, 8830, 4430],
+         'mpier': [8086, 4058, 8262, 4102], 'mhead': [8232, 4044, 8262, 4116], 'kiosk': [8048, 4128, 46, 34],
+         'ferry': {'route': fp, 'len': 200, 'wid': 64}}
+    for k in ('walls',):
+        x0, y0, x1, y1 = P[k]; assert island.buffer(-24).contains(box(x0 - 17, y0 - 17, x1 + 17, y1 + 17)), k
+    assert U.contains(Point(8090, 4080)) and not U.contains(Point(8262, 4080)) and island.contains(Point(8790, 4285)), 'piers'
+    M['prison'] = P
+    M['districts'].insert(0, ['IRON KEY', [8530, 3230, 9090, 4440]])
+    M['remodel'] = 13
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13]
 
 
 if __name__ == '__main__':
@@ -751,5 +789,9 @@ if __name__ == '__main__':
     head = head.replace("   cement works (edges v: colony / factory, closed to traffic) and their car parks (lm colony vlot, gravel.factory vlot). */",
                         "   cement works (edges v: colony / factory, closed to traffic) and their car parks (lm colony vlot, gravel.factory vlot); version 12: the\n"
                         "   junkyard in the port's maintenance yard (salvage: area, gate, spot, crane, crusher, pile, shack, kennel). */")
+    head = head.replace("   junkyard in the port's maintenance yard (salvage: area, gate, spot, crane, crusher, pile, shack, kennel). */",
+                        "   junkyard in the port's maintenance yard (salvage: area, gate, spot, crane, crusher, pile, shack, kennel); version 13: Iron Key, the\n"
+                        "   prison island in the bay west of Heron Key (a land polygon of its own; prison: island, walls, towers, gate, blocks, office, yard, path,\n"
+                        "   pier, the mainland ferry pier, the ferry's route), and its district. */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))
