@@ -254,6 +254,7 @@ function letGo(c) {                                              // a carjacking
   P.vx = c.vx * 0.3; P.vy = c.vy * 0.3;
 }
 function tryEnterExit() {
+  if (P.ferry) { ferryUse(); return; }                             // aboard the ferry: across, or back ashore (js/08zp)
   if (P.act) { const a = P.act; P.act = null; if (a.occ) letGo(a.c); return; }   // tap again to give up
   if (P.car) { if (!P.car.sunk && (raceLocked('NO GETTING OUT DURING A RACE') || pnsLocked('WAIT - THE PAINT IS STILL WET') || tuneLocked('WAIT - THE MECHANIC IS STILL AT IT'))) return; exitCar(); return; }   // js/08o, js/08q; out of a sinking car whatever (js/08zv)
   const c = nearestCar(); if (!c || rampLocked('ON FOOT DURING A RAMPAGE')) return;
@@ -304,7 +305,7 @@ function updatePlayer(dt, inp) {
   if (P.knocked) { updateReload(dt); P.trig = inp.fire; return; }   // thrown by a blast: no control until you land
   const mg = inp.mag === undefined ? Math.min(1, Math.hypot(inp.ix, inp.iy)) : inp.mag;
   if (mg > 0.06) P.ang = Math.atan2(inp.iy, inp.ix);        // any stick offset turns you; you only shoot the way you face
-  if (P.ferry) ferryMove(dt, inp, mg); else {                    // aboard the Iron Key ferry: about its deck (js/08zp)
+  if (P.ferry) ferryMove(dt); else {                              // aboard the Iron Key ferry: in your seat (js/08zp)
   swimCheck();                                                     // out of your depth: swimming (js/08zv)
   const dep = Math.max(0, -shoreDist(P.x, P.y)), wk = P.swim ? 1 : 1 - 0.6 * Math.min(1, dep / WADE);
   // stick offset: up to 40% only turns you, 40-80% walks, 80-100% runs; the dash button is a sprint on top
@@ -331,6 +332,7 @@ function updatePlayer(dt, inp) {
   }
   }
   updateReload(dt); updateSwing(dt);
+  if (P.ferry) { TA.on = TA.ok = false; SCOPE.on = false; P.trig = inp.fire; return; }   // seated on the ferry: hands in your lap (js/08zp)
   if (P.swim) { TA.on = TA.ok = false; SCOPE.on = false; P.swing = null; if (inp.fire && !P.trig) toast('NO WEAPONS IN THE WATER'); P.trig = inp.fire; return; }   // swimming (js/08zv)
   const w = WEAPONS[P.weapon]; if (!isThrown(w)) TA.on = TA.ok = false;   // switched away mid-aim
   if (w.scope) updateScope(orig, dt);                              // the rifle: aim in the scope while FIRE is held, shoot on letting go

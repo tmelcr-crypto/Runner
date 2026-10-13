@@ -139,13 +139,14 @@ function updateHud(time) {
   setText('clock', 'clock', skyText());
   const hot = P.stars > 0; if (H.hot !== hot) { H.hot = hot; miniCv.classList.toggle('hot', hot); }
   if (Snd.muted !== H.mute) { H.mute = Snd.muted; $('mute').textContent = Snd.muted ? 'MUTED' : 'SND'; }
-  const c = P.car; let vname = P.swim ? 'SWIMMING' : 'ON FOOT', vinfo = '', hint = '';
+  const c = P.car; let vname = P.ferry ? 'ON THE FERRY' : P.swim ? 'SWIMMING' : 'ON FOOT', vinfo = '', hint = '';
   if (c) {
     vname = c.t.name; vinfo = Math.round(carSpeed(c) / KMH) + ' KM/H';
     if (c.t.weapon === 'mg' && feat('apcGun')) vinfo += '  ·  ' + apcBeltText(c);   // the turret's belt (js/08r)
     if (c.hp / c.maxhp < 0.25) hint = c.burn > 0 ? 'ON FIRE! BAIL OUT!' : 'CAR ABOUT TO BLOW!';
     else if (c.t.weapon) hint = (touchMode ? 'FIRE: ' : 'CLICK OR J: ') + (c.t.weapon === 'water' ? 'WATER CANNON' : 'ROCKETS');
-  } else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
+  } else if (P.ferry) { vinfo = FERRY.state === 'sail' ? 'TO ' + (FERRY.end ? 'PALM HEIGHTS' : 'IRON KEY') : 'CASTING OFF SOON'; hint = FERRY.state === 'sail' ? (touchMode ? 'TAP SKIP THE CROSSING' : 'E: SKIP THE CROSSING') : (touchMode ? 'TAP ENTER / EXIT TO GET OFF' : 'E: GET OFF'); }   // seated on the ferry (js/08zp)
+  else if (P.act) { vinfo = P.act.c.t.name; hint = P.act.occ ? (touchMode ? 'FIGHTING FOR THE WHEEL! TAP TO LET GO' : 'FIGHTING FOR THE WHEEL! E TO LET GO') : ''; }
   else if (RAMP.on) hint = RAMP.on.name + ': ' + goalText(RAMP.on) + (RAMP.on.target === 'cars' ? ' - THEY COUNT WHEN THEY CATCH FIRE' : '');
   else { const n = nearestCar(), s = shopKey(), r = rampKey(), rk = raceKey(); if (rk) { vinfo = rk.kind === 'phone' ? 'A RINGING PHONE' : rk.kind === 'drag' ? rk.S.name : 'THE RACE BOOTH'; hint = touchMode ? (rk.kind === 'phone' ? 'TAP ANSWER' : 'TAP RACE') : (rk.kind === 'phone' ? 'PRESS E TO ANSWER THE PHONE' : rk.kind === 'drag' ? 'BRING A CAR - OR PRESS E TO SEE THE STRIP' : 'PRESS E FOR THE NASCAR RACE'); } else if (r) { vinfo = 'RAMPAGE: ' + r.name; hint = touchMode ? 'TAP RAMPAGE TO SEE IT' : 'PRESS E FOR THE RAMPAGE'; } else if (s) { vinfo = s.name; hint = touchMode ? 'TAP SHOP TO GO IN' : 'PRESS E TO SHOP'; } else if (n) { vinfo = n.t.name + ' NEARBY'; hint = touchMode ? 'TAP ENTER / EXIT' : 'PRESS E TO ENTER ' + n.t.name; } }
   storeUi(); safeUi(); showUi(); casUi(); boatUi(); rampUi(); raceUi(); flyUi(time); boostUi(); rampHudUpdate(); jobHudUpdate(); raceHudUpdate(); edgeGlow(time);   // the lime edge glow (js/08p)   // the SHOP, RAMPAGE, ANSWER and RACE buttons by you, the rampage's, the job's and the race's panel (js/08e, 08f, 08n, 08o)
