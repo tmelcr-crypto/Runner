@@ -16,6 +16,7 @@ const STATS_TABLE = /*STATS-JSON*/{
   {"id": "countJobs", "group": "Counts toward 100%", "name": "Jobs to the level below", "unit": "yes/no", "min": 0, "max": 1, "v": true, "note": "Taxi, paramedic, firefighter and vigilante."},
   {"id": "jobLevel", "group": "Counts toward 100%", "name": "A job counts once you finish level", "unit": "level", "min": 1, "max": 30, "v": 10, "note": "Your best level in each job (the jobs table's reward comes earlier, at its own level)."},
   {"id": "deliveries", "group": "Counts toward 100%", "name": "Cars delivered at the docks", "unit": "count", "min": 0, "max": 50, "v": 10, "note": "Each one counts, up to this many. 0: deliveries are left out."},
+  {"id": "countStunts", "group": "Counts toward 100%", "name": "Unique stunt jumps", "unit": "yes/no", "min": 0, "max": 1, "v": true, "note": "Each of the twenty stunt jumps, landed once (the stunt table)."},
   {"id": "countSprays", "group": "Counts toward 100%", "name": "Pay 'n' Spray garages used", "unit": "yes/no", "min": 0, "max": 1, "v": true, "note": "Each garage once: a respray or a repair done there."},
   {"id": "topHealth", "group": "The reward at 100%", "name": "Health goes up to", "unit": "points", "min": 100, "max": 500, "v": 200, "note": "For the rest of the saved game; you are healed to the top when you reach 100%, and again each time you sleep."},
   {"id": "topArmor", "group": "The reward at 100%", "name": "Body armor goes up to", "unit": "points", "min": 100, "max": 500, "v": 200, "note": "The same for body armor."},

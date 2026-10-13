@@ -208,6 +208,14 @@ rest of this step stands.)
      and In the water groups, mode rows marina and swim; the grove pier's motor boats are real boats too.)
    - *Stunt jumps*: twenty around the city - ramps, loading docks, rooftop gaps, the construction site; hit one fast enough and the
      camera slows down in the air, a bonus for distance and height, each counted once toward 100%.
+     (Asked October 2026:) **both modes**. **15 street ramps and 5 jumps over the water**: the street ramps stand **off the traffic
+     lanes** (road ends, parks, lots, by the shore) and **Skyline One's launch ramp is one of them**; the water jumps go off quays and
+     jetties over the water to the far bank or an island. **Anything on wheels** counts (motorbikes, trucks, the tank too). A jump
+     counts when you hit the ramp fast enough, fly far enough and **land upright on your wheels**: UNIQUE STUNT BONUS, **€500 to
+     €5,000** by distance and height, each counted once toward 100%; a crash or a short jump does not count (try again), too slow
+     gives a small TOO SLOW note. In the air: **slow motion only** (the usual camera). **Hidden until done** - no map icons; a done
+     jump gets a small tick on the big map and the stats show how many are left. **Just the ramp** tells you: every stunt ramp looks
+     the same (chevrons and two small flags on its lip). Every number in a data table.
    - *Interiors, top-down first*: the airport hangars, the port warehouses and storage units you can walk and drive into, their
      roofs turning see-through, with things to find and take inside. (The side-on kind - hotels, offices - later.)
 2. **World events**: robberies with a getaway car and an armoured cash van to ram; fires, pile-ups with tow trucks, storm blackouts;

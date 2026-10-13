@@ -20,6 +20,7 @@ an import writes each one back there (only the price, the rest of each table is 
   the scenic flight      js/01k-airport-data.js   (also tools/settings_sheet.py airport)
   safehouses             js/01q-safehouse-data.js (also tools/safehouse_sheet.py)
   the casino             js/01u-casino-data.js    (also tools/settings_sheet.py casino)
+  the stunt jumps        js/01v-stunt-data.js     (also tools/settings_sheet.py stunts)
 Rows are found by the key in the last column, so they may be moved; a row that is missing keeps its price.
 Needs openpyxl for .xlsx and numbers-parser for .numbers."""
 import json, os, re, sys
@@ -28,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); JSD = os.path.join(HERE, '..'
 FILES = {'eco': ('01i-economy-data.js', 'ECONOMY'), 'ramp': ('01h-rampage-data.js', 'RAMPAGE'), 'police': ('01b-police-data.js', 'POLICE'),
          'shop': ('01g-shop-data.js', 'SHOP'), 'weapon': ('01f-weapon-data.js', 'WEAPON'), 'clothes': ('01n-clothes-data.js', 'CLOTHES'), 'vehicle': ('01c-vehicle-data.js', 'VEHICLE'),
          'jobs': ('01o-jobs-data.js', 'JOBS'), 'races': ('01p-races-data.js', 'RACES'), 'places': ('01l-places-data.js', 'PLACES'), 'safe': ('01q-safehouse-data.js', 'SAFE'),
-         'airport': ('01k-airport-data.js', 'AIRPORT'), 'casino': ('01u-casino-data.js', 'CASINO')}
+         'airport': ('01k-airport-data.js', 'AIRPORT'), 'casino': ('01u-casino-data.js', 'CASINO'), 'stunts': ('01v-stunt-data.js', 'STUNT')}
 HEADS = ['Action or commodity', 'Price (or from)', 'Up to', 'Unit', 'Notes', 'Key (do not change)']
 USD, PCT = '€', '% of your cash'
 LIMITS = {'€': (0, 1000000), '$': (0, 1000000), 'count': (0, 100), 's': (5, 600)}
@@ -135,6 +136,11 @@ def rows():
     for r in block('casino')[3]['settings']:
         if r['unit'] != USD: continue
         out.append(dict(key='casino.' + r['id'], label='%s: %s' % (r['group'], r['name']), value=r['v'], unit=USD, note=r.get('note', ''), file='casino', id=r['id'], field='v',
+                        lo=r.get('min', 0), hi=r.get('max', 1000000), empty_ok=False))
+    out.append(('#', 'STUNT JUMPS', 'The UNIQUE STUNT BONUS, paid once per jump: per metre flown and per metre of height, between the least and the most (stunt table).'))
+    for r in block('stunts')[3]['settings']:
+        if r['unit'] != USD: continue
+        out.append(dict(key='stunts.' + r['id'], label='%s: %s' % (r['group'], r['name']), value=r['v'], unit=USD, note=r.get('note', ''), file='stunts', id=r['id'], field='v',
                         lo=r.get('min', 0), hi=r.get('max', 1000000), empty_ok=False))
     for r in out:
         if isinstance(r, dict): r.setdefault('ranged', False); r.setdefault('value2', None)

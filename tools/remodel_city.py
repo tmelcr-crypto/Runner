@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 17): see the comment above each remodelN below.
+  - Later versions (2 to 18): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -842,7 +842,28 @@ def remodel17(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15, remodel16, remodel17]
+# version 18: the stunt ramps (stunts: x, y where the ramp starts, a: the way it points in degrees, len, w, h: its lip's height, kind:
+# street - over a lawn, a beach or across a street to open ground off the streets; water - from the shore over a canal or an inlet
+# to the far bank). Found by tools on the open ground off the traffic lanes (the run-up, the flight and the landing clear of
+# buildings, lots and everything built up), spread over the city; the fourteen street ramps and five over the water, with Skyline
+# One's launch ramp (js/10v) the twentieth stunt jump.
+STUNT_RAMPS = [(11929, 7304, -75, 'street'), (10349, 9480, -90, 'street'), (4409, 7624, 0, 'street'), (4729, 10024, 135, 'street'),
+               (5929, 7784, 180, 'street'), (6409, 3384, 45, 'street'), (7769, 4024, -105, 'street'), (9849, 7544, 30, 'street'),
+               (10649, 6184, -120, 'street'), (10809, 4664, 105, 'street'), (11369, 2824, -105, 'street'), (11449, 15624, 165, 'street'),
+               (12809, 10584, 30, 'street'), (12809, 6024, -75, 'street'),
+               (11184, 8335, -165, 'water'), (10941, 8881, -135, 'water'), (11157, 7676, 150, 'water'), (11238, 5668, 150, 'water'), (11389, 6686, 150, 'water')]
+def remodel18(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    M['stunts'] = []
+    for x, y, a, kind in STUNT_RAMPS:
+        r = math.radians(a); ex, ey = x + math.cos(r) * 84, y + math.sin(r) * 84
+        assert LAND.contains(Point(x, y)) and LAND.contains(Point(ex, ey)), 'stunt ramp at %d,%d is not on land' % (x, y)
+        M['stunts'].append({'x': x, 'y': y, 'a': a, 'len': 84, 'w': 52, 'h': 26, 'kind': kind})
+    M['remodel'] = 18
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15, remodel16, remodel17, remodel18]
 
 
 if __name__ == '__main__':
@@ -904,5 +925,8 @@ if __name__ == '__main__':
     head = head.replace("   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes). */",
                         "   on the inner bay (a quay of land; marina: quay, office, door, fuel, pumps, piers, berths, own, routes); version 17: eight small\n"
                         "   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht). */")
+    head = head.replace("   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht). */",
+                        "   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht); version 18:\n"
+                        "   the stunt ramps (stunts: x, y, a, len, w, h, kind street or water). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

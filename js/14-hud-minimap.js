@@ -94,7 +94,7 @@ function drawBigMap(time) {
     g.fillStyle = '#000'; g.fillText(name, x + 2 * pr, y + 2 * pr); g.fillStyle = '#f1ead2'; g.fillText(name, x, y);
   }
   const ph = Math.floor(time * 4) % 2 === 0;
-  planeIcons(g, X, Y, k * 1.6, () => true); shipIcons(g, X, Y, k, () => true); svcIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
+  planeIcons(g, X, Y, k * 1.6, () => true); shipIcons(g, X, Y, k, () => true); svcIcons(g, X, Y, 7 * pr, () => true); stuntIcons(g, X, Y, 7 * pr, () => true); g.font = Math.round(9 * pr) + 'px "Press Start 2P", monospace';
   if (P.stars > 0 && !PS.seen) searchRing(g, X(PS.lx), Y(PS.ly), Math.max(PS.r * k, 5 * pr), ph, 2 * pr);
   for (const o of cars) if (o.t.cop && o.driver && !o.dead) { g.fillStyle = ph ? '#ff3b5c' : '#3f6bff'; g.fillRect(X(o.x) - 4 * pr, Y(o.y) - 4 * pr, 8 * pr, 8 * pr); }
   if (heliLive() || PH.mode === 'fall') heliMapIcon(g, X(PH.x), Y(PH.y), 5 * pr, time);   // the police helicopter (js/08u)

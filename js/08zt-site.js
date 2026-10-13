@@ -31,12 +31,12 @@ function siteLift(o) {
 function siteJump(c, dt) {                // js/07, each car near the site
   if (c.air > 0 || c.vz > 0 || dt <= 0) { c.rz = c.rzv = c.rzp = 0; return; }
   const z = zOf(c), sp = Math.hypot(c.vx, c.vy), ax = c.x + c.vx * dt, ay = c.y + c.vy * dt; let s = 0, s1 = 0, J0 = null;
-  for (const J of SK.jumps) { if (Math.abs(z - J.z) > 10) continue; const h = jumpH(J, c.x, c.y); if (h > s) { s = h; J0 = J; } s1 = Math.max(s1, jumpH(J, ax, ay)); }
+  for (const J of SK.jumps) { if (Math.abs(z - J.z) > 10 || (J.stunt && !J.top && !stuntOn())) continue; const h = jumpH(J, c.x, c.y); if (h > s) { s = h; J0 = J; } s1 = Math.max(s1, jumpH(J, ax, ay)); }   // the stunt ramps (js/10y) only with their mode on
   const prev = c.rz || 0, vprev = c.rzv || 0, vnew = (s1 - s) / dt;   // the rise rate the way it moves (the surface just ahead): no spike when it lands on a ramp half-way up
-  if (prev > 1.5 && vprev > 15 && vnew < 0 && (vnew - vprev) / dt < -1100 && sp > 0.75 * (c.rzs || 0)) {   // over the lip or the crest, fast (not stopped by a wall): off it goes
-    c.air = s; c.vz = vprev * PLC.jumpLift; c.rz = c.rzv = 0; c.rzp = Math.atan(vprev / Math.max(60, sp)); return;
+  if (prev > 1.5 && vprev > 15 && sp > 0.75 * (c.rzs || 0) && ((vnew < 0 && (vnew - vprev) / dt < -1100) || !J0)) {   // over the lip or the crest, fast (not stopped by a wall) - or already past it this step: off it goes
+    const Jl = J0 || c.rzJ; c.air = J0 ? s : prev; c.vz = vprev * PLC.jumpLift; c.rz = c.rzv = 0; c.rzJ = null; c.rzp = Math.atan(vprev / Math.max(60, sp)); if (Jl && Jl.stunt) stuntLaunch(c, Jl, sp); return;   // a stunt jump (js/08zw)
   }
-  c.rz = s; c.rzv = vnew; c.rzs = sp;
+  c.rz = s; c.rzv = vnew; c.rzs = sp; c.rzJ = J0;
   c.rzp = J0 ? Math.atan((Math.max(0, jumpH(J0, c.x + Math.cos(c.ang) * 6, c.y + Math.sin(c.ang) * 6)) - s) / 6) : 0;
 }
 function landHard(c) {                    // js/07 stepCar: back on the ground from high up

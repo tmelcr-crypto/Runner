@@ -660,3 +660,7 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #bsList .bsRow button:disabled{opacity:.35}
 #boatCard .warn.ok{color:var(--lime,#3dffa6)}
 #bsOwn{margin-bottom:12px}
+#stuntBanner{position:absolute;left:50%;top:24%;transform:translateX(-50%);font-family:var(--f-display);font-size:26px;line-height:1.4;text-align:center;color:var(--yellow,#ffd23f);text-shadow:0 0 14px #ff9d2b,3px 3px 0 #000;white-space:nowrap;pointer-events:none;animation:stuntPop .35s ease-out}
+#stuntBanner small{display:block;font-size:14px;color:#3dffa6;text-shadow:0 0 8px rgba(61,255,166,.7),2px 2px 0 #000}
+@keyframes stuntPop{from{transform:translateX(-50%) scale(.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+@media (max-width:520px){#stuntBanner{font-size:17px}#stuntBanner small{font-size:11px}}

@@ -4,7 +4,8 @@ the streets - traffic lights, rules of the road, walk signals, sirens, heat redu
 taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and rewards (js/01o-jobs-data.js) - and the races - phone
 booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the fixed routes' junctions stay in the file) - and the stats -
 what counts toward 100% and its reward (js/01t-stats-data.js) - and the casino strip - the ROYAL FLAMINGO's doors, slot machines, dice,
-guards and cashier's cage, THE PULSE nightclub, the strip at night (js/01u-casino-data.js).
+guards and cashier's cage, THE PULSE nightclub, the strip at night (js/01u-casino-data.js) - and the stunt jumps - slow motion, how a
+ramp throws a car, a good landing, the bonus, each jump's speed and distance (js/01v-stunt-data.js).
 
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
@@ -15,6 +16,7 @@ guards and cashier's cage, THE PULSE nightclub, the strip at night (js/01u-casin
   python3 tools/settings_sheet.py races export races.numbers              ... phone booths, street races, the NASCAR race, the drag strip
   python3 tools/settings_sheet.py stats export stats.numbers              ... what counts toward 100%, the reward at 100%
   python3 tools/settings_sheet.py casino export casino.numbers            ... the casino, its games, guards and cage, the nightclub, the strip
+  python3 tools/settings_sheet.py stunts export stunts.numbers            ... the stunt jumps: slow motion, lift, the landing, the bonus, each jump
   python3 tools/settings_sheet.py police import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
 Both are made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments. Yellow cells are the
@@ -37,13 +39,14 @@ TABLES = {'police': ('01b-police-data.js', 'POLICE', {'levels': 'Wanted levels',
           'jobs': ('01o-jobs-data.js', 'JOBS', {'settings': 'Settings'}),
           'races': ('01p-races-data.js', 'RACES', {'settings': 'Settings'}),
           'stats': ('01t-stats-data.js', 'STATS', {'settings': 'Settings'}),
-          'casino': ('01u-casino-data.js', 'CASINO', {'settings': 'Settings'})}
+          'casino': ('01u-casino-data.js', 'CASINO', {'settings': 'Settings'}),
+          'stunts': ('01v-stunt-data.js', 'STUNT', {'settings': 'Settings'})}
 JS = A = B = SHEETS = NAME = None
 def use(name):                               # pick the table the commands work on
     global JS, A, B, SHEETS, NAME, TIPS
     f, mark, SHEETS = TABLES[name]; NAME = name
     JS = os.path.join(HERE, '..', 'js', f); A, B = '/*%s-JSON*/' % mark, '/*END-%s-JSON*/' % mark
-    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES, 'stats': TIPS_STATS, 'casino': TIPS_CASINO}[name]
+    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES, 'stats': TIPS_STATS, 'casino': TIPS_CASINO, 'stunts': TIPS_STUNTS}[name]
 
 
 def read_table():
@@ -217,6 +220,11 @@ TIPS_CASINO = [('ID column', 'How the game finds each row. Do not change it; row
             ('Dice', 'Craps on the pass line: 7 or 11 on the first roll wins what you bet, 2, 3 or 12 loses it; any other total is the point, and you roll until it comes again (win) or a 7 does (lose). The house wins slightly more often (about 51 to 49).', None),
             ('Trouble', 'Shooting in the casino or hurting anyone in it brings the stars set and the guards open fire. Robbing the cashier\'s cage (a gun in your hand at its window) pays between the two sums, brings more stars, and the cage is empty for the time set.', None),
             ('THE PULSE', 'Open between the two hours (it may run past midnight: open at 22, close at 6). The music is a radio station, by its number in the radio list.', None)]
+TIPS_STUNTS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+            ('Units', 'Percent of the usual; m/s² how fast a car falls; degrees how far it may have spun round; money in euros; km/h and metres for each jump.', None),
+            ('The jumps', 'Twenty: fourteen street ramps and five over the water (numbered as on the map) and Skyline One\'s launch ramp. A jump counts when you leave the lip at least as fast as its speed, fly at least its distance, land on your wheels not spun round further than set and without losing more of the car than set.', None),
+            ('Lift and gravity', 'How hard a stunt ramp throws a car up and how fast it then falls; change them and each jump\'s speed needs setting again (a car flies about 29 m at 110 km/h, 44 m at 140 with the values as they are).', None),
+            ('The bonus', 'Paid once per jump, the first time: the metres flown and the metres of height times their rates, between the least and the most.', None)]
 TIPS_STREETS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Times in seconds or minutes, distances in metres (a car is 4.5 m long, a street about 11 m wide), speeds in km/h, % as 0 to 100, stars as a wanted level 1 to 5.', None),
             ('Traffic lights', 'Each junction runs green, amber, all red for one group of approaches after another; opposite approaches share a group. Junctions are not in step with each other.', None),
@@ -392,6 +400,8 @@ def do_import(path, dry):
     elif NAME == 'places':
         if st['shipsMax'] < st['shipsMin']: errors.append('Settings: Ships at the berths at most (%s) is less than at least (%s)' % (fmt(st['shipsMax']), fmt(st['shipsMin'])))
     elif NAME in ('streets', 'stats'): pass
+    elif NAME == 'stunts':
+        if st['bonusMax'] < st['bonusMin']: errors.append('Settings: The bonus - at most (%s) is less than at least (%s)' % (fmt(st['bonusMax']), fmt(st['bonusMin'])))
     elif NAME == 'casino':
         if st['diceMax'] < st['diceMin']: errors.append('Settings: Dice - the biggest bet (%s) is less than the smallest (%s)' % (fmt(st['diceMax']), fmt(st['diceMin'])))
         if st['cageMax'] < st['cageMin']: errors.append("Settings: Cashier's cage - at most (%s) is less than at least (%s)" % (fmt(st['cageMax']), fmt(st['cageMin'])))
