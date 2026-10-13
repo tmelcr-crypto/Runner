@@ -161,6 +161,7 @@ function saveBlock() {                               // why you cannot save now 
   if (P.dead || P.busted) return 'NOT NOW';
   if (P.act) return 'FINISH THE CARJACKING FIRST';
   if (P.ferry) return 'NOT ON THE FERRY';
+  if (prisonOn() && inPrison((P.car || P).x, (P.car || P).y)) return 'NOT INSIDE THE PRISON';   // js/08zp: no saving, nor autosaves, in there
   if (P.swim || (P.car && P.car.t.boat)) return 'GET BACK ON LAND FIRST';   // js/08zv
   if (P.car && (P.car.dead || P.car.burn > 0 || P.car.sunk || P.car.air > 0)) return 'GET OUT OF THAT WRECK FIRST';
   return '';
@@ -176,11 +177,13 @@ function makeSave(thumb) {
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
   const p = sv.P || {}, c = sv.car, num = v => typeof v === 'number' && isFinite(v);
+  const jailed = (x, y) => PRZ && inPrison(x, y);                 // a save from inside the prison's walls (before saving there was stopped): outside the gate instead (js/08zp)
+  if ((c && num(c.x) && num(c.y) && jailed(c.x, c.y)) || (!c && num(p.x) && num(p.y) && jailed(p.x, p.y))) { const o = PRZ.path[1]; return { x: o[0], y: o[1], ang: Math.PI / 2 }; }
   if (c && CAR_TYPES[c.type] && num(c.x) && num(c.y) && shoreDist(c.x, c.y) > 0) {
     const car = makeCar(c.type, c.x, c.y, num(c.ang) ? c.ang : 0, null, typeof c.color === 'string' ? c.color : undefined);
     if (num(c.hp)) car.hp = clamp(c.hp, 1, car.hp);
     if (Number.isInteger(c.radio) && c.radio < RADIO.length) car.radio = Math.max(-1, c.radio);
-    tuneSet(car, c.tune);                                          // its tuning (js/08y)
+    tuneSet(car, c.tune); car.taken = car.searched = true;         // its tuning (js/08y); the car you saved in is yours
     return { x: car.x, y: car.y, ang: car.ang, car };
   }
   if (num(p.x) && num(p.y) && !pedBlocked(p.x, p.y) && shoreDist(p.x, p.y) > 4) return { x: p.x, y: p.y, ang: num(p.ang) ? p.ang : 0 };

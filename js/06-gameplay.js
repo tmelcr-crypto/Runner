@@ -234,8 +234,9 @@ function enterCar(c) {
     if (!provoke(ped)) { ped.state = 'flee'; ped.fl = 6; ped.fx = ped.x - c.x; ped.fy = ped.y - c.y; }   // an armed driver comes back at you (js/08g)
     if (!pedBlocked(ped.x, ped.y) && (!c.t.boat || shoreDist(ped.x, ped.y) > 4)) peds.push(ped); else if (c.t.boat) splashFx(ped.x, ped.y, 14);   // a boat's owner goes over the side (js/08zv)
     reportCrime(cop ? COP.crime.carjackCop : COP.crime.carjack, 0);
-  } else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
-  else if (!c.free) reportCrime(COP.crime.steal, 0);             // the NASCAR special in the speedway's paddock is free to take (js/08o)
+  } else if (c.taken || c.home || c.free || c.type === 'gold') { }   // yours - one you have taken before, from your garage, bought (a boat, js/08zv), the gold car, the NASCAR special in the paddock (js/08o): no crime
+  else if (c.t.cop) { if (!stationCar(c)) reportCrime(COP.crime.stealCop, 0); }   // a police station's own yard: free for the vigilante job (js/08n)
+  else reportCrime(COP.crime.steal, 0);
   statSteal(c);                                                    // counted once per car (js/08zs)
   if (!c.searched) { c.searched = true; if (feat('carCash')) addScore(ecoRoll('carCash'), c.x, c.y, 'IN THE CAR'); }   // cash in the glovebox, once per car (js/01i)
   c.driver = 'player'; c.mode = 'player'; P.car = c; P.x = c.x; P.y = c.y; P.vx = 0; P.vy = 0;
