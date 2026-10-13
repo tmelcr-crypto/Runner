@@ -4,6 +4,7 @@
 - **Ask when anything is unclear** - every time, before building. Use multiple-choice questions with a recommended option; several short rounds are fine.
 - **Every new in-game feature: ask whether it is for FREE ROAM, STORY or both.** Then add a row to the modes table (`js/01j-mode-data.js`, `features`) with the answer, and gate the feature in code with `feat('<id>')`.
 - **Numbers and settings live in data tables, not in code.** Each table is JSON between `/*NAME-JSON*/ ... /*END-NAME-JSON*/` markers in a `js/01x-*.js` file, and has (or gets) a `tools/*_sheet.py` that exports it to Apple Numbers or Excel and imports an edited copy back, checking every value. Send the owner the exported `.numbers` file after changing a table.
+- Before each merge run `python3 tools/stamp_build.py` (a new build number: fresh files for every browser, BUILD n on the title screen) and commit it.
 - Create pull requests and merge only when the owner asks ("Merge" = open a PR from the working branch to `main` and squash-merge it, then reset the working branch to `origin/main`).
 - Never commit the Vice City source image.
 - No AI model names in commits, code or docs.

@@ -689,3 +689,4 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #msNow{color:#ffd23f}
 #msObj{white-space:normal;text-align:center;width:max-content;max-width:92vw;line-height:1.5}
 #msObj.big{font-size:clamp(13px,4.6vw,18px)}
+#startCard .build{margin:2px 0 10px;font-size:9px;letter-spacing:2px;opacity:.55}
