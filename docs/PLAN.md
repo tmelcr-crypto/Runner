@@ -283,6 +283,10 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   and the prize (races table, economy sheet); whether you must use a jet ski or any boat; what counts toward 100%.
 - Uses the races table (js/01p) and the race engine (js/08o); the course gates as rings on the water and on the maps.
 
+## Bugs reported by the owner (October 2026; the list grows as they come - fix them together, then test and merge)
+1. **Street races always won** - 1ST even when last at the final checkpoint (details in the next section).
+2. **The Coral Shore trailer cannot be entered** - the safehouse trailer on its Coral Shore gravel yard (js/10l, js/08s): no way in.
+
 ## Fix: street races always won (reported October 2026; check and fix)
 - In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o
   `racePlace`: rivals that crossed the finish (`K.done`) or are further along the route (`K.d`) count ahead of you; a rival
