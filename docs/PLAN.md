@@ -286,6 +286,19 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 ## Bugs reported by the owner (October 2026; the list grows as they come - fix them together, then test and merge)
 1. **Street races always won** - 1ST even when last at the final checkpoint (details in the next section).
 2. **The Coral Shore trailer cannot be entered** - the safehouse trailer on its Coral Shore gravel yard (js/10l, js/08s): no way in.
+3. **Public-service jobs: +500% car durability, only while the job is on** - taxi, paramedic, firefighter, vigilante (js/08f and
+   the jobs table): the job's vehicle takes six times the damage before it breaks (500% more), but only while the job is active;
+   back to normal when it ends or fails. A number in the jobs table (tools/settings_sheet.py), not in code.
+4. **The test mission seems completely broken - start it again from scratch** - Quest 01 in MISSIONS TEST (js/08zy, js/01x):
+   rebuild the mission from the Word page, step by step, with the owner checking each step in the game.
+5. **Construction site (Skyline One)** - (a) a bus stop stands in the site's entrance: remove it (and keep bus stops off every gate
+   and driveway); (b) the gate is open to the street: make it a rolling gate (shut at night like the interiors' roller doors?);
+   (c) the construction vehicles are not on the site: fix it (they should be parked or working inside).
+6. **Paramedics** - their legs do not move while they walk or run with the stretcher; when hit they carry on as if still carrying:
+   they should drop the stretcher and run away (like any frightened passer-by).
+7. **Police and buildings** - (a) the police helicopter can shoot you while you are inside a building: it must not; (b) while you
+   are inside, the chopper loses you from the air (circles the last place it saw you, no shots); (c) police on foot can enter
+   buildings the same way you can (the doors, the roller doors, the side doors) and follow you in.
 
 ## Fix: street races always won (reported October 2026; check and fix)
 - In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o
