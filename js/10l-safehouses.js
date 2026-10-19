@@ -203,7 +203,7 @@ const SH_PLANS = {
     for (const [x0, z0, x1, z1] of [[-hw, -hd, hw, -hd + 2], [-hw, -hd, -hw + 2, hd], [hw - 2, -hd, hw, hd], [-hw, hd - 2, -10, hd], [10, hd - 2, hw, hd]]) S.low.push([x0, z0, x1, z1, 8, '#f4f4f6']);
     shBox(S, -72, -22, 62, 20, 28, wall, '#b08a5a', '#2f6bff', [['f', 0, 14, 'front']]);
     shWallZ(S, -22, -22 + SH_WT, 20 - SH_WT, [[0, 12]], 28, wall);
-    S.furn.push(['bed', -52, -2, 0], ['kitchen', 10, -14, 0], ['fridge', 37, -14, 0], ['wardrobe', 22, 12.5, 2], ['safe', 54.5, -14, 3], ['tv', -12, 14.5, 2],
+    S.furn.push(['bed', -52, -2, 0], ['kitchen', 10, -14, 0], ['fridge', 37, -14, 0], ['wardrobe', 22, 12.5, 2], ['safe', 54.5, -14, 3], ['tv', 47, 14.5, 2],
       ['lounger', 78, -12, 1], ['lounger', 78, 10, 1], ['plant', -90, 20, 0], ['plant', -90, -20, 0], ['buoy', 96, 0, 0]);
     S.use.push({ k: 'sleep', x: -30, z: -5 }, { k: 'wardrobe', x: 22, z: 0 }, { k: 'stash', x: 46, z: -2 });
     S.wins.push(['b', -22, -50, 16], ['b', -22, 20, 20], ['l', -72, 0, 14], ['r', 62, 0, 14], ['f', 20, -50, 16]);
@@ -216,8 +216,8 @@ const SH_PLANS = {
 const SH_FURN = { bed: [26, 34], dbl: [34, 36], wardrobe: [26, 9], safe: [9, 9], sofa: [32, 12], tv: [22, 5], kitchen: [40, 10], fridge: [10, 10], table: [18, 18],
   island: [30, 14], piano: [22, 18], stairs: [20, 46], steps: [16, 8], grill: [8, 8], picnic: [22, 26] };
 const shTurn = (t, u, v) => t === 1 ? [v, -u] : t === 2 ? [-u, -v] : t === 3 ? [-v, u] : [u, v];
-function furnRect(f) {                    // the solid part of a piece of furniture in the plan's frame
-  const [kind, x, z, t] = f, s = SH_FURN[kind]; if (!s) return null;
+function furnRect(f) {                    // the solid part of a piece of furniture in the plan's frame (steps are walked up: not solid)
+  const [kind, x, z, t] = f, s = SH_FURN[kind]; if (!s || kind === 'steps') return null;
   const a = shTurn(t, -s[0] / 2, -s[1] / 2), b = shTurn(t, s[0] / 2, s[1] / 2);
   return [x + Math.min(a[0], b[0]), z + Math.min(a[1], b[1]), x + Math.max(a[0], b[0]), z + Math.max(a[1], b[1])];
 }
