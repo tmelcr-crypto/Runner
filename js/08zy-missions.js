@@ -267,7 +267,10 @@ MSCRIPT.q01 = (() => {
     A.door = at(d[0] + 22, d[1] + 4);                                   // Marco: on the quay at the office door
     A.marco = msPed(A.door.x, A.door.y, 0, { shirt: msWho('marco').shirt, pants: msWho('marco').pants, msName: 'marco',
       step: (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); } });   // he stays at his door whatever happens
-    const b = M.berths[2]; A.boat = msCar('speedboat', b[0], b[1], 0, '#f4f4f6');            // berth two
+    const b = M.berths[2];                                              // berth two: Marco's speedboat (a boat moored there already goes)
+    for (const m of MB.moored.filter(q => dist(q.c.x, q.c.y, b[0], b[1]) < 40)) { MB.moored.splice(MB.moored.indexOf(m), 1); if (cars.includes(m.c) && P.car !== m.c) cars.splice(cars.indexOf(m.c), 1); }
+    for (const c of cars.filter(q => q.t.boat && q !== P.car && dist(q.x, q.y, b[0], b[1]) < 40)) cars.splice(cars.indexOf(c), 1);
+    A.boat = msCar('speedboat', b[0], b[1], 0, '#f4f4f6');
     A.empty = at(M.berths[0][0], M.berths[0][1]);                     // pier 1's empty berth
     A.tboat = msCar('speedboat', M.fuel[2] + 40, M.fuel[3] + 30, 0, '#ff2bd6');               // Tito, idling off the fuel dock
     const J = JETTIES.reduce((best, j) => !best || dist(j.x, j.y, 7450, 6950) < dist(best.x, best.y, 7450, 6950) ? j : best, null), ja = J.a * Math.PI / 180;
@@ -276,7 +279,8 @@ MSCRIPT.q01 = (() => {
     const bay = MARINA.routes.bay, snap = (x, y) => bay.reduce((b, q) => !b || dist(q[0], q[1], x, y) < dist(b[0], b[1], x, y) ? q : b, null);
     const legs = [[A.tboat.x + 260, A.tboat.y], snap(9300, 4600), snap(8526, 5320), snap(7450, 5188), snap(7450, 6950), [A.jetty.water.x, A.jetty.water.y]];
     A.route = [legs[0]]; for (let k = 1; k < legs.length; k++) A.route.push(...msWaterPath(legs[k - 1], legs[k]).slice(1));   // out round the bay, then for the jetty
-    P.x = A.door.x + 70; P.y = A.door.y + 60; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;
+    const st = [[0, 80], [-20, 80], [0, -80], [-40, 40], [-40, -40], [-60, 0]].map(([dx, dy]) => at(A.door.x + dx, A.door.y + dy)).find(q => shoreDist(q.x, q.y) > 10 && !pedBlocked(q.x, q.y)) || at(A.door.x - 40, A.door.y);
+    P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // you start on the quay a few steps from Marco
   }
   function titoRuns(A) {                                               // Tito ashore: off the jetty and away along his fixed way on the sidewalks
     const p = A.tito, path = A.run; p.state = 'post';
