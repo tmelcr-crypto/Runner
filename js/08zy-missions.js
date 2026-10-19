@@ -129,6 +129,12 @@ const msGuide = () => { const g = MS.on && !CUT.on && !MS.talk && MS.guide; if (
   const t = typeof g === 'function' ? g() : g; return t ? { x: t.x, y: t.y, key: 'ms' + MS.k } : null; };
 
 /* ---------- START MISSION: a button by the mission's giver (MS.start = { at() → the giver, label, go() }) ---------- */
+function msBusy() { return MS.on && feat('msBlock'); }          // a mission running: the side activities are shut (js/01j msBlock)
+function msShut() {                        // a side activity's spot during a mission: says so now and then; true = shut
+  if (!msBusy()) return false;
+  if (gameT - (MS.shutT || -99) > 6) { MS.shutT = gameT; toast('NOT DURING A MISSION'); }
+  return true;
+}
 function msKey() {
   const s = MS.on && MS.start; if (!s || P.car || P.dead || P.act || state !== 'play' || CUT.on || MS.talk) return null;
   const t = s.at(); return t && !t.dead && dist(P.x, P.y, t.x, t.y) < 60 ? s : null;

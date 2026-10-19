@@ -167,13 +167,13 @@ function jobMarkTick() {                 // in the right vehicle, stopped in its
   const c = P.car, k = c && !c.dead ? jobKind(c) : null;
   if (c !== JOB.lastCar) {                                        // getting into a job vehicle: where its job starts (not too often)
     JOB.lastCar = c;
-    if (k && jobOn(k) && !(gameT < (JOB.toldT[k] || 0))) { JOB.toldT[k] = gameT + 90; toast(JOBK[k].veh + ': DRIVE TO ' + JOBK[k].at + ' FOR THE ' + JOBK[k].name + ' JOB'); }
+    if (k && jobOn(k) && !msBusy() && !(gameT < (JOB.toldT[k] || 0))) { JOB.toldT[k] = gameT + 90; toast(JOBK[k].veh + ': DRIVE TO ' + JOBK[k].at + ' FOR THE ' + JOBK[k].name + ' JOB'); }
   }
   if (state !== 'play') return;                                   // the card is up: keep which marker you are in
   if (!k || !jobOn(k) || RACE.on) { JOB.mark = null; return; }     // not during a race (js/08o)
   let m = null; for (const d of DISPATCH) if (d.kind === k && Math.abs(d.x - c.x) < JOB_MR && Math.abs(d.y - c.y) < JOB_MR && dist(d.x, d.y, c.x, c.y) < JOB_MR) m = d;
   if (m !== JOB.mark) { JOB.mark = m; JOB.shown = false; }
-  if (m && !JOB.shown && carSpeed(c) < JB.stopSpeed) { JOB.shown = true; openJob(k); }
+  if (m && !JOB.shown && carSpeed(c) < JB.stopSpeed) { JOB.shown = true; if (msBusy()) toast('NOT DURING A MISSION'); else openJob(k); }   // js/08zy
 }
 const JOB_RULES = {
   taxi: 'The rank sends you to a fare waiting at the kerb. Stop by them, then take them where they want to go before the time runs out. Fast trips tip more; crashes cost the tip.',

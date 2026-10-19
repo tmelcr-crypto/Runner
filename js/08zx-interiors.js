@@ -108,6 +108,9 @@ function ixTick(dt) {
 /* ---------- forcing a lock: the side door at night, a lock-up any time ---------- */
 function ixKey() {
   if (!ixOn() || P.car || P.dead || P.act || state !== 'play' || IX.force) return null;
+  const k = ixSpot(); return k && msShut() ? null : k;
+}
+function ixSpot() {
   const day = ixDay(), q = {};
   for (const S of IXS) {
     if (S.kind === 'unit') { if (S.forced || S.broken) continue; ixLocal(S, P.x, P.y, q); if (Math.abs(q.x) < S.dw / 2 && q.z > S.hd - 2 && q.z < S.hd + 34) return { kind: 'lock', S }; }

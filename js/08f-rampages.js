@@ -39,10 +39,10 @@ function nearRamp() {                    // the rampage whose skull you stand at
   for (const r of RAMPAGES) if (rampOn(r) && Math.abs(r.x - P.x) < RAMP_R && Math.abs(r.y - P.y) < RAMP_R && dist(r.x, r.y, P.x, P.y) < RAMP_R) return r;
   return null;
 }
-function rampKey() { const r = nearRamp(); if (!r) return null; const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(r.x, r.y, P.x, P.y) ? null : r; }
+function rampKey() { const r = nearRamp(); if (!r || msShut()) return null; const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(r.x, r.y, P.x, P.y) ? null : r; }
 function rampUi() {                      // every frame (js/14): the RAMPAGE button next to you at a skull
   const r = nearRamp(), b = $('rampBtn');
-  if (!r) { if (!b.hidden) b.hidden = true; return; }
+  if (!r || msShut()) { if (!b.hidden) b.hidden = true; return; }
   if (b.hidden || b.dataset.id !== r.id) { b.hidden = false; b.dataset.id = r.id; b.querySelector('b').textContent = goalText(r); }
   doorBtnAt(b);
 }
@@ -94,6 +94,7 @@ function rampEnd(ok, why) {
 }
 function rampTick(dt) {                  // every frame of play (js/15)
   if (!feat('rampages')) return;                                   // a mode without rampages (js/01j)
+  if (!RAMP.on && msBusy()) return;                                 // a mission running (js/08zy)
   for (const r of RAMPAGES) if (rampOn(r) && !rampFound.has(r.id) && Math.abs(r.x - P.x) < RAMP_SEE && Math.abs(r.y - P.y) < RAMP_SEE && dist(r.x, r.y, P.x, P.y) < RAMP_SEE) {
     rampFound.add(r.id); if (!RAMP.on) toast('RAMPAGE FOUND!');
   }

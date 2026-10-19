@@ -156,6 +156,7 @@ function putSave(s, d) { try { localStorage.setItem(SAVE_KEY + s, JSON.stringify
 function latestSave() { let b = null; for (const s of SLOTS) { const d = getSave(s); if (d && (!b || d.t > b.t)) b = d; } return b; }
 function saveBlock() {                               // why you cannot save now ('' = you can)
   if (gameMode === 'test') return 'MISSIONS TEST IS NEVER SAVED';   // every test starts fresh (js/08zy)
+  if (MS.on) return 'FINISH THE MISSION FIRST';                   // js/08zy
   if (RAMP.on) return 'FINISH THE RAMPAGE FIRST';
   if (JOB.on) return 'FINISH THE JOB FIRST';
   if (RACE.on) return 'FINISH THE RACE FIRST';

@@ -48,9 +48,9 @@ function deliveryTick(dt) {
   if (!DLV.g || !feat('carDelivery')) return;
   if (!DLV.req && DLV.st === 'idle' && gameT >= DLV.next) newRequest();
   const near = dist(P.x, P.y, DLV_BAY.x, DLV_BAY.y);
-  if (DLV.req && near < 420 && DLV.told !== DLV.req.id && !P.dead) { DLV.told = DLV.req.id; toast('WANTED AT THE DOCKS: ' + reqText(DLV.req)); }
+  if (DLV.req && near < 420 && DLV.told !== DLV.req.id && !P.dead && !msBusy()) { DLV.told = DLV.req.id; toast('WANTED AT THE DOCKS: ' + reqText(DLV.req)); }
   if (DLV.st === 'idle') {
-    if (!DLV.req || P.car || P.dead || P.stars > 0 || near > 320) return;
+    if (!DLV.req || P.car || P.dead || P.stars > 0 || near > 320 || msBusy()) return;   // not during a mission (js/08zy)
     const c = cars.find(o => !o.dead && !o.hook && !o.driver && !o.sunk && inBay(o) && carSpeed(o) < 20 && dlvMatch(o));
     if (c) { DLV.car = c; c.hook = true; c.vx = c.vy = c.av = 0; DLV.st = 'align'; DLV.t = 0; DLV.x0 = c.x; DLV.y0 = c.y; DLV.a0 = c.ang; }
     return;
@@ -82,6 +82,7 @@ function payDelivery(c) {                // paid as it rises: the car's price, l
 function deliveryHint() {                // js/14: what to do at the bay
   if (!DLV.g || !feat('carDelivery') || dist(P.x, P.y, DLV_BAY.x, DLV_BAY.y) > 260) return '';
   if (DLV.st !== 'idle') return DLV.car ? 'THE CRANE LOADS IT ON THE SHIP' : '';
+  if (msBusy()) return 'NOT DURING A MISSION';
   if (!DLV.req) return 'NOTHING WANTED - COME BACK LATER';
   const c = P.car || cars.find(o => !o.dead && !o.driver && inBay(o));
   if (!c || !inBay(c)) return P.car && dlvMatch(P.car) ? 'PARK IT IN THE EXPORT BAY' : '';
