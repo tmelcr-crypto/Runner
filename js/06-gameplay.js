@@ -63,6 +63,7 @@ function killPlayer() {
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
   if (c.tk) d *= c.tk.arm;                                         // tuned armour takes some of it (js/08y)
+  d /= jobTough(c);                                                // a job's vehicle while the job is on (js/08n)
   c.hp -= d; if (byPlayer) c.byPlayer = true;
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {

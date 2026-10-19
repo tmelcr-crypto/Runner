@@ -9,7 +9,7 @@
    A weapon waits on the top deck and health or armour three decks up; taken, they come back a while after you have gone.
    A car flying high over a building clears it and comes down on its roof (the roofs across the avenue, off the launch ramp); it drives
    about up there, you can get out and walk, and off the edge the car falls and you drop (a drop from high up hurts). */
-const SKX = { caught: false, gate: 0, picks: [], mach: {}, dumpI: 0, dumpT: 0 };
+const SKX = { caught: false, gate: 0, broken: false, prevSpd: 0, picks: [], mach: {}, dumpI: 0, dumpT: 0 };
 const siteOn = () => !!SITE && feat('site');
 const siteNight = () => SKY.hour < PLC.siteOpen || SKY.hour >= PLC.siteClose;
 
@@ -97,12 +97,16 @@ function siteYard() {                     // workers walking the yard by day (as
 
 /* ---------- the machines: the mixer, the digger, the dump truck - by day at work, at night parked; take them ---------- */
 function siteMachines(dt) {
-  const near = dist(P.x, P.y, (SITE.area[0] + SITE.area[2]) / 2, (SITE.area[1] + SITE.area[3]) / 2) < 1500, day = !siteNight();
+  const near = dist(P.x, P.y, (SITE.area[0] + SITE.area[2]) / 2, (SITE.area[1] + SITE.area[3]) / 2) < 1900, day = !siteNight();
   const want = { mixer: [SITE.mixer[0], SITE.mixer[1], SITE.mixer[2]], digger: [SITE.digger[0], SITE.digger[1], SITE.digger[2]], dumper: [SITE.dumper[0][0], SITE.dumper[0][1], 0] };
   for (const type in want) {
     const M = SKX.mach[type] = SKX.mach[type] || { car: null, gone: -1e9 };
-    if (M.car && (!cars.includes(M.car) || M.car.dead || (M.car.driver && M.car.driver !== 'ai') || dist(M.car.x, M.car.y, want[type][0], want[type][1]) > 400)) { if (M.car.siteAI) M.car.siteAI = false; M.car = null; M.gone = gameT; }
-    if (M.car || !near || !CAR_TYPES[type] || gameT - M.gone < PLC.siteRestock && M.gone > -1e8 || !offScreen(want[type][0], want[type][1])) continue;
+    if (M.car) {                                                     // taken (driven off, wrecked, moved away) - or only cleared away while you were far off (back as soon as you return)
+      const c = M.car, took = c.dead || (c.driver && c.driver !== 'ai') || dist(c.x, c.y, want[type][0], want[type][1]) > 400;
+      if (took || !cars.includes(c)) { if (c.siteAI) c.siteAI = false; M.car = null; M.gone = took ? gameT : -1e9; }
+    }
+    const taken = M.gone > -1e8;                                     // a taken machine comes back after a while, out of sight; the first time it is simply there
+    if (M.car || !near || !CAR_TYPES[type] || (taken && (gameT - M.gone < PLC.siteRestock || !offScreen(want[type][0], want[type][1])))) continue;
     if (cars.some(o => dist(o.x, o.y, want[type][0], want[type][1]) < 50)) continue;
     const [x, y, deg] = want[type], c = makeCar(type, x, y, deg * Math.PI / 180, null); c.searched = true; c.siteM = type; cars.push(c); M.car = c;
   }
@@ -133,19 +137,34 @@ function sitePut(s) {
 }
 function siteTaken(p) { p.site.p = null; p.site.takenAt = gameT; }   // js/08d
 
+/* ---------- the rolling gate: open in the site's hours, shut at night (not onto anything standing in the way); rammed fast at night it
+   bursts off its track and the alarm goes (places table: Construction site); mended in the morning ---------- */
+function siteGate(dt, on, night) {
+  const [gx, gy, gw] = SITE.gate, me = P.car;
+  if (!night) SKX.broken = false;
+  if (on && night && me && !SKX.broken && SKX.gate < 0.2 && Math.abs(me.x - gx) < 45 && Math.abs(me.y - gy) < gw / 2 + 6 && SKX.prevSpd > PLC.siteRam) {
+    SKX.broken = true; me.hp -= 15; Snd.crash && Snd.crash(0.8); cam.shake = Math.max(cam.shake, 8);
+    toast('ALARM - THE SITE GATE WAS RAMMED', true);
+    if (feat('police') && !SKX.caught) { SKX.caught = true; forceWanted(PLC.guardStars); reportCrime(0, 0, gx, gy, true); }
+  }
+  const want = !night || SKX.broken ? 1 : 0, inWay = () => [P.car || P, ...cars, ...peds].some(o => !o.dead && Math.abs(o.x - gx) < 30 && Math.abs(o.y - gy) < gw / 2 + 8);
+  if (want > SKX.gate) SKX.gate = Math.min(1, SKX.gate + dt * 0.5); else if (want < SKX.gate && !(SKX.gate > 0.1 && inWay())) SKX.gate = Math.max(0, SKX.gate - dt * 0.5);
+  if (SK.gateRc) SK.gateRc.off = SKX.broken || SKX.gate > 0.5;
+  SKX.prevSpd = P.car ? carSpeed(P.car) : 0;
+}
+
 /* ---------- js/15 update ---------- */
 function siteTick(dt) {
   if (!SITE) return;
   const on = siteOn(), night = on && siteNight();
-  if (SK.gateRc) SK.gateRc.off = !night || SKX.gate > 0.5;           // shut at night (it swings shut over a few seconds)
-  SKX.gate = clamp(SKX.gate + (night ? -dt : dt) * 0.5, 0, 1);
+  siteGate(dt, on, night);
   if (!inSite(P.x, P.y, 10)) SKX.caught = false;
   if (!on) return;
   siteYard(); siteMachines(dt);
   const away = dist(P.x, P.y, SK.lm.cx, SK.lm.cy) > 1500;
   for (const s of SKX.picks) if (!s.p && s.takenAt && away && gameT - s.takenAt > PLC.siteRestock) sitePut(s);
 }
-function siteReset() { Object.assign(SKX, { caught: false, gate: siteOn() && siteNight() ? 0 : 1, dumpI: 0, dumpT: 0 }); for (const k in SKX.mach) SKX.mach[k] = { car: null, gone: -1e9 }; sitePicks(); }
+function siteReset() { Object.assign(SKX, { caught: false, gate: siteOn() && siteNight() ? 0 : 1, broken: false, prevSpd: 0, dumpI: 0, dumpT: 0 }); for (const k in SKX.mach) SKX.mach[k] = { car: null, gone: -1e9 }; sitePicks(); }
 
 /* ---------- js/13: the levels above you fade, the cranes swing, the gate, the machines' moving parts, the guard's torch ---------- */
 let SK_TORCH = null;
@@ -165,7 +184,7 @@ function gfxSite(time) {
     const tx = C.jib * (0.45 + 0.35 * Math.sin(w * 0.13 + C.ph)), ly = -C.Hc + 14 + (T.top + 40) * (0.5 + 0.5 * Math.sin(w * 0.09 + C.ph * 1.7));
     C.trolley.position.set(tx, 0, 0); C.load.position.y = ly; C.cable.position.y = ly / 2; C.cable.scale.y = Math.max(1, -ly);
   }
-  for (const L of SK.parts.leaves) L.pv.rotation.y = L.s * SKX.gate * Math.PI * 0.5;
+  { const R = SK.parts.roll, gw = SITE.gate[2]; R.position.z = SK.parts.rollZ - (SKX.broken ? 0 : SKX.gate * gw); R.rotation.z += ((SKX.broken ? -1.48 : 0) - R.rotation.z) * 0.25; }   // rolled north along the hoarding; rammed: knocked flat into the yard
   for (const type in SKX.mach) { const c = SKX.mach[type].car; if (!c || !c.m) continue;
     if (c.m.drum && day) c.m.drum.rotation.x = time * 1.4;
     if (c.m.arm && day && c.siteAI) { c.m.arm.rotation.z = -0.35 + 0.3 * Math.sin(time * 0.8); if (c.m.stick) c.m.stick.rotation.z = 0.8 + 0.5 * Math.sin(time * 0.8 + 1.2); } }

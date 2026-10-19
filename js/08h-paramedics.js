@@ -3,8 +3,9 @@
    (js/01j medics) An ambulance at a body stops, and two paramedics get out with a stretcher. They carry the body back to the ambulance
    - and one more lying within 30 m, two at most - load it, get in and drive to the nearest hospital with lights and siren. There they
    carry each body to the door, where it is taken in, walk back and drive on as ordinary traffic until the next call. They are ordinary
-   people: kill one, or drive off with their ambulance while they are out, and they drop the stretcher and run - the bodies stay where
-   they fall and another ambulance comes for them. While both are out the ambulance stands empty. */
+   people: hit one (a punch, a shot, a car) or kill one and they drop the stretcher - the body rolls off where it falls and another
+   ambulance comes for it - and run; once calm they walk back to the ambulance and drive off. Drive off with their ambulance while they
+   are out and they just run. While both are out the ambulance stands empty. */
 let TEAMS = [];
 const MED_WALK = 2.4 * MPS, MED_HALF = 11, MED_PAIR = 30 * UNITS_PER_M, MED_PHASE_MAX = 45;
 const carRear = c => ({ x: c.x - Math.cos(c.ang) * (c.t.len / 2 + 16), y: c.y - Math.sin(c.ang) * (c.t.len / 2 + 16) });
@@ -24,13 +25,41 @@ function startTeam(c, k) {                // js/08c: the ambulance has stopped a
 }
 function getOut(T) {                      // the two climb out at the back with the stretcher
   const r = carRear(T.car); T.x = r.x; T.y = r.y; T.ang = T.car.ang + Math.PI; T.lx = T.x; T.ly = T.y; T.lt = gameT; T.ghost = false;
-  T.medics = [0, 1].map(() => { const m = makePed(r.x, r.y); m.medic = true; m.arm = -1; m.shirt = '#f4f6f8'; m.e = -1; m.umb = false; peds.push(m); return m; });
+  T.medics = [0, 1].map(() => { const m = makePed(r.x, r.y); m.medic = true; m.arm = -1; m.shirt = '#f4f6f8'; m.e = -1; m.umb = false; m.hp0 = m.hp; peds.push(m); return m; });
   placeMedics(T);
 }
 function getIn(T) { for (const m of T.medics) { const i = peds.indexOf(m); if (i >= 0) peds.splice(i, 1); } T.medics = []; }
-function placeMedics(T) {                 // one at each end of the stretcher
-  const fx = Math.cos(T.ang), fy = Math.sin(T.ang), [a, b] = T.medics;
-  for (const [m, s] of [[a, 1], [b, -1]]) { m.x = T.x + fx * MED_HALF * s; m.y = T.y + fy * MED_HALF * s; m.vx = T.vx; m.vy = T.vy; if (!T.vx && !T.vy) m.h3 = T.ang; }
+function placeMedics(T, dt = 0) {         // one at each end of the stretcher, their legs walking as it goes
+  const fx = Math.cos(T.ang), fy = Math.sin(T.ang), [a, b] = T.medics, sp = Math.hypot(T.vx, T.vy);
+  for (const [m, s] of [[a, 1], [b, -1]]) { m.x = T.x + fx * MED_HALF * s; m.y = T.y + fy * MED_HALF * s; m.vx = T.vx; m.vy = T.vy; m.bob += sp * dt * 0.12; if (!T.vx && !T.vy) m.h3 = T.ang; }
+}
+const medicHit = m => m.dead || m.knocked || m.stunT > 0 || m.hp < m.hp0 || !peds.includes(m);   // hurt, knocked down or gone
+function scare(T) {                       // a paramedic hit or killed: the stretcher dropped (the body rolls off beside it), both run; they come back once calm (scaredStep)
+  const fx = Math.cos(T.ang + Math.PI / 2), fy = Math.sin(T.ang + Math.PI / 2);
+  for (const b of T.bodies) {
+    if (b.loaded) continue;
+    if (b.onStretcher) { b.onStretcher = false; b.x = T.x + fx * 12; b.y = T.y + fy * 12; }
+    b.medicHold = false; b.deadT = 0; if (aliveBody(b)) callFor('ambulance', b.x, b.y, b);
+  }
+  T.scared = T.medics.filter(m => !m.dead && peds.includes(m)); T.back = 0; T.load = 0; T.cur = null; T.medics = []; T.car.medics = false;
+  for (const m of T.scared) { m.medic = false; m.state = 'flee'; m.fl = rand(5, 8); m.fx = m.x - P.x || 1; m.fy = m.y - P.y; }
+  setPhase(T, 'scared');
+}
+function scaredStep(T, dt) {              // running off, then - once calm - back to the ambulance and off in it (false: done)
+  const c = T.car;
+  if (!cars.includes(c) || c.dead || c.sunk || P.car === c || (P.act && P.act.c === c) || c.driver) { for (const m of T.scared) m.medic = false; return false; }   // the ambulance is gone: they stay on foot
+  const r = carRear(c), far = dist(c.x, c.y, P.x, P.y) > 1300, late = gameT - T.t > 90;
+  for (let i = T.scared.length - 1; i >= 0; i--) {
+    const m = T.scared[i];
+    if (m.dead || !peds.includes(m)) { T.scared.splice(i, 1); continue; }
+    if (m.medic) {                                                   // walking back
+      if (m.knocked || m.stunT > 0 || m.hp < m.hp0) { m.medic = false; m.state = 'flee'; m.fl = rand(5, 8); m.fx = m.x - P.x || 1; m.fy = m.y - P.y; continue; }   // hit again: off again
+      if (far || walkTo(m, r.x, r.y, MED_WALK, dt) < 14) { peds.splice(peds.indexOf(m), 1); T.scared.splice(i, 1); T.back++; }   // aboard
+    } else if (m.state !== 'flee' && !m.stunT && !m.knocked) { m.medic = true; m.hp0 = m.hp; }   // calm again: back to the ambulance
+    else if (late || far) { m.medic = false; T.scared.splice(i, 1); }   // never calmed down: they stay in town
+  }
+  if (T.scared.length) return true;
+  if (T.back) { c.driver = 'ai'; c.hb = false; } return false;          // off they drive (if nobody came back, it stands empty)
 }
 function teamWalk(T, tx, ty, dt) {         // the stretcher and its two carriers walk to (tx, ty); true once there
   const dx = tx - T.x, dy = ty - T.y, d = Math.hypot(dx, dy);
@@ -42,7 +71,7 @@ function teamWalk(T, tx, ty, dt) {         // the stretcher and its two carriers
   return false;
 }
 function setPhase(T, ph, wait) { T.phase = ph; T.wait = wait || 0; T.t = gameT; T.ghost = false; T.lt = gameT; T.lx = T.x; T.ly = T.y; }
-function dropAll(T, why) {                // a paramedic dead or the ambulance taken: drop the stretcher and run (stuck: get back in); the bodies stay for another ambulance
+function dropAll(T, why) {                // the ambulance taken: drop the stretcher and run (stuck: get back in); the bodies stay for another ambulance
   for (const b of T.bodies) {
     if (b.loaded) continue;
     if (b.onStretcher) { b.onStretcher = false; b.x = T.x; b.y = T.y; }
@@ -65,15 +94,17 @@ function atHospital(c) {                  // js/08c: the ambulance has stopped b
   getOut(T); T.load = 1; T.loaded--; setPhase(T, 'toDoor');
 }
 function teamStep(T, dt) {                // false once the team is done (or gone)
+  if (T.phase === 'scared') return scaredStep(T, dt);
   const c = T.car, out = T.medics.length > 0;
   const stolen = !cars.includes(c) || c.dead || c.sunk || P.car === c || (P.act && P.act.c === c) || (out && c.driver);
-  if (out && (stolen || T.medics.some(m => m.dead || m.knocked || !peds.includes(m)) || gameT - T.t > MED_PHASE_MAX)) { dropAll(T, stolen ? 'stolen' : gameT - T.t > MED_PHASE_MAX ? 'stuck' : ''); return false; }
+  if (out && (stolen || gameT - T.t > MED_PHASE_MAX)) { dropAll(T, stolen ? 'stolen' : 'stuck'); return false; }
+  if (out && T.medics.some(medicHit)) { scare(T); return true; }
   if (!out) return T.phase === 'drive' && !stolen && !!c.task && c.task.hosp === T;   // driving to the hospital (js/07 routes it, js/08c stops it)
   if (dist(T.x, T.y, P.x, P.y) > 1300) {                             // far behind you now: they finish the job unseen
     for (const b of T.bodies) { const list = officers.includes(b) ? officers : peds, i = list.indexOf(b); if (i >= 0 && b.medicHold) list.splice(i, 1); }
     getIn(T); c.driver = 'ai'; c.hb = false; c.medics = false; return false;
   }
-  if (T.wait > 0) { T.wait -= dt; T.vx = T.vy = 0; placeMedics(T); return true; }
+  if (T.wait > 0) { T.wait -= dt; T.vx = T.vy = 0; placeMedics(T, dt); return true; }
   switch (T.phase) {
     case 'toBody': {                                                  // walk the stretcher to the next body
       const b = T.bodies.find(q => !q.loaded && aliveBody(q));
@@ -101,7 +132,7 @@ function teamStep(T, dt) {                // false once the team is done (or gon
       break;
     }
   }
-  placeMedics(T); return true;
+  placeMedics(T, dt); return true;
 }
 function updateMedics(dt) {               // js/15, every frame of play
   for (let i = TEAMS.length - 1; i >= 0; i--) if (!teamStep(TEAMS[i], dt)) { const T = TEAMS[i]; if (T.mesh) scene.remove(T.mesh); TEAMS.splice(i, 1); }
@@ -116,9 +147,13 @@ function stretcherModel() {               // a stretcher on wheels, and a body u
 }
 function gfxTeams() {                     // js/13: each stretcher out on the street
   for (const T of TEAMS) {
+    if (T.phase === 'scared') {                                      // dropped: it lies on its side where they let go
+      if (!T.mesh) { T.mesh = stretcherModel(); scene.add(T.mesh); }
+      T.mesh.visible = true; T.mesh.position.set(T.x, groundH(T.x, T.y) + 3, T.y); T.mesh.rotation.set(1.2, -T.ang, 0, 'YXZ'); T.mesh.userData.body.visible = false; continue;
+    }
     if (!T.medics.length) { if (T.mesh) T.mesh.visible = false; continue; }
     if (!T.mesh) { T.mesh = stretcherModel(); scene.add(T.mesh); }
-    T.mesh.visible = true; T.mesh.position.set(T.x, groundH(T.x, T.y) + 9, T.y); T.mesh.rotation.y = -T.ang; T.mesh.userData.body.visible = T.load > 0;
+    T.mesh.visible = true; T.mesh.position.set(T.x, groundH(T.x, T.y) + 9, T.y); T.mesh.rotation.set(0, -T.ang, 0); T.mesh.userData.body.visible = T.load > 0;
   }
 }
 function clearTeams() { for (const T of TEAMS) if (T.mesh) scene.remove(T.mesh); TEAMS = []; }

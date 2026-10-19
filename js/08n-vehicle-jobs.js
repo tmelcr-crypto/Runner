@@ -204,6 +204,7 @@ $('jsStop').addEventListener('click', () => { closeJob(); jobEnd('YOU STOPPED IT
 $('jobGo').addEventListener('click', () => { const k = JOB.at; closeJob(); if (k && P.car && jobKind(P.car) === k && !JOB.on) jobStart(k); });
 
 /* ---------- running a job ---------- */
+const jobTough = c => JOB.on && c === JOB.car && feat('jobTough') ? 1 + JB.tough : 1;   // js/06 damageCar: the job's vehicle, while the job is on, takes this many times less damage (jobs table)
 function addTime(s) { JOB.t += s; }
 function jobStart(k) {
   Object.assign(JOB, { on: k, car: P.car, level: 0, t: 0, outT: 0, cash: 0, tg: [], st: null, aboard: 0, hospRun: false, hp: P.car.hp, crashCd: 0, beep: 6, newRew: false });
@@ -263,7 +264,7 @@ function jobTick(dt) {                    // js/15, every frame of play
   const c = JOB.car;
   if (!c || c.dead || c.hp <= 0 || c.sunk || !cars.includes(c)) { jobEnd('THE ' + K.veh + ' IS WRECKED'); return; }
   if (P.car !== c) { if ((JOB.outT += dt) > JB.outMax) { jobEnd('YOU LEFT THE ' + K.veh); return; } } else JOB.outT = 0;
-  JOB.crashCd -= dt; if (c.hp < JOB.hp - 2 && JOB.crashCd <= 0) { JOB.crashCd = 0.7; jobCrash(); } JOB.hp = c.hp;
+  JOB.crashCd -= dt; if (c.hp < JOB.hp - 2 / jobTough(c) && JOB.crashCd <= 0) { JOB.crashCd = 0.7; jobCrash(); } JOB.hp = c.hp;
   JOB.t -= dt;
   if (JOB.t <= JOB.beep - 1 && JOB.t > 0) { JOB.beep = Math.ceil(JOB.t); Snd.tone(1200, 1200, 0.06, 0.1, 'square'); }
   else if (JOB.t > JOB.beep) JOB.beep = 6;

@@ -24,9 +24,14 @@ function roofAt(x, y, m) {               // the highest roof within m of a point
 }
 
 /* ---------- every frame (js/15, after the police) ---------- */
+function indoors() {                     // you are inside a building (an interior, a garage, the casino, a safehouse, a tower's halls): out of the helicopter's sight
+  const tg = P.car || P;
+  return !!SV.on || !!portalAt(tg.x, tg.y) || SAFES.some(h => h.site && shIn(h, tg.x, tg.y, 0));
+}
 function updateHeli(dt) {
-  const want = feat('policeHeli') && feat('police') && !P.dead && P.stars >= COP.heliFrom;
-  if (PH.mode === 'off') { PH.sees = false; if (want && gameT >= PH.next) heliSpawn(); else { Snd.setRotor(0); return; } }
+  const want = feat('policeHeli') && feat('police') && !P.dead && P.stars >= COP.heliFrom, inside = !P.dead && indoors();
+  if (inside) { if (!PH.inAt) { PH.inAt = { x: (P.car || P).x, y: (P.car || P).y }; PH.inT = 0; } PH.inT += dt; } else PH.inAt = null;
+  if (PH.mode === 'off') { PH.sees = false; if (want && gameT >= PH.next && !inside) heliSpawn(); else { Snd.setRotor(0); return; } }
   if (PH.mode === 'fall') { heliFall(dt); heliNoise(); return; }
   if (PH.mode === 'wreck') { PH.sees = false; Snd.setRotor(0); if ((PH.wreckT -= dt) <= 0) { PH.mode = 'off'; heliHide(); } else heliBurn(); return; }
   if (PH.mode === 'hunt' && !want) PH.mode = 'leave';
@@ -38,7 +43,11 @@ function updateHeli(dt) {
   } else {
     PH.sees = heliSeesYou(dt);
     let gx, gy;                                                    // where the light wants to be
-    if (PH.sees || PS.seen) { gx = P.x; gy = P.y; }
+    if (PH.inAt) {                                                 // you went into a building: it circles over where you went in, no shots; in long enough, off it goes
+      PH.sweep += dt; gx = PH.inAt.x + Math.cos(PH.sweep * 0.7) * 90; gy = PH.inAt.y + Math.sin(PH.sweep * 0.7) * 90;
+      if (PH.inT > COP.heliInside) { PH.mode = 'leave'; toast('THE HELICOPTER GAVE UP'); }
+    }
+    else if (PH.sees || PS.seen) { gx = P.x; gy = P.y; }
     else { PH.sweep += dt; const a = PH.sweep * 0.8, r = Math.max(PS.r, 60) * (0.55 + 0.45 * Math.sin(PH.sweep * 0.43)); gx = PS.lx + Math.cos(a) * r; gy = PS.ly + Math.sin(a * 1.3) * r; }
     const dx = gx - PH.sx, dy = gy - PH.sy, d = Math.hypot(dx, dy), st = COP.heliLightSpeed * dt;
     if (d <= st) { PH.sx = gx; PH.sy = gy; } else { PH.sx += dx / d * st; PH.sy += dy / d * st; }
@@ -56,8 +65,8 @@ function heliLift() {                   // how far north of where it really is t
   const D = camDist(), tl = CAM_TILT_DEG * Math.PI / 180, hc = D * Math.cos(tl); return clamp(PH.h / Math.max(60, hc - PH.h), 0, 1.2) * D * Math.sin(tl);
 }
 function heliNoise() { Snd.setRotor(clamp(1 - dist(PH.x, PH.y, cam.x, cam.y) / 1800, 0, 1)); }
-function heliSeesYou(dt) {               // you are in the light - not under a car park deck, not under a tree (js/12g) - and it has not lost you
-  const tg = P.car || P, lit = !P.dead && zOf(tg) <= 15 && dist(PH.sx, PH.sy, tg.x, tg.y) < COP.heliLight + (P.car ? P.car.t.len * 0.3 : 6) && !treeCover();
+function heliSeesYou(dt) {               // you are in the light - not under a car park deck, not under a tree (js/12g), not inside a building - and it has not lost you
+  const tg = P.car || P, lit = !P.dead && !PH.inAt && zOf(tg) <= 15 && dist(PH.sx, PH.sy, tg.x, tg.y) < COP.heliLight + (P.car ? P.car.t.len * 0.3 : 6) && !treeCover();
   if (!feat('heliLose')) return lit;
   if (PS.ground) PH.lost = false;                                  // a cop on the ground sees you: it is told where you are
   if (PH.lost) { if (!lit) PH.lost = false; return false; }        // it lost you: once its light has left you it can find you again
@@ -89,7 +98,7 @@ function heliFly(gx, gy, dt) {           // toward a point: speed, acceleration,
 
 /* ---------- its guns ---------- */
 function heliGun(dt) {                   // from 4 stars: a short burst every few seconds while the light is on you
-  const w = apcGunW();
+  const w = apcGunW(); if (PH.inAt) PH.burst = 0;                // you are inside: no more rounds
   if (PH.burst > 0) { if ((PH.shotT -= dt) <= 0) { PH.shotT = w.rate; PH.burst--; heliRound(w); } return; }
   PH.gunT = Math.max(0, PH.gunT - dt);
   if (PH.gunT <= 0 && PH.sees && P.stars >= COP.heliGunFrom) { PH.burst = Math.round(COP.heliBurst); PH.shotT = 0; PH.gunT = COP.heliBurstEvery; }

@@ -184,6 +184,61 @@ function copShoot(q, tgt, d) {
   Snd.tone(900, 200, 0.05, 0.06, 'square');
   if (Math.random() < lerp(COP.accNear, COP.accFar, clamp(d / COP.fireRange, 0, 1))) { if (P.car) damageCar(P.car, COP.dmgCar, false); else damagePlayer(COP.dmgFoot); }
 }
+/* ---------- buildings you can walk into: the police follow you through their doors (mode copsInside); your safehouses are not on the list ----------
+   Each: inside(x, y), and its doors - where, the way out (n), how wide, and whether it is open now (a roller door down at night is
+   not, unless it was rammed). The helicopter cannot see into any of them, nor into a safehouse (js/08u indoors). */
+let PORTALS = null, PORTALS_OF = null;
+function portals() {
+  if (PORTALS && PORTALS_OF === IXS) return PORTALS;
+  const out = [];
+  const add = (inside, cx, cy, ux, uy, hu, hv, doors) => {           // a building: its box (centre, axis u, half sizes along u and across) and its doors
+    const C = [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([a, b]) => [cx + ux * hu * a - uy * hv * b, cy + uy * hu * a + ux * hv * b]);
+    for (const d of doors) { const L = C.map(([x, y]) => (x - d.x) * -d.ny + (y - d.y) * d.nx); d.l0 = Math.min(...L); d.l1 = Math.max(...L); }   // how far the walls reach either side of the door
+    out.push({ inside, doors });
+  };
+  const door = (x, y, nx, ny, w, open) => ({ x, y, nx, ny, w, open });
+  for (const S of IXS) {                                             // the hangars, warehouses and storage units (js/10z)
+    const nx = -S.sa, ny = S.ca, ds = [door(S.dx, S.dy, nx, ny, S.dw, () => S.ds.off)];
+    if (S.px !== null) { const p = ixWorld(S, S.px, S.hd); ds.push(door(p.x, p.y, nx, ny, IX_PD, () => !!S.ps && S.ps.off)); }
+    add((x, y) => ixIn(S, x, y, 0), S.cx, S.cy, S.ca, S.sa, S.hw, S.hd, ds);
+  }
+  for (const G of PNS) { const p = pnsWorld(G, 0, G.hd); add((x, y) => pnsIn(G, x, y, 0), G.cx, G.cy, G.ca, G.sa, G.hw, G.hd, [door(p.x, p.y, -G.sa, G.ca, G.dw, () => G.ds.off)]); }   // the Pay 'n' Spray garages (js/10j)
+  const box = (R, inside, doors) => add(inside, (R.x0 + R.x1) / 2, (R.y0 + R.y1) / 2, 1, 0, (R.x1 - R.x0) / 2, (R.y1 - R.y0) / 2, doors);
+  if (CASM && CZ.door) {                                             // the casino and the club (js/10w): the doors the bouncers keep
+    const H = casHall(), C = casClub(), [, dy, dw] = CASM.door, [cdx, , cdw] = CASM.cdoor;
+    box(H, (x, y) => inCasino(x, y, 0), [door(H.x1, dy, 1, 0, dw, () => CZ.door.off)]);
+    box(C, (x, y) => inClub(x, y, 0), [door(cdx, C.y1, 0, 1, cdw, () => CZ.cdoor.off)]);
+  }
+  if (SHOWM && SHOW.sdoor) {                                         // the showroom (its doors with bollards: people pass) and the tuning workshop's roller door (js/10s)
+    const H = showHall(), [dx, , dw] = SHOWM.door, [, sy, sw] = SHOWM.side, [, ey, ew] = SHOWM.sdoor, R = tnRect();
+    box(H, (x, y) => showIn(x, y, 0), [door(dx, H.y1, 0, 1, dw, () => true), door(H.x1, sy, 1, 0, sw, () => true)]);
+    box(R, (x, y) => tnIn(x, y, 0), [door(R.x1, ey, 1, 0, ew, () => SHOW.sdoor.off)]);
+  }
+  PORTALS_OF = IXS; return (PORTALS = out);
+}
+const portalAt = (x, y) => portals().find(B => B.inside(x, y)) || null;
+function copRoute(q, tx, ty) {           // where a cop on foot heads for (tx, ty): straight there, or round the building and through an open door, in or out (null: no way through, wait)
+  if (!feat('copsInside')) return [tx, ty];
+  const B = portalAt(tx, ty), A = portalAt(q.x, q.y);
+  if (A === B) {                                                     // the same place: straight there - or, inside with shelves in between, down the middle aisle from the door to your row first
+    if (!A || losClear(q.x, q.y, tx, ty, true)) return [tx, ty];
+    const d = A.doors[0], f = (x, y) => [(x - d.x) * -d.ny + (y - d.y) * d.nx, (x - d.x) * d.nx + (y - d.y) * d.ny], [lq, sq0] = f(q.x, q.y), [, st] = f(tx, ty);
+    return Math.abs(lq) > 12 ? [d.x + d.nx * sq0, d.y + d.ny * sq0] : [d.x + d.nx * st, d.y + d.ny * st];
+  }
+  const into = !A, W = into ? B : A;                                  // into the building you are in, or out of the one the cop is in
+  let d = null, bd = Infinity; for (const o of W.doors) if (o.open()) { const k = dist(q.x, q.y, o.x, o.y); if (k < bd) { bd = k; d = o; } }
+  if (!d) return null;
+  const rx = q.x - d.x, ry = q.y - d.y, s = rx * d.nx + ry * d.ny, l = rx * -d.ny + ry * d.nx, at = (ll, ss) => [d.x - d.ny * ll + d.nx * ss, d.y + d.nx * ll + d.ny * ss];
+  const sq = Math.max(6, d.w / 2 - 9);                                 // near enough to the door's middle to go straight through
+  if (!into) return Math.abs(l) > sq && s < -4 ? at(0, -30) : at(0, 30);   // out: square behind the door, then through it
+  if (s < 4 && !(s > -25 && Math.abs(l) < d.w / 2 - 4)) {            // beside or behind the building (not in the doorway): out past its side, then up to its front
+    if (gameT - (q.rt || 0) > 2) { if (dist(q.x, q.y, q.r0x || 0, q.r0y || 0) < 10) q.rk = (q.rk || 0) + 1; q.r0x = q.x; q.r0y = q.y; q.rt = gameT; }   // stuck (a building next door): the other side, then further out
+    const k = q.rk || 0, far = 30 + 240 * Math.floor(k / 2), right = (l > (d.l0 + d.l1) / 2) !== (k % 2 === 1), side = right ? d.l1 + far : d.l0 - far;
+    return (right ? l < side - 15 : l > side + 15) ? at(side, s) : at(l, 35);
+  }
+  q.rk = 0;
+  return Math.abs(l) > sq && s >= 4 ? at(0, 30) : at(0, -30);       // in front: square to the door, then in (in the doorway: on in)
+}
 const copEngaged = q => P.stars > 0 && !P.dead && (q.sees || dist(q.x, q.y, PS.lx, PS.ly) < 600);
 function copCombat(q, dt) {
   const tgt = P.car || P, lv = P.stars, d = dist(q.x, q.y, tgt.x, tgt.y), run = COP.footSpeed;
@@ -193,8 +248,10 @@ function copCombat(q, dt) {
     else if ((q.lookT -= dt) <= 0 || dist(q.x, q.y, q.look.x, q.look.y) < 20) {
       const a = rand(0, TAU), r = rand(0.3, 1) * PS.r; q.look = { x: PS.lx + Math.cos(a) * r, y: PS.ly + Math.sin(a) * r }; q.lookT = rand(4, 7);
     }
-    walkTo(q, q.look.x, q.look.y, run * 0.75, dt); return;
+    const w = copRoute(q, q.look.x, q.look.y); if (w) walkTo(q, w[0], w[1], run * 0.75, dt); else stepCop(q, 0, 0, 0, dt); return;   // through a door if you went into a building
   }
+  const w = copRoute(q, tgt.x, tgt.y);                               // in sight through an open door: in after you
+  if (w && (w[0] !== tgt.x || w[1] !== tgt.y)) { walkTo(q, w[0], w[1], run, dt); return; }
   q.ang = q.hd = Math.atan2(tgt.y - q.y, tgt.x - q.x);
   const reach = P.car ? P.car.t.len / 2 + 16 : COP.bustReach, stop = COP.lv.stop[lv];
   let sp = 0;

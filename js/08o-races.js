@@ -515,7 +515,7 @@ function runTick(dt, Ro) {
     if (K.done) continue;
     if (o.dead || o.hp <= 0 || o.sunk || !cars.includes(o) || o.driver !== 'race') { K.out = true; continue; }
     const along = Ro.kind === 'drag' ? stripAlong(Ro.S, o.x, o.y) + o.t.len / 2 : K.d;
-    if (along >= finD) {
+    if (Ro.kind === 'street' ? along >= finD - RC.cpSize || K.hold : along >= finD) {   // a street racer is through the finish within the checkpoint's size, as you are (it stops just short of its route's end)
       K.done = true; K.time = Ro.T;
       if (Ro.kind === 'street') toTraffic(o); else if (Ro.kind === 'drag') K.hold = true; else { K.v = K.v.map(v => v * 0.55); }
       continue;

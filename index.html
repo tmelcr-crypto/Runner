@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="53">
+<meta name="build" content="54">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Block Runner</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=53">
+<link rel="stylesheet" href="css/style.css?v=54">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -108,7 +108,7 @@
   <div class="card" id="startCard">
     <h1>BLOCK<br>RUNNER</h1>
     <p class="tag">TOP-DOWN CRIME SPREE '97</p>
-    <p class="build" id="buildTag">BUILD 53</p>
+    <p class="build" id="buildTag">BUILD 54</p>
     <div class="menu">
       <button id="contBtn" class="big pri" type="button" hidden>CONTINUE</button>
       <p class="sub" id="contInfo" hidden></p>
@@ -230,7 +230,7 @@
         <li>Somewhere far from where you start, a tank waits in a parking lot.</li></ul></div>
       <div><h3>JOBS</h3><ul>
         <li>Drive the right vehicle into the marker at its dispatch point and stop: the START card shows. <b>TAXI</b> at a taxi rank (yellow cab sign on the maps), <b>PARAMEDIC</b> in an ambulance at a hospital, <b>FIREFIGHTER</b> in a fire engine at a fire station (flame on the maps), <b>VIGILANTE</b> in a police car at a police station.</li>
-        <li>Level 1 asks for one fare, patient, fire or criminal car, each level for one more. Each adds time to the clock and pays; a level done pays a bonus. The job ends when the time runs out, the vehicle is wrecked or you are out of it for 10 s - police stars do not end it.</li>
+        <li>Level 1 asks for one fare, patient, fire or criminal car, each level for one more. Each adds time to the clock and pays; a level done pays a bonus. The job ends when the time runs out, the vehicle is wrecked or you are out of it for 10 s - police stars do not end it. While the job is on its vehicle is six times as tough.</li>
         <li><b>TAXI</b>: the rank sends you to a fare; stop by them, then at the destination. Fast trips tip more, crashes cost the tip. <b>PARAMEDIC</b>: up to 3 patients aboard, then any hospital; crashes cost time. <b>FIREFIGHTER</b>: spray burning cars with the water cannon until they are out. <b>VIGILANTE</b>: wreck the criminals' car or take them down when they run; from level 5 they shoot back.</li>
         <li>Level 8 once: <b>NITRO</b> in taxis (Shift or N, or the NITRO button), +50 max health, fireproof, +50 max body armor.</li>
         <li>Tap or click the job's panel at the top to <b>STOP</b> the job. A police car in a police station's yard is yours for the vigilante job - no crime.</li></ul></div>
@@ -315,12 +315,13 @@
         <li>The airport's three hangars, six warehouses at Dockside and Gravel Flats and the storage yard's eight lock-ups (a brown crate on the maps): walk or drive in, the roof turns see-through.</li>
         <li>Stashes of cash, guns and ammo inside, and four rare vehicles - a classic under a dust sheet, a race bike, a prototype, an armoured van with money in the back. Drive one off and it is yours; lost, a new one is back a day later.</li>
         <li>By day the doors are up and workers watch. At night ram the roller door or <b>SLIP IN</b> at the side door (hold still) - and keep out of the guard's torch, or the alarm brings 2 stars.</li>
-        <li>A lock-up: <b>FORCE</b> its lock (or E) any time.</li></ul></div>
+        <li>A lock-up: <b>FORCE</b> its lock (or E) any time.</li>
+        <li>Wanted, the police on foot follow you in through any open door (your safehouses stay safe). Inside, the helicopter cannot see or shoot you: it circles outside, and after a while it gives up.</li></ul></div>
       <div><h3>SKYLINE ONE</h3><ul>
         <li>The construction site downtown in Palm Heights (a crane on the maps). Drive or walk up the half-built tower's ramps, deck by deck; the <b>launch ramp</b> on the top deck sends you over the avenue - onto the street, or onto the roofs across it if you are fast. A hard landing damages the car.</li>
         <li>Up on a roof you can drive about or get out; off the edge you drop, and a long drop hurts.</li>
         <li>By day the gate is open: the yard's ramps and mounds throw a fast car, and the mixer, the digger and the dump truck are yours to take. A weapon waits on the top deck, health or armour three decks up.</li>
-        <li>At night the gate is locked; get in on foot through the broken panel on the north street - and if the guard's torch finds you, you get a star.</li></ul></div>
+        <li>At night the rolling gate is shut; get in on foot through the broken panel on the north street, or ram the gate fast - the alarm goes. If the guard's torch finds you, you get a star.</li></ul></div>
     </div>
     <div class="ctl page" data-tab="arms" id="helpArms" hidden></div>
     <div class="ctl page" data-tab="cops" hidden>
@@ -374,7 +375,7 @@
         <li>Rain makes the roads slippery, storms bring lightning, and fog hides you from the police.</li>
         <li>It is autumn: red, orange and yellow trees, leaves drifting down. At <b>MIDNIGHT</b> there are fireworks over a park, plaza or beach somewhere in the city.</li></ul></div>
       <div><h3>CITY SERVICES</h3><ul>
-        <li>Ambulances come for the dead: two paramedics carry the body to the ambulance on a stretcher (two bodies at most per trip) and take it to the nearest hospital with lights and siren. Fire engines put out burning wrecks, and trash trucks stop at the bins.</li>
+        <li>Ambulances come for the dead: two paramedics carry the body to the ambulance on a stretcher (two bodies at most per trip) and take it to the nearest hospital with lights and siren. Hit one and they drop the stretcher and run - then come back for the ambulance. Fire engines put out burning wrecks, and trash trucks stop at the bins.</li>
         <li>Blasts tear people apart: no body is left, only pieces and blood. Every blood mark has its own shape.</li></ul></div>
       <div><h3>SAVING</h3><ul>
         <li>The game saves itself every minute while no police are after you. <b>CONTINUE</b> picks up the latest save.</li>
@@ -564,124 +565,124 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/00-map-data.js?v=53"></script>
-<script src="js/01-config.js?v=53"></script>
-<script src="js/01b-police-data.js?v=53"></script>
-<script src="js/01c-vehicle-data.js?v=53"></script>
-<script src="js/01d-sky-data.js?v=53"></script>
-<script src="js/01e-radio-data.js?v=53"></script>
-<script src="js/01f-weapon-data.js?v=53"></script>
-<script src="js/01g-shop-data.js?v=53"></script>
-<script src="js/01h-rampage-data.js?v=53"></script>
-<script src="js/01i-economy-data.js?v=53"></script>
-<script src="js/01j-mode-data.js?v=53"></script>
-<script src="js/01k-airport-data.js?v=53"></script>
-<script src="js/01l-places-data.js?v=53"></script>
-<script src="js/01m-streets-data.js?v=53"></script>
-<script src="js/01n-clothes-data.js?v=53"></script>
-<script src="js/01o-jobs-data.js?v=53"></script>
-<script src="js/01p-races-data.js?v=53"></script>
-<script src="js/01q-safehouse-data.js?v=53"></script>
-<script src="js/01r-buildings-data.js?v=53"></script>
-<script src="js/01s-parks-data.js?v=53"></script>
-<script src="js/01t-stats-data.js?v=53"></script>
-<script src="js/01u-casino-data.js?v=53"></script>
-<script src="js/01v-stunt-data.js?v=53"></script>
-<script src="js/01w-interior-data.js?v=53"></script>
-<script src="js/01x-mission-data.js?v=53"></script>
-<script src="js/02-audio.js?v=53"></script>
-<script src="js/02b-radio.js?v=53"></script>
-<script src="js/02c-music.js?v=53"></script>
-<script src="js/02d-city-sound.js?v=53"></script>
-<script src="js/03-input.js?v=53"></script>
-<script src="js/04-world.js?v=53"></script>
-<script src="js/05-entities.js?v=53"></script>
-<script src="js/06-gameplay.js?v=53"></script>
-<script src="js/06b-melee-throw.js?v=53"></script>
-<script src="js/07-vehicles-traffic-police.js?v=53"></script>
-<script src="js/07b-traffic-lights.js?v=53"></script>
-<script src="js/08-pedestrians-pickups-spawning.js?v=53"></script>
-<script src="js/08b-police.js?v=53"></script>
-<script src="js/08c-services.js?v=53"></script>
-<script src="js/08d-weapon-pickups.js?v=53"></script>
-<script src="js/08e-shops.js?v=53"></script>
-<script src="js/08f-rampages.js?v=53"></script>
-<script src="js/08g-armed-people.js?v=53"></script>
-<script src="js/08h-paramedics.js?v=53"></script>
-<script src="js/08i-planes.js?v=53"></script>
-<script src="js/08j-places.js?v=53"></script>
-<script src="js/08k-ships.js?v=53"></script>
-<script src="js/08l-clothes-shops.js?v=53"></script>
-<script src="js/08m-car-delivery.js?v=53"></script>
-<script src="js/08n-vehicle-jobs.js?v=53"></script>
-<script src="js/08o-races.js?v=53"></script>
-<script src="js/08p-guide.js?v=53"></script>
-<script src="js/08q-spray.js?v=53"></script>
-<script src="js/08r-heavy-guns.js?v=53"></script>
-<script src="js/08s-safehouses.js?v=53"></script>
-<script src="js/08t-sideview.js?v=53"></script>
-<script src="js/08u-police-heli.js?v=53"></script>
-<script src="js/08v-flights.js?v=53"></script>
-<script src="js/08w-showroom.js?v=53"></script>
-<script src="js/08x-visitors.js?v=53"></script>
-<script src="js/08y-tuning.js?v=53"></script>
-<script src="js/08z-salvage.js?v=53"></script>
-<script src="js/08zr-roadblocks.js?v=53"></script>
-<script src="js/08zs-stats.js?v=53"></script>
-<script src="js/08zp-prison.js?v=53"></script>
-<script src="js/08zt-site.js?v=53"></script>
-<script src="js/08zu-casino.js?v=53"></script>
-<script src="js/08zv-marina.js?v=53"></script>
-<script src="js/08zw-stunts.js?v=53"></script>
-<script src="js/08zx-interiors.js?v=53"></script>
-<script src="js/08zy-missions.js?v=53"></script>
-<script src="js/09-render-core-buildings.js?v=53"></script>
-<script src="js/10-render-city-map.js?v=53"></script>
-<script src="js/10b-render-landmarks.js?v=53"></script>
-<script src="js/10c-render-fill.js?v=53"></script>
-<script src="js/10d-render-clutter.js?v=53"></script>
-<script src="js/10e-render-services.js?v=53"></script>
-<script src="js/10f-airport.js?v=53"></script>
-<script src="js/10g-places.js?v=53"></script>
-<script src="js/10h-lunapark.js?v=53"></script>
-<script src="js/10i-speedway.js?v=53"></script>
-<script src="js/10j-spray-garage.js?v=53"></script>
-<script src="js/10k-carpark.js?v=53"></script>
-<script src="js/10l-safehouses.js?v=53"></script>
-<script src="js/10m-grove.js?v=53"></script>
-<script src="js/10n-unique.js?v=53"></script>
-<script src="js/10o-unique-more.js?v=53"></script>
-<script src="js/10p-parks.js?v=53"></script>
-<script src="js/10q-forests.js?v=53"></script>
-<script src="js/10r-factory.js?v=53"></script>
-<script src="js/10s-showroom.js?v=53"></script>
-<script src="js/10t-salvage.js?v=53"></script>
-<script src="js/10u-prison.js?v=53"></script>
-<script src="js/10v-site.js?v=53"></script>
-<script src="js/10w-casino.js?v=53"></script>
-<script src="js/10x-marina.js?v=53"></script>
-<script src="js/10y-stunts.js?v=53"></script>
-<script src="js/10z-interiors.js?v=53"></script>
-<script src="js/11-render-dynamic-meshes.js?v=53"></script>
-<script src="js/11b-weapon-models.js?v=53"></script>
-<script src="js/11c-clothes-models.js?v=53"></script>
-<script src="js/11d-figure-hd.js?v=53"></script>
-<script src="js/11e-weapon-hd.js?v=53"></script>
-<script src="js/12-render-effects.js?v=53"></script>
-<script src="js/12b-rockets.js?v=53"></script>
-<script src="js/12c-blast.js?v=53"></script>
-<script src="js/12d-sky-weather.js?v=53"></script>
-<script src="js/12e-smash.js?v=53"></script>
-<script src="js/12f-homing.js?v=53"></script>
-<script src="js/12g-trees.js?v=53"></script>
-<script src="js/12h-fireworks.js?v=53"></script>
-<script src="js/13-render-frame.js?v=53"></script>
-<script src="js/14-hud-minimap.js?v=53"></script>
-<script src="js/14b-weapon-wheel-scope.js?v=53"></script>
-<script src="js/15-game-flow-loop.js?v=53"></script>
-<script src="js/15b-menus-saves.js?v=53"></script>
-<script src="js/15c-cutscene.js?v=53"></script>
-<script src="js/16-octagrid-map-preview.js?v=53"></script>
-<script src="js/main.js?v=53"></script>
+<script src="js/00-map-data.js?v=54"></script>
+<script src="js/01-config.js?v=54"></script>
+<script src="js/01b-police-data.js?v=54"></script>
+<script src="js/01c-vehicle-data.js?v=54"></script>
+<script src="js/01d-sky-data.js?v=54"></script>
+<script src="js/01e-radio-data.js?v=54"></script>
+<script src="js/01f-weapon-data.js?v=54"></script>
+<script src="js/01g-shop-data.js?v=54"></script>
+<script src="js/01h-rampage-data.js?v=54"></script>
+<script src="js/01i-economy-data.js?v=54"></script>
+<script src="js/01j-mode-data.js?v=54"></script>
+<script src="js/01k-airport-data.js?v=54"></script>
+<script src="js/01l-places-data.js?v=54"></script>
+<script src="js/01m-streets-data.js?v=54"></script>
+<script src="js/01n-clothes-data.js?v=54"></script>
+<script src="js/01o-jobs-data.js?v=54"></script>
+<script src="js/01p-races-data.js?v=54"></script>
+<script src="js/01q-safehouse-data.js?v=54"></script>
+<script src="js/01r-buildings-data.js?v=54"></script>
+<script src="js/01s-parks-data.js?v=54"></script>
+<script src="js/01t-stats-data.js?v=54"></script>
+<script src="js/01u-casino-data.js?v=54"></script>
+<script src="js/01v-stunt-data.js?v=54"></script>
+<script src="js/01w-interior-data.js?v=54"></script>
+<script src="js/01x-mission-data.js?v=54"></script>
+<script src="js/02-audio.js?v=54"></script>
+<script src="js/02b-radio.js?v=54"></script>
+<script src="js/02c-music.js?v=54"></script>
+<script src="js/02d-city-sound.js?v=54"></script>
+<script src="js/03-input.js?v=54"></script>
+<script src="js/04-world.js?v=54"></script>
+<script src="js/05-entities.js?v=54"></script>
+<script src="js/06-gameplay.js?v=54"></script>
+<script src="js/06b-melee-throw.js?v=54"></script>
+<script src="js/07-vehicles-traffic-police.js?v=54"></script>
+<script src="js/07b-traffic-lights.js?v=54"></script>
+<script src="js/08-pedestrians-pickups-spawning.js?v=54"></script>
+<script src="js/08b-police.js?v=54"></script>
+<script src="js/08c-services.js?v=54"></script>
+<script src="js/08d-weapon-pickups.js?v=54"></script>
+<script src="js/08e-shops.js?v=54"></script>
+<script src="js/08f-rampages.js?v=54"></script>
+<script src="js/08g-armed-people.js?v=54"></script>
+<script src="js/08h-paramedics.js?v=54"></script>
+<script src="js/08i-planes.js?v=54"></script>
+<script src="js/08j-places.js?v=54"></script>
+<script src="js/08k-ships.js?v=54"></script>
+<script src="js/08l-clothes-shops.js?v=54"></script>
+<script src="js/08m-car-delivery.js?v=54"></script>
+<script src="js/08n-vehicle-jobs.js?v=54"></script>
+<script src="js/08o-races.js?v=54"></script>
+<script src="js/08p-guide.js?v=54"></script>
+<script src="js/08q-spray.js?v=54"></script>
+<script src="js/08r-heavy-guns.js?v=54"></script>
+<script src="js/08s-safehouses.js?v=54"></script>
+<script src="js/08t-sideview.js?v=54"></script>
+<script src="js/08u-police-heli.js?v=54"></script>
+<script src="js/08v-flights.js?v=54"></script>
+<script src="js/08w-showroom.js?v=54"></script>
+<script src="js/08x-visitors.js?v=54"></script>
+<script src="js/08y-tuning.js?v=54"></script>
+<script src="js/08z-salvage.js?v=54"></script>
+<script src="js/08zr-roadblocks.js?v=54"></script>
+<script src="js/08zs-stats.js?v=54"></script>
+<script src="js/08zp-prison.js?v=54"></script>
+<script src="js/08zt-site.js?v=54"></script>
+<script src="js/08zu-casino.js?v=54"></script>
+<script src="js/08zv-marina.js?v=54"></script>
+<script src="js/08zw-stunts.js?v=54"></script>
+<script src="js/08zx-interiors.js?v=54"></script>
+<script src="js/08zy-missions.js?v=54"></script>
+<script src="js/09-render-core-buildings.js?v=54"></script>
+<script src="js/10-render-city-map.js?v=54"></script>
+<script src="js/10b-render-landmarks.js?v=54"></script>
+<script src="js/10c-render-fill.js?v=54"></script>
+<script src="js/10d-render-clutter.js?v=54"></script>
+<script src="js/10e-render-services.js?v=54"></script>
+<script src="js/10f-airport.js?v=54"></script>
+<script src="js/10g-places.js?v=54"></script>
+<script src="js/10h-lunapark.js?v=54"></script>
+<script src="js/10i-speedway.js?v=54"></script>
+<script src="js/10j-spray-garage.js?v=54"></script>
+<script src="js/10k-carpark.js?v=54"></script>
+<script src="js/10l-safehouses.js?v=54"></script>
+<script src="js/10m-grove.js?v=54"></script>
+<script src="js/10n-unique.js?v=54"></script>
+<script src="js/10o-unique-more.js?v=54"></script>
+<script src="js/10p-parks.js?v=54"></script>
+<script src="js/10q-forests.js?v=54"></script>
+<script src="js/10r-factory.js?v=54"></script>
+<script src="js/10s-showroom.js?v=54"></script>
+<script src="js/10t-salvage.js?v=54"></script>
+<script src="js/10u-prison.js?v=54"></script>
+<script src="js/10v-site.js?v=54"></script>
+<script src="js/10w-casino.js?v=54"></script>
+<script src="js/10x-marina.js?v=54"></script>
+<script src="js/10y-stunts.js?v=54"></script>
+<script src="js/10z-interiors.js?v=54"></script>
+<script src="js/11-render-dynamic-meshes.js?v=54"></script>
+<script src="js/11b-weapon-models.js?v=54"></script>
+<script src="js/11c-clothes-models.js?v=54"></script>
+<script src="js/11d-figure-hd.js?v=54"></script>
+<script src="js/11e-weapon-hd.js?v=54"></script>
+<script src="js/12-render-effects.js?v=54"></script>
+<script src="js/12b-rockets.js?v=54"></script>
+<script src="js/12c-blast.js?v=54"></script>
+<script src="js/12d-sky-weather.js?v=54"></script>
+<script src="js/12e-smash.js?v=54"></script>
+<script src="js/12f-homing.js?v=54"></script>
+<script src="js/12g-trees.js?v=54"></script>
+<script src="js/12h-fireworks.js?v=54"></script>
+<script src="js/13-render-frame.js?v=54"></script>
+<script src="js/14-hud-minimap.js?v=54"></script>
+<script src="js/14b-weapon-wheel-scope.js?v=54"></script>
+<script src="js/15-game-flow-loop.js?v=54"></script>
+<script src="js/15b-menus-saves.js?v=54"></script>
+<script src="js/15c-cutscene.js?v=54"></script>
+<script src="js/16-octagrid-map-preview.js?v=54"></script>
+<script src="js/main.js?v=54"></script>
 </body>
 </html>
