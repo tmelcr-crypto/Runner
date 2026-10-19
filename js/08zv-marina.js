@@ -46,6 +46,17 @@ function boatFerry(c) {                   // js/07: a boat cannot pass through t
     if (imp > 140 && c.hitCd <= 0) { c.hitCd = 0.25; damageCar(c, (imp - 140) * 0.12, false); splashFx(q[0], q[1], 6); if (P.car === c) { cam.shake = Math.max(cam.shake, 6); Snd.thud(imp); } }
   }
 }
+function boatSpray(c, dt) {               // js/07: at speed the bow throws water up and aside, more the faster it goes and the harder it turns (js/01l In the water; the wake: js/12)
+  if (!feat('boatWake') || PLC.spray <= 0 || c.dead || c.sunk || c.beached || c.under || c.air > 0) return;
+  const spd = carSpeed(c); if (spd < PLC.sprayFrom || dist(c.x, c.y, cam.x, cam.y) > 1600) return;
+  const f = Math.min(1, (spd - PLC.sprayFrom) / Math.max(1, c.t.max - PLC.sprayFrom)), turn = Math.min(1, Math.abs(c.av) * 0.6), ca = Math.cos(c.ang), sa = Math.sin(c.ang), L = c.t.len;
+  c.sprayN = (c.sprayN || 0) + dt * PLC.spray * (12 + 50 * f + 40 * turn) * Math.sqrt(c.t.wid / 29);
+  while (c.sprayN >= 1) {
+    c.sprayN--; const s = Math.random() < 0.5 ? -1 : 1, u = rand(0.6, 0.8) - 0.5, w = c.t.wid * 0.5 * rand(0.6, 0.9), out = rand(40, 120) * (0.5 + f), fwd = spd * rand(0.3, 0.7);
+    addP({ x: c.x + ca * u * L - sa * s * w, y: c.y + sa * u * L + ca * s * w, z: rand(3, 6), vz: rand(40, 100) * (0.6 + 0.6 * f), grav: 300, vx: -sa * s * out + ca * fwd, vy: ca * s * out + sa * fwd,
+      life: rand(0.35, 0.6), max: 0.6, s0: rand(1.3, 2.3) * (0.7 + 0.5 * f), s1: 0.6, col: pick(['#ffffff', '#e6f6ff', '#bfe6ff']), drag: 2.5, alpha: 0.85 });
+  }
+}
 function boatShore(c) {                   // js/07 after collideCarWorld: a boat is held on the water; a hard knock against the shore hurts it
   if (c.sunk) return;
   if (c.dead) {                                                       // wrecked: it burns a while, then goes under (you are thrown in the water)

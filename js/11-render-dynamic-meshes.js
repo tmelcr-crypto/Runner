@@ -12,11 +12,11 @@ function sweepDynamic() {
 function part(parent, geo, mat, sx, sy, sz, x, y, z) { const o = new THREE.Mesh(geo, mat); o.scale.set(sx, sy, sz); o.position.set(x, y, z); parent.add(o); return o; }
 
 const _cg = {};
-function mergedGeo(key, parts) {            // scaled, moved copies of shared geometry as one geometry; cached, so every car of a type shares it
+function mergedGeo(key, parts) {            // scaled, turned (rx, ry, rz: optional), moved copies of shared geometry as one geometry; cached, so every car of a type shares it
   if (_cg[key]) return _cg[key];
-  const pos = [], nor = [], uv = [], m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), t = new THREE.Vector3(), sc = new THREE.Vector3();
-  for (const [geo, sx, sy, sz, x, y, z] of parts) {
-    const g = geo.toNonIndexed(); g.applyMatrix4(m4.compose(t.set(x, y, z), q, sc.set(sx, sy, sz)));
+  const pos = [], nor = [], uv = [], m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), eu = new THREE.Euler(), t = new THREE.Vector3(), sc = new THREE.Vector3();
+  for (const [geo, sx, sy, sz, x, y, z, ry, rx, rz] of parts) {
+    const g = geo.index ? geo.toNonIndexed() : geo.clone(); g.applyMatrix4(m4.compose(t.set(x, y, z), q.setFromEuler(eu.set(rx || 0, ry || 0, rz || 0)), sc.set(sx, sy, sz)));
     for (const v of g.attributes.position.array) pos.push(v); for (const v of g.attributes.normal.array) nor.push(v); for (const v of g.attributes.uv.array) uv.push(v); g.dispose();
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
@@ -24,11 +24,24 @@ function mergedGeo(key, parts) {            // scaled, moved copies of shared ge
 }
 /* Vehicle models, one per body (js/01c). Drivers sit inside, under the roof, seen through tinted glass; only the bike's rider is out in the open. */
 const GLASS = new THREE.MeshLambertMaterial({ color: 0x2a3a5c, transparent: true, opacity: 0.55 });
-function hullGeo(bow) {                      // a boat's hull, 1 long, 1 wide, 1 high: square at the stern, narrowing to a point (bow: the share that tapers)
-  const s = new THREE.Shape(), b = 0.5 - bow; s.moveTo(-0.5, -0.5); s.lineTo(b, -0.5); s.lineTo(0.5, -0.06); s.lineTo(0.5, 0.06); s.lineTo(b, 0.5); s.lineTo(-0.5, 0.5); s.lineTo(-0.5, -0.5);
-  return new THREE.ExtrudeGeometry(s, { depth: 1, bevelEnabled: false }).rotateX(-Math.PI / 2);
+/* The boats (js/08zv), made to be seen from above: the hull's outline curves in from the beam to a pointed bow, the transom a little
+   narrower than the beam. Decks, the cockpit, cushions and cabins are regions of an outline (planShape: from u0 at the stern to u1
+   toward the bow, ins in from its side) raised into slabs (slabGeo); a cabin's own outline has straight sides and a round front. */
+const BOAT_PLAN = { speedboat: [0.84, 0.4, 2], jetski: [0.72, 0.45, 1.7], yacht: [0.86, 0.38, 2.2], fishboat: [0.9, 0.45, 1.6], policeboat: [0.88, 0.42, 1.8], tourboat: [0.92, 0.45, 1.5] };   // the transom's share of the beam, where the beam is widest (0 stern, 1 bow), the bow's curve
+function boatHalf(B, W) { const [tr, mx, bp] = BOAT_PLAN[B]; return u => W / 2 * (u < mx ? lerp(tr, 1, Math.sin(u / mx * Math.PI / 2)) : 1 - Math.pow(Math.min(1, (u - mx) / (1 - mx)), bp)); }
+const noseHalf = (m, b, half) => u => u < m ? half : half * Math.sqrt(Math.max(0, 1 - ((u - m) / (b - m)) ** 2));   // a cabin: straight sides, a round front from m to b
+const padHalf = (c, len, half) => u => { const t = Math.abs(u - c) / (len / 2); return t >= 1 ? 0 : half * Math.pow(1 - t ** 4, 0.25); };   // a cushion: rounded at both ends
+function planShape(hw, L, u0, u1, ins, n = 16) {
+  const s = []; let t0 = null, t1 = null;
+  for (let i = 0; i <= n; i++) { const u = lerp(u0, u1, i / n), w = hw(u) - ins, x = (u - 0.5) * L; if (w >= 0.3) s.push([x, w]); else if (s.length) { t1 = x; break; } else t0 = x; }
+  const p = []; if (t0 !== null) p.push([t0, 0]); for (const q of s) p.push(q); if (t1 !== null) p.push([t1, 0]); for (let i = s.length - 1; i >= 0; i--) p.push([s[i][0], -s[i][1]]);
+  const sh = new THREE.Shape(); sh.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) sh.lineTo(p[i][0], p[i][1]); return sh;
 }
-const GHULL = hullGeo(0.32), GHULLB = hullGeo(0.16);
+function slabGeo(sh, y, d, bev) {            // the shape raised from y, d high (bev: rounded edges)
+  const g = new THREE.ExtrudeGeometry(sh, { depth: d, curveSegments: 4, bevelEnabled: !!bev, bevelThickness: bev || 0, bevelSize: bev || 0, bevelSegments: 2 }).rotateX(-Math.PI / 2);
+  return g.translate(0, y + (bev || 0), 0);
+}
+const GTor = new THREE.TorusGeometry(1, 0.3, 6, 14).rotateX(Math.PI / 2);   // a life ring, lying flat
 const BAR = { police: [E.redOn, E.redOff, E.blueOn, E.blueOff], ambulance: [E.redOn, E.redOff, mBas(0xffffff), mBas(0x4a4a52)],
   fire: [E.redOn, E.redOff, mBas(0xffb02e), mBas(0x5a3f1f)], trash: [mBas(0xffb02e), mBas(0x5a3f1f), mBas(0xffb02e), mBas(0x5a3f1f)] };
 const PLAYER_SHIRT = mc(0xffd23f);
@@ -204,33 +217,7 @@ function buildCar(c) {                       // parts that never move on their o
     part(stick, GB, body, 4.5, L * 0.42, 4.5, 0, -L * 0.21, 0);
     part(stick, GB, mc(0x2a2d38), 9, 8, 11, 2.5, -L * 0.43, 0);
     lamps(9, 2, 9, 2, 5);
-  } else if (t.boat) {                       // the boats (js/08zv): a hull riding low in the water, a deck, what stands on it; no wheels
-    const H = B === 'jetski' ? 5 : B === 'yacht' || B === 'tourboat' ? 9 : 7, wht = E.white, dark = mc(0x2a2d38);
-    part(tilt, B === 'fishboat' || B === 'tourboat' ? GHULLB : GHULL, body, L, H, Wd, 0, 0, 0);
-    part(tilt, B === 'fishboat' || B === 'tourboat' ? GHULLB : GHULL, wht, L * 0.96, 0.8, Wd * 0.9, 0, H, 0);   // the deck
-    if (B === 'speedboat') {
-      m.cabin = part(tilt, GB, GLASS, 3, 4.5, Wd * 0.8, L * 0.12, H + 2.8, 0); part(tilt, GB, mc(0xe8dcc8), L * 0.3, 2.6, Wd * 0.7, -L * 0.12, H + 1.6, 0);
-      part(tilt, GB, dark, 4, 7, 5, -L / 2 - 1.5, H - 1, 0); seat(L * 0.02, H + 8.4, 0.8);
-    } else if (B === 'jetski') {
-      part(tilt, GB, dark, L * 0.4, 3, Wd * 0.5, -L * 0.08, H + 1.6, 0); part(tilt, GB, dark, 1.4, 1.4, Wd * 1.1, L * 0.18, H + 4.2, 0);
-      seat(-L * 0.04, H + 9, 0.85);
-    } else if (B === 'yacht') {
-      part(tilt, GB, wht, L * 0.5, 9, Wd * 0.72, -L * 0.06, H + 4.6, 0); part(tilt, GB, E.glass, L * 0.46, 2.6, Wd * 0.74, -L * 0.06, H + 6, 0);
-      part(tilt, GB, wht, L * 0.24, 5, Wd * 0.6, -L * 0.04, H + 11.4, 0); m.cabin = part(tilt, GB, GLASS, 2.4, 3.6, Wd * 0.56, L * 0.09, H + 12, 0);
-      part(tilt, GCyl, dark, 0.6, 12, 0.6, -L * 0.12, H + 20, 0); seat(-L * 0.04, H + 17, 0.85);
-    } else if (B === 'fishboat') {
-      part(tilt, GB, wht, L * 0.26, 11, Wd * 0.7, L * 0.14, H + 5.4, 0); m.cabin = part(tilt, GB, GLASS, L * 0.27, 3.4, Wd * 0.72, L * 0.14, H + 7.6, 0);
-      part(tilt, GCyl, dark, 0.7, 22, 0.7, -L * 0.08, H + 11, 0); part(tilt, GB, dark, L * 0.4, 0.6, 0.6, -L * 0.24, H + 18, 0);
-      part(tilt, GB, mc(0x3a6a4a), L * 0.22, 3, Wd * 0.6, -L * 0.32, H + 1.8, 0); seat(L * 0.14, H + 10, 0.85);
-    } else if (B === 'tourboat') {
-      for (let k = 0; k < 4; k++) part(tilt, GB, mc(0x2f6bff), 2, 2.4, Wd * 0.76, -L * 0.3 + k * L * 0.16, H + 1.6, 0);
-      part(tilt, GB, mc(0xe0364f), L * 0.66, 0.8, Wd * 0.9, -L * 0.04, H + 12, 0); for (const s of [-1, 1]) for (const x of [-L * 0.34, L * 0.26]) part(tilt, GCyl, wht, 0.5, 11, 0.5, x, H + 6, s * Wd * 0.42);
-      for (let k = 0; k < 8; k++) part(tilt, GSph, mc(pick([0xf2c6a0, 0xd9a07a, 0x9a6a46, 0xffdcbc])), 2.6, 2.6, 2.6, -L * 0.32 + (k >> 1) * L * 0.16 + 1.5, H + 5, (k % 2 ? 1 : -1) * Wd * 0.2);
-      m.cabin = part(tilt, GB, GLASS, 3, 4, Wd * 0.6, L * 0.33, H + 3.4, 0); seat(L * 0.33, H + 7.6, 0.85);
-    } else {                                 // the police boat: dark blue, a white band, a cabin, the light bar
-      part(tilt, GB, wht, L * 0.8, 1.6, Wd + 0.4, -L * 0.04, H - 2, 0); part(tilt, GB, wht, L * 0.28, 8, Wd * 0.72, L * 0.04, H + 4, 0);
-      m.cabin = part(tilt, GB, GLASS, L * 0.29, 3, Wd * 0.74, L * 0.04, H + 5.6, 0); bar(L * 0.04, H + 8.6, 'police'); seat(L * 0.04, H + 8, 0.85);
-    }
+  } else if (t.boat) { buildBoat(c, B, L, Wd, tilt, body, m, seat);   // the boats: no wheels
   } else {                                   // sedan, police (and any body without a model yet)
     merged('b', body, [[GB, L, 8, Wd, 0, 7, 0], [GB, L * 0.34, 1.4, Wd - 8, -L * 0.04, 18.6, 0]]);
     m.cabin = part(tilt, GB, GLASS, L * 0.4, 7, Wd - 5, -L * 0.04, 14.5, 0);
@@ -250,6 +237,111 @@ function buildCar(c) {                       // parts that never move on their o
     body.emissive = new THREE.Color(c.color).multiplyScalar(0.22); }
   if (t.boat) { m.ug.visible = false; m.hb.visible = false; }       // no glow or headlights on the water
   c.mesh = g; c.tilt = tilt; c.m = m; c.roll = 0; c.baseCol = new THREE.Color(c.color); c.tailOn = false; c.dead3 = false; c.hpShown = -1; scene.add(g);
+}
+function buildBoat(c, B, L, Wd, tilt, body, m, seat) {   // buildCar: a boat's parts, one mesh per material (the hull's bottom 2.4 under the water, js/08zv)
+  const hw = boatHalf(B, Wd), X = u => (u - 0.5) * L, H = B === 'jetski' ? 5 : B === 'yacht' || B === 'tourboat' ? 9 : 7;
+  const mg = (key, mat, fn) => { key = c.type + '~' + key; const o = new THREE.Mesh(_cg[key] || mergedGeo(key, fn()), mat); tilt.add(o); return o; };
+  const S = (sh, y, d, bev) => [slabGeo(sh, y, d, bev), 1, 1, 1, 0, 0, 0];   // a slab as a part to merge
+  const plan = (u0, u1, ins, f, n) => planShape(f || hw, L, u0, u1, ins, n);
+  const ring = (ins, hole) => { const sh = plan(Math.min(0, ins / L), 1, ins); sh.holes.push(hole); return sh; };   // the outline with a hole (a cockpit, a well)
+  const band = (o, i) => ring(o, plan((i - o) / L, 1, i));             // a band round the edge, o to i in from the side
+  const rail = (out, f, u0, u1, ins, y0, y, n) => {                  // a rail on posts along an outline, both sides
+    for (const s of [-1, 1]) for (let i = 0; i < n; i++) {
+      const ua = lerp(u0, u1, i / n), ub = lerp(u0, u1, (i + 1) / n), xa = X(ua), xb = X(ub), za = s * Math.max(0, f(ua) - ins), zb = s * Math.max(0, f(ub) - ins);
+      out.push([GB, Math.hypot(xb - xa, zb - za) + 0.4, 0.45, 0.45, (xa + xb) / 2, y, (za + zb) / 2, -Math.atan2(zb - za, xb - xa)]);
+      if (i % 2 === 0) out.push([GB, 0.45, y - y0, 0.45, xa, (y + y0) / 2, za]);
+    }
+    return out;
+  };
+  const wht = E.white, dark = mc(0x2a2d38), cream = mc(0xf0e4c8), chrome = mc(0xd0d4dc), teak = mc(0xb58a5c), floor = mc(0xc9ced6);
+  const skin = () => mc(pick([0xf2c6a0, 0xd9a07a, 0x9a6a46, 0xffdcbc]));
+  if (B === 'speedboat') {                   // a sports runabout: the coloured hull round a white foredeck with stripes and a bow rail, the windshield, two bucket seats and a bench in the cockpit, the outboard
+    const fl = H - 2.4, wz = hw(0.62) - 1.4, wa = 0.3, wx = X(0.62) - 1.4;
+    mg('h', body, () => [S(plan(0, 1, 0), 0, fl), S(ring(0, plan(0.1, 0.62, 2.2)), fl, 2.4), [GB, L * 0.26, 0.2, 1.1, X(0.8), H + 0.6, 2.2], [GB, L * 0.26, 0.2, 1.1, X(0.8), H + 0.6, -2.2],
+      [GB, 1.7, 0.5, 5.7, X(0.47) - 3, fl + 5.85, Wd * 0.2], [GB, 1.7, 0.5, 5.7, X(0.47) - 3, fl + 5.85, -Wd * 0.2], [GB, 6.5, 0.4, 1.8, -L / 2 - 3.2, H + 2.9, 0]]);   // the hull, the deck stripes, the seat backs' tops, the engine's stripe
+    mg('w', wht, () => [S(plan(0.62, 1, 1.4), H, 0.5), S(plan(0, 0.1, 1.4), H, 0.5)]);             // the foredeck and the stern deck
+    mg('f', floor, () => [S(plan(0.1, 0.62, 2.2), fl, 0.2)]);                                     // the cockpit floor
+    mg('c', cream, () => { const bw = 2 * (hw(0.17) - 2.2) - 1, o = [S(plan(0.015, 0.095, 3.4), H + 0.5, 0.8, 0.5), [GB, 5, 2.2, bw, X(0.17), fl + 1.3, 0], [GB, 1.6, 4, bw, X(0.1) + 2.4, fl + 3.2, 0]];
+      for (const s of [-1, 1]) o.push([GB, 5, 2.2, 5.6, X(0.47), fl + 1.3, s * Wd * 0.2], [GB, 1.6, 4.4, 5.6, X(0.47) - 3, fl + 3.4, s * Wd * 0.2]); return o; });   // the sunpad, the bench, the bucket seats
+    m.cabin = mg('g', GLASS, () => [-1, 1].map(s => [GB, 2.4, 3.6, wz, wx - Math.sin(wa) * wz / 2, H + 1.8, s * Math.cos(wa) * wz / 2, -s * wa]));   // the windshield in a shallow V
+    mg('m', chrome, () => rail([...[-1, 1].map(s => [GB, 2.6, 0.5, wz + 0.2, wx - Math.sin(wa) * wz / 2, H + 3.8, s * Math.cos(wa) * wz / 2, -s * wa])], hw, 0.66, 0.985, 1, H + 0.5, H + 2.6, 5));
+    mg('d', dark, () => [[GB, 3.2, 3.4, 6.5, X(0.56), fl + 1.7, -Wd * 0.2], [GCyl, 1.6, 0.4, 1.6, X(0.54), fl + 3.6, -Wd * 0.2], [GB, 6.4, 5, 5.6, -L / 2 - 3.2, H + 0.2, 0], [GB, 2.2, 7, 1.6, -L / 2 - 2.6, H - 5, 0],
+      [GB, 2.4, 0.6, 1, X(0.06), H + 0.8, hw(0.06) - 2], [GB, 2.4, 0.6, 1, X(0.06), H + 0.8, -(hw(0.06) - 2)], [GB, 2.4, 0.6, 1, X(0.93), H + 0.8, 0]]);   // the console and wheel, the outboard, the cleats
+    seat(X(0.47), H + 8.2, 0.8);
+  } else if (B === 'jetski') {               // a sit-down jet ski: the coloured hull and hood in a dark bumper, the long saddle, the bars, the footwells, the jet at the stern
+    mg('h', body, () => [S(plan(0, 1, 0), 0, H - 0.6), S(plan(0.56, 0.95, Wd * 0.16), H - 0.6, 1.6, 0.8)]);
+    mg('k', dark, () => { const fz = hw(0.34) - 2.4, o = [S(band(0, 1.1), H - 1.4, 1.2), [GB, L * 0.4, 0.3, 2.2, X(0.34), H - 0.45, fz], [GB, L * 0.4, 0.3, 2.2, X(0.34), H - 0.45, -fz],
+      [GB, 1.2, 1.2, Wd * 0.78, X(0.6), H + 4.4, 0], [GB, 1.4, 3.6, 1.4, X(0.61), H + 2.6, 0], [GB, 2.6, 2.2, 3.2, -L / 2 - 0.9, H - 2.6, 0], [GB, 1, 0.9, Wd * 0.36, X(0.06), H + 0.2, 0]];
+      return o; });                                                                                // the bumper, the footwells, the bars, the jet, the grab handle
+    mg('s', mc(0x1d1f26), () => [S(planShape(padHalf(0.33, 0.46, Wd * 0.17), L, 0.1, 0.56, 0, 24), H - 0.6, 1.6, 0.9), [GB, 1.6, 1.6, 2, X(0.6), H + 4.4, Wd * 0.4], [GB, 1.6, 1.6, 2, X(0.6), H + 4.4, -Wd * 0.4]]);   // the saddle, the grips
+    mg('w', wht, () => [[GB, L * 0.2, 0.2, 0.9, X(0.78), H + 2.75, 0]]);
+    m.cabin = mg('g', E.glass, () => [[GB, 2.2, 0.5, 3.6, X(0.67), H + 2.75, 0]]);                  // the display
+    seat(X(0.4), H + 9, 0.85);
+  } else if (B === 'yacht') {                // a motor yacht: a navy toe rail round a teak deck, the white deckhouse in a band of dark windows, the flybridge on top with the helm and a sofa under the radar arch, a sunpad on the foredeck, a sofa aft, the swim platform
+    const dh = noseHalf(0.6, 0.75, Wd * 0.34), fb = noseHalf(0.5, 0.62, Wd * 0.3), top = H + 9.2, fw = 2 * fb(0.33) - 3;
+    const fbr = plan(0.3, 0.62, 0, fb); fbr.holes.push(plan(0.306, 0.62, 1, fb));                     // the flybridge's low wall
+    mg('h', body, () => [S(plan(0, 1, 0), 0, H)]);
+    mg('n', mc(0x1f2a4a), () => [S(band(0, 1.2), H, 0.7)]);
+    mg('t', teak, () => [S(plan(0.008, 0.99, 1.2), H, 0.3), S(plan(0.303, 0.616, 1.1, fb), top, 0.15), [GB, 9, 1.2, 2 * hw(0) - 6, -L / 2 - 4.5, H - 3.6, 0], [GB, 7, 0.6, 12, X(0.1), H + 2.8, 0]]);   // the deck, the swim platform, the table
+    mg('p', mc(0x8a6640), () => { const o = []; for (let z = -hw(0.1) + 4; z < hw(0.1) - 3; z += 3.2) o.push([GB, X(0.16) - X(0.012), 0.08, 0.3, (X(0.16) + X(0.012)) / 2, H + 0.33, z]); return o; });   // the planks aft
+    mg('w', wht, () => [S(plan(0.16, 0.75, 0, dh), H + 0.3, 7.7), S(plan(0.17, 0.74, 0.8, dh), H + 8, 1.2), S(fbr, top, 2.4),
+      [GB, 2.4, 1.6, 2 * Wd * 0.3 - 2, X(0.33), top + 7, 0], [GB, 2, 7, 1.6, X(0.33), top + 3.5, Wd * 0.3 - 1.8], [GB, 2, 7, 1.6, X(0.33), top + 3.5, -(Wd * 0.3 - 1.8)], [GCyl, 2.6, 1.8, 2.6, X(0.33), top + 8.7, 0]]);
+    m.cabin = mg('g', E.glass, () => [S(plan(0.155, 0.757, 0, noseHalf(0.6, 0.757, Wd * 0.34 + 1.4)), H + 5, 2.6), [GB, 2.4, 1.6, 5, X(0.565), top + 3.4, -Wd * 0.2]]);   // the windows, the helm's screen
+    mg('c', cream, () => [S(planShape(padHalf(0.82, 0.12, Wd * 0.2), L, 0.76, 0.88, 0, 24), H + 0.3, 0.9, 0.5), [GB, 4.5, 2.2, 2 * hw(0.04) - 12, X(0.04), H + 1.4, 0], [GB, 1.4, 3, 2 * hw(0.04) - 12, X(0.025), H + 2.3, 0],
+      [GB, 3.5, 1.6, fw, X(0.33), top + 0.8, 0], [GB, 1.4, 2.6, fw, X(0.315), top + 1.8, 0], [GB, L * 0.08, 1.6, 3.2, X(0.37), top + 0.8, fb(0.37) - 2.6], [GB, L * 0.08, 1.6, 3.2, X(0.37), top + 0.8, -(fb(0.37) - 2.6)],
+      [GB, 4, 2, 5, X(0.5), top + 1, -Wd * 0.2]]);                                                // the sunpad, the sofas aft and on the flybridge, the helm seat
+    mg('m', chrome, () => rail([], hw, 0.04, 0.985, 1.6, H + 0.3, H + 4.2, 14));
+    mg('d', dark, () => [[GB, 3, 3, 6, X(0.545), top + 1.5, -Wd * 0.2], [GB, 3, 0.8, 2.2, X(0.975), H + 0.7, 0], [GCyl, 0.3, 8, 0.3, X(0.33), top + 11, 5]]);   // the helm, the anchor, the antenna
+    seat(X(0.5), top + 7.5, 0.85);
+  } else if (B === 'fishboat') {             // a trawler: a coloured hull with a white gunwale, the working deck aft with nets, floats, crates and the winch; the wheelhouse forward under a coloured roof; the mast, its boom and two outrigger poles
+    const fl = H - 2.6, wh = noseHalf(0.68, 0.77, Wd * 0.3), mx = X(0.47), mt = fl + 26, a = Wd * 0.475, ph = 0.45;
+    mg('h', body, () => [S(plan(0, 1, 0), 0, fl), S(ring(0, plan(0.04, 0.56, 2)), fl, 3.2), S(plan(0.495, 0.775, 0, noseHalf(0.68, 0.785, Wd * 0.33)), H + 9.6, 1)]);   // hull and bulwark, the wheelhouse roof
+    mg('w', wht, () => [S(band(0, 0.9), H + 0.6, 0.4), S(plan(0.5, 0.77, 0, wh), fl, 9.6)]);           // the gunwale, the wheelhouse
+    mg('f', mc(0xd9dcd6), () => [S(plan(0.56, 1, 1.6), H + 0.6, 0.4)]);                             // the foredeck
+    mg('t', mc(0x9a8064), () => [S(plan(0.04, 0.56, 2), fl, 0.2)]);                                // the working deck
+    m.cabin = mg('g', E.glass, () => [S(plan(0.497, 0.775, 0, noseHalf(0.68, 0.776, Wd * 0.3 + 1)), H + 7, 2.6)]);
+    mg('m', mc(0xe2e4e8), () => [[GCyl, 0.7, mt - fl, 0.7, mx, (mt + fl) / 2, 0], [GB, L * 0.34, 0.8, 0.8, mx - L * 0.17 * Math.cos(0.35), mt - 2 - L * 0.17 * Math.sin(0.35), 0, 0, 0, 0.35],
+      ...[-1, 1].map(s => [GB, 0.6, 0.6, a * 2, mx, mt - a * Math.sin(ph), s * a * Math.cos(ph), 0, s * ph, 0]), [GCyl, 1.1, 1.4, 1.1, X(0.72), H + 11.2, -4]]);   // the mast, the boom, the outriggers, the searchlight
+    mg('n', mc(0x3a7a4a), () => [[GSph, 8, 2.4, 9, X(0.2), fl + 1, -5], [GSph, 6, 2, 7, X(0.11), fl + 1, 6]]);   // the nets
+    mg('o', mc(0xff7a3d), () => [[GSph, 1.2, 1.2, 1.2, X(0.16), fl + 2.6, -10], [GSph, 1.2, 1.2, 1.2, X(0.24), fl + 2.6, -1], [GSph, 1.2, 1.2, 1.2, X(0.08), fl + 2.4, 2], [GSph, 1.2, 1.2, 1.2, X(0.14), fl + 2.4, 10]]);   // the floats
+    mg('x', mc(0x2f6bff), () => [[GB, 4.4, 2.6, 3.4, X(0.36), fl + 1.5, 9], [GB, 4.4, 2.6, 3.4, X(0.36) - 4.8, fl + 1.5, 9], [GB, 4.4, 2.6, 3.4, X(0.36), fl + 4.1, 9], [GB, 4.4, 2.6, 3.4, X(0.36), fl + 1.5, -9]]);   // fish crates
+    mg('d', dark, () => [[GCylZ, 2.4, 2.4, 9, X(0.44), fl + 2.6, 0], [GB, 1.4, 0.8, 9, X(0.64), H + 11.4, 0], [GB, 1, 1.2, 1, X(0.64), H + 10.8, 0]]);   // the winch, the radar
+    seat(X(0.66), H + 9.4, 0.85);
+  } else if (B === 'tourboat') {             // the sightseeing boat: a white hull with a blue rim, the glazed saloon, the open top deck with rows of blue benches full of tourists, a striped awning aft, the wheelhouse forward, life rings, a flag at the bow
+    const cab = noseHalf(0.64, 0.82, Wd * 0.42), up = H + 8.6, wh = noseHalf(0.68, 0.745, Wd * 0.26), rows = [0.1, 0.165, 0.23, 0.295, 0.36, 0.425, 0.49, 0.555], ax = [X(0.06), X(0.3)];
+    mg('h', body, () => [S(plan(0, 1, 0), 0, H)]);
+    mg('b', mc(0x2f6bff), () => { const o = [S(band(0, 1.4), H, 0.5)]; for (const u of rows) for (const s of [-1, 1]) o.push([GB, 2.6, 1.8, Wd * 0.3, X(u), up + 1.5, s * Wd * 0.19], [GB, 0.8, 2.6, Wd * 0.3, X(u) - 1.6, up + 2.6, s * Wd * 0.19]);
+      o.push([GB, 5, 3.4, 0.2, X(0.965) - 2.6, H + 10, 0]); return o; });                             // the rim, the benches, the flag
+    mg('d', floor, () => [S(plan(0.01, 0.99, 1.4), H, 0.3)]);
+    mg('u', mc(0xb9c6d6), () => [S(plan(0.055, 0.825, 0, noseHalf(0.64, 0.825, Wd * 0.42 + 0.3)), up, 0.6)]);   // the top deck
+    mg('w', wht, () => { const o = [S(plan(0.06, 0.82, 0, cab), H + 0.3, 8.3), S(plan(0.6, 0.745, 0, wh), up + 0.6, 4.4), S(plan(0.595, 0.75, 0, noseHalf(0.68, 0.75, Wd * 0.28)), up + 7.6, 0.8),
+      [GCyl, 0.35, 12, 0.35, X(0.965), H + 6, 0]];
+      for (let k = 0; k < 7; k++) if (k % 2) o.push([GB, ax[1] - ax[0], 0.5, Wd * 0.84 / 7, (ax[0] + ax[1]) / 2, up + 9.5, (k - 3) * Wd * 0.12]);
+      for (const x of ax) for (const s of [-1, 1]) o.push([GCyl, 0.5, 9, 0.5, x, up + 5, s * Wd * 0.38]); return o; });   // the saloon, the wheelhouse and its roof, the flagpole, the awning's white stripes and posts
+    mg('r', mc(0xe0364f), () => { const o = []; for (let k = 0; k < 7; k += 2) o.push([GB, ax[1] - ax[0], 0.5, Wd * 0.84 / 7, (ax[0] + ax[1]) / 2, up + 9.5, (k - 3) * Wd * 0.12]); return o; });   // the awning's red stripes
+    m.cabin = mg('g', E.glass, () => [S(plan(0.057, 0.823, 0, noseHalf(0.64, 0.823, Wd * 0.42 + 1)), H + 3, 3.2), S(plan(0.597, 0.748, 0, noseHalf(0.68, 0.748, Wd * 0.26 + 0.6)), up + 5, 2.6)]);
+    mg('m', chrome, () => rail([[GB, 0.45, 0.45, 2 * Wd * 0.42, X(0.06), up + 4.2, 0]], noseHalf(0.64, 0.825, Wd * 0.42 + 0.3), 0.06, 0.6, 0.6, up + 0.6, up + 4.2, 10));
+    mg('o', mc(0xff7a3d), () => [[GTor, 2.4, 2.4, 2.4, X(0.2), up + 0.9, Wd * 0.4 - 1.5], [GTor, 2.4, 2.4, 2.4, X(0.2), up + 0.9, -(Wd * 0.4 - 1.5)], [GTor, 2.4, 2.4, 2.4, X(0.52), up + 0.9, Wd * 0.4 - 1.5], [GTor, 2.4, 2.4, 2.4, X(0.52), up + 0.9, -(Wd * 0.4 - 1.5)]]);
+    mg('k', dark, () => [[GCylZ, 1.6, 1.6, 6, X(0.88), H + 1.8, 0]]);                               // the mooring winch
+    const sit = []; rows.forEach((u, i) => { for (const s of [-1, 1]) for (const e of [-1, 1]) if ((i * 4 + (s + 1) + (e + 1) / 2) % 3 !== 2) sit.push([X(u) - 0.3, s * Wd * 0.19 + e * Wd * 0.08]); });   // two seats on a bench, about two in three taken
+    for (let g = 0; g < 4; g++) mg('s' + g, mc(pick([0xff2bd6, 0x2bf3ff, 0xffd23f, 0x3dffa6, 0xff7a3d, 0xf4f4f6, 0x6a8fd9])), () => sit.filter((p, i) => i % 4 === g).map(p => [GB, 3, 4, 3.6, p[0], up + 3.6, p[1]]));   // their shirts
+    for (let g = 0; g < 2; g++) mg('f' + g, skin(), () => sit.filter((p, i) => i % 2 === g).map(p => [GSph, 1.9, 1.9, 1.9, p[0] + 0.1, up + 6.9, p[1]]));   // their heads
+    seat(X(0.68), up + 7.2, 0.85);
+  } else {                                   // the police boat: a dark blue hull in a grey fender collar, white chevrons on the foredeck, the white console cabin with the light bar and a searchlight, twin outboards
+    const fl = H - 2.2, cb = noseHalf(0.56, 0.645, Wd * 0.28);
+    mg('h', body, () => [S(plan(0, 1, 0), 0, fl), S(ring(0, plan(0.05, 0.6, 2.4)), fl, 2.2), S(plan(0.6, 1, 1.8), H, 0.4)]);   // hull, the foredeck
+    mg('c', mc(0xc9ced6), () => [S(band(-0.4, 1.6), H - 1.4, 1.2, 0.5)]);                             // the fender collar
+    mg('w', wht, () => { const o = [S(plan(0.36, 0.645, 0, cb), fl, 9.4), S(plan(0.35, 0.655, 0, noseHalf(0.56, 0.655, Wd * 0.3)), H + 7.2, 1), [GB, 6.5, 0.4, 5.1, -L / 2 - 3.2, H + 3.1, 6], [GB, 6.5, 0.4, 5.1, -L / 2 - 3.2, H + 3.1, -6]];
+      for (const xf of [X(0.92), X(0.8)]) for (const s of [-1, 1]) { const l = 9, a = 0.55; o.push([GB, l, 0.2, 1.6, xf - l / 2 * Math.cos(a), H + 0.5, s * l / 2 * Math.sin(a), -Math.atan2(s * Math.sin(a), -Math.cos(a))]); }
+      return o; });                                                                                  // the cabin and its roof, the engines' caps, the chevrons
+    mg('f', mc(0x8c939e), () => [S(plan(0.05, 0.6, 2.4), fl, 0.2)]);
+    m.cabin = mg('g', E.glass, () => [S(plan(0.357, 0.652, 0, noseHalf(0.56, 0.652, Wd * 0.28 + 0.8)), H + 4.6, 2.6)]);
+    mg('d', dark, () => [[GB, 4, 2.4, 2 * (hw(0.15) - 2.4) - 2, X(0.15), fl + 1.4, 0], [GB, 6.4, 5.6, 5, -L / 2 - 3.2, H + 0.4, 6], [GB, 6.4, 5.6, 5, -L / 2 - 3.2, H + 0.4, -6],
+      [GB, 2, 7, 1.4, -L / 2 - 2.6, H - 5, 6], [GB, 2, 7, 1.4, -L / 2 - 2.6, H - 5, -6], [GCyl, 0.25, 12, 0.25, X(0.4), H + 14, -Wd * 0.18]]);   // the bench, twin outboards, the antenna
+    mg('m', chrome, () => [[GCyl, 1.3, 1.8, 1.3, X(0.6), H + 9.1, Wd * 0.18]]);                       // the searchlight
+    m.barM = BAR.police; m.bar.push(part(tilt, GB, m.barM[1], 3.4, 2.2, Wd * 0.26, X(0.5), H + 9.3, -Wd * 0.14), part(tilt, GB, m.barM[3], 3.4, 2.2, Wd * 0.26, X(0.5), H + 9.3, Wd * 0.14));
+    seat(X(0.5), H + 7.4, 0.85);
+  }
 }
 const _dark = new THREE.Color(0x1b1b1f), _tmp = new THREE.Color();
 function syncCar(c, time, dt) {

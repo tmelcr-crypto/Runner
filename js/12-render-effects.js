@@ -23,6 +23,61 @@ function gfxParticles() {
   for (let k = rn; k < RINGS.length; k++) RINGS[k].visible = false;
   pGeo.setDrawRange(0, n); aPos.needsUpdate = aSize.needsUpdate = aCol.needsUpdate = true;
 }
+/* Boats' wakes (js/01l In the water; mode boatWake): where a moving boat's stern has been in the last seconds of game time - two lines
+   of foam opening into a V and a soft wash down the middle, fading - and at the bow the water pushed aside. Strips lying on the water,
+   each lane bright along its middle and clear at its edges, in the colour a white deck has in the light of the hour. */
+const MAXW = 48000, wGeo = new THREE.BufferGeometry(), wPos = new Float32Array(MAXW * 3), wAl = new Float32Array(MAXW);
+const aWPos = new THREE.BufferAttribute(wPos, 3).setUsage(THREE.DynamicDrawUsage), aWAl = new THREE.BufferAttribute(wAl, 1).setUsage(THREE.DynamicDrawUsage);
+wGeo.setAttribute('position', aWPos); wGeo.setAttribute('wa', aWAl);
+const wakeMat = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(1, 1, 1) } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: 'attribute float wa;varying float vA;void main(){vA=wa;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader: 'uniform vec3 uC;varying float vA;void main(){gl_FragColor=vec4(uC,vA);}' });
+const wakeMesh = new THREE.Mesh(wGeo, wakeMat); wakeMesh.frustumCulled = false; scene.add(wakeMesh);
+const BOW_W = {}, _wc = new THREE.Color();
+function gfxWakes() {
+  let n = 0; const on = feat('boatWake'), life = PLC.wakeLife, spread = 0.36 * PLC.wakeWidth, Y = WATER_Y + 0.4;
+  const v = (x, y, a) => { wPos[n * 3] = x; wPos[n * 3 + 1] = Y; wPos[n * 3 + 2] = y; wAl[n++] = a; };
+  const lane = (x0, y0, nx0, ny0, o0, w0, a0, x1, y1, nx1, ny1, o1, w1, a1) => {   // between two points: a lane o out along the normal, w each side of its middle
+    if (n + 12 > MAXW || (a0 <= 0 && a1 <= 0)) return;
+    const i0x = x0 + nx0 * (o0 - w0), i0y = y0 + ny0 * (o0 - w0), m0x = x0 + nx0 * o0, m0y = y0 + ny0 * o0, e0x = x0 + nx0 * (o0 + w0), e0y = y0 + ny0 * (o0 + w0);
+    const i1x = x1 + nx1 * (o1 - w1), i1y = y1 + ny1 * (o1 - w1), m1x = x1 + nx1 * o1, m1y = y1 + ny1 * o1, e1x = x1 + nx1 * (o1 + w1), e1y = y1 + ny1 * (o1 + w1);
+    v(i0x, i0y, 0); v(m0x, m0y, a0); v(m1x, m1y, a1); v(i0x, i0y, 0); v(m1x, m1y, a1); v(i1x, i1y, 0);
+    v(m0x, m0y, a0); v(e0x, e0y, 0); v(e1x, e1y, 0); v(m0x, m0y, a0); v(e1x, e1y, 0); v(m1x, m1y, a1);
+  };
+  const wet = (x, y) => boatDist(x, y) < -3 ? 1 : 0, pts = [];
+  for (const c of cars) {
+    if (!c.t.boat) continue;
+    const W = c.wk || (c.wk = []), L = c.t.len, ca = Math.cos(c.ang), sa = Math.sin(c.ang), spd = carSpeed(c);
+    while (W.length && gameT - W[0].t > life) W.shift();
+    const go = on && !!c.mesh && !c.sunk && !c.dead && !c.beached && !c.under && !(c.air > 0) && spd > PLC.wakeFrom;
+    const f = clamp((spd - PLC.wakeFrom) / (c.t.max * 0.6), 0.15, 1), sx = c.x - ca * L / 2, sy = c.y - sa * L / 2, o0 = Math.max(c.t.wid * 0.58, 0.12 * spread * L);   // the V's arms at the stern: opened out from the bow
+    if (go) { const q = W[W.length - 1]; if (!q || gameT - q.t > 0.07 || dist(sx, sy, q.x, q.y) > 16) W.push({ x: sx, y: sy, a: c.ang, v: spd, w: c.t.wid / 2, o: o0, f, t: gameT, r: rand(0.55, 1), l: rand(0.55, 1) }); }
+    if (!W.length || !c.mesh || dist(c.x, c.y, cam.x, cam.y) > 2600) continue;
+    pts.length = 0;
+    for (const p of W) pts.push(p); if (go) pts.push({ x: sx, y: sy, a: c.ang, v: spd, w: c.t.wid / 2, o: o0, f, t: gameT, r: 1, l: 1 });
+    let P0 = null;
+    for (const p of pts) {                                           // each point: its age, the V's arms out to either side, the wash in the middle
+      const g = gameT - p.t, k = Math.max(0, 1 - g / life), nx = -Math.sin(p.a), ny = Math.cos(p.a), o = p.o + spread * p.v * g, aw = 1 + 3 * g + 2 * p.f;
+      const P1 = { x: p.x, y: p.y, nx, ny, o, aw, hc: p.w * (0.45 + 0.9 * g), ac: 0.42 * k * p.f * (0.7 + 0.3 * p.r) * wet(p.x, p.y), aL: 0.8 * k * p.f * p.l * wet(p.x + nx * o, p.y + ny * o), aR: 0.8 * k * p.f * p.r * wet(p.x - nx * o, p.y - ny * o) };   // r, l: the foam is patchy
+      if (P0) {
+        lane(P0.x, P0.y, P0.nx, P0.ny, 0, P0.hc, P0.ac, P1.x, P1.y, P1.nx, P1.ny, 0, P1.hc, P1.ac);
+        lane(P0.x, P0.y, P0.nx, P0.ny, P0.o, P0.aw, P0.aL, P1.x, P1.y, P1.nx, P1.ny, P1.o, P1.aw, P1.aL);
+        lane(P0.x, P0.y, P0.nx, P0.ny, -P0.o, P0.aw, P0.aR, P1.x, P1.y, P1.nx, P1.ny, -P1.o, P1.aw, P1.aR);
+      }
+      P0 = P1;
+    }
+    if (go) {                                                        // the bow wave: from the stem back past both sides, opening out to where the V's arms are at the stern
+      const bw = BOW_W[c.type] || (BOW_W[c.type] = boatHalf(c.t.body, c.t.wid)(0.65)), nx = -sa, ny = ca, ax = u => c.x + ca * (u - 0.5) * L, ay = u => c.y + sa * (u - 0.5) * L;
+      const o1 = Math.max(bw + 0.8 + 1.5 * f, lerp(0.4, o0, 0.35));
+      for (const s of [-1, 1]) {
+        lane(ax(1), ay(1), nx, ny, s * 0.4, 0.6, 0.85 * f, ax(0.65), ay(0.65), nx, ny, s * o1, 1.3, 0.8 * f);
+        lane(ax(0.65), ay(0.65), nx, ny, s * o1, 1.3, 0.8 * f, ax(0), ay(0), nx, ny, s * o0, 1, 0.8 * f);
+      }
+    }
+  }
+  if (n) { _wc.copy(hemi.color).multiplyScalar(hemi.intensity).add(_tmp.copy(sun.color).multiplyScalar(sun.intensity * Math.max(0, sun.position.y / sun.position.length()))); wakeMat.uniforms.uC.value.setRGB(Math.min(1, _wc.r), Math.min(1, _wc.g), Math.min(1, _wc.b)); }
+  wGeo.setDrawRange(0, n); aWPos.needsUpdate = aWAl.needsUpdate = n > 0;
+}
 const MAXT = 48, tGeo = new THREE.BufferGeometry(), tPos = new Float32Array(MAXT * 6);
 tGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3).setUsage(THREE.DynamicDrawUsage));
 const tracerMesh = new THREE.LineSegments(tGeo, new THREE.LineBasicMaterial({ color: 0xfff3a0 })); tracerMesh.frustumCulled = false; scene.add(tracerMesh);

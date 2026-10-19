@@ -234,7 +234,7 @@ rest of this step stands.)
 3. **Flying and people with real lives** (below).
 Story mode is not started yet: when it is, the open items in docs/STORY.md come first.
 
-## Boat models (asked October 2026; to build after the weekly usage window resets on 19 October)
+## Boat models (asked October 2026; built 19 October 2026 - README: Sunset Harbor, boats and swimming)
 - **Which**: the speedboat and the jet ski (the ones you drive most, and Tito's escape boat in Quest 01), the yacht and the fishing
   boat, the police boat and the tour boat. (Not the ferry or the cargo ships.)
 - **Better shapes**: curved hulls with a pointed bow, a windshield, seats, rails, an outboard engine, a cabin where it fits.
@@ -242,6 +242,10 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   In the water group).
 - Then test (screenshots of each boat, still and moving, phone size too), and **merge** - the Quest 01 fixes still on the working
   branch go live with it (the owner's answer).
+- Built: every hull from one outline (curving in to a pointed bow, the transom narrower; js/11 `boatHalf`), decks, cockpits, cushions
+  and cabins as regions of it; the wake as strips on the water (js/12 `gfxWakes`: the bow wave opening into the V, the wash, fading
+  in game time, never over land), the spray as particles (js/08zv `boatSpray`); the modes row `boatWake`; five rows in the places
+  table's In the water group.
 
 ## For the future (asked October 2026; ask the details before building)
 - **City sounds**: improve the city's own sound (js/02d, the places table's city sound group) - the mix of traffic, people,

@@ -256,7 +256,7 @@ function updateCars(dt) {
     if (c.sunk) { c.sinkT += dt; c.vx *= Math.exp(-2.5 * dt); c.vy *= Math.exp(-2.5 * dt); c.av *= 0.9; }
     stepCar(c, dt);
     collideCarWorld(c);
-    if (c.t.boat) { boatShore(c); boatFerry(c); }                    // a boat stays on the water, and off the Iron Key ferry (js/08zv)
+    if (c.t.boat) { boatShore(c); boatFerry(c); boatSpray(c, dt); }   // a boat stays on the water, and off the Iron Key ferry; spray at the bow (js/08zv)
     if (c.z || inCarpark(c.x, c.y, 40) || inTower(c.x, c.y, 40)) cpLift(c);   // up the car park's ramps (js/10k), Skyline One's (js/08zt)
     if (c.rz || inSite(c.x, c.y, 60) || nearStunt(c.x, c.y)) siteJump(c, dt);   // the site's ramps and mounds (js/08zt), the stunt ramps (js/10y)
     if (c.roof || c.air > 0) roofTick(c);                            // high in the air over a roof, or up on one (js/08zt)
