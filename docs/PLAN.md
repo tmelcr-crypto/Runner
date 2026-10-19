@@ -304,6 +304,23 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
    are inside, the chopper loses you from the air (circles the last place it saw you, no shots); (c) police on foot can enter
    buildings the same way you can (the doors, the roller doors, the side doors) and follow you in.
 
+### The owner's answers for the bug fixes (October 2026; fix 1, 2, 3, 5, 6, 7 together, one merge; Quest 01 after, step by step with the owner)
+- **3, job vehicles**: all four jobs (taxi, ambulance, fire engine, vigilante car); +500% = six times as tough (takes 6x the damage
+  before it breaks), only while the job is active, normal again when it ends or fails. A number in the jobs table. Modes: both
+  (free roam, story, MISSIONS TEST), its own row in the modes table.
+- **5, Skyline One**: the bus stop out of the entrance (and no bus stop on any gate or driveway); a rolling gate - up in site hours,
+  down at night with the night guard, burst open by ramming it fast (the alarm, like the hangars' roller doors); the three machines
+  working - the digger digging and the dump truck running between the pit and the fence by day, all three parked at night; taken
+  ones come back after a while.
+- **6, paramedics**: hit (run into, shot at, punched) while carrying: both drop the stretcher (the patient rolls off onto the
+  ground), run away scared like any passer-by; once calm they walk back to the ambulance and drive off without the patient. Their
+  legs walk while they carry.
+- **7, police and buildings**: police on foot follow you into every top-down interior (hangars, warehouses, storage units, the
+  Pay 'n' Spray, the airport terminal, the casino) through the doors you use - not a shut roller door at night unless it was burst;
+  your safehouses stay safe. Modes: both, its own row. The helicopter, while you are inside: no shots and no tracking; it circles the
+  building you went into and picks you up again if you come out while it is there; stay in long enough and it gives up (like losing
+  it under the trees).
+
 ## Fix: street races always won (reported October 2026; check and fix)
 - In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o
   `racePlace`: rivals that crossed the finish (`K.done`) or are further along the route (`K.d`) count ahead of you; a rival
