@@ -288,6 +288,7 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
 - Uses the races table (js/01p) and the race engine (js/08o); the course gates as rings on the water and on the maps.
 
 ## Bugs reported by the owner (October 2026; the list grows as they come - fix them together, then test and merge)
+Fixed 19 October 2026 (one merge): 1, 2 (and the houseboat's door: its TV stood in the doorway), 3, 5, 6, 7 - the answers below. Open: **4, Quest 01 from scratch** (next, with the owner checking each step).
 1. **Street races always won** - 1ST even when last at the final checkpoint (details in the next section).
 2. **The Coral Shore trailer cannot be entered** - the safehouse trailer on its Coral Shore gravel yard (js/10l, js/08s): no way in.
 3. **Public-service jobs: +500% car durability, only while the job is on** - taxi, paramedic, firefighter, vigilante (js/08f and
@@ -321,7 +322,7 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   building you went into and picks you up again if you come out while it is there; stay in long enough and it gives up (like losing
   it under the trees).
 
-## Fix: street races always won (reported October 2026; check and fix)
+## Fix: street races always won (fixed October 2026: a rival stops just short of its route's end, so it never counted as finished; now it finishes within the checkpoint's size, as you do)
 - In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o
   `racePlace`: rivals that crossed the finish (`K.done`) or are further along the route (`K.d`) count ahead of you; a rival
   marked out (`K.out`: wrecked, gone from the cars or no longer driving the race) does not. To check: whether the rivals ever
