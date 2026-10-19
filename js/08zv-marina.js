@@ -125,7 +125,7 @@ function marinaTick(dt) {                 // js/15 every frame
   if (d < 1700) {
     if (MB.away) {                                                   // back at the harbour: the moored boats are in again
       MB.away = false; MB.moored = MB.moored.filter(m => cars.includes(m.c));
-      const free = MARINA.berths.map((b, i) => i).filter(i => !MARINA.own.includes(i) && !MB.moored.some(m => m.i === i));
+      const free = MARINA.berths.map((b, i) => i).filter(i => !MARINA.own.includes(i) && !MB.moored.some(m => m.i === i) && !cars.some(c => c.t.boat && dist(c.x, c.y, MARINA.berths[i][0], MARINA.berths[i][1]) < 40));   // not where a boat already lies (a mission's, js/08zy)
       const n = Math.max(0, Math.round(PLC.moored) - MB.moored.length);
       if (n > 0 && !MB.moored.some(m => m.i < 0)) { MB.moored.push({ c: berthBoat(-1, 'yacht'), i: -1 }); }
       for (const i of free.slice(0, Math.max(0, n - 1))) MB.moored.push({ c: berthBoat(i, i % 3 === 2 ? 'jetski' : 'speedboat'), i });
