@@ -234,7 +234,7 @@ rest of this step stands.)
 3. **Flying and people with real lives** (below).
 Story mode is not started yet: when it is, the open items in docs/STORY.md come first.
 
-## Boat models (asked October 2026; to build after the weekly usage window resets on 19 October)
+## Boat models (asked October 2026; built 19 October 2026 - README: Sunset Harbor, boats and swimming)
 - **Which**: the speedboat and the jet ski (the ones you drive most, and Tito's escape boat in Quest 01), the yacht and the fishing
   boat, the police boat and the tour boat. (Not the ferry or the cargo ships.)
 - **Better shapes**: curved hulls with a pointed bow, a windshield, seats, rails, an outboard engine, a cabin where it fits.
@@ -242,6 +242,10 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   In the water group).
 - Then test (screenshots of each boat, still and moving, phone size too), and **merge** - the Quest 01 fixes still on the working
   branch go live with it (the owner's answer).
+- Built: every hull from one outline (curving in to a pointed bow, the transom narrower; js/11 `boatHalf`), decks, cockpits, cushions
+  and cabins as regions of it; the wake as strips on the water (js/12 `gfxWakes`: the bow wave opening into the V, the wash, fading
+  in game time, never over land), the spray as particles (js/08zv `boatSpray`); the modes row `boatWake`; five rows in the places
+  table's In the water group.
 
 ## For the future (asked October 2026; ask the details before building)
 - **City sounds**: improve the city's own sound (js/02d, the places table's city sound group) - the mix of traffic, people,
@@ -282,6 +286,23 @@ Story mode is not started yet: when it is, the open items in docs/STORY.md come 
   the race table's booths); how many courses and where (with the rocks and their jumps, and the waves?); how many rivals; the fee
   and the prize (races table, economy sheet); whether you must use a jet ski or any boat; what counts toward 100%.
 - Uses the races table (js/01p) and the race engine (js/08o); the course gates as rings on the water and on the maps.
+
+## Bugs reported by the owner (October 2026; the list grows as they come - fix them together, then test and merge)
+1. **Street races always won** - 1ST even when last at the final checkpoint (details in the next section).
+2. **The Coral Shore trailer cannot be entered** - the safehouse trailer on its Coral Shore gravel yard (js/10l, js/08s): no way in.
+3. **Public-service jobs: +500% car durability, only while the job is on** - taxi, paramedic, firefighter, vigilante (js/08f and
+   the jobs table): the job's vehicle takes six times the damage before it breaks (500% more), but only while the job is active;
+   back to normal when it ends or fails. A number in the jobs table (tools/settings_sheet.py), not in code.
+4. **The test mission seems completely broken - start it again from scratch** - Quest 01 in MISSIONS TEST (js/08zy, js/01x):
+   rebuild the mission from the Word page, step by step, with the owner checking each step in the game.
+5. **Construction site (Skyline One)** - (a) a bus stop stands in the site's entrance: remove it (and keep bus stops off every gate
+   and driveway); (b) the gate is open to the street: make it a rolling gate (shut at night like the interiors' roller doors?);
+   (c) the construction vehicles are not on the site: fix it (they should be parked or working inside).
+6. **Paramedics** - their legs do not move while they walk or run with the stretcher; when hit they carry on as if still carrying:
+   they should drop the stretcher and run away (like any frightened passer-by).
+7. **Police and buildings** - (a) the police helicopter can shoot you while you are inside a building: it must not; (b) while you
+   are inside, the chopper loses you from the air (circles the last place it saw you, no shots); (c) police on foot can enter
+   buildings the same way you can (the doors, the roller doors, the side doors) and follow you in.
 
 ## Fix: street races always won (reported October 2026; check and fix)
 - In a street race you come 1ST even when you reach the last checkpoint behind the others. The place is counted in js/08o

@@ -92,6 +92,11 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "boatPolice", "group": "Sunset Harbor", "name": "The police boat comes from", "unit": "stars", "min": 1, "max": 5, "v": 3, "note": "When you are on the water and wanted this much: it chases, rams and its cop shoots."},
   {"id": "swimSpeed", "group": "In the water", "name": "You swim at", "unit": "%", "min": 20, "max": 150, "v": 90, "note": "Of your running speed, as far as you like; no weapons in the water. You swim under the bridges too."},
   {"id": "sinkTime", "group": "In the water", "name": "A car in the water: time to get out", "unit": "s", "min": 1, "max": 20, "v": 4, "note": "It sinks; get out (E, or the car button) and swim. Still inside when the time is up: drowned. A boat wrecked burns, then sinks with you thrown in."},
+  {"id": "wakeFrom", "group": "In the water", "name": "A boat leaves a wake from", "unit": "km/h", "min": 0, "max": 60, "v": 8, "note": "Behind it two lines of foam open into a V, with a white wash down the middle, and the water piles up at the bow - bigger with speed."},
+  {"id": "wakeLife", "group": "In the water", "name": "The wake fades over", "unit": "s", "min": 0.5, "max": 10, "v": 3, "note": "How long the foam stays on the water behind a boat (longer: a longer V)."},
+  {"id": "wakeWidth", "group": "In the water", "name": "The wake opens", "unit": "%", "min": 20, "max": 300, "v": 100, "note": "How fast the V spreads (100%: like a real boat's, about 20 degrees to each side)."},
+  {"id": "sprayFrom", "group": "In the water", "name": "Spray flies at the bow from", "unit": "km/h", "min": 0, "max": 150, "v": 30, "note": "Faster than this the water is thrown up and aside at the bow; more as you go faster and turn harder."},
+  {"id": "spray", "group": "In the water", "name": "Spray amount", "unit": "%", "min": 0, "max": 300, "v": 100, "note": "0: no spray."},
   {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."}
 ]
 }/*END-PLACES-JSON*/;
