@@ -293,6 +293,10 @@ MSCRIPT.q01 = (() => {
       if ((po.lt += dt) > 0.8) { if (dist(q.x, q.y, po.lx, po.ly) < 6 && po.i < path.length - 1) po.i++; po.lt = 0; po.lx = q.x; po.ly = q.y; }   // stuck: on to the next point
       return true; } };
   }
+  function dryBag(A) {                                                 // where the bag lands: by Tito on dry ground (on the jetty, not off its side into the water)
+    const t = A.tito, near = [[10, 6], [-10, -6], [6, -10], [-6, 10], [0, 0]].map(([dx, dy]) => at(t.x + dx, t.y + dy));
+    return [...near, ...A.run].find(q => boatDist(q.x, q.y) > 6) || at(t.x, t.y);
+  }
   function fleeBoat(c, dt) {                                           // js/07: Tito at the helm - round the bay for the jetty, off the shore, round boats, weaving when you close in
     const R = A0().route; if (!R || !MS.on) { c.thr = 0; c.str = 0; return; }
     if (c.wi < R.length - 1 && dist(c.x, c.y, R[c.wi][0], R[c.wi][1]) < 140) c.wi++;
@@ -322,7 +326,7 @@ MSCRIPT.q01 = (() => {
       info: A => Math.round(dist(me().x, me().y, A.tboat.x, A.tboat.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayWater + ')',
       jump(A) { const w = A.route[Math.max(0, A.route.length - 3)]; A.tboat.x = A.jetty.water.x; A.tboat.y = A.jetty.water.y; A.landed = true; if (P.car !== A.boat) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } A.boat.x = w[0]; A.boat.y = w[1]; P.x = w[0]; P.y = w[1]; } },
     { enter(A) { const h = A.jetty.head; A.tito = msPed(h.x, h.y, 0, { shirt: msWho('tito').shirt, pants: msWho('tito').pants, msName: 'tito', speed: 1 }); titoRuns(A); MS.mark = () => A.tito; MS.guide = () => A.tito; },   // CATCH on foot
-      tick(A) { if (A.caught || P.car || dist(P.x, P.y, A.tito.x, A.tito.y) > N().catch * UNITS_PER_M + 14) return false;
+      tick(A) { if (A.caught || P.car || P.swim || dist(P.x, P.y, A.tito.x, A.tito.y) > N().catch * UNITS_PER_M + 14) return false;   // out of the water first
         A.caught = true; msCut('CAUGHT', () => { msNext(); }); return false; },
       info: A => A.tito ? Math.round(dist(me().x, me().y, A.tito.x, A.tito.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayFoot + ')' : '',
       jump(A) { if (P.car) exitCar(true); P.x = A.jetty.base.x; P.y = A.jetty.base.y; A.tboat.driver = null; A.tboat.msDrive = null; A.landed = true; } },
@@ -354,7 +358,7 @@ MSCRIPT.q01 = (() => {
       { dur: 5, cam: 'FOLLOW', at: () => A.tboat, line: 3, tick: (A2, dt, u) => { if (u > 0.45) { A.tboat.ang = 0; A.tboat.x += 520 * dt * smooth01(0.45, 0.7, u); } } },   // he waves, then roars off
       { dur: 4, cam: 'CLOSE', at: () => A.boat, line: 4 }],
     CAUGHT: A => [
-      { dur: 3, cam: 'OVERHEAD', at: () => A.tito, line: 5, enter: () => { A.tito.post.step = q => { q.vx = q.vy = 0; return true; }; face(A.tito, P); A.bag = at(A.tito.x + 10, A.tito.y + 6); } },   // he throws the bag down
+      { dur: 3, cam: 'OVERHEAD', at: () => A.tito, line: 5, enter: () => { A.tito.post.step = q => { q.vx = q.vy = 0; return true; }; face(A.tito, P); A.bag = dryBag(A); } },   // he throws the bag down
       { dur: 2, cam: 'FIXED', at: () => A.tito, enter: () => titoRuns(A) }],   // and runs on along his way
     SQUARE: A => [
       { dur: 4, cam: 'CLOSE', at: () => A.marco, line: 6, enter: () => face(A.marco, P) },
