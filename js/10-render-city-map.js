@@ -110,6 +110,23 @@ function shapeMesh(polys, h, col) {
   return m;
 }
 
+function gateways() {                      // every gate, driveway and door onto a street (a gate, gates, drive or door in the map data, and the interiors' doors): [x, y, how near nothing may stand]
+  const out = [], add = (x, y, w) => { if (isFinite(x) && isFinite(y)) out.push([x, y, (w || 60) / 2 + 40]); };
+  const walk = o => {
+    if (!o || typeof o !== 'object') return;
+    if (Array.isArray(o)) { if (typeof o[0] !== 'number') for (const v of o) walk(v); return; }
+    for (const k in o) {
+      const v = o[k];
+      if ((k === 'gate' || k === 'door' || k === 'drive') && v) {
+        if (Array.isArray(v)) { if (v.length >= 4 && v[2] > 300) { add(v[0], v[1], 60); add(v[2], v[3], 60); } else add(v[0], v[1], (v[2] || 60) + (k === 'drive' ? v[3] || 0 : 0)); }   // a long drive given by its two ends
+        else add(v.x, v.y, v.w);
+      } else if (k === 'gates' && Array.isArray(v)) { for (const g of v) if (g) add(g.x, g.y, g.w); }
+      else walk(v);
+    }
+  };
+  walk(MAP); for (const S of IXS) add(S.dx, S.dy, S.dw);
+  return out;
+}
 function buildCity() {
   if (cityGroup) return;                                         // the map never changes, so it is built once
   cityGroup = new THREE.Group(); scene.add(cityGroup);
@@ -191,12 +208,13 @@ function buildCity() {
   const TV = [[trunks, GCyl, false], [crowns, GSph, false], [pines, GPINE, false]];   // a tree's parts, so it can fall (js/12g)
   const METERED = { 'PALM HEIGHTS': 1, 'MERCADO': 1, 'SEAVIEW': 1, 'SUNSTRIP': 1, 'CORAL SHORE': 1, 'PEARL KEY': 1 };   // parking meters on the busy shopping streets
   const PALMY = { 'CORAL SHORE': 0.45, 'SUNSTRIP': 0.4, 'SEAVIEW': 0.4, 'PEARL KEY': 0.5, 'HERON KEY': 0.4, 'FAIRWAY ISLES': 0.4, 'MERCADO': 0.2, 'PALM HEIGHTS': 0.22, 'DOCKSIDE': 0.06, 'SKYPORT': 0.15 };
+  const ways = gateways(), onWay = (x, y) => ways.some(w => Math.abs(x - w[0]) < w[2] && Math.abs(y - w[1]) < w[2] && dist(x, y, w[0], w[1]) < w[2]);
   for (const E of RE) for (const sd of [-1, 1]) {
     let nextStop = rand(200, 600);
     for (let s = SWO + 16 + rand(0, 30); s < E.len - SWO - 16; s += rand(44, 76)) {
       const c = edgeAt(E.i, s, q), rx = -c.ty * sd, ry = c.tx * sd, yaw = -Math.atan2(c.ty, c.tx);
       const kx = c.x + rx * (ROAD_HALF + 5), ky = c.y + ry * (ROAD_HALF + 5), bx = c.x + rx * (SWO - 5), by = c.y + ry * (SWO - 5);
-      if (shoreDist(bx, by) < 24 || inLandmark(bx, by) || nearLot(bx, by) || onOtherRoad(bx, by, E.i) || onOtherRoad(kx, ky, E.i)) continue;   // never out on another street
+      if (shoreDist(bx, by) < 24 || inLandmark(bx, by) || nearLot(bx, by) || onOtherRoad(bx, by, E.i) || onOtherRoad(kx, ky, E.i) || onWay(bx, by) || onWay(kx, ky)) continue;   // never out on another street, nor in front of a gate or a driveway
       const pr = PALMY[districtAt(c.x, c.y)] || 0.15, r = Math.random(), mark = partMark(furn); let thr = null;   // thr: [x, y, mass, what a car does to it (js/12e)] of a piece a blast can throw
       if (s > nextStop) {                                        // bus shelter: roof, glass back, two posts, a lit sign
         nextStop = s + rand(700, 1100); const ox = rx * 3, oy = ry * 3;

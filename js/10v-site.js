@@ -83,7 +83,7 @@ function makeSite() {
   { const s = fasciaSign('SKYLINE ONE', '#ffd23f', 90, 14); s.position.set(X(a0 + 60), 13, Z(b1) - 2.2 - 180); sub.push(s); }
   // the broken panel: lying in the gap, propped on the stack
   face(Y, [[X(px - pw / 2 - 2), 0.9, Z(b0) + 4], [X(px + pw / 2 + 2), 0.9, Z(b0) + 4], [X(px + pw / 2 + 6), 10, Z(b0) + 22], [X(px - pw / 2 + 2), 10, Z(b0) + 22]], [0, 0.9, -0.4], C('#1e3a6a'));
-  // the gate: posts in yellow and black (the leaves swing: below)
+  // the gate: posts in yellow and black (the gate rolls: below)
   for (const s of [-1, 1]) for (let y = 0; y < 34; y += 5) box5(Y, X(a0) - 3, y, Z(gy + s * (gw / 2 + 3)) - 3, X(a0) + 3, Math.min(34, y + 5), Z(gy + s * (gw / 2 + 3)) + 3, (y / 5) % 2 ? blk : yel);
   // the site office: two stacked cabins, steps up to the top one, lit windows
   { const [cx, cy, w, d] = SITE.office;
@@ -164,14 +164,16 @@ function makeSite() {
     for (let k = 1; k < NL; k++) { const yy = k * dh - 2; box5(SB, X(x0), yy, Z(y0) - 17, X(x1), yy + 1.2, Z(y0) - 7, plank); box5(SB, X(x1) + 7, yy, Z(y0), X(x1) + 17, yy + 1.2, Z(y1), plank);
       box5(SB, X(x0), yy + 9, Z(y0) - 17, X(x1), yy + 10, Z(y0) - 16, pipe); box5(SB, X(x1) + 16, yy + 9, Z(y0), X(x1) + 17, yy + 10, Z(y1), pipe); }
     const mats = [xray(new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true }))], m = new THREE.Mesh(mergeBuilders([SB]), mats[0]); g.add(m); view.scaff = { mesh: m, mats, op: 1 }; }
-  // the moving parts: the gate's two leaves, the two cranes
-  const gateG = new THREE.Group(), gm = new THREE.MeshLambertMaterial({ color: 0x8a8f9c }), leaves = [];
-  for (const s of [-1, 1]) {
-    const pv = new THREE.Group(); pv.position.set(X(a0), 0, Z(gy + s * gw / 2)); gateG.add(pv);
-    const fr = new THREE.Mesh(GB, gm); fr.scale.set(2, 30, gw / 2 - 2); fr.position.set(0, 15, -s * (gw / 4)); pv.add(fr);
-    const mesh = new THREE.Mesh(GB, new THREE.MeshBasicMaterial({ color: 0x3a3d47, transparent: true, opacity: 0.55 })); mesh.scale.set(1, 26, gw / 2 - 6); mesh.position.set(0, 15, -s * (gw / 4)); pv.add(mesh);
-    leaves.push({ pv, s });
-  }
+  // the moving parts: the rolling gate (on its wheels it rolls north along the inside of the hoarding), the two cranes
+  const gateG = new THREE.Group(), gm = new THREE.MeshLambertMaterial({ color: 0x8a8f9c }), roll = new THREE.Group(); roll.position.set(X(a0) + 4, 0, Z(gy)); gateG.add(roll);
+  { const part = (geo, mat, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.scale.set(sx, sy, sz); o.position.set(x, y, z); roll.add(o); return o; };
+    const stripe = [new THREE.MeshLambertMaterial({ color: 0xffd23f }), new THREE.MeshLambertMaterial({ color: 0x16161c })], wheel = new THREE.MeshLambertMaterial({ color: 0x2a2d38 });
+    for (let k = 0; k < 10; k++) part(GB, stripe[k % 2], 5, 2, gw / 10, 0, 29, -gw / 2 + (k + 0.5) * gw / 10);       // the top rail in yellow and black: from above, a striped bar across the way in
+    for (const z of [-gw / 2 + 1, 0, gw / 2 - 1]) part(GB, gm, 2, 28, 2, 0, 15, z);                                      // the uprights
+    for (let k = 0; k < 10; k++) part(GB, stripe[k % 2], 2.4, 3, gw / 10, 0, 3.5, -gw / 2 + (k + 0.5) * gw / 10);       // the bottom rail in yellow and black
+    for (let z = -gw / 2 + 5; z < gw / 2 - 2; z += 5) part(GB, gm, 0.8, 24, 0.8, 0, 17, z);                           // the bars
+    part(GB, new THREE.MeshBasicMaterial({ color: 0x3a3d47, transparent: true, opacity: 0.45 }), 0.6, 24, gw - 4, 0, 17, 0);   // the mesh behind them
+    for (const z of [-gw / 2 + 8, gw / 2 - 8]) { const w = part(GCyl, wheel, 2.2, 2.4, 2.2, 0, 2.2, z); w.rotation.x = Math.PI / 2; } }
   g.add(gateG);
   const cranes = SITE.cranes.map(([cx, cy, jib, Hc], i) => {
     const mast = new THREE.Group(); mast.position.set(X(cx), 0, Z(cy)); g.add(mast);
@@ -191,7 +193,7 @@ function makeSite() {
     const beam = new THREE.Mesh(GB, new THREE.MeshLambertMaterial({ color: i ? 0xc0392b : 0x7a7f8c })); beam.scale.set(i ? 40 : 30, i ? 4 : 10, i ? 6 : 24); load.add(beam);
     return { rot, trolley, cable, load, jib, Hc, ph: i * 2.3, mats: [lat, dk, cab.material, beam.material, sign.material] };
   });
-  g.userData.own = view.groups.flatMap(v => v.mats).concat(view.scaff.mats, ym.userData.own, [gm], ...cranes.map(c => c.mats), ...leaves.map(l => l.pv.children.map(o => o.material)));
-  SK.view = view; SK.parts = { leaves, cranes };
+  g.userData.own = view.groups.flatMap(v => v.mats).concat(view.scaff.mats, ym.userData.own, [gm], ...cranes.map(c => c.mats), ...roll.children.map(o => o.material));
+  SK.view = view; SK.parts = { roll, rollZ: Z(gy), cranes };
   return g;
 }
