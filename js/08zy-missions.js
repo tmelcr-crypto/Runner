@@ -344,17 +344,20 @@ MSCRIPT.q01 = (() => {
     const ca = Math.cos(J.ja), sa = Math.sin(J.ja), u = Math.max(J.len + c.t.len / 2 + 6, (c.x - J.x) * ca + (c.y - J.y) * sa - 120);   // a point on the jetty's line ahead of him: he comes in straight along it
     c.str = clamp(angDiff(c.ang, Math.atan2(J.y + sa * u - c.y, J.x + ca * u - c.x)) * 2.4, -1, 1); c.hb = false;
     c.thr = spd > v * 1.15 ? -1 : spd < v ? 0.6 : 0;
-    if (d < 80) { const k = Math.min(1, dt * 1.5); c.x += (L.x - c.x) * k; c.y += (L.y - c.y) * k; c.ang += angDiff(c.ang, J.ja + Math.PI) * k; c.vx *= 1 - k; c.vy *= 1 - k; }   // the last metres eased in, as if on a line
-    if (d < 10 || (A.dockT > 12 && d < 120) || A.dockT > 25) A.docked = true;
+    if (d < 120) {                                                     // the last metres eased in, as if on a line (firmer the nearer): off the line, out and across first (not into the T's corner)
+      const v = -(c.x - J.x) * sa + (c.y - J.y) * ca, tu = J.len + c.t.len / 2 + 6 + Math.max(0, Math.abs(v) - 10), tx = J.x + ca * tu, ty = J.y + sa * tu, k = Math.min(1, dt * (0.4 + 2 * (1 - d / 120)));
+      c.x += (tx - c.x) * k; c.y += (ty - c.y) * k; c.ang += angDiff(c.ang, J.ja + Math.PI) * k; c.vx *= 1 - k; c.vy *= 1 - k;
+    }
+    if (d < 10 || (A.dockT > 12 && d < 40)) A.docked = true;   // only at the head: pinned out on the water by you, he keeps trying
   }
   function jettySpot(A, c) {                                           // the point of the jetty nearest his boat: where Tito steps off
     const J = A.jetty, ca = Math.cos(J.ja), sa = Math.sin(J.ja), dx = c.x - J.x, dy = c.y - J.y;
     const u = clamp(dx * ca + dy * sa, 0, J.len - 8), half = u >= J.len - J.hd ? J.hw - 8 : J.w / 2 - 6, v = clamp(-dx * sa + dy * ca, -half, half);
     return at(J.x + ca * u - sa * v, J.y + sa * u + ca * v);
   }
-  function bagAt(A) {                                                  // the bag lands right where Tito is caught, a step towards you (never off into the water)
+  function bagAt(A) {                                                  // the bag lands right where Tito is caught, a step towards you (never off into the water; a bridge's deck is ground)
     const t = A.tito, a = Math.atan2(P.y - t.y, P.x - t.x), q = at(t.x + Math.cos(a) * 8, t.y + Math.sin(a) * 8);
-    return boatDist(q.x, q.y) > -4 ? q : at(t.x, t.y);
+    return shoreDist(q.x, q.y) > -4 ? q : at(t.x, t.y);
   }
   function fleeBoat(c, dt) {                                           // js/07: Tito at the helm - round the bay for the jetty, off the shore, round boats, weaving when you close in
     const R = A0().route; if (!R || !MS.on) { c.thr = 0; c.str = 0; return; }
@@ -407,7 +410,7 @@ MSCRIPT.q01 = (() => {
     if (A.tito && A.tito.dead && !A.caught) return F.titoDead;
     if (A.tboat && MS.k === 2 && dist(me().x, me().y, A.tboat.x, A.tboat.y) > N().awayWater * UNITS_PER_M) return F.away;
     if (A.tito && MS.k === 3 && !A.caught && dist(me().x, me().y, A.tito.x, A.tito.y) > N().awayFoot * UNITS_PER_M) return F.away;
-    if (A.bag && boatDist(A.bag.x, A.bag.y) < -10) return F.bagSank;
+    if (A.bag && shoreDist(A.bag.x, A.bag.y) < -10) return F.bagSank;   // in the water (on a bridge's deck it lies on the road)
     return '';
   }
   const face = (p, q) => { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; };
