@@ -152,7 +152,7 @@ function groveBoats() {                   // the boats tied up at the grove's pi
 }
 
 /* the boat shop at the harbour office's door */
-function boatKey() { return marinaOn() && !P.car && !P.dead && !P.act && state === 'play' && dist(P.x, P.y, MARINA.door[0] + 16, MARINA.door[1]) < 30 ? 'shop' : null; }
+function boatKey() { return marinaOn() && !P.car && !P.dead && !P.act && state === 'play' && dist(P.x, P.y, MARINA.door[0] + 16, MARINA.door[1]) < 30 && !(nearestCar() || {}).ms ? 'shop' : null; }   // a mission's boat in reach (js/08zy): E gets you in it instead
 function boatUi() {                       // every frame (js/14): the button by you
   const b = $('boatBtn'); if (!b) return;
   if (!boatKey()) { if (!b.hidden) b.hidden = true; return; }

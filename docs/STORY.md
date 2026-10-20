@@ -61,7 +61,7 @@ A third mode where every new mission is played in the game before it goes into S
 
 | Quest | State | Notes |
 | --- | --- | --- |
-| 01 Harbour Favour | built in MISSIONS TEST (placeholder portraits); the owner's first test fixed (START MISSION by Marco, no guide line in cutscenes, Tito's boat round the bay, his fixed way on foot, a sunk boat fails it); waiting for the owner's next test, changes and pictures | Tito heads for the jetty in Mercado, across the bay (Dockside is 8 km away). The player says nothing - asked whether the player should speak |
+| 01 Harbour Favour | built in MISSIONS TEST (placeholder portraits); the owner's first test fixed (START MISSION by Marco, no guide line in cutscenes, Tito's boat round the bay, his fixed way on foot, a sunk boat fails it); second round (October 2026): no guide line at the start, Tito by Marco with the bag runs down pier 1 to his boat in the opening, faster speech (tap anywhere), Tito docks at the jetty's head and steps off by his boat, the bag drops where he is caught; waiting for the owner's next test, changes and pictures | Tito heads for the jetty in Mercado, across the bay (Dockside is 8 km away). The player says nothing - asked whether the player should speak |
 
 ## Connectors - joining the quests into STORY
 

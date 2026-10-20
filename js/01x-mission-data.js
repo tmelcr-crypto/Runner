@@ -8,9 +8,10 @@
    (the missions themselves come from the Word pages). Keep the JSON between the markers valid. */
 const MISSION_TABLE = /*MISSIONS-JSON*/{
 "settings": [
-  {"id": "letters", "group": "Dialogue", "name": "Words appear at", "unit": "letters/s", "min": 5, "max": 200, "v": 38, "note": "How fast a line fills its bubble (a tap shows the rest at once)."},
+  {"id": "letters", "group": "Dialogue", "name": "Words appear at", "unit": "letters/s", "min": 5, "max": 200, "v": 70, "note": "How fast a line fills its bubble (a tap anywhere shows the rest at once, the next tap the next line)."},
   {"id": "mumble", "group": "Dialogue", "name": "Mumble loudness", "unit": "%", "min": 0, "max": 100, "v": 60, "note": "Each character's own mumble while their words appear (0: silent)."},
-  {"id": "lineGap", "group": "Cutscenes", "name": "A line shows after the shot starts", "unit": "s", "min": 0, "max": 5, "v": 0.6, "note": "The shot plays this long, then waits for its line to be read."},
+  {"id": "lineGap", "group": "Cutscenes", "name": "A line shows after the shot starts", "unit": "s", "min": 0, "max": 5, "v": 0.3, "note": "The shot plays this long, then waits for its line to be read."},
+  {"id": "afterLine", "group": "Cutscenes", "name": "After its line is read a shot moves on in", "unit": "s", "min": 0, "max": 5, "v": 0.3, "note": "Then the next shot (a shot with an action still going - Tito running to his boat - waits for it)."},
   {"id": "objTime", "group": "Cards", "name": "A new step's words stay big for", "unit": "s", "min": 1, "max": 10, "v": 3, "note": "Then they shrink into the bar at the top."}
 ],
 "missions": [
