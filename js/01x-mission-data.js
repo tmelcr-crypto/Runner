@@ -39,7 +39,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
      {"who": "marco", "text": "Mostly. Tito never was good with numbers.", "mood": "dry"},
      {"who": "marco", "text": "The boat is yours. Keep it at my berths. I'll call you.", "mood": "warm"}],
    "fails": {"away": "TITO GOT AWAY", "titoDead": "TITO IS DEAD", "marcoDead": "MARCO IS DEAD", "bagSank": "THE BAG SANK", "boatSank": "TITO WENT DOWN WITH HIS BOAT", "wasted": "WASTED", "busted": "BUSTED"},
-   "numbers": {"awayWater": 300, "awayFoot": 150, "catch": 3, "titoBoat": 70, "titoRun": 88, "runLen": 260},
+   "numbers": {"awayWater": 300, "awayFoot": 150, "ashoreIn": 20, "catch": 3, "titoBoat": 70, "titoRun": 88, "runLen": 260},
    "reward": {"cash": 2000, "vehicle": "Marco's speedboat - waits at your berths at Sunset Harbor", "clothes": "Marco's faded captain's cap", "next": "Quest 02 - Marco phones a game day later", "place": "", "contact": "Marco can call you from now on"}}
 ]
 }/*END-MISSIONS-JSON*/;

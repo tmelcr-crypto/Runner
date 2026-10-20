@@ -385,14 +385,14 @@ MSCRIPT.q01 = (() => {
       jump(A) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } },
     { enter(A) { titoAboard(A); const c = A.tboat; Object.assign(c, { driver: 'ai', msDrive: fleeBoat, wi: 1 }); MS.mark = () => A.tboat; },   // CHASE on the water (Tito aboard by now, whatever)
       tick(A) { const c = A.tboat;
-        if (A.docked) { c.driver = null; c.msDrive = null; c.thr = 0; c.vx = c.vy = 0; c.noEnter = false; A.landed = true; return true; }   // at the jetty's head
+        if (A.docked) { c.driver = null; c.msDrive = null; c.thr = 0; c.vx = c.vy = 0; c.noEnter = false; A.landed = true; A.landT = gameT; return true; }   // at the jetty's head
         return false; },
       info: A => Math.round(dist(me().x, me().y, A.tboat.x, A.tboat.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayWater + ')',
-      jump(A) { const w = A.route[Math.max(0, A.route.length - 3)], c = A.tboat; Object.assign(c, { x: A.jetty.dock.x, y: A.jetty.dock.y, ang: A.jetty.ja + Math.PI, vx: 0, vy: 0, driver: null, msDrive: null, noEnter: false }); A.landed = A.docked = true; if (P.car !== A.boat) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } A.boat.x = w[0]; A.boat.y = w[1]; P.x = w[0]; P.y = w[1]; } },
+      jump(A) { const w = A.route[Math.max(0, A.route.length - 3)], c = A.tboat; Object.assign(c, { x: A.jetty.dock.x, y: A.jetty.dock.y, ang: A.jetty.ja + Math.PI, vx: 0, vy: 0, driver: null, msDrive: null, noEnter: false }); A.landed = A.docked = true; A.landT = gameT; if (P.car !== A.boat) { P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } A.boat.x = w[0]; A.boat.y = w[1]; P.x = w[0]; P.y = w[1]; } },
     { enter(A) { const h = jettySpot(A, A.tboat); A.tito = msPed(h.x, h.y, A.jetty.ja + Math.PI, { shirt: msWho('tito').shirt, pants: msWho('tito').pants, msName: 'tito', speed: 1 }); A.carry = A.tito; titoRuns(A); MS.mark = () => A.tito; MS.guide = () => A.tito; },   // CATCH on foot: off his boat onto the jetty right by it, the bag in his hand
       tick(A) { if (A.caught || P.car || P.swim || dist(P.x, P.y, A.tito.x, A.tito.y) > N().catch * UNITS_PER_M + 14) return false;   // out of the water first
         A.caught = true; msCut('CAUGHT', () => { msNext(); }); return false; },
-      info: A => A.tito ? Math.round(dist(me().x, me().y, A.tito.x, A.tito.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + N().awayFoot + ')' : '',
+      info: A => A.tito ? Math.round(dist(me().x, me().y, A.tito.x, A.tito.y) / UNITS_PER_M) + ' M TO TITO (GONE AT ' + awayNow() + ')' : '',
       jump(A) { if (P.car) exitCar(true); P.x = A.jetty.base.x; P.y = A.jetty.base.y; A.tboat.driver = null; A.tboat.msDrive = null; A.landed = true; A.carry = null; } },
     { enter(A) { if (!A.bag) A.bag = at(P.x + 30, P.y); MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = () => A.bag; },   // COLLECT the bag
       tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > 26) return false; A.bag = null; A.hasBag = true; Snd.pickup(); popup(P.x, P.y - 14, 'THE BAG', '#b6ff3c'); return true; },
@@ -402,6 +402,7 @@ MSCRIPT.q01 = (() => {
     { enter(A) { MS.guide = A.door; MS.mark = () => A.marco; },                                         // DELIVER: the closing
       tick(A) { if (A.home || dist(me().x, me().y, A.door.x, A.door.y) > 70) return false; A.home = true; if (P.car) exitCar(true); msCut('SQUARE', () => msNext()); return false; },
       jump(A) { P.x = A.door.x + 300; P.y = A.door.y + 200; } }];
+  const awayNow = () => (P.car ? P.car.t.boat : P.swim) && gameT - (MS.A.landT || 0) < N().ashoreIn ? N().awayWater : N().awayFoot;   // Tito just ashore: a while (ashoreIn s) to come ashore yourself under the water's limit, then the foot one
   function fail(A) {
     const F = MS.m.fails;
     if (A.marco.dead) return F.marcoDead;
@@ -409,7 +410,7 @@ MSCRIPT.q01 = (() => {
     if (!A.landed && A.tboat && !cars.includes(A.tboat)) return F.away;
     if (A.tito && A.tito.dead && !A.caught) return F.titoDead;
     if (A.tboat && MS.k === 2 && dist(me().x, me().y, A.tboat.x, A.tboat.y) > N().awayWater * UNITS_PER_M) return F.away;
-    if (A.tito && MS.k === 3 && !A.caught && dist(me().x, me().y, A.tito.x, A.tito.y) > N().awayFoot * UNITS_PER_M) return F.away;
+    if (A.tito && MS.k === 3 && !A.caught && dist(me().x, me().y, A.tito.x, A.tito.y) > awayNow() * UNITS_PER_M) return F.away;
     if (A.bag && shoreDist(A.bag.x, A.bag.y) < -10) return F.bagSank;   // in the water (on a bridge's deck it lies on the road)
     return '';
   }
