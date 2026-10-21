@@ -66,3 +66,7 @@ questions before building it. Each answer is written here as it comes; the story
 58. Each finished side storyline adds its gift to the finale: Varga - Marco's crew and boats; Casino - the getaway; Colony - the base and its people; Prison - the way in; Space - the eye in the sky. Each missing one makes the finale harder.
 59. Danny at the end is the quiet boss of Miravista: he owns the places he saved (the Colony, the casino's take, the harbour) and everyone owes him; not mayor, but the man who runs things.
 60. After the finale the game goes on: credits roll, then Danny is free in the city; unfinished side storylines can still be played.
+61. Danny Cruz's look: 30s, a hard face, a buzz cut, a scar on the cheek; a leather jacket (he lands in the borrowed suit of answer 14).
+62. Danny's portrait follows the clothes he wears: his face plus the top and hat he has on now (from the clothes table).
+63. A failed quest: MISSION FAILED, retry from the marker any time; nothing is lost and the story waits.
+64. The story has a few big choices: 3 to 5 moments (spare or finish a lieutenant, who to trust) whose consequences show later.
