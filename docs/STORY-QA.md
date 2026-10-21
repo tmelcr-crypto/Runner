@@ -78,3 +78,7 @@ questions before building it. Each answer is written here as it comes; the story
 66. A big choice is made by what Danny does (shoot him or walk away; drive to A or to B), not by buttons.
 67. The choices make small changes to the ending: who shows up, a few lines and scenes in the finale and the closing cutscene; one ending.
 68. The tone: gritty with heart and jokes - a crime story like the 90s films; violence, but Danny never hurts innocents in cutscenes; funny side characters (Papa Joe, the suitcase).
+69. Calls in 1997: a pager first - in chapter 1 it buzzes and Danny calls back from a phone box; from chapter 2 a brick mobile phone (the game's phone of today).
+70. The money grows by chapter: Danny lands with EUR 0; quests pay about EUR 300 in chapter 1 up to EUR 20,000 in chapter 5; the side lines' big jobs (the vault) pay most.
+71. Businesses that earn money come only at the end: after the finale Danny gets a daily income from everything.
+72. Weapons and shops: all open from the start in STORY, like FREE ROAM (hidden pickups stay at 30%).
