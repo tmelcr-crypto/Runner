@@ -527,7 +527,59 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["By the cab", "Joe, Danny", "Joe pats the roof of his cab. Fade out.", "WIDE", "4", "20"]]}],
     "start": {"how": "marker", "marker": "J - Papa Joe by his cab on the Colony's ring drive (after the arrival cutscene)", "phone": "-"},
     "failing": "Retry from the morning at the Colony (the arrival can be skipped).",
-    "notes": {"places": "Skyport's forecourt; the road out of the airport and the first CRANE FOR MAYOR billboard; the Colony's ring drive and door; the airport taxi rank by the gate; the streets toward Coral Shore.", "people": "Papa Joe (rides with you, stays in his cab), Esther at the door, the fare.", "music": "Night radio on the arrival; the morning radio in the cab.", "new": "The billboards (STORY only). A friend who rides but never fights and stays in his car when you get out.", "other": "Danny speaks in the cutscenes."}}}
+    "notes": {"places": "Skyport's forecourt; the road out of the airport and the first CRANE FOR MAYOR billboard; the Colony's ring drive and door; the airport taxi rank by the gate; the streets toward Coral Shore.", "people": "Papa Joe (rides with you, stays in his cab), Esther at the door, the fare.", "music": "Night radio on the arrival; the morning radio in the cab.", "new": "The billboards (STORY only). A friend who rides but never fights and stays in his car when you get out.", "other": "Danny speaks in the cutscenes."}}},
+  {"id": "m02", "no": "M02", "title": "SPECIAL DELIVERY", "giver": "joe", "start": "phone", "where": "A page from Joe, then the Coral Shore rank and Mercado",
+   "story": "Joe pages Danny: a parcel for his old friend Uncle Saul, the pawnbroker in Mercado - no questions. On the way two thieves on scooters snatch it at a light. Run them down, get the parcel back and bring it to Saul.",
+   "chars": ["joe", "danny", "saul"],
+   "steps": [
+     {"word": "TALK TO", "show": "CALL JOE FROM A PHONE BOOTH"},
+     {"word": "COLLECT", "show": "PICK UP THE PARCEL FROM JOE AT THE RANK"},
+     {"word": "DELIVER", "show": "TAKE THE PARCEL TO UNCLE SAUL IN MERCADO"},
+     {"word": "CHASE", "show": "GET THE PARCEL BACK FROM THE SCOOTER THIEF"},
+     {"word": "COLLECT", "show": "PICK UP THE PARCEL"},
+     {"word": "DELIVER", "show": "TAKE THE PARCEL TO UNCLE SAUL"}],
+   "lines": [
+     {"who": "joe", "text": "Joe. Got a parcel for Uncle Saul - the pawnshop in Mercado. Pick it up at the rank. No questions.", "mood": "warm", "when": "The call from the booth"},
+     {"who": "danny", "text": "What's in it?", "mood": "calm", "when": "The call"},
+     {"who": "joe", "text": "That was a question.", "mood": "dry", "when": "The call"},
+     {"who": "joe", "text": "Don't shake it, don't drop it, don't open it. Saul's in Mercado.", "mood": "amused", "when": "LIVE - you take the parcel", "live": true},
+     {"who": "danny", "text": "Hey! That's not yours!", "mood": "yelling", "when": "LIVE - the thieves snatch it", "live": true},
+     {"who": "danny", "text": "Got it. Now - Uncle Saul.", "mood": "dry", "when": "LIVE - you have it back", "live": true},
+     {"who": "saul", "text": "Joe's new boy! Put it down - gently, gently.", "mood": "warm", "when": "Gold teeth, shot 1"},
+     {"who": "danny", "text": "What's in it, anyway?", "mood": "calm", "when": "Gold teeth, shot 1"},
+     {"who": "saul", "text": "His late wife's gold teeth. He pawns them every winter and buys them back every spring.", "mood": "amused", "when": "Gold teeth, shot 2"},
+     {"who": "saul", "text": "Tell Joe we're square. And this is for your trouble.", "mood": "warm", "when": "Gold teeth, shot 3"}],
+   "fails": {"joeDead": "PAPA JOE IS DEAD", "saulDead": "UNCLE SAUL IS DEAD", "away": "THE THIEF GOT AWAY", "sank": "THE PARCEL SANK", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 10.5, "joeR": 40, "snatchSlow": 25, "snatchLeft": 0.8, "snatchAnyway": 0.5, "bikeSpeed": 78, "knock": 0.6, "stopT": 1.2, "away": 300, "saulR": 60},
+   "reward": {"cash": 400, "vehicle": "", "clothes": "", "next": "M03 - Papa Joe's marker at the rank", "place": "", "contact": "Uncle Saul (Mercado)"},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 1) - change anything you like.",
+    "glance": {"kind": "story", "given": "PAPA JOE - a page, then a call from a phone booth", "where": "A page from Joe, then the Coral Shore rank and a pawnshop in Mercado", "unlocked": "Passing M01 (Joe pages you)", "time": "Any (MISSIONS TEST: the morning)", "length": "About 5 to 8 minutes", "limit": "None - the thief sets the pace"},
+    "chars": {
+     "joe": {"gives": true, "role": "Pages you; waits at the Coral Shore rank with the parcel.", "looks": "Seventy, a flat cap, a brown cardigan, a toothpick.", "bubble": "Sandy tan", "mumble": "Quick and chatty."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "saul": {"gives": false, "role": "The pawnbroker in Mercado, Joe's old friend; waits at his door.", "looks": "Seventies, bald with white tufts, a jeweller's loupe pushed up on his glasses, a grey cardigan.", "bubble": "Pale gold", "mumble": "Soft and slow: a sine, unhurried."}},
+    "steps": [
+     ["The pager buzzes: JOE - CALL ME. The nearest phone booth is marked; CALL there and Joe's call plays.", "Without the pager (FREE ROAM never has it) the call rings at once."],
+     ["Joe at the Coral Shore taxi rank by his cab. Walk up to him for the parcel.", "MISSIONS TEST: a car waits on the Colony's ring drive."],
+     ["Toward Uncle Saul's pawnshop in Mercado (a PAWN sign over the door). Partway there, at a light or when you slow down, two scooters pull up and one rider snatches the parcel.", ""],
+     ["The thief with the parcel rides off through the streets (the other one too). Ram his scooter or stop beside it: he falls off and runs, the parcel drops.", "300 m ahead, or the end of his way, and he is gone."],
+     ["The parcel where it fell (a green bubble).", "On foot only."],
+     ["The parcel to Saul at his door; the closing cutscene.", ""]],
+    "fails": [
+     ["Papa Joe is killed", "PAPA JOE IS DEAD"],
+     ["Uncle Saul is killed", "UNCLE SAUL IS DEAD"],
+     ["The thief gets away", "THE THIEF GOT AWAY"],
+     ["The parcel falls in the water", "THE PARCEL SANK"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "CLOSING - \"GOLD TEETH\"", "plays": "When you bring the parcel to Saul.", "shots": [
+      ["The pawnshop's door", "Saul, Danny", "Saul takes the parcel, both hands.", "CLOSE on Saul", "4", "7, 8"],
+      ["The door", "Saul", "He peeks inside and smiles.", "CLOSE on Saul", "4", "9"],
+      ["The street", "Saul, Danny", "Saul hands over an envelope. Fade out.", "WIDE", "4", "10"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "Joe pages you (the pager, STORY only) a game day after M01; call him from the nearest phone booth. In MISSIONS TEST you start outside the Colony's door, a car on the ring drive."},
+    "failing": "Retry from the page: it buzzes again at once.",
+    "notes": {"places": "The phone booths (the street races' booths); the Coral Shore taxi rank; the streets to Mercado; Uncle Saul's pawnshop (a shop front in Mercado, a PAWN sign over its door while the quest needs it).", "people": "Joe at the rank; two scooter thieves (no guns); Saul at his door.", "music": "The radio while you drive.", "new": "The pager and calls from phone booths. Scooter thieves who fall off and run when you knock them down.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

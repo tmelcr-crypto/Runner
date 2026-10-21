@@ -1060,7 +1060,7 @@ MSCRIPT.q06 = (() => {
 const STORY1 = {                           // shared by chapter 1's quests: places and little helpers
   at: (x, y) => ({ x, y }),
   face(p, q) { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; },
-  road(x, y) { const q = nearestRoad(x, y, 900), t = edgeAt(q.e, q.s, {}); return { x: t.x, y: t.y, a: Math.atan2(t.ty, t.tx) }; },
+  road(x, y) { const q = nearestRoad(x, y, 900) || nearestRoad(x, y, 3000); if (!q) return { x, y, a: 0 }; const t = edgeAt(q.e, q.s, {}); return { x: t.x, y: t.y, a: Math.atan2(t.ty, t.tx) }; },
   stay(p, dt) { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); },
   look: id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants }),
   kmh: c => carSpeed(c) / KMH,
@@ -1080,6 +1080,15 @@ const STORY1 = {                           // shared by chapter 1's quests: plac
       cab: { x: R.x - R.ux * k, y: R.y - R.uy * k, a: Math.atan2(R.vy, R.vx) } };
   },
   rank(x, y) { let b = RANKS[0]; for (const r of RANKS) if (dist(r.x, r.y, x, y) < dist(b.x, b.y, x, y)) b = r; return b; },
+  shopFront(x, y) {                        // the street-front shop nearest a point whose front the camera sees (facing south-ish): its front, the sidewalk before it
+    let best = null, bd = 1e9;
+    for (const r of BLD) { if (!r.fill || !r.shop || r.uniq || r.special || r.safe || r.ix || r.own) continue; const d = dist(r.cx, r.cy, x, y); if (d < bd && d < 1200) { const f = adFront(r); if (f && f.fy > 0.3) { bd = d; best = { r, f }; } } }
+    if (!best) return null; const f = best.f;
+    return { x: f.x + f.fx * 16, y: f.y + f.fy * 16, wx: f.x, wy: f.y, fx: f.fx, fy: f.fy, a: Math.atan2(f.fy, f.fx) };
+  },
+  sign(text, col, at) {                    // a name over a door for as long as the quest needs it (cleanup takes it down)
+    const w = fasciaFit(text, 9, 60), m = fasciaSign(text, col, w, 9); m.position.set(at.wx + at.fx * 0.9, groundH(at.wx, at.wy) + GFH + 4, at.wy + at.fy * 0.9); m.rotation.y = Math.atan2(at.fx, at.fy); scene.add(m); return m;
+  },
   runStep(speed) {                         // a post.step: running along p.route (points), then standing
     return (p, dt) => { const R = p.route; if (!R || p.ri >= R.length) return STORY1.stay(p, dt); const q = R[p.ri]; if (walkTo(p, q.x, q.y, NPC_RUN * speed, dt) < 14) p.ri++; return true; };
   }
@@ -1193,4 +1202,76 @@ MSCRIPT.m01 = (() => {
       { dur: 4, cam: 'WIDE', at: () => A.cab, line: 20 }]
   };
   return { setup, steps, fail, cuts, cleanup() { } };
+})();
+
+/* ================= M02 - SPECIAL DELIVERY ================= */
+MSCRIPT.m02 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour;
+    const C = S1.colony(); P.x = C.door.x; P.y = C.door.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: out of the Colony's door, a car on the ring drive
+    A.mycar = msCar('estate', C.cab.x, C.cab.y, C.cab.a, '#3d6fa8');
+    const rk = S1.rank(COLONY.cx, COLONY.cy), kp = S1.sidewalk(rk.x, rk.y);            // Joe by his cab at the Coral Shore rank
+    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay }));
+    const sf = S1.shopFront(5900, 7800); A.shop = sf;                                    // Uncle Saul at his pawnshop's door in Mercado
+    A.saul = msPed(sf.x, sf.y, sf.a, Object.assign(S1.look('saul'), { msName: 'saul', step: S1.stay }));
+    A.signM = S1.sign("UNCLE SAUL'S PAWN", '#d8c890', sf);
+  }
+  function snatch(A) {                                                                 // two scooters pull up beside you; one takes the parcel and both ride off
+    const c = P.car || P, ang = P.car ? P.car.ang : (P.ang || 0), rx = -Math.sin(ang), ry = Math.cos(ang), off = (P.car ? P.car.t.wid / 2 : 6) + 14;
+    let x = c.x + rx * off - Math.cos(ang) * 10, y = c.y + ry * off - Math.sin(ang) * 10; if (pedBlocked(x, y)) { x = c.x - rx * off; y = c.y - ry * off; }
+    const away = [[900, 600], [1800, -300], [2600, 500]].map(([u, v]) => S1.road(c.x + Math.cos(ang) * u - Math.sin(ang) * v, c.y + Math.sin(ang) * u + Math.cos(ang) * v));
+    const look = { shirt: '#2a2a34', pants: '#3a4a6a' };
+    A.tb = msFoeCar('bike', x, y, ang, Object.assign({ mode: 'park', crew: 0, gun: null, group: 'thieves', speed: N().bikeSpeed, to: away }, look)); foeCarGo(A.tb, 'flee');
+    const x2 = x + Math.cos(ang) * 30, y2 = y + Math.sin(ang) * 30;
+    A.tb2 = msFoeCar('bike', x2, y2, ang, Object.assign({ mode: 'park', crew: 0, gun: null, group: 'thieves', speed: N().bikeSpeed + 6, to: away.slice().reverse() }, look)); foeCarGo(A.tb2, 'flee');
+    A.parcel = false; A.stopT = 0; msLive([5], { now: true });
+  }
+  function knocked(A) {                                                                // off his scooter: the parcel drops, he runs
+    const b = A.tb; b.driver = null; b.msDrive = null; b.thr = 0; b.str = 0;
+    const rx = -Math.sin(b.ang), ry = Math.cos(b.ang); let x = b.x + rx * 16, y = b.y + ry * 16; if (pedBlocked(x, y)) { x = b.x - rx * 16; y = b.y - ry * 16; }
+    const t = msPed(x, y, b.ang, { shirt: '#2a2a34', pants: '#3a4a6a', spare: true }); t.route = msRunRoute(x, y, 900); t.ri = 0; t.post.step = S1.runStep(1.1);
+    A.bag = S1.dryNear(b.x, b.y); A.knocked = true;
+  }
+  const steps = [
+    msBooth('JOE - CALL ME', [1, 2, 3]),                                                // a page, then the call from a booth
+    { enter(A) { MS.mark = () => A.joe; MS.guide = A.joe; },                           // COLLECT the parcel from Joe
+      tick(A) { if (P.car || dist(P.x, P.y, A.joe.x, A.joe.y) > N().joeR) return false; face(A.joe, P); A.parcel = true; Snd.pickup(); popup(P.x, P.y - 14, 'THE PARCEL', '#b6ff3c'); msLive([4], { now: true }); return true; },
+      jump(A) { A.parcel = true; if (P.car) exitCar(true); P.x = A.joe.x + 20; P.y = A.joe.y; } },
+    { enter(A) { MS.guide = A.shop; MS.mark = () => A.saul; A.d0 = dist(me().x, me().y, A.shop.x, A.shop.y); },   // DELIVER - the thieves on the way
+      tick(A) {
+        const left = dist(me().x, me().y, A.shop.x, A.shop.y) / Math.max(1, A.d0), slow = !P.car || S1.kmh(P.car) < N().snatchSlow;
+        if ((left < N().snatchLeft && slow) || left < N().snatchAnyway) { snatch(A); return true; }
+        return false; },
+      jump(A) { const r = S1.road(lerp(A.joe.x, A.shop.x, 0.4), lerp(A.joe.y, A.shop.y, 0.4)); if (P.car) exitCar(true); const c = A.mycar; c.x = r.x; c.y = r.y; c.ang = r.a; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; enterCar(c); snatch(A); } },
+    { enter(A) { MS.mark = () => A.tb; MS.guide = () => A.tb; },                       // CHASE the scooter with the parcel
+      tick(A) {
+        const b = A.tb, near = dist(me().x, me().y, b.x, b.y) < 70;
+        A.stopT = carSpeed(b) < 10 * KMH && near ? A.stopT + 1 / 30 : 0;
+        if (b.dead || b.burn > 0 || b.hp < b.maxhp * N().knock || A.stopT > N().stopT) { knocked(A); msLive([6], { now: true }); return true; }
+        return false; },
+      info: A => Math.round(dist(me().x, me().y, A.tb.x, A.tb.y) / UNITS_PER_M) + ' M TO THE THIEF (GONE AT ' + N().away + ')',
+      jump(A) { knocked(A); } },
+    { enter(A) { MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = () => A.bag; },   // COLLECT the parcel
+      tick(A) { if (P.car || !A.bag || dist(P.x, P.y, A.bag.x, A.bag.y) > 26) return false; A.bag = null; A.parcel = true; Snd.pickup(); popup(P.x, P.y - 14, 'THE PARCEL', '#b6ff3c'); return true; },
+      jump(A) { A.bag = null; A.parcel = true; } },
+    { enter(A) { MS.guide = A.shop; MS.mark = () => A.saul; },                         // DELIVER to Saul: the closing
+      tick(A) {
+        if (A.home || dist(me().x, me().y, A.shop.x, A.shop.y) > N().saulR) return false;
+        A.home = true; if (P.car) exitCar(true); msCut('GOLD TEETH', () => msNext()); return false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.joe.dead) return F.joeDead;
+    if (A.saul.dead) return F.saulDead;
+    if (MS.k === 3 && (A.tb.fc.gone || dist(me().x, me().y, A.tb.x, A.tb.y) > N().away * UNITS_PER_M)) return F.away;
+    if (A.bag && shoreDist(A.bag.x, A.bag.y) < -10) return F.sank;
+    return '';
+  }
+  const cuts = {
+    'GOLD TEETH': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.saul, line: [7, 8], enter: () => { P.x = A.shop.x + A.shop.fx * 22; P.y = A.shop.y + A.shop.fy * 22; face(A.saul, P); P.ang = Math.atan2(A.saul.y - P.y, A.saul.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.saul, line: 9 },
+      { dur: 4, cam: 'WIDE', at: () => at(A.shop.x + A.shop.fx * 40, A.shop.y + A.shop.fy * 40), line: 10 }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.signM) scene.remove(A.signM); } };
 })();
