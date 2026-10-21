@@ -114,3 +114,7 @@ questions before building it. Each answer is written here as it comes; the story
 102. Chief Ray Holloway's look: 50s, a red face, a grey flat-top, a thick moustache, the chief's uniform with gold braid, mirror shades.
 103. Councilman Dean Pratt's look: old-school - 60s, white hair, a seersucker suit and a bow tie.
 104. Leonard Sachs' look: fat and friendly - round, cheerful, a bow tie, a pocket watch; dangerous under the smile.
+105. The Colony storyline opens at the start of chapter 4, with the war: Crane moves on the hotel Danny lives in, and Esther asks for help.
+106. Esther Bloom's look: 70s, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress that matches the hotel's bands, a cigarette holder.
+107. Dr. Iris Kahn's look: 40s, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.
+108. The Varga quests 01-06 keep their play; only their lines are updated to fit the new story (Danny's name, Nico as Crane's front man, Lucia's last line points at Crane, Marco's "boatman").
