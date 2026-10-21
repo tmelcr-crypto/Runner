@@ -70,3 +70,11 @@ questions before building it. Each answer is written here as it comes; the story
 62. Danny's portrait follows the clothes he wears: his face plus the top and hat he has on now (from the clothes table).
 63. A failed quest: MISSION FAILED, retry from the marker any time; nothing is lost and the story waits.
 64. The story has a few big choices: 3 to 5 moments (spare or finish a lieutenant, who to trust) whose consequences show later.
+65. The four big choices in the main story:
+    - Spare or finish Kessler (end of chapter 2): spared, he tips Danny off later (and once sells him out); finished, his gang hunts Danny through chapter 3.
+    - Sachs' files to the police or kept (end of chapter 3): to the police, Holloway buries them and comes after Danny; kept, Danny blackmails Pratt in chapter 4.
+    - Trust the mystery helper or not (chapter 4): follow the unseen helper's tip into a trap-looking place, or go your own way - it changes the route of a quest.
+    - The proof to Bay TV or to the FBI (before the finale): Bay TV - the city turns on Crane at once; the FBI - federal agents help in the finale.
+66. A big choice is made by what Danny does (shoot him or walk away; drive to A or to B), not by buttons.
+67. The choices make small changes to the ending: who shows up, a few lines and scenes in the finale and the closing cutscene; one ending.
+68. The tone: gritty with heart and jokes - a crime story like the 90s films; violence, but Danny never hurts innocents in cutscenes; funny side characters (Papa Joe, the suitcase).
