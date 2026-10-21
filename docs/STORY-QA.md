@@ -86,3 +86,7 @@ questions before building it. Each answer is written here as it comes; the story
 74. The difficulty: a gentle start and a hard end - chapter 1 has few enemies and simple goals; each chapter adds more men, better guns, armoured cars and the helicopter; the finale is the hardest.
 75. A typical quest takes 5-10 minutes, like Quests 01-06; the finale of a line 10-15 minutes.
 76. New kinds of quest: stealth and disguise (in without being seen, or in the right clothes), tailing (follow someone without being seen or losing them) and defending a place (hold the Colony or a boat against waves of Crane's men). No flying.
+77. Safehouse rewards come from the main story only: it gives three safehouses; the rest are for sale.
+78. The city's side activities (rampages, races, vehicle jobs, robberies, break-ins) are all open from the start in STORY, like FREE ROAM; they stay shut during a quest.
+79. A quest that needs an hour (the casino at night) moves the clock to its hour in the opening cutscene.
+80. The police in STORY are as in FREE ROAM, but once Chief Holloway is down in chapter 4 they come slower and give up sooner.
