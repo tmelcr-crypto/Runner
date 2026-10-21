@@ -27,7 +27,7 @@ function msPick(id) {                       // a mission picked: from NEW GAME a
 function paintMsCard() {
   const L = $('msList'); L.innerHTML = '';
   for (const m of MISSION_TABLE.missions) {
-    const g = (m.chars.find(c => c.id === m.giver) || {}).name || '', b = document.createElement('button');
+    const g = (CHARS[m.giver] || {}).name || '', b = document.createElement('button');
     b.type = 'button'; b.className = 'big alt msPick'; b.innerHTML = m.no + ' · ' + m.title + '<small>' + g + ' · ' + m.where.toUpperCase() + '</small>';
     b.addEventListener('click', () => msPick(m.id)); L.appendChild(b);
   }
@@ -110,7 +110,7 @@ function msPed(x, y, a, o) {
   p.post = { x, y, a, step: o.step || standStep, i: 0 }; p.e = -1; p.ang = p.hd = a; peds.push(p); MS.A.list.push(p); return p;
 }
 function msCar(type, x, y, ang, color) { const c = makeCar(type, x, y, ang, null, color); c.searched = true; c.ms = true; c.keep = true; cars.push(c); MS.A.list.push(c); return c; }
-function msWho(id) { return MS.m.chars.find(c => c.id === id); }
+function msWho(id) { return MS.m.chars.includes(id) ? CHARS[id] : undefined; }   // a character of this mission, from the character table (js/01y)
 
 /* ---------- the target: the guide line (js/08p) and an arrow over it ---------- */
 let MS_MARK = null, MS_BAG = null;
@@ -155,12 +155,14 @@ $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey
 
 /* ---------- dialogue: the portrait, the bubble, the mumble; the game waits ---------- */
 const MS_PICS = {};
-function msPortrait(ch, cv = $('msPic')) {  // the owner's picture (img/chars/<pic>) or a silhouette with the letter till it comes
-  const g = cv.getContext('2d'), W = cv.width;
+const msFace = mood => { const F = CHARACTER_TABLE.faces, w = String(mood || '').toLowerCase(); return F.angry.includes(w) ? 'angry' : F.smile.includes(w) ? 'smile' : 'calm'; };
+function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
+  const g = cv.getContext('2d'), W = cv.width; g.imageSmoothingEnabled = false;
   g.fillStyle = '#12101c'; g.fillRect(0, 0, W, W);
-  const img = ch.pic ? (MS_PICS[ch.pic] || (MS_PICS[ch.pic] = Object.assign(new Image(), { src: 'img/chars/' + ch.pic }))) : null;
+  const src = ch.pic || (ch.id ? ch.id + '-' + msFace(mood) + '.png' : null);
+  const img = src ? (MS_PICS[src] || (MS_PICS[src] = Object.assign(new Image(), { src: 'img/chars/' + src }))) : null;
   if (img && img.complete && img.naturalWidth) { g.drawImage(img, 0, 0, W, W); return; }
-  if (img) img.onload = () => { if (MS.talk) msPortrait(MS.talk.ch); if (MS_LIVE.cur) msPortrait(MS_LIVE.cur.ch, $('msLivePic')); };
+  if (img) img.onload = () => { if (MS.talk && MS.talk.ch === ch) msPortrait(ch, $('msPic'), MS.talk.lines[MS.talk.i].mood); if (MS_LIVE.cur && MS_LIVE.cur.ch === ch) msPortrait(ch, $('msLivePic'), MS_LIVE.cur.L.mood); };
   g.fillStyle = ch.bubble; g.globalAlpha = 0.35; g.beginPath(); g.arc(W / 2, W * 0.4, W * 0.2, 0, TAU); g.fill();
   g.beginPath(); g.ellipse(W / 2, W * 1.02, W * 0.42, W * 0.36, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
   g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.3) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, W * 0.42);
@@ -173,7 +175,7 @@ function msSay(nums, done) {               // nums: line numbers (1-based) of th
 }
 function msLine(i) {
   const T = MS.talk; T.i = i; T.shown = 0; T.t = 0; const L = T.lines[i], ch = msWho(L.who) || { name: L.who.toUpperCase(), letter: '?', bubble: '#ffffff', mumble: {} };
-  T.ch = ch; $('msWho').textContent = ch.name; $('msWho').style.color = ch.bubble; $('msBub').style.borderColor = ch.bubble; $('msLine').textContent = ''; $('msMore').hidden = true; msPortrait(ch);
+  T.ch = ch; $('msWho').textContent = ch.name; $('msWho').style.color = ch.bubble; $('msBub').style.borderColor = ch.bubble; $('msLine').textContent = ''; $('msMore').hidden = true; msPortrait(ch, $('msPic'), L.mood);
 }
 function msTalkLoop(ts) {
   const T = MS.talk; if (!T) return;
@@ -206,7 +208,7 @@ function msLiveTick(dt) {                   // msTick: one at a time, written le
     const e = S.cur = S.q.shift(), ch = msWho(e.L.who) || { name: e.L.who.toUpperCase(), letter: '?', bubble: '#ffffff', mumble: {} };
     Object.assign(e, { ch, shown: 0, t: e.ring ? -1.2 : 0, hold: MSN.liveHold + e.L.text.length / MSN.letters });
     $('msLiveWho').textContent = (e.phone ? 'PHONE · ' : '') + ch.name; $('msLiveWho').style.color = ch.bubble; $('msLiveBub').style.borderColor = ch.bubble;
-    $('msLiveLine').textContent = e.ring ? '...' : ''; msPortrait(ch, $('msLivePic')); $('msLive').hidden = false;
+    $('msLiveLine').textContent = e.ring ? '...' : ''; msPortrait(ch, $('msLivePic'), e.L.mood); $('msLive').hidden = false;
     if (e.ring) { Snd.tone(880, 880, 0.18, 0.08, 'square'); setTimeout(() => Snd.tone(880, 880, 0.18, 0.08, 'square'), 280); }
   }
   const e = S.cur; if (!e) return;

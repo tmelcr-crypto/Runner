@@ -1,7 +1,7 @@
 'use strict';
 /* ---------- 1x. THE MISSIONS ----------
-   Every mission, written from the owner's quest pages (docs/quests/*.docx): its characters (name, map letter, bubble colour, the
-   picture, the mumble), the steps with the words on screen, the dialogue lines, what fails it, the numbers it needs and the rewards.
+   Every mission, written from the owner's quest pages (docs/quests/*.docx): its characters (by id - who they are, how they look and
+   sound is the character table, js/01y), the steps with the words on screen, the dialogue lines, what fails it, the numbers it needs and the rewards.
    What the people and vehicles do is each mission's script in js/08zy (MSCRIPT). While STORY is not built, the missions are played
    in MISSIONS TEST (js/01j mode test). settings: the dialogue and the cards. tools/settings_sheet.py exports the settings to Apple
    Numbers or Excel and writes an edited copy back:  python3 tools/settings_sheet.py missions export missions.numbers
@@ -33,11 +33,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
 "missions": [
   {"id": "q01", "no": "01", "title": "HARBOUR FAVOUR", "giver": "marco", "start": "marker", "where": "Sunset Harbor, the harbour office door",
    "story": "Marco's charter boat came back light: his courier Tito skimmed a week of takings and is about to leave the bay in his speedboat. Take Marco's speedboat, run Tito down, get the bag back and bring it to the harbour office - without the police.",
-   "chars": [
-     {"id": "marco", "name": "MARCO VALE", "letter": "M", "bubble": "#ff9a3d", "pic": "", "shirt": "#f4efe6", "pants": "#2a2d3a",
-      "mumble": {"low": 95, "high": 140, "rate": 7, "wave": "triangle", "gap": 0.22}},
-     {"id": "tito", "name": "TITO RUIZ", "letter": "T", "bubble": "#ff2bd6", "pic": "", "shirt": "#ff7ad9", "pants": "#f4efe6",
-      "mumble": {"low": 300, "high": 520, "rate": 16, "wave": "square", "gap": 0}}],
+   "chars": ["marco", "tito"],
    "steps": [
      {"word": "GO TO", "show": "GO TO MARCO AT SUNSET HARBOR"},
      {"word": "GET IN", "show": "GET IN MARCO'S SPEEDBOAT"},
@@ -59,11 +55,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
    "reward": {"cash": 2000, "vehicle": "Marco's speedboat - waits at your berths at Sunset Harbor", "clothes": "Marco's faded captain's cap", "next": "Quest 02 - Marco phones a game day later", "place": "", "contact": "Marco can call you from now on"}},
   {"id": "q02", "no": "02", "title": "DOCK RATS", "giver": "marco", "start": "phone", "where": "A phone call, then Sunset Harbor's fuel dock",
    "story": "A day after you brought Marco his takings back, he calls: the Varga crew - the smugglers Tito owed - have sent men to his fuel dock, and his niece Lucia is there alone. Get there, fight them off with Lucia, chase Rocco when he runs for his car, take his phone and bring it to Marco.",
-   "chars": [
-     {"id": "marco", "name": "MARCO VALE", "letter": "M", "bubble": "#ff9a3d", "pic": "", "shirt": "#f4efe6", "pants": "#2a2d3a", "mumble": {"low": 95, "high": 140, "rate": 7, "wave": "triangle", "gap": 0.22}},
-     {"id": "lucia", "name": "LUCIA VALE", "letter": "L", "bubble": "#2fe0c8", "pic": "", "shirt": "#3a6fb0", "pants": "#1c1c26", "mumble": {"low": 230, "high": 360, "rate": 12, "wave": "triangle", "gap": 0.05}},
-     {"id": "rocco", "name": "ROCCO", "letter": "R", "bubble": "#ff3b4a", "pic": "", "shirt": "#e8e1d0", "pants": "#2a2d3a", "mumble": {"low": 80, "high": 120, "rate": 9, "wave": "sawtooth", "gap": 0.12}},
-     {"id": "varga", "name": "VARGA MAN", "letter": "V", "bubble": "#ff7a6a", "pic": "", "shirt": "#2a2d3a", "pants": "#14121c", "mumble": {"low": 120, "high": 180, "rate": 11, "wave": "sawtooth", "gap": 0.08}}],
+   "chars": ["marco", "lucia", "rocco", "varga"],
    "steps": [
      {"word": "GO TO", "show": "GET TO THE FUEL DOCK"},
      {"word": "TAKE OUT", "show": "TAKE OUT THE VARGA MEN"},
@@ -134,12 +126,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
     "notes": {"places": "Sunset Harbor: the fuel dock and the quay by it, the harbour office door; the street west of the harbour (your start); Rocco's loop through the streets to the south-west.", "people": "Lucia fights beside you (new: a friend who follows, fights, rides along and shoots from your car). The Varga men guard, then fight you and Lucia (new: enemies who shoot). Rocco's car runs a set loop; badly hit it stops and he gets out.", "music": "Tense radio-free quiet at the dock; the radio during the chase.", "new": "Live lines (no pause) for the call and the fight; friends who help; enemies who shoot; enemies' cars.", "other": "Rocco can die - only the phone matters."}}},
   {"id": "q03", "no": "03", "title": "PAPER TRAIL", "giver": "lucia", "start": "marker", "where": "The casino strip, by the door of The Pulse",
    "story": "Rocco's phone gave Lucia a name: Del, a croupier at the casino strip who keeps the Vargas' books. He tells you Nico keeps the real ledger on paper, in the cash box behind the bar of The Pulse. Del gets you in; grab the ledger, fight your way out to Lucia's car, shake off the Varga cars that come after you, and bring the book to Marco.",
-   "chars": [
-     {"id": "lucia", "name": "LUCIA VALE", "letter": "L", "bubble": "#2fe0c8", "pic": "", "shirt": "#3a6fb0", "pants": "#1c1c26", "mumble": {"low": 230, "high": 360, "rate": 12, "wave": "triangle", "gap": 0.05}},
-     {"id": "del", "name": "DEL RAMOS", "letter": "D", "bubble": "#b07cff", "pic": "", "shirt": "#7a1f3a", "pants": "#16161c", "mumble": {"low": 260, "high": 420, "rate": 15, "wave": "square", "gap": 0.02}},
-     {"id": "varga", "name": "VARGA MAN", "letter": "V", "bubble": "#ff7a6a", "pic": "", "shirt": "#2a2d3a", "pants": "#14121c", "mumble": {"low": 120, "high": 180, "rate": 11, "wave": "sawtooth", "gap": 0.08}},
-     {"id": "nico", "name": "NICO VARGA", "letter": "N", "bubble": "#ffd23f", "pic": "", "shirt": "#f4f4f6", "pants": "#16161c", "mumble": {"low": 150, "high": 230, "rate": 8, "wave": "sine", "gap": 0.18}},
-     {"id": "marco", "name": "MARCO VALE", "letter": "M", "bubble": "#ff9a3d", "pic": "", "shirt": "#f4efe6", "pants": "#2a2d3a", "mumble": {"low": 95, "high": 140, "rate": 7, "wave": "triangle", "gap": 0.22}}],
+   "chars": ["lucia", "del", "varga", "nico", "marco"],
    "steps": [
      {"word": "TALK TO", "show": "MEET LUCIA AT THE PULSE"},
      {"word": "GO TO", "show": "GET INTO THE PULSE"},
@@ -212,11 +199,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
     "notes": {"places": "The casino strip: the sidewalk and the door of The Pulse (south street), inside the club (the bar along the west wall, the dance floor); the streets around; the harbour office door.", "people": "Del walks out of the club and back in. Four Varga men inside (two at the bar, one by the DJ, one by the door) wait until you take the ledger. Two Varga cars (driver and gunner) chase you; badly hit or stopped by you, the crews get out. Lucia joins you outside.", "music": "The club's music inside; the radio in the chase.", "new": "Nothing new beyond Quest 02's (live lines, friends, enemies who shoot, their cars).", "other": "The club lets you in through Del, whatever you wear."}}},
   {"id": "q04", "no": "04", "title": "HOT CARGO", "giver": "marco", "start": "marker", "where": "Sunset Harbor, the harbour office door",
    "story": "Nico's ledger said it: Marco's twelve stolen outboards sit on a truck in the Harbor Cold Store at Dockside, waiting for tonight's ship. Sol, the crane foreman on that quay, owes Marco a boat. Meet him up the street from the store, take out the two men on the roller door and the four inside, and drive the engine truck back to Sunset Harbor with Sol riding shotgun - the Varga cars will come after it, and Nico will call.",
-   "chars": [
-     {"id": "marco", "name": "MARCO VALE", "letter": "M", "bubble": "#ff9a3d", "pic": "", "shirt": "#f4efe6", "pants": "#2a2d3a", "mumble": {"low": 95, "high": 140, "rate": 7, "wave": "triangle", "gap": 0.22}},
-     {"id": "sol", "name": "SOL OKAFOR", "letter": "S", "bubble": "#8fe04a", "pic": "", "shirt": "#ff7a1a", "pants": "#2a3a6a", "mumble": {"low": 85, "high": 125, "rate": 9, "wave": "sawtooth", "gap": 0.12}},
-     {"id": "varga", "name": "VARGA MAN", "letter": "V", "bubble": "#ff7a6a", "pic": "", "shirt": "#2a2d3a", "pants": "#14121c", "mumble": {"low": 120, "high": 180, "rate": 11, "wave": "sawtooth", "gap": 0.08}},
-     {"id": "nico", "name": "NICO VARGA", "letter": "N", "bubble": "#ffd23f", "pic": "", "shirt": "#f4f4f6", "pants": "#16161c", "mumble": {"low": 150, "high": 230, "rate": 8, "wave": "sine", "gap": 0.18}}],
+   "chars": ["marco", "sol", "varga", "nico"],
    "steps": [
      {"word": "TALK TO", "show": "TALK TO MARCO"},
      {"word": "GO TO", "show": "MEET SOL AT DOCKSIDE"},
@@ -298,12 +281,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
     "notes": {"places": "The harbour office door; the street by the Harbor Cold Store at Dockside, its roller door and the inside (containers down both sides, the aisle in the middle); the streets back to Sunset Harbor; the quay.", "people": "Sol waits up the street. Two Varga men by the roller door and four inside (pistols and an SMG) stand ready but do not move until they see or hear you. Two Varga cars (driver and gunner) set off after the truck; badly hit or stopped by you, the crews get out.", "music": "The radio in the truck.", "new": "A mission holds a place: the cold store's roller door stays up during the quest, with no workers, guard or alarm.", "other": "Sol carries a shotgun: slow, but one hit takes a man down."}}},
   {"id": "q05", "no": "05", "title": "ISLAND VISIT", "giver": "lucia", "start": "phone", "where": "A phone call, then the Iron Key ferry",
    "story": "Ivo Varga, Nico's uncle, runs the family from a cell on Iron Key - and he wants to see Marco's boatman. Lucia phones: take the ferry, and leave the guns at the gate. In the yard Ivo tells you where the family's money really is - Skyline One, Nico's tower downtown - and offers Marco the harbour for it. But Nico has paid men inside: a riot breaks out with you in the middle, armed with a bat Ivo throws you. Get back to the gate, take Lucia's boat from the island pier, lose the Varga boats on the bay and bring the boat home to Sunset Harbor.",
-   "chars": [
-     {"id": "lucia", "name": "LUCIA VALE", "letter": "L", "bubble": "#2fe0c8", "pic": "", "shirt": "#3a6fb0", "pants": "#1c1c26", "mumble": {"low": 230, "high": 360, "rate": 12, "wave": "triangle", "gap": 0.05}},
-     {"id": "guard", "name": "OFFICER DUNN", "letter": "O", "bubble": "#7fb0ff", "pic": "", "shirt": "#2a3a5a", "pants": "#1a2230", "mumble": {"low": 140, "high": 190, "rate": 10, "wave": "square", "gap": 0.1}},
-     {"id": "ivo", "name": "IVO VARGA", "letter": "I", "bubble": "#c8ccd8", "pic": "", "shirt": "#ff7a1a", "pants": "#ff7a1a", "mumble": {"low": 80, "high": 115, "rate": 6, "wave": "sine", "gap": 0.26}},
-     {"id": "varga", "name": "VARGA MAN", "letter": "V", "bubble": "#ff7a6a", "pic": "", "shirt": "#2a2d3a", "pants": "#14121c", "mumble": {"low": 120, "high": 180, "rate": 11, "wave": "sawtooth", "gap": 0.08}},
-     {"id": "nico", "name": "NICO VARGA", "letter": "N", "bubble": "#ffd23f", "pic": "", "shirt": "#f4f4f6", "pants": "#16161c", "mumble": {"low": 150, "high": 230, "rate": 8, "wave": "sine", "gap": 0.18}}],
+   "chars": ["lucia", "guard", "ivo", "varga", "nico"],
    "steps": [
      {"word": "GO TO", "show": "TAKE THE FERRY TO IRON KEY"},
      {"word": "GO TO", "show": "GO TO THE PRISON GATE"},
@@ -392,12 +370,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
     "notes": {"places": "The Iron Key ferry pier on the Palm Heights promenade; the ferry; the island's pier and path; the prison gate and the guard booth; the yard and the basketball court; the bay; Sunset Harbor's berths and quay.", "people": "Officer Dunn at the gate. Ivo in the yard among the prisoners. Five of Nico's men in orange, two by the hoop, three more among the others about the yard. Two Varga speedboats (a driver and a gunner each). Lucia on the quay at the end.", "music": "The prison siren in the riot; the radio in the boat.", "new": "A visit: you are searched at the gate (your weapons wait there), no restricted-area warning, the gate held open, the ferry held in a lockdown. The enemies' boats: they chase you straight over the water, their crews staying aboard.", "other": "Solo - no friend with you this time."}}},
   {"id": "q06", "no": "06", "title": "SKYLINE", "giver": "marco", "start": "marker", "where": "Sunset Harbor, the harbour office door",
    "story": "Ivo's word reached Marco: tonight Nico moves the family's cash out of Skyline One, and after that he can't be touched. Marco takes down his old shotgun; Lucia won't stay behind. Drive the three of you to the tower, clear the yard, fight up the decks to the top - where Nico jumps his car off the launch ramp over the avenue. Go after him, stop his car, take him down, and bring Marco and Lucia home to Sunset Harbor.",
-   "chars": [
-     {"id": "marco", "name": "MARCO VALE", "letter": "M", "bubble": "#ff9a3d", "pic": "", "shirt": "#f4efe6", "pants": "#2a2d3a", "mumble": {"low": 95, "high": 140, "rate": 7, "wave": "triangle", "gap": 0.22}},
-     {"id": "lucia", "name": "LUCIA VALE", "letter": "L", "bubble": "#2fe0c8", "pic": "", "shirt": "#3a6fb0", "pants": "#1c1c26", "mumble": {"low": 230, "high": 360, "rate": 12, "wave": "triangle", "gap": 0.05}},
-     {"id": "nico", "name": "NICO VARGA", "letter": "N", "bubble": "#ffd23f", "pic": "", "shirt": "#f4f4f6", "pants": "#16161c", "mumble": {"low": 150, "high": 230, "rate": 8, "wave": "sine", "gap": 0.18}},
-     {"id": "varga", "name": "VARGA MAN", "letter": "V", "bubble": "#ff7a6a", "pic": "", "shirt": "#2a2d3a", "pants": "#14121c", "mumble": {"low": 120, "high": 180, "rate": 11, "wave": "sawtooth", "gap": 0.08}},
-     {"id": "sol", "name": "SOL OKAFOR", "letter": "S", "bubble": "#8fe04a", "pic": "", "shirt": "#ff7a1a", "pants": "#2a3a6a", "mumble": {"low": 85, "high": 125, "rate": 9, "wave": "sawtooth", "gap": 0.12}}],
+   "chars": ["marco", "lucia", "nico", "varga", "sol"],
    "steps": [
      {"word": "TALK TO", "show": "TALK TO MARCO"},
      {"word": "GO TO", "show": "DRIVE TO SKYLINE ONE"},

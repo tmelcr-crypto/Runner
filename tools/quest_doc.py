@@ -13,14 +13,19 @@ import docx
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, 'js', '01x-mission-data.js')
+CHARS = os.path.join(ROOT, 'js', '01y-character-data.js')
 BASE = os.path.join(ROOT, 'docs', 'quests', 'Quest-01-Harbour-Favour.docx')
 OUT = os.path.join(ROOT, 'docs', 'quests')
 
 
-def load():
+def load():                                  # the missions, each with its characters filled in from the character table (js/01y)
     s = open(DATA, encoding='utf-8').read()
     m = re.search(r'/\*MISSIONS-JSON\*/(.*?)/\*END-MISSIONS-JSON\*/', s, re.S)
-    return json.loads(m.group(1))['missions']
+    c = open(CHARS, encoding='utf-8').read()
+    ch = {x['id']: x for x in json.loads(re.search(r'/\*CHARACTERS-JSON\*/(.*?)/\*END-CHARACTERS-JSON\*/', c, re.S).group(1))['characters']}
+    ms = json.loads(m.group(1))['missions']
+    for q in ms: q['chars'] = [ch[i] if isinstance(i, str) else i for i in q['chars']]
+    return ms
 
 
 def set_text(p, text):                      # a paragraph's words, keeping its first run's look
@@ -74,8 +79,13 @@ def build(m):
         bt, mt = [docx.table.Table(e, d) for e in cp if e.tag.endswith('}tbl')]
         cell0, cell1 = bt.rows[0].cells
         set_text(cell0.paragraphs[0], 'CHARACTER %d' % (i + 1))
-        pic = c['id'] + '.png'
-        set_cell(cell0.tables[0].rows[0].cells[0], 'PORTRAIT\n' + pic + '\nsquare PNG, about 512 px\nhead and shoulders')
+        pic = c['id'] + '-calm.png'                # the drawn pixel-art portrait (tools/portraits.py), in the portrait box
+        pc0 = cell0.tables[0].rows[0].cells[0]; set_cell(pc0, 'PORTRAIT'); png = os.path.join(ROOT, 'img', 'chars', pic)
+        if os.path.exists(png):
+            from PIL import Image
+            big = os.path.join(OUT, '_' + pic); Image.open(png).resize((192, 192), Image.NEAREST).save(big)
+            pc0.add_paragraph().add_run().add_picture(big, width=docx.shared.Cm(2.6)); os.remove(big)
+        else: pc0.add_paragraph('img/chars/' + pic)
         for r, v in zip(cell1.tables[0].rows, [c['name'], c.get('letter') if pc.get('gives') else '-', pc['role'], pc['looks'], pc['bubble'], pic]):
             set_cell(r.cells[1], v)
         set_cell(mt.rows[0].cells[0], 'MUMBLE  (chosen by me)  ' + pc['mumble'])
@@ -122,7 +132,7 @@ def build(m):
     for rr in list(pics.rows): pics._tbl.remove(rr._tr)
     for c in m['chars']:
         tr = copy.deepcopy(proto); pics._tbl.append(tr); row = docx.table._Row(tr, pics)
-        set_cell(row.cells[0], c['id'] + '.png'); set_cell(row.cells[1], c['name'] + ' - square PNG, about 512 px, head and shoulders, plain or see-through background')
+        set_cell(row.cells[0], c['id'] + '-calm / -angry / -smile.png'); set_cell(row.cells[1], c['name'] + ' - drawn (pixel art, 48 x 48, docs/Characters.docx); a picture of your own replaces them')
     name = 'Quest-%s-%s.docx' % (m['no'], '-'.join(w.capitalize() for w in re.sub(r'[^A-Za-z ]', '', m['title']).split()))
     path = os.path.join(OUT, name); d.save(path); return path
 
