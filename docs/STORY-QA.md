@@ -58,3 +58,7 @@ questions before building it. Each answer is written here as it comes; the story
 50. Victor Crane's look: 50s, silver hair swept back, a deep tan, a white linen suit, a gold watch - the smiling face on the billboards.
 51. Crane's own place, the scene of the finale: the Pearl Key estate - his walled mansion on Pearl Key with gates, guards, a dock and a helipad.
 52. The city loves Crane: a builder running for mayor, his posters everywhere, the TV on his side; only the street knows the truth.
+53. The lieutenants' names: Bruno "Bull" Kessler (the muscle, a Dockside gang boss), Chief Ray Holloway (the police), Councilman Dean Pratt (the politician) and Leonard Sachs (the lawyer).
+54. Their fall: Kessler at the end of chapter 2, Sachs at the end of chapter 3, Holloway and Pratt in chapter 4, Crane in chapter 5.
+55. Mateo's trail: a clue each chapter (an address, his car at the casino, a photo with Crane, his voice on a tape) - and someone unseen helps Danny a few times; at the end it was Mateo.
+56. Mateo turns on Crane: face to face at the end he hands Danny the proof and fights beside him against Crane; both brothers live.
