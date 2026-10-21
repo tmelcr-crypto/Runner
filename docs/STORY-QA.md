@@ -82,3 +82,7 @@ questions before building it. Each answer is written here as it comes; the story
 70. The money grows by chapter: Danny lands with EUR 0; quests pay about EUR 300 in chapter 1 up to EUR 20,000 in chapter 5; the side lines' big jobs (the vault) pay most.
 71. Businesses that earn money come only at the end: after the finale Danny gets a daily income from everything.
 72. Weapons and shops: all open from the start in STORY, like FREE ROAM (hidden pickups stay at 30%).
+73. Safehouses in STORY: some are rewards - a few are given by quests (for example Marco's houseboat, a loft from Del); see 77 for the rest.
+74. The difficulty: a gentle start and a hard end - chapter 1 has few enemies and simple goals; each chapter adds more men, better guns, armoured cars and the helicopter; the finale is the hardest.
+75. A typical quest takes 5-10 minutes, like Quests 01-06; the finale of a line 10-15 minutes.
+76. New kinds of quest: stealth and disguise (in without being seen, or in the right clothes), tailing (follow someone without being seen or losing them) and defending a place (hold the Colony or a boat against waves of Crane's men). No flying.
