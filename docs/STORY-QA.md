@@ -46,3 +46,7 @@ questions before building it. Each answer is written here as it comes; the story
 38. The Colony storyline: save the hotel from Crane, who wants it torn down for a tower - his thugs, a fire, bought inspectors, a forged deed; Danny beats each move.
 39. It brings a base and its people to the finale: the hotel becomes Danny's headquarters for the war; its staff and guests come out to help at the end.
 40. Danny's first bed in STORY: a Colony room - Papa Joe takes him there on the first night and Esther gives him a room on credit (the free safehouse of FREE ROAM).
+41. The Prison storyline is led by Sal Moretti, 60s, a lifer on Iron Key - Crane's first partner in the 70s, framed by Crane for a murder Crane did; 20 years inside, calm, patient, plays chess.
+42. Its goal: break him out - eight quests build a slow escape plan (guards, a boat, papers, a riot as cover); the last quest is the breakout.
+43. It brings Crane's past and a way in to the finale: the truth about Crane's first murder (it backs up Mateo's proof) and a secret way into Crane's place that Sal knows.
+44. It opens at the start of chapter 3, with the trail: a letter from Sal reaches Danny - someone on the inside knows Crane's past.
