@@ -8,7 +8,7 @@
 Every portrait is head and shoulders in a 3/4 view, turned toward the speech bubble (to the right), on a night-dark ground with a glow
 in the character's bubble colour. A recipe names the skin, hair and eye colours, a hair style, facial hair, a hat, glasses, a top and
 its two colours, extras (wrinkles, an earring, a chain, a scar, a gold tooth, sweat, tired eyes, a toothpick, hoop earrings,
-lipstick, a tattoo, pearls, a cigarette holder, a pencil behind the ear, a bow tie, grey temples, jowls, gold braid), the age and the build; the tool does
+lipstick, a tattoo, pearls, a cigarette holder, a pencil behind the ear, a bow tie, grey temples, jowls, gold braid, a jeweller's loupe, a cigar, a rag over the shoulder), the age and the build; the tool does
 the shading (a darker back of the head, lit cheek and brow) and a dark outline round the figure. The three faces differ in the brows,
 eyes and mouth. Needs Pillow (and python-docx for the Word sheet)."""
 import json, os, re, sys
@@ -19,14 +19,14 @@ DATA = os.path.join(ROOT, 'js', '01y-character-data.js')
 OUT = os.path.join(ROOT, 'img', 'chars')
 S = 48
 FACES = ('calm', 'angry', 'smile')
-HAIR = ['short', 'slick', 'buzz', 'combed', 'pixie', 'curly', 'sides', 'bald', 'flattop', 'bob', 'bun', 'pulled', 'wave']
+HAIR = ['short', 'slick', 'buzz', 'combed', 'pixie', 'curly', 'sides', 'bald', 'flattop', 'bob', 'bun', 'pulled', 'wave', 'spiky']
 FACIAL = ['none', 'stubble', 'beard', 'moustache', 'pencil', 'goatee']
-HATS = ['none', 'captain', 'hardhat', 'police', 'flatcap', 'chauffeur']
+HATS = ['none', 'captain', 'hardhat', 'police', 'flatcap', 'chauffeur', 'visor']
 GLASSES = ['none', 'reading', 'shades', 'square', 'roundshades']
 TOPS = ['openshirt', 'denim', 'flowershirt', 'jacketvest', 'darkshirt', 'waistcoat', 'suit', 'hivis', 'uniform', 'jumpsuit',
-        'cardigan', 'leather', 'blouse', 'blazer', 'tanktop', 'labcoat', 'dress', 'buttoned', 'seersucker']
+        'cardigan', 'leather', 'blouse', 'blazer', 'tanktop', 'labcoat', 'dress', 'buttoned', 'seersucker', 'checkjacket', 'windbreaker']
 EXTRAS = ['wrinkles', 'earring', 'chain', 'scar', 'goldtooth', 'sweat', 'tired', 'toothpick', 'hoops', 'lipstick', 'tattoo', 'pearls',
-          'holder', 'pencil', 'bowtie', 'temples', 'jowls', 'braid']
+          'holder', 'pencil', 'bowtie', 'temples', 'jowls', 'braid', 'loupe', 'cigar', 'rag']
 AGES = ['young', 'mid', 'old']
 BUILDS = ['slim', 'normal', 'broad']
 SMILE_EYES = ['happy', 'open']               # smiling: arched happy eyes, or open (a smile that never reaches them)
@@ -91,7 +91,7 @@ def draw(ch, face):
     neck = [(21, 27), (28, 27), (28, 35), (21, 35)]
     t = ch['top']
     # each top: its collar and what shows under it
-    if t in ('openshirt', 'flowershirt', 'darkshirt', 'suit', 'jacketvest', 'cardigan', 'blouse', 'labcoat', 'seersucker'):
+    if t in ('openshirt', 'flowershirt', 'darkshirt', 'suit', 'jacketvest', 'cardigan', 'blouse', 'labcoat', 'seersucker', 'checkjacket'):
         body.poly([(20, 33), (29, 33), (25, 41)], sk_sh)                         # skin in the open collar
         body.poly([(22, 34), (27, 34), (25, 39)], skin)
     if t == 'openshirt':
@@ -144,6 +144,18 @@ def draw(ch, face):
         body.poly([(19, 33), (30, 33), (25, 41)], top2); body.poly([(21, 33), (28, 33), (25, 38)], skin)
         body.rect(25, 41, 25, 47, dark(top, 0.75))                                 # the zip
         body.rect(30, 40, 35, 43, (236, 232, 222)); body.rect(31, 41, 34, 42, (40, 40, 48)); body.put(32, 41, (236, 232, 222))   # the number patch
+    elif t == 'checkjacket':
+        for (x, y), c in list(body.p.items()):                                     # a loud check: the second colour in bands both ways
+            if x % 4 == 0 or y % 4 == 0: body.put(x, y, top2 if (x % 4 == 0) != (y % 4 == 0) else dark(top2, 0.8))
+        body.poly([(19, 33), (30, 33), (26, 44), (23, 44)], (238, 234, 222))       # the shirt
+        body.poly([(21, 33), (28, 33), (25, 38)], sk_sh); body.poly([(22, 34), (27, 34), (25, 37)], skin)
+        body.poly([(17, 37), (20, 34), (23, 42)], dark(top, 0.75)); body.poly([(29, 34), (33, 36), (27, 42)], dark(top, 0.8))   # lapels
+    elif t == 'windbreaker':
+        for (x, y), c in list(body.p.items()):                                     # a two-tone shell: the second colour across the chest
+            if 39 <= y <= 42: body.put(x, y, top2)
+        body.poly([(19, 32), (30, 32), (29, 36), (20, 36)], dark(top, 0.8))       # the zipped-up collar
+        body.rect(25, 36, 25, 47, (210, 210, 220))
+        for x, y in ((12, 44), (36, 45)): body.put(x, y, lite(top, 0.3))
     elif t == 'cardigan':
         body.poly([(19, 33), (30, 33), (27, 43), (22, 43)], top2)                 # the shirt, its collar points
         body.poly([(21, 33), (28, 33), (25, 38)], sk_sh); body.poly([(22, 34), (27, 34), (25, 37)], skin)
@@ -215,6 +227,9 @@ def draw(ch, face):
         bt = (150, 30, 44); body.rect(22, 33, 27, 34, bt); body.rect(24, 33, 25, 35, dark(bt, 0.7)); body.put(21, 32, bt); body.put(28, 32, bt); body.put(22, 35, bt); body.put(27, 35, bt)
     if 'tattoo' in extras:
         for x, y in ((L + 3, 39), (L + 4, 40), (L + 2, 41), (L + 3, 42), (L + 5, 41), (L + 4, 43)): body.put(x, y, (40, 80, 90))
+    if 'rag' in extras:                       # a rag over the near shoulder
+        body.poly([(L + 1, 36), (L + 7, 34), (L + 8, 37), (L + 4, 44), (L + 1, 44)], (196, 70, 60))
+        for x, y in ((L + 3, 38), (L + 5, 37), (L + 2, 41)): body.put(x, y, (150, 50, 44))
     if 'braid' in extras:
         body.rect(L + 2, 37, L + 6, 38, (232, 190, 70)); body.rect(R - 6, 37, R - 2, 38, (255, 214, 100))
         for x in range(L + 2, L + 7, 2): body.put(x, 39, (232, 190, 70))
@@ -285,6 +300,10 @@ def draw(ch, face):
     if 'jowls' in extras:                    # the double chin
         for x in range(21, 30): head.put(x, 31, sk_sh)
         head.put(18, 28, sk_sh); head.put(31, 29, sk_sh)
+    if 'cigar' in extras:                     # a fat cigar in the mouth's corner, lit
+        for x, y in ((30, 27), (31, 27), (32, 27), (33, 26), (34, 26)): head.put(x, y, (110, 70, 40))
+        for x, y in ((31, 28), (32, 28), (33, 27)): head.put(x, y, (80, 50, 28))
+        head.put(35, 26, (255, 120, 50)); head.put(36, 24, (160, 160, 170)); head.put(37, 22, (150, 150, 162)); head.put(36, 20, (140, 140, 152))
     if 'toothpick' in extras:
         for x, y in ((30, 27), (31, 27), (32, 26), (33, 26), (34, 25)): head.put(x, y, (226, 196, 140) if x < 34 else (190, 160, 110))
     if 'holder' in extras:                    # a long cigarette holder, the cigarette lit, a curl of smoke
@@ -390,9 +409,20 @@ def draw(ch, face):
         for x, y in ((15, 10), (19, 8), (23, 7), (27, 8), (30, 10), (14, 17), (14, 22)): over.put(x, y, ha_lt)
         for x, y in ((17, 11), (21, 10), (25, 10), (29, 12), (16, 14), (15, 20), (16, 24)): over.put(x, y, ha_sh)
         for x in range(25, 32): over.put(x, 13 + (x % 3 == 0), hair)
+    elif hs == 'spiky':                       # short and gelled up in spikes
+        cap = Canvas(); cap.ellipse(24.2, 17.6, 9.0, 8.6, hair, only=lambda x, y: y <= 14 or x <= 19 - (y - 14) // 3)
+        for (x, y) in cap.p:
+            if x <= 18 and y >= 18: continue
+            over.put(x, y, hair)
+        for x0 in (16, 19, 22, 25, 28, 31):
+            for k in range(5): over.put(x0 + k // 2, 10 - k, hair if k < 4 else ha_lt)
+        for x, y in ((18, 10), (21, 9), (24, 9), (27, 9), (30, 11)): over.put(x, y, ha_lt)
     if 'temples' in extras:                   # grey at the temples
         for (x, y), c in list(over.p.items()):
             if c in (hair, ha_sh, ha_lt) and 17 <= x <= 22 and 13 <= y <= 22: over.put(x, y, (176, 176, 180) if (x + y) % 2 else (150, 150, 156))
+    if 'loupe' in extras:                     # a jeweller's loupe pushed up on the brow
+        for x, y in ((27, 15), (28, 14), (29, 14), (30, 15), (30, 16), (29, 17), (28, 17), (27, 16)): over.put(x, y, (30, 30, 36))
+        over.put(28, 15, (180, 210, 230)); over.put(29, 15, (140, 170, 200)); over.put(28, 16, (140, 170, 200)); over.put(29, 16, (120, 150, 180))
     if 'pencil' in extras:                    # a pencil behind the ear
         for x, y in ((16, 20), (17, 19), (18, 18), (19, 17), (20, 16)): over.put(x, y, (246, 200, 40))
         over.put(21, 15, (240, 200, 160)); over.put(22, 14, (40, 40, 40)); over.put(15, 21, (240, 120, 140))
@@ -456,6 +486,10 @@ def draw(ch, face):
             if over.get(x, y) == hc and ((x + y * 2) % 5 == 0): over.put(x, y, hc2)   # the tweed
             if over.get(x, y) == hc and x <= 17: over.put(x, y, dark(hc, 0.82))
         over.poly([(28, 14), (37, 14), (36, 16), (28, 16)], dark(hc, 0.75)); over.put(26, 8, lite(hc, 0.3)); over.put(24, 8, lite(hc, 0.3))
+    elif hat == 'visor':                      # a green eyeshade: a band round the head, a see-through peak
+        over.rect(16, 13, 32, 14, hc2)
+        over.poly([(24, 15), (36, 14), (38, 17), (25, 17)], hc)
+        for x in range(26, 37): over.put(x, 15, lite(hc, 0.3))
     elif hat == 'chauffeur':                  # a peaked cap, glossy peak, a small gold button
         over.poly([(15, 8), (33, 7), (33, 12), (16, 12)], hc)
         for x in range(16, 33): over.put(x, 7 if x > 17 else 8, lite(hc, 0.18))
