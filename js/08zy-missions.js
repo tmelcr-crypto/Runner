@@ -70,8 +70,8 @@ function msTick(dt) {                       // js/15 update
   msLiveTick(dt); msCastTick(dt);
   MS.t += dt;
   const A = MS.A, F = MS.m.fails;
+  if (P.busted) return msFail(F.busted || 'BUSTED');                // first: busted sets P.dead too (js/08b)
   if (P.dead) return msFail(F.wasted || 'WASTED');
-  if (P.busted) return msFail(F.busted || 'BUSTED');
   const why = MS.s.fail(A); if (why) return msFail(why);
   const st = MS.s.steps[MS.k];
   if (st.tick(A, dt)) msNext();
@@ -1080,6 +1080,7 @@ const STORY1 = {                           // shared by chapter 1's quests: plac
       cab: { x: R.x - R.ux * k, y: R.y - R.uy * k, a: Math.atan2(R.vy, R.vx) } };
   },
   rank(x, y) { let b = RANKS[0]; for (const r of RANKS) if (dist(r.x, r.y, x, y) < dist(b.x, b.y, x, y)) b = r; return b; },
+  bay(x, y) { let b = null; for (const d of DISPATCH) if (d.kind === 'medic' && (!b || dist(d.x, d.y, x, y) < dist(b.x, b.y, x, y))) b = d; return b || serviceDoor('hospital', x, y); },   // a hospital's ambulance bay (the paramedic job's marker, js/08n): a car gets there
   shopFront(x, y) {                        // the street-front shop nearest a point whose front the camera sees (facing south-ish): its front, the sidewalk before it
     let best = null, bd = 1e9;
     for (const r of BLD) { if (!r.fill || !r.shop || r.uniq || r.special || r.safe || r.ix || r.own) continue; const d = dist(r.cx, r.cy, x, y); if (d < bd && d < 1200) { const f = adFront(r); if (f && f.fy > 0.3) { bd = d; best = { r, f }; } } }
@@ -1379,7 +1380,7 @@ MSCRIPT.m04 = (() => {
         return false; },
       jump(A) { if (P.car) exitCar(true); P.x = A.shop.x + A.shop.fx * 60; P.y = A.shop.y + A.shop.fy * 60; } },
     { enter(A) { for (const m of A.men) foeAlert(m); MS.mark = () => A.men.filter(m => !m.dead)[0]; MS.guide = null; const i = peds.indexOf(A.lou); if (i >= 0) peds.splice(i, 1); },   // TAKE OUT the heavies (Lou ducks inside meanwhile)
-      tick(A) { return A.men.every(m => m.dead); },
+      tick(A) { blind(A, true); return A.men.every(m => m.dead); },
       info: A => A.men.filter(m => !m.dead).length + ' LEFT',
       jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
     { enter(A) { if (!A.ran) louRuns(A); MS.mark = () => A.louIn ? A.lcar : A.lou; MS.guide = () => A.louIn ? A.lcar : A.lou; A.stopT = 0; },   // CHASE Lou's car
@@ -1412,4 +1413,69 @@ MSCRIPT.m04 = (() => {
       { dur: 4, cam: 'CLOSE', at: () => A.joe, line: 11 }]
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A.signM) scene.remove(A.signM); } };
+})();
+
+/* ================= M05 - WRONG STREET ================= */
+MSCRIPT.m05 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour;
+    const rk = S1.rank(2609, 9682); A.rank = at(rk.x, rk.y); A.rk = rk;                   // the airport rank: Joe's cab, dented, four of Kessler's men round it
+    rk.filled = true; for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, rk.x, rk.y) < 160) cars.splice(i, 1);   // no other cabs waiting today
+    A.cab = msCar('taxi', rk.x, rk.y, rk.ang); A.cab.hp = A.cab.maxhp * 0.25; A.cab.noEnter = A.cab.noWreck = true;   // smashed but never burns: it stands beside Joe
+    const kp = S1.sidewalk(rk.x, rk.y); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true, shield: true })); A.joe.hp = N().joeHp;   // your shots pass him by; a tough old man
+    const ca = rk.ang, cx = Math.cos(ca), cy = Math.sin(ca), rx = -cy, ry = cx;
+    A.men = [[30, 26, 'bat'], [-34, 22, 'knife'], [0, -30, 'fists'], [60, -10, 'pistol']].map(([u, v, g]) => {
+      const x = rk.x + cx * u + rx * v, y = rk.y + cy * u + ry * v;
+      return Object.assign(msFoe(x, y, { gun: g, hp: N().manHp, group: 'bull', a: Math.atan2(rk.y - y, rk.x - x), shirt: '#f0f0ea', pants: '#3a4a6a' }), { calm: true });
+    });
+    face(A.joe, A.men[0]);
+    const h = S1.bay(rk.x, rk.y); A.hosp = at(h.x, h.y);                                   // the nearest hospital's ambulance bay
+    const st = S1.road(rk.x + 900, rk.y + 300); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: a few blocks off, a car at the kerb
+    const k = kerbBy(st.x + 40, st.y); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
+  }
+  function chaser(A) {                                                                // Kessler's car, after you on the way
+    if (A.ccar) return; const r = S1.road(A.rank.x + 300, A.rank.y - 500);
+    A.ccar = msFoeCar('muscle', r.x, r.y, r.a, { crew: 2, gun: 'pistol', group: 'chase', speed: N().chaseSpeed, shirt: '#f0f0ea', pants: '#3a4a6a' }); msLive([6], { now: true });
+  }
+  function blind(A, on) { A.rk.filled = true; for (const q of peds) if (q.cop && dist(q.x, q.y, A.rank.x, A.rank.y) < N().blindR) q.blind = on; }   // the gate cops look the other way: Crane owns the police
+  const steps = [
+    { enter(A) { msPage('ESTHER: JOE IN TROUBLE - AIRPORT RANK. HURRY'); MS.guide = A.rank; MS.mark = () => A.joe; A.bangT = 0; },   // GO TO the rank: the cutscene
+      tick(A, dt) {
+        blind(A, true);
+        if ((A.bangT -= dt) <= 0) { A.bangT = rand(0.8, 1.6); A.cab.hp = Math.max(A.cab.maxhp * 0.08, A.cab.hp - 2); if (dist(me().x, me().y, A.rank.x, A.rank.y) < 700) Snd.thud(140); }   // they are smashing the cab
+        if (A.men.some(m => m.alert)) return true;
+        if (!A.cutGo && dist(me().x, me().y, A.rank.x, A.rank.y) < N().rankR) { A.cutGo = true; if (P.car) exitCar(true); msCut("BULL'S BOYS", () => msNext()); }
+        return false; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.rank.x + 80; P.y = A.rank.y + 60; } },
+    { enter(A) { for (const m of A.men) foeAlert(m); msLive([3], { now: true }); MS.mark = () => A.men.filter(m => !m.dead)[0]; MS.guide = null; },   // TAKE OUT Kessler's men
+      tick(A) { return A.men.every(m => m.dead); },
+      info: A => A.men.filter(m => !m.dead).length + ' LEFT',
+      jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
+    { enter(A) { blind(A, false); msLive([11, 4, 5]); if (!A.joe.ally) msAllyFrom(A.joe, { who: 'joe', calm: true, hp: N().joeHp, fail: MS.m.fails.joeDead }); MS.mark = () => A.joe; MS.guide = null; },   // GET Joe INTO A CAR (any car)
+      tick(A) { return !!(P.car && A.joe.aboard === P.car); },
+      info: A => P.car ? 'STOP BY JOE' : 'TAKE A CAR',
+      jump(A) { if (!A.joe.ally) msAllyFrom(A.joe, { who: 'joe', calm: true, hp: N().joeHp, fail: MS.m.fails.joeDead }); const c = A.mycar; if (P.car) exitCar(true); c.x = A.rank.x + 60; c.y = A.rank.y + 40; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; enterCar(c); allyBoard(A.joe, c); } },
+    { enter(A) { MS.guide = A.hosp; MS.mark = () => A.hosp; A.t4 = gameT; chaser(A); },   // DELIVER Joe to the hospital, against the clock
+      tick(A) {
+        if (!A.said7 && gameT - A.t4 > 20) { A.said7 = true; msLive([7]); }
+        if (A.home || !P.car || A.joe.aboard !== P.car || dist(P.car.x, P.car.y, A.hosp.x, A.hosp.y) > N().hospR) return false;
+        A.home = true; msCut('STITCHES', () => msNext()); return false; },
+      info: A => Math.max(0, Math.ceil(N().hospT - (gameT - A.t4))) + ' S LEFT' }];
+  function fail(A) {
+    const F = MS.m.fails;
+    const f = msCastFail(); if (f) return f;
+    if (A.joe.dead) return F.joeDead;
+    if (MS.k === 3 && !A.home && gameT - A.t4 > N().hospT) return F.late;
+    return '';
+  }
+  const cuts = {
+    "BULL'S BOYS": A => [
+      { dur: 4, cam: 'WIDE', at: () => A.rank, line: 1, enter: () => { P.x = A.rank.x + 90; P.y = A.rank.y + 50; for (const m of A.men) face(m, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => A.joe, line: 2, enter: () => face(A.joe, P) }],
+    'STITCHES': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.joe, line: [8, 9], enter: () => { if (P.car) exitCar(true); if (A.joe.aboard) allyAlight(A.joe); face(A.joe, P); } },
+      { dur: 4, cam: 'WIDE', at: () => A.hosp, line: 10 }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.rk) blind(A, false); } };
 })();

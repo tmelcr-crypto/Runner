@@ -67,6 +67,7 @@ function damageCar(c, d, byPlayer) {
   if (c.tk) d *= c.tk.arm;                                         // tuned armour takes some of it (js/08y)
   d /= jobTough(c);                                                // a job's vehicle while the job is on (js/08n)
   c.hp -= d; if (byPlayer) c.byPlayer = true;
+  if (c.noWreck) c.hp = Math.max(c.hp, 1);                         // a mission's prop car: dented, never burns (js/08zy)
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
@@ -110,7 +111,7 @@ function raycast(ox, oy, ang, range) {
   const dx = Math.cos(ang), dy = Math.sin(ang); let bt = range, type = null, obj = null;
   buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
   const up = zOf(P.car || P) > 15;                                  // shooting from a car park deck: nobody in the street below (js/10k)
-  for (const p of peds) { if (up || p.dead || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }
+  for (const p of peds) { if (up || p.dead || p.shield || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }   // p.shield: a mission's friend you are protecting - your shots pass by (js/08zy)
   for (const o of officers) { if (up || o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
   for (const c of cars) {
     if (P.car === c || Math.abs(c.x - ox) > range + 60 || Math.abs(c.y - oy) > range + 60 || Math.abs(zOf(c) - zOf(P.car || P)) > 15) continue;

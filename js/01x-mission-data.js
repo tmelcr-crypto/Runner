@@ -689,7 +689,57 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The rank", "Joe", "Joe stops smiling.", "CLOSE on Joe", "4", "11"]]}],
     "start": {"how": "phone", "marker": "-", "phone": "Joe pages you (STORY only) a game day after M03; call from the nearest phone booth. In MISSIONS TEST you start by the Mercado booth."},
     "failing": "Retry from the page.",
-    "notes": {"places": "A phone booth; Lucky Lou's betting shop (a shop front in Mercado, LUCKY LOU'S over the door while the quest needs it); his convertible at the kerb; the Coral Shore rank.", "people": "Lou and two heavies (a bat, fists - no guns); Joe at the rank.", "music": "The radio in the chase.", "new": "The first time Danny hears of Bull Kessler.", "other": "-"}}}
+    "notes": {"places": "A phone booth; Lucky Lou's betting shop (a shop front in Mercado, LUCKY LOU'S over the door while the quest needs it); his convertible at the kerb; the Coral Shore rank.", "people": "Lou and two heavies (a bat, fists - no guns); Joe at the rank.", "music": "The radio in the chase.", "new": "The first time Danny hears of Bull Kessler.", "other": "-"}}},
+  {"id": "m05", "no": "M05", "title": "WRONG STREET", "giver": "esther", "start": "phone", "where": "A page from Esther, then the airport taxi rank; the hospital in Mercado",
+   "story": "Esther pages Danny: Joe radioed the Colony - trouble at the airport rank. Bull Kessler's men are smashing Joe's cab and beating the old man. Danny fights them off, gets the hurt Joe into a car and races him to the hospital with Kessler's car behind them.",
+   "chars": ["esther", "joe", "danny", "bull"],
+   "steps": [
+     {"word": "GO TO", "show": "GET TO THE AIRPORT RANK - JOE IS IN TROUBLE"},
+     {"word": "TAKE OUT", "show": "TAKE OUT KESSLER'S MEN"},
+     {"word": "GET IN", "show": "GET JOE INTO A CAR"},
+     {"word": "DELIVER", "show": "GET JOE TO THE HOSPITAL"}],
+   "lines": [
+     {"who": "bull", "text": "This rank's under new management, grandpa. Mr. Kessler's management.", "mood": "smirk", "when": "Bull's boys, shot 1"},
+     {"who": "joe", "text": "Danny! Don't just stand there!", "mood": "yelling", "when": "Bull's boys, shot 2"},
+     {"who": "bull", "text": "Get him!", "mood": "shouting", "when": "LIVE - the fight starts", "live": true},
+     {"who": "joe", "text": "My cab... forty years, and look at her.", "mood": "tired", "when": "LIVE - after the fight", "live": true},
+     {"who": "danny", "text": "Forget the cab. Get in - you're bleeding.", "mood": "urgent", "when": "LIVE - after the fight", "live": true},
+     {"who": "bull", "text": "That's them! Run them off the road!", "mood": "shouting", "when": "LIVE - Kessler's car arrives", "live": true},
+     {"who": "joe", "text": "Not the hospital, I hate hospitals... fine. The hospital.", "mood": "tired", "when": "LIVE - on the way", "live": true},
+     {"who": "danny", "text": "Hang on, Joe. The doctors are coming.", "mood": "calm", "when": "Stitches, shot 1"},
+     {"who": "joe", "text": "Those were Kessler's boys. That means he knows your face now, son.", "mood": "tired", "when": "Stitches, shot 1"},
+     {"who": "joe", "text": "Go home. Lie low. I'll page you when they let me out.", "mood": "warm", "when": "Stitches, shot 2"},
+     {"who": "danny", "text": "Two cops at the gate, and nobody saw a thing.", "mood": "dry", "when": "LIVE - after the fight", "live": true}],
+   "fails": {"joeDead": "PAPA JOE IS DEAD", "late": "TOO LATE - JOE NEEDED A DOCTOR", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 17, "rankR": 150, "manHp": 60, "hospT": 80, "hospR": 90, "chaseSpeed": 88, "joeHp": 300, "blindR": 400},
+   "reward": {"cash": 700, "vehicle": "", "clothes": "", "next": "M06 - Papa Joe's marker at the hospital", "place": "", "contact": "Esther can page you"},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 1) - change anything you like.",
+    "glance": {"kind": "story", "given": "ESTHER BLOOM - a page (no call)", "where": "The airport taxi rank; the hospital in Mercado", "unlocked": "Passing M04 (Esther pages you)", "time": "Any (MISSIONS TEST: early evening)", "length": "About 4 to 6 minutes", "limit": "80 seconds to the hospital"},
+    "chars": {
+     "esther": {"gives": true, "role": "Pages you from the Colony: Joe radioed for help.", "looks": "Seventies, a silver wave, round sunglasses, pearls.", "bubble": "Pink", "mumble": "Slow and silky."},
+     "joe": {"gives": false, "role": "Beaten by Kessler's men at the rank; rides with you, hurt (he does not fight).", "looks": "Seventy, a flat cap, a brown cardigan.", "bubble": "Sandy tan", "mumble": "Quick and chatty - slower today."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "bull": {"gives": false, "role": "Bull Kessler's men (one bubble for all of them).", "looks": "Dockside heavies: shaved heads, white vests, gold chains, jeans.", "bubble": "Burnt orange", "mumble": "Gruff: a sawtooth."}},
+    "steps": [
+     ["The pager: ESTHER - JOE IN TROUBLE AT THE AIRPORT RANK. HURRY. Get there; the cutscene BULL'S BOYS.", "MISSIONS TEST: you start a few blocks from the airport, a car at the kerb."],
+     ["Four of Kessler's men round Joe's cab: a bat, a knife, fists and one pistol.", "Joe keeps out of it; his cab is wrecked. The two cops at the airport gate look the other way (Crane owns the police) - no stars for this fight from them."],
+     ["Any car. Stop by Joe and he gets in beside you.", ""],
+     ["The hospital in Mercado, 80 seconds. A car of Kessler's men comes after you (two men, pistols).", "Out of time: TOO LATE."]],
+    "fails": [
+     ["Joe is killed", "PAPA JOE IS DEAD"],
+     ["The hospital is not reached in 80 seconds", "TOO LATE - JOE NEEDED A DOCTOR"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "DURING STEP 1 - \"BULL'S BOYS\"", "plays": "When you reach the rank.", "shots": [
+      ["The rank", "Kessler's men, Joe, his cab", "Four heavies round the dented cab; one has Joe by the cardigan.", "WIDE", "4", "1"],
+      ["The rank", "Joe", "Joe sees Danny.", "CLOSE on Joe", "3", "2"]]},
+     {"title": "CLOSING - \"STITCHES\"", "plays": "At the hospital door.", "shots": [
+      ["The hospital door", "Danny, Joe", "Danny helps Joe out of the car.", "CLOSE on Joe", "5", "8, 9"],
+      ["The hospital door", "Joe", "Joe waves him off. Fade out.", "WIDE", "4", "10"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "Esther pages you (STORY only) a game day after M04 - a message, no call."},
+    "failing": "Retry from the page.",
+    "notes": {"places": "The airport taxi rank by the gate; the hospital in Mercado.", "people": "Kessler's men (first seen), Joe.", "music": "The radio on the dash to the hospital.", "new": "A page that is a message (no call).", "other": "Joe's cab is wrecked here (it comes back later). The gate cops looking away is the first sign that the police are in Crane's pocket."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
