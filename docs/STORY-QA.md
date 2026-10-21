@@ -98,3 +98,7 @@ questions before building it. Each answer is written here as it comes; the story
 86. Papa Joe's chapter 1 jobs are errands that drift into crime: a fare who runs without paying, a parcel to deliver, a car to a chop shop, a debt to collect for Joe - until Kessler's men notice Danny.
 87. Danny first hears the name Crane on the first night's drive: a CRANE FOR MAYOR billboard, and Joe grumbles about him.
 88. Mateo's first clue (chapter 1): his old garage, where he worked as a mechanic; his boss says he got a driving job with a rich man.
+89. Chapter 2's work: Kessler hires Danny first (good money, dirty jobs); when Danny sees what Kessler is, Rosa Ortega - Mercado's market boss - takes him in against Kessler.
+90. Chapter 3's guide: Nina Park, a Bay TV reporter who has been digging into Crane for years; she and Danny trade what they find (and she sets up the TV-or-FBI choice).
+91. In chapter 4 Danny has his own crew: Papa Joe, Rosa and Nina, plus whoever he helped in the side lines.
+92. Chapters show no dates - only the chapter names on their title cards.
