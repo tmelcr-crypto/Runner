@@ -18,8 +18,12 @@ function msFoe(x, y, o = {}) {              // o: { gun, hp, a (facing), alert (
   return Object.assign(p, { foe: true, crim: true, hp: o.hp || MSN.foeHp, alert: !!o.alert, group: o.group || 'foes', boss: !!o.boss, cool: rand(0.5, 1.2), tgT: 0, sd: Math.random() < 0.5 ? 1 : -1, sdT: rand(1, 2), pref: rand(0.55, 1.3) });   // pref < 1: it rather goes for your friend
 }
 function msAlly(x, y, o) {                  // o: { who (a character of the mission), gun, hp, a, fail (the words when killed), hurtLine }
+  const ch = msWho(o.who) || {};
+  return msAllyFrom(msPed(x, y, o.a || 0, { shirt: ch.shirt, pants: ch.pants, msName: o.who, speed: 1 }), o);
+}
+function msAllyFrom(p, o) {                 // someone of the mission (standing at their place so far) becomes your friend now
   const ch = msWho(o.who) || {}, hp = o.hp || MSN.allyHp;
-  const p = msPed(x, y, o.a || 0, { arm: gunIdx(o.gun || 'pistol'), shirt: ch.shirt, pants: ch.pants, msName: o.who, speed: 1, step: allyStep });
+  p.arm = gunIdx(o.gun || 'pistol'); p.post.step = allyStep; p.state = 'post';
   Object.assign(p, { ally: true, hp, hpMax: hp, hurtT: 99, cool: 0, tgT: 0, fail: o.fail || (ch.name || 'YOUR FRIEND') + ' IS DEAD', hurtLine: o.hurtLine, saidT: -99, col: ch.bubble || '#b6ff3c' });
   MS_CAST.allies.push(p); return p;
 }
@@ -83,14 +87,14 @@ function allyTargets() {                     // the foes on foot, and the foes' 
 
 /* ---------- a foe on foot ---------- */
 function foeAlert(p) {                      // it fights now, and so do the others of its group near it, a moment later
-  if (p.alert) return; p.alert = true; p.cool = rand(0.3, 0.9);
+  if (p.alert) return; p.alert = true; p.calm = false; p.cool = rand(0.3, 0.9);
   for (const q of peds) if (q.foe && !q.alert && !q.dead && q.group === p.group && dist(q.x, q.y, p.x, p.y) < 420) q.alertIn = rand(0.3, 1.1);
 }
 function foeStep(p, dt) {                   // its post.step (js/08j postStep): always in charge of it
   if (p.state === 'flee') p.state = 'post';                         // never runs (alertPeds, a knock)
   const po = p.post;
   const back = () => { if (walkTo(p, po.x, po.y, WALK, dt) < 4) { p.vx = p.vy = 0; p.ang = p.hd = po.a; } };
-  if (!feat('msFoes')) { back(); return true; }
+  if (!feat('msFoes') || p.calm) { back(); return true; }             // calm: waiting for a cutscene (a shot near, and it fights anyway)
   if (p.alertIn !== undefined && (p.alertIn -= dt) <= 0) { delete p.alertIn; foeAlert(p); }
   if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = castPick(p, foeTargets(), p.alert ? MSN.foeLeash * UNITS_PER_M : MSN.foeSee * UNITS_PER_M); }
   const t = p.tg;
@@ -165,15 +169,15 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
 
 /* ---------- the foes' cars ---------- */
 function foeBail(c) {                       // the crew out, on foot, fighting
-  const F = c.fc; if (F.out) return; F.out = true;
+  const F = c.fc; if (F.out) return F.men; F.out = true; F.men = [];
   c.driver = null; c.msDrive = null; c.thr = 0; c.str = 0; c.hb = true;
   const rx = -Math.sin(c.ang), ry = Math.cos(c.ang), s = c.t.wid / 2 + 12;
   for (let i = 0; i < F.crew; i++) {
     let x = c.x + rx * s * (i % 2 ? 1 : -1) - Math.cos(c.ang) * (i > 1 ? 18 : 0), y = c.y + ry * s * (i % 2 ? 1 : -1) - Math.sin(c.ang) * (i > 1 ? 18 : 0);
     if (pedBlocked(x, y)) { x = c.x - rx * s * (i % 2 ? 1 : -1); y = c.y - ry * s * (i % 2 ? 1 : -1); }
-    msFoe(x, y, { gun: F.gun >= 0 ? WEAPONS[F.gun].id : 'pistol', alert: true, group: F.group, a: c.ang });
+    F.men.push(msFoe(x, y, { gun: F.gun >= 0 ? WEAPONS[F.gun].id : 'pistol', alert: true, group: F.group, a: c.ang, hp: F.crewHp, boss: F.boss, shirt: F.shirt, pants: F.pants, name: F.name }));
   }
-  F.crew = 0;
+  F.crew = 0; return F.men;
 }
 function foeRoad(c, x, y, slot) {           // the next point by road toward x, y (the police's way, js/07; one map per place, made again now and then)
   const R = slot || MS_CAST;
@@ -185,11 +189,13 @@ function foeRoad(c, x, y, slot) {           // the next point by road toward x, 
 function foeDrive(c, dt) {                  // js/07 updateCars: c.msDrive
   const F = c.fc; if (!F || !MS.on || !feat('msFoes')) { c.thr = 0; c.str = 0; return; }
   if (F.crew > 0 && c.hp < c.maxhp * MSN.carBail / 100) { foeBail(c); return; }
+  if (F.wait > 0) { F.wait -= dt; c.thr = 0; c.str = 0; c.hb = true; return; }   // starting it up
   const tgt = P.car || P, d = dist(c.x, c.y, tgt.x, tgt.y), spd = carSpeed(c);
   let tx = tgt.x, ty = tgt.y, vmax = F.speed * KMH;
-  if (F.mode === 'flee') {
-    if (dist(c.x, c.y, F.to.x, F.to.y) < 140) { F.gone = true; c.thr = 0; c.hb = true; return; }
-    const w = foeRoad(c, F.to.x, F.to.y, F); if (w) { tx = w.x; ty = w.y; } else { tx = F.to.x; ty = F.to.y; }
+  if (F.mode === 'flee') {                                          // to: one place, or a list one after another (the last: gone)
+    const list = Array.isArray(F.to) ? F.to : [F.to], to = list[F.ti || 0];
+    if (dist(c.x, c.y, to.x, to.y) < 140) { if ((F.ti || 0) < list.length - 1) { F.ti = (F.ti || 0) + 1; F.field = null; } else { F.gone = true; c.thr = 0; c.hb = true; return; } }
+    const w = foeRoad(c, to.x, to.y, F); if (w) { tx = w.x; ty = w.y; } else { tx = to.x; ty = to.y; }
   } else {
     if (F.crew > 0 && d < 150 && (!P.car || carSpeed(P.car) < 25 * KMH)) { c.str = 0; c.thr = spd > 30 ? -1 : 0; if (spd < 40) foeBail(c); return; }   // pulled up by you: out and at you
     const direct = d < 650 && losClear(c.x, c.y, tgt.x, tgt.y) && !waterBetween(c.x, c.y, tgt.x, tgt.y);

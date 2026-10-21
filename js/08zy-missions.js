@@ -248,7 +248,7 @@ function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y
       const place = () => { const p = s.at ? s.at(A) : P, q = s.cam === 'PAN' && s.to ? s.to(A) : null;
         cam.x = q ? lerp(p.x, q.x, smooth01(0, 1, u)) : p.x; cam.y = q ? lerp(p.y, q.y, smooth01(0, 1, u)) : p.y; cam.zoom = MS_CAM[s.cam] || 1.2; };
       if (MS.talk) { CUT.t = Math.max(0, CUT.t - dt); place(); return; }        // a line on screen: the shot waits for it, the camera stays
-      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([s.line], () => {}); place(); return; }
+      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([].concat(s.line), () => {}); place(); return; }   // one line, or several one after another
       if (s.tick) s.tick(A, dt, u);
       place();
       const end = CUT.T - (this.fadeOut || 0);
@@ -459,4 +459,113 @@ MSCRIPT.q01 = (() => {
   };
   function cleanup() { }
   return { setup, steps, fail, cuts, cleanup };
+})();
+
+/* ================= QUEST 02 - DOCK RATS ================= */
+MSCRIPT.q02 = (() => {
+  const N = () => MS.m.numbers, me = () => P.car || P, at = (x, y) => ({ x, y });
+  const face = (p, q) => { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; };
+  const road = (x, y) => { const q = nearestRoad(x, y, 900), t = edgeAt(q.e, q.s, {}); return { x: t.x, y: t.y, a: Math.atan2(t.ty, t.tx) }; };
+  const stay = (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); };   // at their place whatever happens
+  const look = id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants });
+  function dryNear(x, y) {                                            // where something dropped lies: here, or the nearest dry spot (not in the water)
+    if (shoreDist(x, y) > -4) return at(x, y);
+    for (let r = 12; r <= 96; r += 12) for (let k = 0; k < 12; k++) { const a = k / 12 * TAU, q = at(x + Math.cos(a) * r, y + Math.sin(a) * r); if (shoreDist(q.x, q.y) > 2) return q; }
+    return at(x, y);
+  }
+  function setup(A) {
+    const d = MARINA.door; A.door = at(d[0] + 22, d[1] + 4);
+    A.marco = msPed(A.door.x, A.door.y, 0, Object.assign(look('marco'), { msName: 'marco', step: stay }));   // Marco waits at his door
+    A.dock = at(8092, 4488);                                            // the fuel dock's foot, on the quay
+    A.lucia = msPed(8098, 4478, Math.PI, Object.assign(look('lucia'), { msName: 'lucia', step: stay }));
+    A.rocco = msFoe(8066, 4490, Object.assign(look('rocco'), { gun: 'pistol', hp: N().roccoHp, group: 'rocco', name: 'rocco' })); A.rocco.calm = true;
+    A.men = [[8048, 4470, 'pistol'], [8062, 4514, 'smg'], [8146, 4493, 'pistol']].map(([x, y, g]) => Object.assign(msFoe(x, y, { gun: g, hp: N().foeHp, group: 'dock' }), { calm: true }));
+    face(A.rocco, A.lucia); for (const m of A.men) face(m, A.lucia); face(A.lucia, A.rocco);
+    const rc = road(7809, 4309);                                        // Rocco's BRUISER on the street by the harbour; his way out: a long loop to the south-west
+    A.rcar = msFoeCar('muscle', rc.x, rc.y, rc.a, Object.assign(look('rocco'), { mode: 'park', crew: 1, gun: 'pistol', group: 'rocco', speed: N().roccoSpeed, tough: N().roccoCar, crewHp: N().roccoHp, boss: true, name: 'rocco',
+      to: [road(7400, 7440), road(5200, 6440), road(5288, 4200)] }));
+    const st = road(7300, 4210), sx = -Math.sin(st.a), sy = Math.cos(st.a);   // you: on a street west of the harbour, a car at the kerb
+    P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;
+    A.mycar = msCar('estate', st.x + sx * 30 + Math.cos(st.a) * 40, st.y + sy * 30 + Math.sin(st.a) * 40, st.a, '#3d6fa8');
+    A.spare = msCar('sports', 7990, 4400, Math.atan2(4243 - 4400, 7875 - 7990), '#f2c14a');   // a spare car on the quay, for the chase
+  }
+  function luciaJoins(A) { if (!A.lucia.ally) msAllyFrom(A.lucia, { who: 'lucia', gun: 'pistol', fail: MS.m.fails.luciaDead, hurtLine: 9 }); }
+  function roccoRuns(A) {                                              // the fight turns: Rocco runs for his car
+    A.rRun = true; msLive([10, 11], { now: true });
+    const r = A.rocco; r.post.lt = 0; r.post.lx = r.x; r.post.ly = r.y;
+    r.post.step = (q, dt) => {
+      const c = A.rcar, door = allyDoor(c), po = q.post;
+      if (walkTo(q, door.x, door.y, NPC_RUN * 1.1, dt) < 18 || dist(q.x, q.y, c.x, c.y) < c.t.wid / 2 + 26 || ((po.lt += dt) > 1.2 && dist(q.x, q.y, po.lx, po.ly) < 8 && dist(q.x, q.y, cam.x, cam.y) > 700)) {   // at the door (or stuck out of sight)
+        const i = peds.indexOf(q); if (i >= 0) peds.splice(i, 1); A.rInCar = true; c.fc.wait = N().roccoStart; foeCarGo(c, 'flee'); return true;
+      }
+      if (po.lt > 1.2) { po.lt = 0; po.lx = q.x; po.ly = q.y; }
+      return true;
+    };
+  }
+  function roccoDown(A, x, y) { if (!A.phone) A.phone = dryNear(x, y); }
+  const steps = [
+    { enter(A) { MS.mark = () => A.dock; msLive([1, 2], { phone: true, done: () => { A.called = true; if (MS.k === 0) MS.guide = A.dock; } }); },   // GO TO: the call, then the line
+      tick(A) {
+        if (A.men.some(m => m.alert) || A.rocco.alert) return true;   // you started shooting first: the fight now
+        if (!A.cutGo && dist(me().x, me().y, A.dock.x, A.dock.y) < N().dockR) { A.cutGo = true; msCut('RENT DAY', () => msNext()); }
+        return false; },
+      jump(A) { P.x = 8000; P.y = 4460; } },
+    { enter(A) { luciaJoins(A); for (const m of A.men.concat(A.rocco)) foeAlert(m); MS.mark = null; MS.guide = null; A.t1 = gameT; msLive([7], { now: true }); },   // TAKE OUT the men, with Lucia
+      tick(A) {
+        if (!A.said8 && gameT - A.t1 > 3) { A.said8 = true; msLive([8]); }
+        const men = A.men.filter(m => !m.dead).length;
+        if (A.rocco.dead && !A.rInCar) { roccoDown(A, A.rocco.x, A.rocco.y); if (!men) msEnter(4); return false; }   // Rocco shot before he reached his car: his phone, once the men are down
+        if (!A.rRun && (men <= N().runAt || A.rocco.hp < N().roccoHp * 0.5)) roccoRuns(A);
+        return !!A.rInCar; },
+      info: A => A.men.filter(m => !m.dead).length + ' MEN LEFT',
+      jump(A) {
+        for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); luciaJoins(A);
+        const i = peds.indexOf(A.rocco); if (i >= 0) peds.splice(i, 1); A.rRun = A.rInCar = true; foeCarGo(A.rcar, 'flee');
+        const c = A.mycar, r = A.rcar; c.x = r.x - Math.cos(r.ang) * 160; c.y = r.y - Math.sin(r.ang) * 160; c.ang = r.ang; c.vx = c.vy = 0;
+        if (P.car) exitCar(true); P.x = c.x; P.y = c.y; enterCar(c); allyBoard(A.lucia, c); } },
+    { enter(A) { MS.mark = () => A.rcar; MS.guide = () => A.rcar; },   // CHASE his car
+      tick(A) {
+        const c = A.rcar;
+        if (c.fc.out) { A.rocco = c.fc.men[0]; msLive([12], { now: true }); return true; }
+        if (c.dead || c.burn > 0) { roccoDown(A, c.x, c.y); msLive([13], { now: true }); msEnter(4); }   // up in flames with him in it
+        return false; },
+      info: A => Math.round(dist(me().x, me().y, A.rcar.x, A.rcar.y) / UNITS_PER_M) + ' M TO ROCCO (GONE AT ' + N().awayCar + ')',
+      jump(A) { A.rocco = foeBail(A.rcar)[0]; } },
+    { enter(A) { MS.mark = () => A.rocco; MS.guide = () => A.rocco; },   // TAKE OUT Rocco on foot
+      tick(A) { if (!A.rocco.dead) return false; roccoDown(A, A.rocco.x, A.rocco.y); msLive([13], { now: true }); return true; },
+      info: A => 'ROCCO ' + Math.max(0, Math.round(A.rocco.hp)) + ' HP',
+      jump(A) { if (!A.rocco.dead) killPed(A.rocco, 'gun', false); roccoDown(A, A.rocco.x, A.rocco.y); } },
+    { enter(A) { A.bag = A.phone || dryNear(P.x + 30, P.y); MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = () => A.bag; },   // COLLECT his phone
+      tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > 26) return false; A.bag = null; A.hasPhone = true; Snd.pickup(); popup(P.x, P.y - 14, "ROCCO'S PHONE", '#b6ff3c'); msLive([14], { now: true }); return true; },
+      jump(A) { A.bag = null; A.hasPhone = true; } },
+    { enter() { if (P.stars <= 0) $('msObj').hidden = true; },        // LOSE THE POLICE (if any)
+      tick() { return P.stars <= 0; } },
+    { enter(A) { MS.guide = A.door; MS.mark = () => A.marco; },        // DELIVER: the phone to Marco, the closing
+      tick(A) {
+        if (A.home || dist(me().x, me().y, A.door.x, A.door.y) > N().marcoR) return false;
+        A.home = true; if (P.car) exitCar(true);
+        const L = A.lucia; if (L.aboard) allyAlight(L);
+        if (dist(L.x, L.y, A.door.x, A.door.y) > 140) { L.x = A.door.x + 30; L.y = A.door.y + 34; L.vx = L.vy = 0; }   // she is with you
+        msCut('FAMILY BUSINESS', () => msNext()); return false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.marco.dead) return F.marcoDead;
+    const f = msCastFail(); if (f) return f;
+    if (A.lucia.dead) return F.luciaDead;
+    if (MS.k === 2 && (A.rcar.fc.gone || dist(me().x, me().y, A.rcar.x, A.rcar.y) > N().awayCar * UNITS_PER_M)) return F.away;
+    if (A.bag && shoreDist(A.bag.x, A.bag.y) < -10) return F.phoneSank;
+    return '';
+  }
+  const cuts = {
+    'RENT DAY': A => [
+      { dur: 3, cam: 'WIDE', at: () => A.dock, line: 3, enter: () => face(A.rocco, A.lucia) },
+      { dur: 3, cam: 'CLOSE', at: () => A.lucia, line: 4 },
+      { dur: 3, cam: 'CLOSE', at: () => A.rocco, line: 5 },
+      { dur: 3, cam: 'CLOSE', at: () => A.lucia, line: 6, enter: () => face(A.lucia, P) }],
+    'FAMILY BUSINESS': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [15, 16], enter: () => face(A.marco, P) },
+      { dur: 4, cam: 'WIDE', at: () => at(A.door.x + 60, A.door.y + 30), line: [17, 18], enter: () => { face(A.marco, A.lucia); face(A.lucia, A.marco); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.marco, line: [19, 20, 21], enter: () => face(A.marco, P) }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { } };
 })();

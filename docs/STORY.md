@@ -62,6 +62,7 @@ A third mode where every new mission is played in the game before it goes into S
 | Quest | State | Notes |
 | --- | --- | --- |
 | 01 Harbour Favour | built in MISSIONS TEST (placeholder portraits); the owner's first test fixed (START MISSION by Marco, no guide line in cutscenes, Tito's boat round the bay, his fixed way on foot, a sunk boat fails it); second round (October 2026): no guide line at the start, Tito by Marco with the bag runs down pier 1 to his boat in the opening, faster speech (tap anywhere), Tito docks at the jetty's head and steps off by his boat, the bag drops where he is caught, 20 s to come ashore before the 150 m foot limit (new number ashoreIn - for the Word page); waiting for the owner's next test, changes and pictures | Tito heads for the jetty in Mercado, across the bay (Dockside is 8 km away). The player says nothing - asked whether the player should speak |
+| 02 Dock Rats | built in MISSIONS TEST (placeholder portraits), written by me from the owner's answers (October 2026: Quests 02-06 one story, the Varga crew; long talks + live lines; a friend who follows, fights and rides along; missions only); Word page `docs/quests/Quest-02-Dock-Rats.docx`; waiting for the owner's test | Lucia's first quest as a friend; Rocco can die (only his phone matters) |
 
 ## Connectors - joining the quests into STORY
 
@@ -73,8 +74,12 @@ the connectors below add what happens between quests. Filled in as each quest ar
 - **Between two quests**, for each pair: how the next one starts (the giver's marker, or a phone call - who, and how long after), what the
   one before unlocks (a contact, a place or property, a vehicle, clothes), anything that changes in the city (a gate opens, a shop, the
   police), and whether you must be somewhere or at a time of day.
-- **01 -> 02**: Marco phones a game day after Quest 01 is passed; from Quest 01 on Marco is a contact who can call you. Quest 02 is not
-  written yet.
+- **01 -> 02**: Marco phones a game day after Quest 01 is passed; from Quest 01 on Marco is a contact who can call you. Quest 02 (Dock Rats)
+  starts with that call.
+- **02 -> 03**: Lucia becomes a contact; Quest 03 (Paper Trail) is her marker at the casino strip (Del the croupier keeps the Vargas' books).
+- **The Varga storyline (Quests 02-06, as answered October 2026)**: 02 Dock Rats (Marco, phone; Lucia helps) - 03 Paper Trail (Lucia; the casino
+  strip, the ledger, a car chase; Lucia helps) - 04 Hot Cargo (Marco; Dockside, Marco's stolen engines on a truck; Sol the foreman helps) -
+  05 Island Visit (Lucia, phone; Iron Key, the jailed Ivo Varga, a riot; alone) - 06 Skyline (Marco; Skyline One, Nico Varga; Lucia and Marco help).
 - **Story-wide things to settle before STORY is built**: the space center's entry (open item 1); whether the player speaks; saving
   between quests (STORY saves as now, never during a mission); what a failed or skipped quest does to the ones after it.
 

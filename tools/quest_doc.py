@@ -57,6 +57,10 @@ def build(m):
         if p.text.strip() == 'QUEST 01': set_text(p, 'QUEST ' + m['no'])
         elif p.text.strip() == 'HARBOUR FAVOUR': set_text(p, m['title'])
         elif p.text.startswith('The test mission'): set_text(p, P.get('sub', 'Written from your answers - change anything you like.'))
+    for sec in d.sections:                    # the footer: this quest's number and name (the page number after it stays)
+        for fp in sec.footer.paragraphs:
+            for r in fp.runs:
+                if 'Quest 01' in r.text: r.text = 'Block Runner · Quest %s · %s   ·   ' % (m['no'], m['title'].title())
     g = P['glance']
     for r, v in zip(T[0].rows, [m['no'] + ' - ' + g.get('kind', 'story'), g['given'], g['where'], g['unlocked'], g.get('time', 'Any'), g['length'], g['limit']]):
         set_cell(r.cells[1], v)
