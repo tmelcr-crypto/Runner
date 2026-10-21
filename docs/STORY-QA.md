@@ -110,3 +110,7 @@ questions before building it. Each answer is written here as it comes; the story
 98. The story comes first as one story plan to approve: all 68 quests in a few lines each (giver, place, what happens, what it unlocks), the chapters, the choices and the finale's gifts, as a Word file; then a Word page per quest as each is built.
 99. The quests are built chapter by chapter: main chapter 1 and the Varga line's links; chapter 2 and the Casino line; chapter 3 and the Prison line; chapter 4 with the Colony and Space lines; chapter 5 last.
 100. Each quest goes into MISSIONS TEST as it is built, with its Word page; the owner plays and approves; merges only when the owner says Merge; STORY is built in one piece at the end.
+101. Sal Moretti's look: 60s, short grey hair combed back, a grey moustache, reading glasses, prison blues buttoned to the top; calm eyes.
+102. Chief Ray Holloway's look: 50s, a red face, a grey flat-top, a thick moustache, the chief's uniform with gold braid, mirror shades.
+103. Councilman Dean Pratt's look: old-school - 60s, white hair, a seersucker suit and a bow tie.
+104. Leonard Sachs' look: fat and friendly - round, cheerful, a bow tie, a pocket watch; dangerous under the smile.
