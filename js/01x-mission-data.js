@@ -635,7 +635,61 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The junkyard", "Danny, the car", "Danny gets out among the wrecks and looks at the photo.", "CLOSE", "5", "10"]]}],
     "start": {"how": "marker", "marker": "J - Papa Joe by his cab at the Coral Shore rank", "phone": "-"},
     "failing": "Retry from Joe's marker.",
-    "notes": {"places": "The Coral Shore taxi rank; Dockside Motor Works (an interior, held by the quest); the junkyard in the port's maintenance yard.", "people": "Joe, Manny.", "music": "The radio in the hot car; the police sirens.", "new": "Mateo's first clue.", "other": "-"}}}
+    "notes": {"places": "The Coral Shore taxi rank; Dockside Motor Works (an interior, held by the quest); the junkyard in the port's maintenance yard.", "people": "Joe, Manny.", "music": "The radio in the hot car; the police sirens.", "new": "Mateo's first clue.", "other": "-"}}},
+  {"id": "m04", "no": "M04", "title": "COLLECTION DAY", "giver": "joe", "start": "phone", "where": "A page from Joe, then Lucky Lou's betting shop in Mercado",
+   "story": "Lucky Lou, a bookie, owes Papa Joe two grand from cards. Joe sends Danny to collect. Lou sets his two heavies on him, then runs for his car; Danny runs him down, takes the money - and hears a name for the first time: Bull Kessler, whose boys collect on that street.",
+   "chars": ["joe", "danny", "lou"],
+   "steps": [
+     {"word": "TALK TO", "show": "CALL JOE FROM A PHONE BOOTH"},
+     {"word": "GO TO", "show": "GO TO LUCKY LOU'S BETTING SHOP IN MERCADO"},
+     {"word": "TAKE OUT", "show": "TAKE OUT LOU'S HEAVIES"},
+     {"word": "CHASE", "show": "STOP LOU'S CAR"},
+     {"word": "COLLECT", "show": "TAKE JOE'S MONEY FROM LOU"},
+     {"word": "DELIVER", "show": "TAKE THE MONEY TO JOE AT THE RANK"}],
+   "lines": [
+     {"who": "joe", "text": "Lucky Lou owes me two grand from cards. His betting shop's in Mercado. Collect it - nicely.", "mood": "warm", "when": "The call from the booth"},
+     {"who": "danny", "text": "And if he won't pay nicely?", "mood": "calm", "when": "The call"},
+     {"who": "joe", "text": "Then not so nicely. He'll pay. Lou's scared of his own shadow.", "mood": "dry", "when": "The call"},
+     {"who": "danny", "text": "Lucky Lou? Joe says you owe him two grand.", "mood": "calm", "when": "Lucky Lou, shot 1"},
+     {"who": "lou", "text": "Joe sends his errand boy now? Boys - show the gentleman out.", "mood": "smirk", "when": "Lucky Lou, shot 2"},
+     {"who": "lou", "text": "My car! Where's my car?!", "mood": "yelling", "when": "LIVE - his heavies are down; he runs", "live": true},
+     {"who": "lou", "text": "Okay, okay! Here - two grand, all of it!", "mood": "panicked", "when": "LIVE - you stop his car", "live": true},
+     {"who": "lou", "text": "You're Joe's new boy? Bull Kessler's boys collect on this street. They'll want a word.", "mood": "smirk", "when": "LIVE - he pays", "live": true},
+     {"who": "joe", "text": "Two grand, every euro! Lou paid? Lou never pays!", "mood": "laughing", "when": "Square, shot 1"},
+     {"who": "danny", "text": "He said a Bull Kessler's boys collect on that street.", "mood": "calm", "when": "Square, shot 1"},
+     {"who": "joe", "text": "Kessler... Stay off his streets, son. That one bites.", "mood": "worried", "when": "Square, shot 2"}],
+   "fails": {"joeDead": "PAPA JOE IS DEAD", "louDead": "LUCKY LOU IS DEAD - HE CAN'T PAY NOW", "away": "LOU GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 15, "shopR": 130, "heavyHp": 70, "louSpeed": 72, "knock": 0.5, "stopT": 1.2, "away": 300, "louR": 40, "joeR": 60, "louHp": 250},
+   "reward": {"cash": 600, "vehicle": "", "clothes": "", "next": "M05 - Esther pages you", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 1) - change anything you like.",
+    "glance": {"kind": "story", "given": "PAPA JOE - a page, then a call from a phone booth", "where": "A page from Joe, then Lucky Lou's betting shop in Mercado; back to the Coral Shore rank", "unlocked": "Passing M03 (Joe pages you)", "time": "Any (MISSIONS TEST: the afternoon)", "length": "About 5 to 8 minutes", "limit": "None"},
+    "chars": {
+     "joe": {"gives": true, "role": "Pages you; waits at the Coral Shore rank for his money.", "looks": "Seventy, a flat cap, a brown cardigan, a toothpick.", "bubble": "Sandy tan", "mumble": "Quick and chatty."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "lou": {"gives": false, "role": "The bookie who owes Joe. Must stay alive - he has the money.", "looks": "Forties, a pencil moustache, slicked hair, a green visor, a loud check jacket, a cigar.", "bubble": "Green", "mumble": "Loud and fast: a square buzz."}},
+    "steps": [
+     ["The pager: JOE - CALL ME. Call from the nearest phone booth.", "MISSIONS TEST: you start by the Mercado booth, a car at the kerb."],
+     ["Lou's betting shop in Mercado (LUCKY LOU'S over the door). Walking up plays the cutscene LUCKY LOU.", ""],
+     ["Two heavies, a bat and their fists; Lou ducks into his shop meanwhile.", ""],
+     ["Lou bolts out for his convertible at the kerb and drives off. Ram it or stop beside it and he gets out with his hands up.", "300 m ahead, or the end of his way, and he is gone. He must not die."],
+     ["Walk up to Lou: the money, and the name Bull Kessler.", ""],
+     ["Joe at the Coral Shore rank; the closing cutscene.", ""]],
+    "fails": [
+     ["Papa Joe is killed", "PAPA JOE IS DEAD"],
+     ["Lou is killed", "LUCKY LOU IS DEAD - HE CAN'T PAY NOW"],
+     ["Lou gets away", "LOU GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "DURING STEP 2 - \"LUCKY LOU\"", "plays": "When you walk up to the betting shop.", "shots": [
+      ["The betting shop's door", "Lou, his two heavies, Danny", "Lou on the step with his cigar, a heavy each side.", "WIDE", "4", "4"],
+      ["The door", "Lou", "Lou waves his cigar; the heavies step forward.", "CLOSE on Lou", "4", "5"]]},
+     {"title": "CLOSING - \"SQUARE\"", "plays": "When you bring the money to Joe.", "shots": [
+      ["The rank", "Joe, Danny", "Joe counts the money.", "CLOSE on Joe", "5", "9, 10"],
+      ["The rank", "Joe", "Joe stops smiling.", "CLOSE on Joe", "4", "11"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "Joe pages you (STORY only) a game day after M03; call from the nearest phone booth. In MISSIONS TEST you start by the Mercado booth."},
+    "failing": "Retry from the page.",
+    "notes": {"places": "A phone booth; Lucky Lou's betting shop (a shop front in Mercado, LUCKY LOU'S over the door while the quest needs it); his convertible at the kerb; the Coral Shore rank.", "people": "Lou and two heavies (a bat, fists - no guns); Joe at the rank.", "music": "The radio in the chase.", "new": "The first time Danny hears of Bull Kessler.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

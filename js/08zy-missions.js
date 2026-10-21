@@ -1100,7 +1100,7 @@ MSCRIPT.m01 = (() => {
   function setup(A) {
     const C = S1.colony(); A.door = C.door; A.cabAt = C.cab;
     A.cab = msCar('taxi', C.cab.x, C.cab.y, C.cab.a); A.cab.hp = A.cab.maxhp *= N().cabTough;   // Joe's cab on the Colony's ring drive - it has seen worse
-    A.joe = msPed(C.cab.x + 26, C.cab.y + 14, Math.PI, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay }));
+    A.joe = msPed(C.cab.x + 26, C.cab.y + 14, Math.PI, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true }));
     A.esther = msPed(C.door.x - C.door.fx * 6, C.door.y + 22, Math.PI, Object.assign(S1.look('esther'), { msName: 'esther', step: S1.stay }));
     A.term = at(CHECKIN.x, CHECKIN.y + 24);                                            // the night: Skyport's forecourt, the kerb, the road into town
     A.kerb = S1.road(CHECKIN.x, CHECKIN.y);
@@ -1175,7 +1175,7 @@ MSCRIPT.m01 = (() => {
     const F = MS.m.fails;
     const f = msCastFail(); if (f) return f;
     if (A.joe.dead) return F.joeDead;
-    if (A.kid.dead && peds.includes(A.kid)) return F.kidDead;
+    if (MS.k <= 6 && A.kid.dead && peds.includes(A.kid)) return F.kidDead;
     if (MS.k === 5 && dist(me().x, me().y, A.kid.x, A.kid.y) > N().awayFoot * UNITS_PER_M) return F.away;
     if (A.cab.dead && !A.home) return F.cab;
     return '';
@@ -1212,7 +1212,7 @@ MSCRIPT.m02 = (() => {
     const C = S1.colony(); P.x = C.door.x; P.y = C.door.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: out of the Colony's door, a car on the ring drive
     A.mycar = msCar('estate', C.cab.x, C.cab.y, C.cab.a, '#3d6fa8');
     const rk = S1.rank(COLONY.cx, COLONY.cy), kp = S1.sidewalk(rk.x, rk.y);            // Joe by his cab at the Coral Shore rank
-    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay }));
+    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true }));
     const sf = S1.shopFront(5900, 7800); A.shop = sf;                                    // Uncle Saul at his pawnshop's door in Mercado
     A.saul = msPed(sf.x, sf.y, sf.a, Object.assign(S1.look('saul'), { msName: 'saul', step: S1.stay }));
     A.signM = S1.sign("UNCLE SAUL'S PAWN", '#d8c890', sf);
@@ -1282,7 +1282,7 @@ MSCRIPT.m03 = (() => {
   function setup(A) {
     SKY.hour = N().hour;
     const rk = S1.rank(COLONY.cx, COLONY.cy), kp = S1.sidewalk(rk.x, rk.y);             // Joe by his cab at the Coral Shore rank; you a few steps off, a car at the kerb
-    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay }));
+    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true }));
     P.x = kp.x + 40; P.y = kp.y + 6; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;
     const k = kerbBy(rk.x - 160, rk.y); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
     const S = A.S = IXS.find(q => q.name === 'DOCKSIDE MOTOR WORKS'); S.ms = true; S.open = 1; S.ds.off = true;   // the quest holds Manny's garage: the roller door up, nobody at work (js/08zx)
@@ -1333,4 +1333,83 @@ MSCRIPT.m03 = (() => {
       { dur: 5, cam: 'CLOSE', at: () => P, line: 10, enter: () => { if (P.car) exitCar(true); } }]
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A.S) A.S.ms = false; } };
+})();
+
+/* ================= M04 - COLLECTION DAY ================= */
+MSCRIPT.m04 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour;
+    const b = BOOTHS.slice().sort((p, q) => dist(p.x, p.y, 6032, 6697) - dist(q.x, q.y, 6032, 6697))[0];   // MISSIONS TEST: by the Mercado booth, a car at the kerb
+    const st = S1.sidewalk(b.x + 60, b.y); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;
+    const k = kerbBy(st.x + 80, st.y); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
+    const rk = S1.rank(COLONY.cx, COLONY.cy), kp = S1.sidewalk(rk.x, rk.y);           // Joe by his cab at the Coral Shore rank
+    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true }));
+    const sf = S1.shopFront(6600, 9800); A.shop = sf; A.signM = S1.sign("LUCKY LOU'S", '#2ad480', sf);   // Lou on his step, a heavy each side
+    const tx = -sf.fy, ty = sf.fx;
+    A.lou = msPed(sf.x, sf.y, sf.a, Object.assign(S1.look('lou'), { msName: 'lou', step: S1.stay, spare: true })); A.lou.hp = N().louHp;   // a stray shot or two won't stop him paying
+    A.men = [[-1, 'bat'], [1, 'fists']].map(([s, g]) => Object.assign(msFoe(sf.x + tx * s * 22 + sf.fx * 4, sf.y + ty * s * 22 + sf.fy * 4, { gun: g, hp: N().heavyHp, group: 'heavies', a: sf.a, shirt: '#3a3a44', pants: '#22222a' }), { calm: true }));
+    const lk = kerbBy(sf.x + tx * 70, sf.y + ty * 70);
+    const away = [[1400, 300], [2600, -400], [3600, 200]].map(([u, v]) => S1.road(lk.x + Math.cos(lk.ang) * u - Math.sin(lk.ang) * v, lk.y + Math.sin(lk.ang) * u + Math.cos(lk.ang) * v));
+    A.lcar = msFoeCar('convertible', lk.x, lk.y, lk.ang, { mode: 'park', crew: 0, gun: null, group: 'lou', speed: N().louSpeed, to: away, color: '#2ad480' });
+  }
+  function louRuns(A) {                                                               // his heavies down: Lou bolts out of his shop for his car and drives off
+    A.ran = true; msLive([6], { now: true });
+    const l = A.lou; l.x = A.shop.x; l.y = A.shop.y; l.vx = l.vy = 0; if (!peds.includes(l)) peds.push(l); l.post.lt = 0; l.post.lx = l.x; l.post.ly = l.y;
+    l.post.step = (q, dt) => {
+      const c = A.lcar, door = allyDoor(c), po = q.post;
+      if (walkTo(q, door.x, door.y, NPC_RUN * 1.05, dt) < 18 || dist(q.x, q.y, c.x, c.y) < c.t.wid / 2 + 26 || ((po.lt += dt) > 1.2 && dist(q.x, q.y, po.lx, po.ly) < 8 && dist(q.x, q.y, cam.x, cam.y) > 700)) {
+        const i = peds.indexOf(q); if (i >= 0) peds.splice(i, 1); A.louIn = true; c.fc.wait = 0.6; c.driver = 'ai'; foeCarGo(c, 'flee'); return true;
+      }
+      if (po.lt > 1.2) { po.lt = 0; po.lx = q.x; po.ly = q.y; }
+      return true;
+    };
+  }
+  function louOut(A) {                                                                // the car stopped: Lou out with his hands up
+    const c = A.lcar, l = A.lou; c.driver = null; c.msDrive = null; c.thr = 0; c.str = 0;
+    const d = allyDoor(c); l.x = d.x; l.y = d.y; l.vx = l.vy = 0; l.dead = false; if (!peds.includes(l)) peds.push(l);
+    l.post.step = S1.stay; l.post.x = l.x; l.post.y = l.y; face(l, P); A.louIn = false; A.out = true; msLive([7], { now: true });
+  }
+  const steps = [
+    msBooth('JOE - CALL ME', [1, 2, 3]),                                                 // the page and the call
+    { enter(A) { MS.guide = A.shop; MS.mark = () => A.lou; },                          // GO TO Lou's: the cutscene on the step
+      tick(A) {
+        if (A.men.some(m => m.alert)) return true;                                    // you started it
+        if (!A.cutGo && dist(me().x, me().y, A.shop.x, A.shop.y) < N().shopR) { A.cutGo = true; if (P.car) exitCar(true); msCut('LUCKY LOU', () => msNext()); }
+        return false; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.shop.x + A.shop.fx * 60; P.y = A.shop.y + A.shop.fy * 60; } },
+    { enter(A) { for (const m of A.men) foeAlert(m); MS.mark = () => A.men.filter(m => !m.dead)[0]; MS.guide = null; const i = peds.indexOf(A.lou); if (i >= 0) peds.splice(i, 1); },   // TAKE OUT the heavies (Lou ducks inside meanwhile)
+      tick(A) { return A.men.every(m => m.dead); },
+      info: A => A.men.filter(m => !m.dead).length + ' LEFT',
+      jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
+    { enter(A) { if (!A.ran) louRuns(A); MS.mark = () => A.louIn ? A.lcar : A.lou; MS.guide = () => A.louIn ? A.lcar : A.lou; A.stopT = 0; },   // CHASE Lou's car
+      tick(A) {
+        if (!A.louIn) return false;
+        const c = A.lcar, near = dist(me().x, me().y, c.x, c.y) < 80;
+        A.stopT = carSpeed(c) < 10 * KMH && near && c.fc.wait <= 0 ? A.stopT + 1 / 30 : 0;
+        if (c.burn > 0 || c.hp < c.maxhp * N().knock || A.stopT > N().stopT) { louOut(A); return true; }
+        return false; },
+      info: A => A.louIn ? Math.round(dist(me().x, me().y, A.lcar.x, A.lcar.y) / UNITS_PER_M) + ' M TO LOU (GONE AT ' + N().away + ')' : 'LOU RUNS FOR HIS CAR',
+      jump(A) { if (!A.ran) louRuns(A); const i = peds.indexOf(A.lou); if (i >= 0) peds.splice(i, 1); A.louIn = true; louOut(A); } },
+    { enter(A) { MS.mark = () => A.lou; MS.guide = () => A.lou; },                     // COLLECT the money from Lou
+      tick(A) { if (P.car || dist(P.x, P.y, A.lou.x, A.lou.y) > N().louR) return false; Snd.pickup(); popup(P.x, P.y - 14, "JOE'S " + money(2000), '#b6ff3c'); msLive([8], { now: true }); return true; },
+      jump(A) { } },
+    { enter(A) { MS.guide = A.joe; MS.mark = () => A.joe; },                           // DELIVER the money to Joe: the closing
+      tick(A) { if (A.home || dist(me().x, me().y, A.joe.x, A.joe.y) > N().joeR) return false; A.home = true; if (P.car) exitCar(true); msCut('SQUARE', () => msNext()); return false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.joe.dead) return F.joeDead;
+    if (MS.k <= 4 && (A.lou.dead || (A.louIn && A.lcar.dead))) return F.louDead;   // once he has paid, he is his own problem
+    if (MS.k === 3 && A.louIn && (A.lcar.fc.gone || dist(me().x, me().y, A.lcar.x, A.lcar.y) > N().away * UNITS_PER_M)) return F.away;
+    return '';
+  }
+  const cuts = {
+    'LUCKY LOU': A => [
+      { dur: 4, cam: 'WIDE', at: () => at(A.shop.x + A.shop.fx * 30, A.shop.y + A.shop.fy * 30), line: 4, enter: () => { P.x = A.shop.x + A.shop.fx * 46; P.y = A.shop.y + A.shop.fy * 46; face(A.lou, P); for (const m of A.men) face(m, P); P.ang = Math.atan2(A.lou.y - P.y, A.lou.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.lou, line: 5 }],
+    'SQUARE': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.joe, line: [9, 10], enter: () => { face(A.joe, P); P.ang = Math.atan2(A.joe.y - P.y, A.joe.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.joe, line: 11 }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.signM) scene.remove(A.signM); } };
 })();
