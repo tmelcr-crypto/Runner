@@ -22,6 +22,8 @@ function updateStars() {
 function addScore(n, x, y, label) { if (!(n > 0)) return; P.score += n; if (x !== undefined) popup(x, y - 14, '+' + money(n) + (label ? ' ' + label : '')); }   // n: what the deed pays (js/01i)
 function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away; armed ones who saw you hurt someone close to them (within provokeR) fight back (js/08g)
   for (const p of peds) if (!p.dead && !p.cop && dist(p.x, p.y, x, y) < r) {
+    if (p.foe) { if (dist(p.x, p.y, x, y) < r * 0.8) foeAlert(p); continue; }   // a mission's foe hears it and fights; a friend stays by you (js/08zz)
+    if (p.ally) continue;
     if (!notMe && provokeR && dist(p.x, p.y, x, y) < provokeR && dist(p.x, p.y, P.x, P.y) < 450 && provoke(p)) continue;
     if (p.hostile) continue; p.state = 'flee'; p.fl = rand(3, 6); p.fx = p.x - x; p.fy = p.y - y;
   }
@@ -81,7 +83,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
     for (let k = 0; k < 5; k++) { const a = rand(0, TAU), d = rand(0.1, 0.24) * R; decals.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, r: rand(0.09, 0.16) * R, life: 70, scorch: true }); }
   }
   const byP = src && src.byPlayer;
-  for (const p of peds) if (!p.dead && dist(p.x, p.y, x, y) < R) killPed(p, 'blast', byP, Math.atan2(p.y - y, p.x - x));
+  for (const p of peds) if (!p.dead && dist(p.x, p.y, x, y) < R) { if (p.ally) allyHurt(p, 120 * (1 - dist(p.x, p.y, x, y) / R)); else killPed(p, 'blast', byP, Math.atan2(p.y - y, p.x - x)); }   // a mission's friend: hurt (js/08zz)
   for (const o of officers) if (!o.dead && dist(o.x, o.y, x, y) < R) killOfficer(o, byP, 'blast', Math.atan2(o.y - y, o.x - x));
   for (const c of cars) {
     if (c === src || c.dead) continue; const d = dist(c.x, c.y, x, y);

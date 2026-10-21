@@ -65,7 +65,7 @@ function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.h
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
   if (!MS.on || MS.talk || CUT.on) return;
-  msLiveTick(dt);
+  msLiveTick(dt); msCastTick(dt);
   MS.t += dt;
   const A = MS.A, F = MS.m.fails;
   if (P.dead) return msFail(F.wasted || 'WASTED');
@@ -78,7 +78,7 @@ function msTick(dt) {                       // js/15 update
 function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPassed(); else msEnter(MS.k + 1); }
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
-  MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd();   // a mission's cutscene still playing: over if ($('msBtn')) $('msBtn').hidden = true;
+  MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); msCastClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd();   // a mission's cutscene still playing: over if ($('msBtn')) $('msBtn').hidden = true;
   $('msObj').hidden = true; $('msInfo').textContent = ''; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
@@ -114,6 +114,7 @@ function msWho(id) { return MS.m.chars.find(c => c.id === id); }
 /* ---------- the target: the guide line (js/08p) and an arrow over it ---------- */
 let MS_MARK = null, MS_BAG = null;
 function gfxMs(time) {
+  gfxCast();                                                        // bars over friends and a boss (js/08zz)
   const g = MS.on && !CUT.on ? MS.mark : null;
   if (g) {
     if (!MS_MARK) { MS_MARK = new THREE.Mesh(new THREE.ConeGeometry(9, 18, 4), new THREE.MeshBasicMaterial({ color: 0xb6ff3c })); MS_MARK.rotation.x = Math.PI; scene.add(MS_MARK); }
