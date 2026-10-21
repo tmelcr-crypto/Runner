@@ -62,3 +62,7 @@ questions before building it. Each answer is written here as it comes; the story
 54. Their fall: Kessler at the end of chapter 2, Sachs at the end of chapter 3, Holloway and Pratt in chapter 4, Crane in chapter 5.
 55. Mateo's trail: a clue each chapter (an address, his car at the casino, a photo with Crane, his voice on a tape) - and someone unseen helps Danny a few times; at the end it was Mateo.
 56. Mateo turns on Crane: face to face at the end he hands Danny the proof and fights beside him against Crane; both brothers live.
+57. Crane's end: at the estate he runs for his helicopter; Danny chases him down; Mateo's proof goes public and Crane is taken away in handcuffs on election night.
+58. Each finished side storyline adds its gift to the finale: Varga - Marco's crew and boats; Casino - the getaway; Colony - the base and its people; Prison - the way in; Space - the eye in the sky. Each missing one makes the finale harder.
+59. Danny at the end is the quiet boss of Miravista: he owns the places he saved (the Colony, the casino's take, the harbour) and everyone owes him; not mayor, but the man who runs things.
+60. After the finale the game goes on: credits roll, then Danny is free in the city; unfinished side storylines can still be played.
