@@ -30,3 +30,7 @@ questions before building it. Each answer is written here as it comes; the story
 22. Mateo hides proof of Crane's crimes (a ledger or a tape that could bring Crane down); he stopped writing to keep Danny out of danger.
 23. The main story is 5 chapters of 6 quests.
 24. The Varga storyline (Marco and Lucia) opens after a set main quest.
+25. The Varga storyline opens with the last quest of chapter 1 (main quest 6: Papa Joe drops Danny at the quay with a job for Marco); from then on it can be played any time.
+26. The 5 chapters: 1 Arrival (Papa Joe's jobs, the first money); 2 The street (gangs, a name in the city); 3 The trail (Mateo's clues, Crane's men); 4 The war (taking Crane's businesses); 5 The fall (Crane, Mateo, the finale).
+27. The whole city is open in STORY mode from the start, as in FREE ROAM; the quests just happen in different districts.
+28. Papa Joe's look: white hair and a white moustache, a flat cap, a brown cardigan over a shirt, reading glasses on a cord, a toothpick.
