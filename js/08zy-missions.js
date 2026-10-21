@@ -64,7 +64,8 @@ function msEnter(k) {
 function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.hidden = !txt; o.classList.add('big'); MS.objT = MSN.objTime; }
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
-  if (!MS.on || MS.talk || CUT.on) return;
+  if (!MS.on) return;
+  if (MS.talk || CUT.on) { if (MS_LIVE.cur) $('msLive').hidden = true; return; }   // a live line waits out a cutscene or a dialogue, out of sight
   msLiveTick(dt); msCastTick(dt);
   MS.t += dt;
   const A = MS.A, F = MS.m.fails;
@@ -166,7 +167,7 @@ function msPortrait(ch, cv = $('msPic')) {  // the owner's picture (img/chars/<p
 }
 function msSay(nums, done) {               // nums: line numbers (1-based) of this mission
   const lines = nums.map(n => MS.m.lines[n - 1]).filter(Boolean); if (!lines.length) { done && done(); return; }
-  MS.talk = { lines, i: -1, shown: 0, t: 0, last: 0, done, ret: CUT.on ? null : state };
+  MS.talk = { lines, i: -1, shown: 0, t: 0, last: 0, done, ret: CUT.on ? null : state }; if (MS_LIVE.cur) $('msLive').hidden = true;   // a live line waits out of sight
   if (!CUT.on) { state = 'talk'; hush(); }
   $('msTalk').hidden = false; msLine(0); requestAnimationFrame(msTalkLoop);
 }
@@ -209,6 +210,7 @@ function msLiveTick(dt) {                   // msTick: one at a time, written le
     if (e.ring) { Snd.tone(880, 880, 0.18, 0.08, 'square'); setTimeout(() => Snd.tone(880, 880, 0.18, 0.08, 'square'), 280); }
   }
   const e = S.cur; if (!e) return;
+  if ($('msLive').hidden) $('msLive').hidden = false;                // back after a cutscene
   e.t += dt; if (e.t < 0) return;                                    // the phone still ringing
   const n = Math.min(e.L.text.length, Math.floor(e.t * MSN.letters));
   if (n > e.shown) { msMumble(e.ch, e.L.text, e.shown, n); e.shown = n; $('msLiveLine').textContent = e.L.text.slice(0, n); }
@@ -241,6 +243,7 @@ window.addEventListener('keydown', e => {   // before the game's own keys: E, Sp
 const MS_CAM = { WIDE: 0.7, CLOSE: 1.9, FOLLOW: 1.3, OVERHEAD: 1.5, FIXED: 1.1, PAN: 1.0 };
 function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
   const make = MS.s.cuts && MS.s.cuts[name]; if (!make) { done(); return; }
+  if (MS_LIVE.cur) $('msLive').hidden = true;                        // a live line in progress waits out of sight (msLiveTick shows it again)
   const A = MS.A, list = make(A);
   const shots = list.map((s, i) => ({ dur: s.dur, bars: true, fadeIn: i === 0 ? 0.6 : false, fadeOut: s.fadeOut || (i === list.length - 1 ? 0.6 : 0),
     enter() { s.said = false; s.readT = null; s.waitT = 0; if (s.enter) s.enter(A); this.tick(0, 0, 0); },
@@ -599,10 +602,10 @@ MSCRIPT.q03 = (() => {
       msFoeCar(i ? 'sedan' : 'muscle', r.x, r.y, r.a, { crew: 2, gun: i ? 'pistol' : 'smg', group: 'chase', speed: 90 }));
   }
   const live = c => !c.dead && !c.fc.out && c.fc.crew > 0;           // still a car with men in it
-  function lost(A, dt) {                                              // every Varga car wrecked or emptied (and its men down), or far behind you for a while
+  function lost(A, dt) {                                              // every Varga car wrecked or emptied (and its men down or left behind), or far behind you for a while
     const left = A.cars.filter(c => live(c) || (c.fc.men || []).some(m => !m.dead));
     if (!left.length) return true;
-    const far = left.every(c => live(c) ? dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M : c.fc.men.every(m => m.dead || dist(m.x, m.y, me().x, me().y) > N().loseAt * UNITS_PER_M));
+    const far = left.every(c => live(c) ? dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M : c.fc.men.every(m => m.dead || dist(m.x, m.y, me().x, me().y) > MSN.foeLeash * 1.5 * UNITS_PER_M));   // a man on foot gives up beyond his leash
     A.farT = far ? (A.farT || 0) + dt : 0; return A.farT > N().loseFor;
   }
   const steps = [
@@ -699,10 +702,10 @@ MSCRIPT.q04 = (() => {
     msLive([15], { now: true });
   }
   const live = c => !c.dead && !c.fc.out && c.fc.crew > 0;
-  function lost(A, dt) {                                              // every Varga car wrecked or emptied (and its men down), or far behind you for a while
+  function lost(A, dt) {                                              // every Varga car wrecked or emptied (and its men down or left behind), or far behind you for a while
     const left = A.cars.filter(c => live(c) || (c.fc.men || []).some(m => !m.dead));
     if (!left.length) return true;
-    const far = left.every(c => live(c) ? dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M : c.fc.men.every(m => m.dead || dist(m.x, m.y, me().x, me().y) > N().loseAt * UNITS_PER_M));
+    const far = left.every(c => live(c) ? dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M : c.fc.men.every(m => m.dead || dist(m.x, m.y, me().x, me().y) > MSN.foeLeash * 1.5 * UNITS_PER_M));   // a man on foot gives up beyond his leash
     A.farT = far ? (A.farT || 0) + dt : 0; return A.farT > N().loseFor;
   }
   const started = A => A.guards.concat(A.men).some(m => m.alert || m.dead);   // the fight is on
@@ -901,4 +904,131 @@ MSCRIPT.q05 = (() => {
       { dur: 4, cam: 'CLOSE', at: () => A.lucia, line: 29, enter: () => face(A.lucia, P) }]
   };
   return { setup, steps, fail, cuts, cleanup(A) { kitBack(A); PRX.visit = PRX.gateOpen = PRX.lock = false; } };
+})();
+
+/* ================= QUEST 06 - SKYLINE ================= */
+MSCRIPT.q06 = (() => {
+  const N = () => MS.m.numbers, me = () => P.car || P, at = (x, y) => ({ x, y });
+  const face = (p, q) => { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; };
+  const stay = (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); };
+  const look = id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants });
+  const up = list => list.filter(p => !p.dead);
+  const nearest = list => up(list).sort((a, b) => dist(a.x, a.y, me().x, me().y) - dist(b.x, b.y, me().x, me().y))[0];
+  const free = (x, y) => !pedBlocked(x, y) && shoreDist(x, y) > 6;
+  const roadAt = (x, y) => { const q = nearestRoad(x, y, 900); if (!q) return null; const t = edgeAt(q.e, q.s, {}); return at(t.x, t.y); };
+  function setup(A) {
+    SKY.hour = N().hour; SKX.ms = true; SKX.gate = 1;                   // night; the mission holds the site: the gate open, nobody at work (js/08zt)
+    const d = MARINA.door; A.door = at(d[0] + 22, d[1] + 4);
+    const spot = (offs, def) => offs.map(([dx, dy]) => at(A.door.x + dx, A.door.y + dy)).find(q => free(q.x, q.y)) || def;
+    A.marco = msPed(A.door.x, A.door.y, 0, Object.assign(look('marco'), { msName: 'marco', step: stay }));
+    const lq = spot([[30, 34], [40, 30], [60, 10]], at(A.door.x + 30, A.door.y + 34)); A.lucia = msPed(lq.x, lq.y, 0, Object.assign(look('lucia'), { msName: 'lucia', step: stay }));
+    const sq = spot([[70, 50], [80, 20], [-40, 60]], at(A.door.x + 70, A.door.y + 50)); A.sol = msPed(sq.x, sq.y, 0, Object.assign(look('sol'), { msName: 'sol', hardhat: '#ffd23f', step: stay }));   // on the quay for the closing
+    A.mycar = msCar('pickup', 7990, 4400, Math.atan2(4243 - 4400, 7875 - 7990), '#3a6f8a');   // Marco's pickup on the quay
+    const T = SK.T, top = A.top = T.top, [gx, gy] = SITE.gate, [k0, k1, ky0] = SITE.kicker;
+    A.gate = at(gx - 60, gy); A.topPt = at((k0 + k1) / 2, T.y0 + 200); A.kick = at((k0 + k1) / 2, ky0);
+    A.men = [[6790, 2210, 'pistol'], [6830, 2420, 'pistol'], [6905, 2265, 'smg'], [6965, 2390, 'pistol'], [7000, 2300, 'pistol'], [6930, 2170, 'smg']]
+      .map(([x, y, g]) => Object.assign(msFoe(x, y, { gun: g, hp: N().foeHp, group: 'yard', a: Math.PI }), { calm: true }));
+    A.decks = [[7190, 2330, 2, 'smg'], [7180, 2230, 3, 'pistol'], [7200, 2370, 4, 'smg']]   // gunmen holding decks 2, 3 and 4
+      .map(([x, y, lv, g]) => Object.assign(msFoe(x, y, { gun: g, hp: N().foeHp, group: 'deck' + lv, a: Math.PI / 2 }), { z: lv * T.dh, hold: true }));
+    A.guards = [[7250, 2300], [7135, 2300]].map(([x, y]) => Object.assign(msFoe(x, y, { gun: 'smg', hp: N().foeHp, group: 'top', a: Math.PI / 2 }), { z: top, calm: true }));
+    A.nico = msPed(7170, 2190, Math.PI / 2, Object.assign(look('nico'), { msName: 'nico', step: stay })); A.nico.z = top;   // Nico by his car at the top deck's far end
+    const route = [[8300, 2600], [8300, 1300], [6300, 1100], [5500, 2500]].map(([x, y]) => roadAt(x, y)).filter(Boolean);
+    A.ncar = msFoeCar('super', 7212, 2190, Math.PI / 2, Object.assign(look('nico'), { mode: 'park', crew: 1, gun: 'smg', group: 'nico', to: route, speed: N().nicoSpeed, tough: N().nicoCar, crewHp: N().nicoHp, boss: true, name: 'nico', color: '#f4f4f6' }));
+    A.ncar.z = top;
+    A.jcar = msCar('muscle', 7150, 2360, Math.PI / 2, '#d02a2a'); A.jcar.z = top;   // a car on the top deck (room for Marco and Lucia): follow him off the ramp
+    const st = [[0, 80], [-20, 80], [0, -80], [-40, 40], [-60, 0]].map(([dx, dy]) => at(A.door.x + dx, A.door.y + dy)).find(q => free(q.x, q.y)) || at(A.door.x - 40, A.door.y);
+    P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;
+  }
+  function join(A) {
+    if (!A.marco.ally) msAllyFrom(A.marco, { who: 'marco', gun: 'shotgun', fail: MS.m.fails.marcoDead, hurtLine: 9 });
+    if (!A.lucia.ally) msAllyFrom(A.lucia, { who: 'lucia', gun: 'pistol', fail: MS.m.fails.luciaDead, hurtLine: 10 });
+  }
+  function beside(A) {                                                 // Marco and Lucia with you (up the tower, at the harbour)
+    [A.marco, A.lucia].forEach((p, i) => { if (p.dead) return; if (p.aboard) allyAlight(p);
+      if (dist(p.x, p.y, P.x, P.y) > 160 || Math.abs(zOf(p) - zOf(P)) > 4) { p.x = P.x + (i ? 34 : -34); p.y = P.y + 26; p.z = zOf(P); p.vx = p.vy = 0; } });
+  }
+  function launchDrive(c, dt) {                                        // Nico: down the top deck and off the launch ramp, then away by road
+    const A = MS.A; if (!A) return;
+    if (!inTower(c.x, c.y, 0) && !(c.air > 0) && !zOf(c)) { c.fc.wait = 0; foeCarGo(c, 'flee'); c.msDrive = nicoDrive; return; }
+    steerToward(c, A.kick.x, A.kick.y + 500, N().launchKmh * KMH); c.hb = false;
+  }
+  function nicoDrive(c, dt) {                                          // away by road, round and round his way; pinned or stuck a while near you: out he gets
+    if (c.fc.gone) { c.fc.gone = false; c.fc.ti = 0; c.fc.field = null; }
+    foeDrive(c, dt); const A = MS.A; if (!A || c.fc.out) return;
+    A.stuckT = carSpeed(c) < 12 * KMH && dist(c.x, c.y, me().x, me().y) < 300 ? (A.stuckT || 0) + dt : 0;
+    if (A.stuckT > N().stuckFor) foeBail(c);
+  }
+  const towerMark = A => towerWay(me(), A.topPt.x, A.topPt.y, A.top) || A.topPt;
+  const steps = [
+    { enter(A) { MS.mark = () => A.marco; MS.start = { at: () => A.marco, label: msWho('marco').name, go: () => msCut('ONE TOWER', () => msNext()) }; },   // TALK TO Marco
+      tick() { return false; },
+      jump(A) { join(A); } },
+    { enter(A) { join(A); MS.mark = () => A.gate; MS.guide = A.gate; },   // GO TO Skyline One (Marco and Lucia ride with you)
+      tick(A) {
+        if (A.men.some(m => m.alert) || inSite(me().x, me().y, -4) || dist(me().x, me().y, A.gate.x, A.gate.y) < N().siteR) { msLive([7], { now: true }); return true; }
+        return false; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.gate.x; P.y = A.gate.y; for (const p of [A.marco, A.lucia]) { if (p.aboard) allyAlight(p); p.x = A.gate.x - 30; p.y = A.gate.y + (p === A.marco ? 30 : -30); } } },
+    { enter(A) { for (const m of A.men) foeAlert(m); msLive([8]); MS.mark = () => nearest(A.men); MS.guide = null; },   // TAKE OUT the yard
+      tick(A) { if (up(A.men).length) return false; msLive([11], { now: true }); return true; },
+      info: A => up(A.men).length + ' MEN LEFT',
+      jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); P.x = SK.T.x0 - 40; P.y = 2300; beside(A); } },
+    { enter(A) { MS.mark = () => towerMark(A); MS.guide = () => inTower(me().x, me().y, 0) ? null : towerMark(A); },   // GO TO the top deck, up the ramps
+      tick(A) {
+        if (!A.said12 && A.decks.some(m => m.alert)) { A.said12 = true; msLive([12], { now: true }); }
+        if (!A.said13 && zOf(me()) >= 3 * SK.T.dh - 1) { A.said13 = true; msLive([13]); }
+        if (A.nico.dead) { msLive([24], { now: true }); msEnter(6); return false; }   // shot from below before he could run
+        if (A.cutGo || zOf(me()) < A.top - 1) return false;
+        A.cutGo = true; if (P.car) exitCar(true); beside(A); msCut('THE TOP', () => msNext()); return false; },
+      info: A => 'DECK ' + Math.round(zOf(me()) / SK.T.dh) + ' OF ' + (SK.T.levels - 1),
+      jump(A) { if (P.car) exitCar(true); P.x = A.topPt.x - 40; P.y = A.topPt.y + 60; P.z = A.top; beside(A); } },
+    { enter(A) {                                                         // CHASE: Nico off the launch ramp
+        const c = A.ncar, i = peds.indexOf(A.nico); if (i >= 0) peds.splice(i, 1); A.nicoGone = true;
+        c.driver = 'ai'; c.msDrive = launchDrive; for (const g of A.guards) foeAlert(g);
+        msLive([19], { now: true }); A.t4 = gameT; MS.mark = () => A.ncar; MS.guide = () => A.ncar; },
+      tick(A) {
+        const c = A.ncar;
+        if (!A.said20 && gameT - A.t4 > 9) { A.said20 = true; msLive([20, 21]); }
+        if (c.fc.out) { A.boss = c.fc.men[0]; msLive([22], { now: true }); return true; }
+        if (c.dead || c.burn > 0 || c.sunk) { msLive([24], { now: true }); msEnter(6); }   // burned with him in it
+        return false; },
+      info: A => Math.round(dist(me().x, me().y, A.ncar.x, A.ncar.y) / UNITS_PER_M) + ' M TO NICO (GONE AT ' + N().awayCar + ')',
+      jump(A) { const c = A.ncar; if (!c.msDrive) { c.driver = 'ai'; c.msDrive = launchDrive; } A.boss = foeBail(c)[0]; } },
+    { enter(A) { MS.mark = () => A.boss; MS.guide = () => A.boss; },   // TAKE OUT Nico on foot
+      tick(A) {
+        const b = A.boss; if (!A.said23 && b.hp < N().nicoHp * 0.4 && !b.dead) { A.said23 = true; msLive([23], { now: true }); }
+        if (!b.dead) return false; msLive([24], { now: true }); return true; },
+      info: A => 'NICO ' + Math.max(0, Math.round(A.boss.hp)) + ' HP',
+      jump(A) { if (A.boss && !A.boss.dead) killPed(A.boss, 'gun', false); } },
+    { enter() { if (P.stars <= 0) $('msObj').hidden = true; },        // LOSE THE POLICE (if any)
+      tick() { return P.stars <= 0; } },
+    { enter(A) { MS.guide = A.door; MS.mark = () => A.marco.aboard ? A.door : A.marco; },   // GO TO the harbour: the closing
+      tick(A) {
+        if (A.home || dist(me().x, me().y, A.door.x, A.door.y) > N().marcoR) return false;
+        A.home = true; if (P.car) exitCar(true);
+        [A.marco, A.lucia].forEach((p, i) => { if (p.aboard) allyAlight(p); if (dist(p.x, p.y, A.door.x, A.door.y) > 140) { p.x = A.door.x + (i ? 30 : -10); p.y = A.door.y + (i ? 34 : 30); p.z = 0; p.vx = p.vy = 0; } });
+        msCut('SUNSET', () => msNext()); return false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    const f = msCastFail(); if (f) return f;
+    if (A.marco.dead) return F.marcoDead;
+    if (A.lucia.dead) return F.luciaDead;
+    if (MS.k === 4 && !A.ncar.fc.out && dist(me().x, me().y, A.ncar.x, A.ncar.y) > N().awayCar * UNITS_PER_M) return F.nicoAway;
+    return '';
+  }
+  const cuts = {
+    'ONE TOWER': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [1, 2], enter: () => { face(A.marco, P); face(A.lucia, P); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [3, 4], enter: () => { A.marco.arm = gunIdx('shotgun'); Snd.tone(220, 140, 0.08, 0.1, 'square'); } },
+      { dur: 4, cam: 'WIDE', at: () => at(A.door.x - 40, A.door.y + 40), line: [5, 6], enter: () => { A.lucia.arm = gunIdx('pistol'); face(A.lucia, A.mycar); face(A.marco, A.mycar); } }],
+    'THE TOP': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.nico, line: 14, enter: () => { face(A.nico, P); for (const g of A.guards) face(g, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => A.marco, line: 15, enter: () => face(A.marco, A.nico) },
+      { dur: 5, cam: 'CLOSE', at: () => A.nico, line: [16, 17] },
+      { dur: 3, cam: 'WIDE', at: () => at(A.ncar.x, A.ncar.y + 120), line: 18, enter: () => face(A.lucia, A.ncar) }],
+    'SUNSET': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.sol, line: [25, 26], enter: () => { face(A.sol, P); face(A.marco, A.sol); face(A.lucia, A.sol); } },
+      { dur: 5, cam: 'WIDE', at: () => at(A.door.x + 60, A.door.y + 30), line: [27, 28], enter: () => face(A.marco, at(A.marco.x + 400, A.marco.y + 300)) },
+      { dur: 5, cam: 'CLOSE', at: () => A.marco, line: [29, 30, 31], enter: () => { face(A.marco, P); face(A.lucia, P); } }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { SKX.ms = false; } };
 })();

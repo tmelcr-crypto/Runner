@@ -9,7 +9,7 @@
    A weapon waits on the top deck and health or armour three decks up; taken, they come back a while after you have gone.
    A car flying high over a building clears it and comes down on its roof (the roofs across the avenue, off the launch ramp); it drives
    about up there, you can get out and walk, and off the edge the car falls and you drop (a drop from high up hurts). */
-const SKX = { caught: false, gate: 0, broken: false, prevSpd: 0, picks: [], mach: {}, dumpI: 0, dumpT: 0 };
+const SKX = { caught: false, gate: 0, broken: false, prevSpd: 0, picks: [], mach: {}, dumpI: 0, dumpT: 0, ms: false };   // ms: a mission holds the site (Quest 06): the gate open, nobody at work, no guard
 const siteOn = () => !!SITE && feat('site');
 const siteNight = () => SKY.hour < PLC.siteOpen || SKY.hour >= PLC.siteClose;
 
@@ -67,11 +67,11 @@ function roofTick(o) {                    // js/06, js/07: a car high in the air
 function sitePosts() {                    // js/10v genSite: deck workers, the night guard's round
   const T = SK.T, hat = '#ffd23f';
   const deck = [[T.x0 + T.S + 40, T.y0 + 120, 1], [T.x1 - T.S - 40, T.y0 + 260, 2], [T.x0 + T.S + 60, T.y0 + 300, 4]];
-  deck.forEach(([x, y, k], i) => addPost({ x, y, a: i * 2, kind: 'worker', back: 120, need: () => siteOn() && !siteNight(),
+  deck.forEach(([x, y, k], i) => addPost({ x, y, a: i * 2, kind: 'worker', back: 120, need: () => siteOn() && !siteNight() && !SKX.ms,
     make: po => { const p = makePed(po.x, po.y); Object.assign(p, { worker: true, arm: -1, umb: false, shirt: i % 2 ? '#ff7a1a' : '#e8ff3a', pants: '#2a3a6a', hardhat: hat, z: k * T.dh, speed: 0, state: 'post' }); return p; },
     step: (p, dt) => { const po = p.post; p.x = po.x; p.y = po.y; p.vx = p.vy = 0; p.ang = p.hd = po.a + 0.8 * Math.sin(gameT * 0.4 + i); return true; } }));
   const [a0, b0, , b1] = SITE.area, xr = T.x0 - 20, round = [[a0 + 30, b0 + 60], [xr, b0 + 40], [xr, b1 - 30], [a0 + 30, b1 - 40]];
-  addPost({ x: round[0][0], y: round[0][1], a: 0, kind: 'siteguard', back: 300, patrol: round, need: () => siteOn() && siteNight(),
+  addPost({ x: round[0][0], y: round[0][1], a: 0, kind: 'siteguard', back: 300, patrol: round, need: () => siteOn() && siteNight() && !SKX.ms,
     make: po => { const p = makePed(po.x, po.y); Object.assign(p, { siteguard: true, arm: -1, umb: false, shirt: '#2a3a5a', pants: '#1a2230', speed: 1.1 * MPS, state: 'post' }); return p; },
     step: siteGuardStep });
 }
@@ -142,12 +142,12 @@ function siteTaken(p) { p.site.p = null; p.site.takenAt = gameT; }   // js/08d
 function siteGate(dt, on, night) {
   const [gx, gy, gw] = SITE.gate, me = P.car;
   if (!night) SKX.broken = false;
-  if (on && night && me && !SKX.broken && SKX.gate < 0.2 && Math.abs(me.x - gx) < 45 && Math.abs(me.y - gy) < gw / 2 + 6 && SKX.prevSpd > PLC.siteRam) {
+  if (on && night && me && !SKX.ms && !SKX.broken && SKX.gate < 0.2 && Math.abs(me.x - gx) < 45 && Math.abs(me.y - gy) < gw / 2 + 6 && SKX.prevSpd > PLC.siteRam) {
     SKX.broken = true; me.hp -= 15; Snd.crash && Snd.crash(0.8); cam.shake = Math.max(cam.shake, 8);
     toast('ALARM - THE SITE GATE WAS RAMMED', true);
     if (feat('police') && !SKX.caught) { SKX.caught = true; forceWanted(PLC.guardStars); reportCrime(0, 0, gx, gy, true); }
   }
-  const want = !night || SKX.broken ? 1 : 0, inWay = () => [P.car || P, ...cars, ...peds].some(o => !o.dead && Math.abs(o.x - gx) < 30 && Math.abs(o.y - gy) < gw / 2 + 8);
+  const want = !night || SKX.broken || SKX.ms ? 1 : 0, inWay = () => [P.car || P, ...cars, ...peds].some(o => !o.dead && Math.abs(o.x - gx) < 30 && Math.abs(o.y - gy) < gw / 2 + 8);
   if (want > SKX.gate) SKX.gate = Math.min(1, SKX.gate + dt * 0.5); else if (want < SKX.gate && !(SKX.gate > 0.1 && inWay())) SKX.gate = Math.max(0, SKX.gate - dt * 0.5);
   if (SK.gateRc) SK.gateRc.off = SKX.broken || SKX.gate > 0.5;
   SKX.prevSpd = P.car ? carSpeed(P.car) : 0;
@@ -164,7 +164,7 @@ function siteTick(dt) {
   const away = dist(P.x, P.y, SK.lm.cx, SK.lm.cy) > 1500;
   for (const s of SKX.picks) if (!s.p && s.takenAt && away && gameT - s.takenAt > PLC.siteRestock) sitePut(s);
 }
-function siteReset() { Object.assign(SKX, { caught: false, gate: siteOn() && siteNight() ? 0 : 1, broken: false, prevSpd: 0, dumpI: 0, dumpT: 0 }); for (const k in SKX.mach) SKX.mach[k] = { car: null, gone: -1e9 }; sitePicks(); }
+function siteReset() { Object.assign(SKX, { caught: false, gate: siteOn() && siteNight() ? 0 : 1, broken: false, prevSpd: 0, dumpI: 0, dumpT: 0, ms: false }); for (const k in SKX.mach) SKX.mach[k] = { car: null, gone: -1e9 }; sitePicks(); }
 
 /* ---------- js/13: the levels above you fade, the cranes swing, the gate, the machines' moving parts, the guard's torch ---------- */
 let SK_TORCH = null;

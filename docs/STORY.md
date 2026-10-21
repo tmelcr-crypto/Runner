@@ -66,6 +66,7 @@ A third mode where every new mission is played in the game before it goes into S
 | 03 Paper Trail | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-03-Paper-Trail.docx`; waiting for the owner's test | at night (The Pulse opens at 22:00); Nico's first lines (a phone call) |
 | 04 Hot Cargo | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-04-Hot-Cargo.docx`; waiting for the owner's test | Sol Okafor (new, the crane foreman) helps with a shotgun; the Harbor Cold Store is held by the mission (door up, no workers or guard); any time of day |
 | 05 Island Visit | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-05-Island-Visit.docx`; waiting for the owner's test | alone; Ivo Varga and Officer Dunn new; your weapons wait at the gate during the visit; a melee riot (a bat from Ivo); the boat chase on the bay |
+| 06 Skyline | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline, the finale); Word page `docs/quests/Quest-06-Skyline.docx`; waiting for the owner's test | at night; Marco and Lucia both help (they climb the tower with you); Nico jumps his car off the launch ramp; Sol in the closing; Lucia's last line leaves the door open for the next storylines |
 
 ## Connectors - joining the quests into STORY
 
@@ -83,6 +84,7 @@ the connectors below add what happens between quests. Filled in as each quest ar
 - **03 -> 04**: Del becomes a contact (casino tips); Quest 04 (Hot Cargo) is Marco's marker at the harbour the next day - Dockside's warehouse three, Sol the foreman.
 - **04 -> 05**: Sol becomes a contact (a friend on the quays at Dockside); Lucia phones a game day later and Quest 05 (Island Visit) starts with that call - Ivo Varga on Iron Key wants to meet you.
 - **05 -> 06**: Ivo becomes a contact (word from Iron Key now and then); Quest 06 (Skyline) is Marco's marker at the harbour the next day - Skyline One, Nico's tower.
+- **After 06**: the Varga story is over - Marco's office stays his (the harbour safe), Marco and Lucia offer work; Ivo's money went into evidence (he won't like it). The owner's next request (October 2026): the characters' looks in pixel art, then the whole story - about 70 quests, the main line plus side storylines that tie together near its end - after at least 100 questions.
 - **The Varga storyline (Quests 02-06, as answered October 2026)**: 02 Dock Rats (Marco, phone; Lucia helps) - 03 Paper Trail (Lucia; the casino
   strip, the ledger, a car chase; Lucia helps) - 04 Hot Cargo (Marco; Dockside, Marco's stolen engines on a truck; Sol the foreman helps) -
   05 Island Visit (Lucia, phone; Iron Key, the jailed Ivo Varga, a riot; alone) - 06 Skyline (Marco; Skyline One, Nico Varga; Lucia and Marco help).
