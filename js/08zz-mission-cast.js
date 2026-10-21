@@ -7,7 +7,7 @@
    shoots from the passenger seat; hurt, it heals slowly when nobody has hit it for a while; left far behind out of sight, it catches up;
    killed, the mission fails (msCastFail). Nothing in the street turns it against you, scares it off, runs it over or blows it apart at once.
    A foes' car (msFoeCar) chases you (by road when it cannot see you, like the police) or flees to a place, its gunner firing; badly hit,
-   or pulled up beside you, its crew gets out and fights on foot. */
+   or pulled up beside you, its crew gets out and fights on foot. A foes' boat chases you over the water (round the land when it must), its crew staying aboard. */
 const MS_CAST = { allies: [], cars: [], field: null, fieldT: 0, fieldTo: null };
 const gunIdx = id => Math.max(0, WEAPONS.findIndex(w => w.id === id));
 const castK = w => Math.min(4, w.dmg / WEAPONS[gunIdx('pistol')].dmg);   // a weapon's hit against the pistol's (the roadblock gunners' rule, js/08zr)
@@ -202,9 +202,16 @@ function foeRoad(c, x, y, slot) {           // the next point by road toward x, 
   }
   return R.fieldTo ? copRoadTarget(c, _cw, R.field, R.fieldTo) : null;
 }
+function foeWater(c, t) {                   // a foes' boat: straight at you while the water between is open, else along a way round the land (js/08zy msWaterPath)
+  const F = c.fc, open = (x1, y1, x2, y2) => { const n = Math.ceil(dist(x1, y1, x2, y2) / 40); for (let k = 1; k < n; k++) if (boatDist(lerp(x1, x2, k / n), lerp(y1, y2, k / n)) > -25) return false; return true; };
+  if (open(c.x, c.y, t.x, t.y)) { F.wp = null; return { x: t.x + (t.vx || 0) * 0.35, y: t.y + (t.vy || 0) * 0.35 }; }
+  if (!F.wp || gameT > F.wpT) { F.wp = msWaterPath([c.x, c.y], [t.x, t.y]); F.wpI = 1; F.wpT = gameT + 2.5; }
+  while (F.wpI < F.wp.length - 1 && dist(c.x, c.y, F.wp[F.wpI][0], F.wp[F.wpI][1]) < 80) F.wpI++;
+  const w = F.wp[Math.min(F.wpI, F.wp.length - 1)]; return { x: w[0], y: w[1] };
+}
 function foeDrive(c, dt) {                  // js/07 updateCars: c.msDrive
   const F = c.fc; if (!F || !MS.on || !feat('msFoes')) { c.thr = 0; c.str = 0; return; }
-  if (F.crew > 0 && c.hp < c.maxhp * MSN.carBail / 100) { foeBail(c); return; }
+  if (F.crew > 0 && !c.t.boat && c.hp < c.maxhp * MSN.carBail / 100) { foeBail(c); return; }   // a boat's crew stays aboard (nobody jumps into the sea)
   if (F.wait > 0) { F.wait -= dt; c.thr = 0; c.str = 0; c.hb = true; return; }   // starting it up
   const tgt = P.car || P, d = dist(c.x, c.y, tgt.x, tgt.y), spd = carSpeed(c);
   let tx = tgt.x, ty = tgt.y, vmax = F.speed * KMH;
@@ -213,10 +220,13 @@ function foeDrive(c, dt) {                  // js/07 updateCars: c.msDrive
     if (dist(c.x, c.y, to.x, to.y) < 140) { if ((F.ti || 0) < list.length - 1) { F.ti = (F.ti || 0) + 1; F.field = null; } else { F.gone = true; c.thr = 0; c.hb = true; return; } }
     const w = foeRoad(c, to.x, to.y, F); if (w) { tx = w.x; ty = w.y; } else { tx = to.x; ty = to.y; }
   } else {
-    if (F.crew > 0 && d < 150 && (!P.car || carSpeed(P.car) < 25 * KMH)) { c.str = 0; c.thr = spd > 30 ? -1 : 0; if (spd < 40) foeBail(c); return; }   // pulled up by you: out and at you
-    const direct = d < 650 && losClear(c.x, c.y, tgt.x, tgt.y) && !waterBetween(c.x, c.y, tgt.x, tgt.y);
-    if (direct) { tx = tgt.x + (tgt.vx || 0) * 0.35; ty = tgt.y + (tgt.vy || 0) * 0.35; }
-    else { const w = foeRoad(c, tgt.x, tgt.y); if (w) { tx = w.x; ty = w.y; } }
+    if (F.crew > 0 && !c.t.boat && d < 150 && (!P.car || carSpeed(P.car) < 25 * KMH)) { c.str = 0; c.thr = spd > 30 ? -1 : 0; if (spd < 40) foeBail(c); return; }   // pulled up by you: out and at you
+    if (c.t.boat) { const w = foeWater(c, tgt); tx = w.x; ty = w.y; }   // a boat: over the water
+    else {
+      const direct = d < 650 && losClear(c.x, c.y, tgt.x, tgt.y) && !waterBetween(c.x, c.y, tgt.x, tgt.y);
+      if (direct) { tx = tgt.x + (tgt.vx || 0) * 0.35; ty = tgt.y + (tgt.vy || 0) * 0.35; }
+      else { const w = foeRoad(c, tgt.x, tgt.y); if (w) { tx = w.x; ty = w.y; } }
+    }
     if (d < 130) vmax = 50 * KMH;
   }
   if (c.rev > 0) { c.rev -= dt; c.thr = -1; c.str = -clamp(angDiff(c.ang, Math.atan2(ty - c.y, tx - c.x)) * 2, -1, 1); }

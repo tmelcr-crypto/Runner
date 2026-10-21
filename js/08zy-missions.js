@@ -772,3 +772,133 @@ MSCRIPT.q04 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A.S) A.S.ms = false; } };
 })();
+
+/* ================= QUEST 05 - ISLAND VISIT ================= */
+MSCRIPT.q05 = (() => {
+  const N = () => MS.m.numbers, me = () => P.car || P, at = (x, y) => ({ x, y });
+  const face = (p, q) => { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; };
+  const stay = (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); };
+  const look = id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants });
+  const up = list => list.filter(p => !p.dead);
+  const nearest = list => up(list).sort((a, b) => dist(a.x, a.y, me().x, me().y) - dist(b.x, b.y, me().x, me().y))[0];
+  const free = (x, y) => !pedBlocked(x, y) && shoreDist(x, y) > 6;
+  const water = (pts, d) => pts.map(([x, y]) => at(x, y)).find(q => shoreDist(q.x, q.y) < -d) || at(pts[0][0], pts[0][1]);   // the first of these well out on the water
+  function setup(A) {
+    prisonReset(); PRX.visit = false;                                   // the ferry at the promenade pier, no alarm
+    const [gx, gy] = PRZ.gate; A.gateOut = at(gx, gy + 46); A.gateIn = at(gx, gy - 46);
+    A.guard = msPed(gx + 34, gy + 32, -Math.PI / 2, Object.assign(look('guard'), { msName: 'guard', step: stay }));   // Officer Dunn by the gate, outside
+    A.ivo = msPed(8870, 3742, -Math.PI / 2, Object.assign(look('ivo'), { msName: 'ivo', step: stay }));   // Ivo south of the court, facing it
+    const orange = { shirt: PRI_ORANGE, pants: PRI_ORANGE };
+    A.men = [[8838, 3632, 'knife'], [8866, 3622, 'bat'], [8955, 3572, 'knife'], [8790, 3600, 'bat'], [8955, 3775, 'knife']].map(([x, y, g], i) =>   // two by the hoop; three more about the yard
+      Object.assign(msFoe(x, y, Object.assign({ gun: g, hp: N().riotHp, group: i < 2 ? 'riot1' : 'riot2', a: Math.atan2(3742 - y, 8870 - x) }, orange)), { calm: true }));
+    const [px0, py0, px1] = PRZ.pier; A.boat = msCar('speedboat', 0, 0, Math.PI / 2, '#2fe0c8');   // Lucia's boat beside the island pier
+    const bw = water([[px1 + 42, 4350], [px1 + 42, 4390], [px0 - 42, 4350], [px0 - 42, 4390]], 14); A.boat.x = bw.x; A.boat.y = bw.y;
+    A.boat.hp = A.boat.maxhp = A.boat.maxhp * N().boatTough;
+    const d = MARINA.door; A.door = at(d[0] + 22, d[1] + 4); const b = MARINA.berths[2]; A.drop = at(b[0], b[1]);
+    const lq = [[40, 30], [30, 34], [60, 10], [-30, 40]].map(([dx, dy]) => at(A.door.x + dx, A.door.y + dy)).find(q => free(q.x, q.y)) || at(A.door.x + 30, A.door.y + 34);
+    A.lucia = msPed(lq.x, lq.y, 0, Object.assign(look('lucia'), { msName: 'lucia', step: stay })); face(A.lucia, A.drop);   // on the quay, for the closing
+    const [kx, ky] = PRZ.kiosk; A.ferryPier = at((PRZ.mhead[0] + PRZ.mhead[2]) / 2, (PRZ.mhead[1] + PRZ.mhead[3]) / 2);
+    const st = [[-60, 0], [-50, 40], [0, 50], [-70, -30]].map(([dx, dy]) => at(kx + dx, ky + dy)).find(q => free(q.x, q.y)) || at(kx - 60, ky);
+    P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // by the ferry kiosk on the promenade
+  }
+  function holdKit(A) {                                                // searched at the gate: every weapon but your fists waits in the booth
+    if (A.kit) return; A.kit = { has: P.has.slice(), ammo: P.ammo.slice(), mag: P.mag.slice(), weapon: P.weapon };
+    P.has = WEAPONS.map(w => !!w.start); P.weapon = Math.max(0, P.has.indexOf(true)); P.swing = null;
+  }
+  function kitBack(A) {                                                // back on the way out (and whatever happens, at the end)
+    const k = A.kit; if (!k || A.kitBack) return; A.kitBack = true;
+    for (let i = 0; i < WEAPONS.length; i++) { P.has[i] = P.has[i] || k.has[i]; P.ammo[i] = Math.max(P.ammo[i], k.ammo[i]); P.mag[i] = Math.max(P.mag[i], k.mag[i]); }
+    if (P.has[k.weapon]) P.weapon = k.weapon;
+  }
+  function riot(A) {                                                   // Nico's men go for you; Ivo throws you a bat; the siren
+    A.riot = true; A.t3 = gameT; PRX.lock = true;
+    for (const m of A.men.filter(q => q.group === 'riot1')) foeAlert(m);
+    msLive([15, 16], { now: true, done: () => { const bi = gunIdx('bat'); if (!P.has[bi]) { P.has[bi] = true; popup(P.x, P.y - 14, 'BASEBALL BAT', '#b6ff3c'); } if (!P.car) P.weapon = bi; } });
+    msLive([17]); toast('LOCKDOWN!', true);
+    walkOnTo(A.ivo, at(8955, 3772));
+  }
+  function walkOnTo(p, q) { p.post.step = (o, dt) => { if (o.state === 'flee') o.state = 'post'; if (walkTo(o, q.x, q.y, RUN, dt) < 8) { o.vx = o.vy = 0; o.post.x = q.x; o.post.y = q.y; o.post.step = stay; } return true; }; }
+  function boats(A) {                                                  // the Varga boats round the point: out on open water, out of sight, from two sides
+    if (A.boats) return;
+    const o = me(), ring = [];
+    for (let r = 1000; r <= 1600 && ring.length < 6; r += 200) for (let k = 0; k < 24; k++) {
+      const a = k / 24 * TAU, x = o.x + Math.cos(a) * r, y = o.y + Math.sin(a) * r;
+      if (shoreDist(x, y) < -70 && dist(x, y, cam.x, cam.y) > 800 && ring.every(q => dist(q.x, q.y, x, y) > 500)) ring.push({ x, y });
+    }
+    ring.sort((p, q) => dist(p.x, p.y, o.x, o.y) - dist(q.x, q.y, o.x, o.y));
+    const pick = ring.length > 1 ? [ring[0], ring.slice(1).sort((p, q) => dist(q.x, q.y, ring[0].x, ring[0].y) - dist(p.x, p.y, ring[0].x, ring[0].y))[0]] : ring;   // the nearest, and the one furthest from it
+    A.boats = pick.slice(0, N().boats).map((q, i) => msFoeCar('speedboat', q.x, q.y, Math.atan2(o.y - q.y, o.x - q.x), { crew: 2, gun: i ? 'pistol' : 'smg', group: 'boats', speed: N().boatSpeed, color: '#2a2d3a' }));
+    msLive([22], { phone: true });
+  }
+  const live = c => !c.dead && !c.sunk && !c.fc.out && c.fc.crew > 0;
+  function lost(A, dt) {
+    const left = A.boats.filter(live); if (!left.length) return true;
+    A.farT = left.every(c => dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M) ? (A.farT || 0) + dt : 0; return A.farT > N().loseFor;
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.ferryPier; msLive([1, 2, 3], { phone: true, done: () => { if (MS.k === 0) MS.guide = A.ferryPier; } }); },   // the call; GO TO Iron Key (the ferry, or any boat)
+      tick(A) { if (P.ferry || !onIsland(me().x, me().y)) return false; return true; },
+      jump(A) { if (P.car) exitCar(true); P.x = PRZ.path[2][0]; P.y = PRZ.path[2][1]; P.swim = false; } },
+    { enter(A) { MS.mark = () => A.guard; MS.guide = A.gateOut; },     // GO TO the gate: the search
+      tick(A) { if (!A.cutGo && !P.car && dist(P.x, P.y, A.gateOut.x, A.gateOut.y) < N().gateR) { A.cutGo = true; msCut('VISITING HOUR', () => msNext()); } return false; },
+      jump(A) { if (P.car) exitCar(true); holdKit(A); PRX.visit = PRX.gateOpen = true; P.x = A.gateIn.x; P.y = A.gateIn.y; } },
+    { enter(A) { holdKit(A); PRX.visit = PRX.gateOpen = true; MS.mark = () => A.ivo; MS.guide = () => A.ivo; MS.start = { at: () => A.ivo, label: msWho('ivo').name, go: () => msCut('THE OLD MAN', () => msNext()) }; },   // TALK TO Ivo
+      tick(A) { if (A.men.some(m => m.alert)) { msEnter(3); } return false; },   // you went for them first: the riot now
+      jump(A) { P.x = A.ivo.x + 30; P.y = A.ivo.y + 10; } },
+    { enter(A) { if (!A.riot) riot(A); MS.mark = () => nearest(A.men); MS.guide = null; A.sirT = 0; },   // TAKE OUT Nico's men (a second pair a few seconds later)
+      tick(A, dt) {
+        if ((A.sirT -= dt) <= 0) { A.sirT = 1.2; Snd.tone(760, 540, 0.9, 0.05, 'sawtooth'); }   // the lockdown siren
+        if (!A.wave2 && (gameT - A.t3 > N().wave2 || !up(A.men.filter(q => q.group === 'riot1')).length)) { A.wave2 = true; for (const m of A.men.filter(q => q.group === 'riot2')) foeAlert(m); msLive([18], { now: true }); }   // the rest come running
+        return A.wave2 && !up(A.men).length; },
+      info: A => up(A.men).length + ' LEFT',
+      jump(A) { if (!A.riot) riot(A); A.wave2 = true; for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
+    { enter(A) { msLive([19], { now: true }); MS.mark = () => A.guard; MS.guide = A.gateOut; },   // GO TO the gate: your weapons back
+      tick(A, dt) {
+        if ((A.sirT -= dt) <= 0) { A.sirT = 1.2; Snd.tone(760, 540, 0.9, 0.05, 'sawtooth'); }
+        if (inPrison(me().x, me().y) || dist(me().x, me().y, A.gateOut.x, A.gateOut.y) > 160) return false;
+        kitBack(A); Snd.pickup(); popup(P.x, P.y - 14, 'YOUR WEAPONS', '#b6ff3c'); msLive([20], { now: true }); return true; },
+      jump(A) { kitBack(A); P.x = A.gateOut.x; P.y = A.gateOut.y; } },
+    { enter(A) { msLive([21], { phone: true }); MS.mark = () => A.boat; MS.guide = () => A.boat; },   // GET IN Lucia's boat
+      tick(A) { return P.car === A.boat; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } },
+    { enter(A) { boats(A); MS.mark = () => P.car === A.boat ? null : A.boat; MS.guide = () => P.car === A.boat ? null : A.boat; A.t6 = gameT; },   // SURVIVE: the Varga boats
+      tick(A, dt) {
+        if (!A.called && gameT - A.t6 > 8) { A.called = true; msLive([23, 24], { phone: true }); }
+        if (!lost(A, dt)) return false; msLive([25], { phone: true, now: true }); return true; },
+      info: A => A.boats ? A.boats.filter(live).length + ' BOATS AFTER YOU' : '',
+      jump(A) { boats(A); for (const c of A.boats) { c.fc.crew = 0; c.driver = null; c.msDrive = null; } } },
+    { enter() { if (P.stars <= 0) $('msObj').hidden = true; },        // LOSE THE POLICE (if any)
+      tick() { return P.stars <= 0; } },
+    { enter(A) { MS.guide = () => P.car === A.boat ? A.drop : A.boat; MS.mark = () => P.car === A.boat ? A.lucia : A.boat; },   // DELIVER: the boat to Sunset Harbor's berths
+      tick(A) {
+        if (A.home || dist(A.boat.x, A.boat.y, A.drop.x, A.drop.y) > N().dropR) return false;
+        A.home = true; if (P.car) exitCar(true);
+        const L = A.lucia; P.x = L.x - 34; P.y = L.y + 6; P.vx = P.vy = 0; P.swim = false; A.boat.vx = A.boat.vy = 0;   // up onto the quay by her
+        msCut('NEXT OF KIN', () => msNext()); return false; },
+      info: A => P.car === A.boat ? Math.round(dist(A.boat.x, A.boat.y, A.drop.x, A.drop.y) / UNITS_PER_M) + ' M TO THE BERTHS' : 'GET BACK IN THE BOAT' }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.ivo.dead) return F.ivoDead;
+    if (A.guard.dead) return F.guardDead;
+    if (A.lucia.dead) return F.luciaDead;
+    if (A.boat.dead || A.boat.burn > 0 || A.boat.sunk) return F.boatDead;
+    return '';
+  }
+  const cuts = {
+    'VISITING HOUR': A => [
+      { dur: 3, cam: 'CLOSE', at: () => A.guard, line: 4, enter: () => { face(A.guard, P); face(P, A.guard); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.guard, line: 5, enter: () => { holdKit(A); Snd.tone(300, 260, 0.12, 0.08, 'square'); } },   // your guns into his crate
+      { dur: 4, cam: 'WIDE', at: () => at(PRZ.gate[0], PRZ.gate[1] - 120), line: 6, enter: () => { PRX.visit = PRX.gateOpen = true; } }],
+    'THE OLD MAN': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.ivo, line: [7, 8], enter: () => { face(A.ivo, P); face(P, A.ivo); } },
+      { dur: 5, cam: 'WIDE', at: () => at(A.ivo.x - 40, A.ivo.y - 60), line: [9, 10] },
+      { dur: 5, cam: 'CLOSE', at: () => A.ivo, line: [11, 12] },
+      { dur: 4, cam: 'FOLLOW', at: () => A.men[0], line: 13, enter: () => { face(A.men[0], P); face(A.men[1], P); } },
+      { dur: 3, cam: 'CLOSE', at: () => A.ivo, line: 14 }],
+    'NEXT OF KIN': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.lucia, line: 26, enter: () => { face(A.lucia, P); face(P, A.lucia); } },
+      { dur: 5, cam: 'WIDE', at: () => at(A.lucia.x + 80, A.lucia.y - 40), line: [27, 28], enter: () => face(A.lucia, at(A.lucia.x + 600, A.lucia.y - 300)) },
+      { dur: 4, cam: 'CLOSE', at: () => A.lucia, line: 29, enter: () => face(A.lucia, P) }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { kitBack(A); PRX.visit = PRX.gateOpen = PRX.lock = false; } };
+})();

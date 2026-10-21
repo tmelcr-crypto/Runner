@@ -6,7 +6,7 @@
    straight across; E before it casts off: back ashore), stepping off onto the pier at the other end. While you are wanted it will not sail. Inside the walls is restricted like the military base: a warning
    counts down, then the alarm gives stars and the guards in the four watchtowers fire rifles from their posts at you anywhere on the
    island (so does shooting inside the walls, or at a guard). Prisoners in orange walk the yard; two guards stand at the gate. */
-const PRX = { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, area: null, ball: 0, sayT: 0 };
+const PRX = { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, area: null, ball: 0, sayT: 0, visit: false, gateOpen: false, lock: false };   // visit, gateOpen, lock: a mission's (Quest 05: a visitor, the gate held open, a lockdown)
 const FERRY = { s: 0, end: 0, state: 'dock', t: 0, v: 0, x: 0, y: 0, ang: 0, hold: false, rider: false, lx: 0, ly: 0, offT: 0, mesh: null };
 const prisonOn = () => !!PRZ && feat('prison');
 const inPrison = (x, y) => { const [x0, y0, x1, y1] = PRZ.walls, h = PRZ.wt / 2; return x > x0 + h && x < x1 - h && y > y0 + h && y < y1 - h; };
@@ -75,7 +75,7 @@ function prisonTick(dt) {                 // js/15 update
   if (!PRZ) return;
   const on = prisonOn(), me = P.car || P, inside = on && !P.dead && state === 'play' && inPrison(me.x, me.y), since = gameT - PRX.freeT;
   if (since < 30) { if (state === 'play' && !P.dead && !inside) PRX.left = true; } else PRX.left = false;
-  const free = since < 30 && !PRX.left;                            // let out: no warning until you have left the walls (or for half a minute)
+  const free = (since < 30 && !PRX.left) || PRX.visit;             // let out: no warning until you have left the walls (or for half a minute); a visitor: none
   if (inside && !free && !RAMP.on) {
     PRX.outT = 0;
     if (!PRX.alarm) { PRX.warnT += dt; warnSet('prison', 'RESTRICTED AREA<br><small>LEAVE NOW ' + Math.max(0, Math.ceil(PLC.prisonWarn - PRX.warnT)) + '</small>'); if (PRX.warnT >= PLC.prisonWarn) prisonAlarm(); }
@@ -85,7 +85,7 @@ function prisonTick(dt) {                 // js/15 update
     if (PRX.alarm && !inside && (PRX.outT += dt) > PLC.prisonCalm) PRX.alarm = false;
   }
   // the gate: open while you are let out (and until you are clear of it)
-  const [gx, gy] = PRZ.gate, near = dist(P.x, P.y, gx, gy) < 50, want = on && (gameT - PRX.freeT < 4 || (gameT - PRX.freeT < 40 && (inside || near)));
+  const [gx, gy] = PRZ.gate, near = dist(P.x, P.y, gx, gy) < 50, want = on && (PRX.gateOpen || gameT - PRX.freeT < 4 || (gameT - PRX.freeT < 40 && (inside || near)));
   PRX.gate = clamp(PRX.gate + (want || (PRX.gate > 0 && near) ? dt : -dt) * 0.7, 0, 1);
   if (PRI.gateRc) PRI.gateRc.off = PRX.gate > 0.6;
   if (on) prisonYard();
@@ -105,7 +105,7 @@ function ferryTick(dt, on) {
     if (F.hold) { if (F.rider) F.hold = false; }
     else F.t -= dt;
     if (F.t <= 0) {
-      if (F.rider && P.stars > 0 && feat('police')) { F.t = 1.5; if (gameT - (F.told || 0) > 4) { F.told = gameT; toast('THE FERRY WON\'T SAIL WHILE YOU ARE WANTED'); } }
+      if (F.rider && ((P.stars > 0 && feat('police')) || PRX.lock)) { F.t = 1.5; if (gameT - (F.told || 0) > 4) { F.told = gameT; toast(PRX.lock ? 'LOCKDOWN - THE FERRY IS HELD' : 'THE FERRY WON\'T SAIL WHILE YOU ARE WANTED'); } }
       else { F.state = 'sail'; F.v = 0; F.fresh = false; if (dist(F.x, F.y, cam.x, cam.y) < 1400) Snd.tone(110, 98, 1.1, 0.16, 'sawtooth'); }   // the horn
     }
   }
@@ -152,7 +152,7 @@ function ferrySkip() {                    // SKIP (or E): straight across, and o
 }
 $('ferrySkip').addEventListener('click', ferrySkip);
 function prisonReset() {                  // js/15 resetGame: the ferry at the Palm Heights pier, no alarm
-  Object.assign(PRX, { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, left: false }); warnOff('prison');
+  Object.assign(PRX, { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, left: false, visit: false, gateOpen: false, lock: false }); warnOff('prison');
   Object.assign(FERRY, { s: 0, end: 0, state: 'dock', t: PLC.ferryWait, v: 0, hold: false, rider: false, lx: 0, ly: 0 }); P.ferry = null;
   if (PRI.route) { ferryAt(0, _fq); FERRY.x = _fq.x; FERRY.y = _fq.y; FERRY.ang = _fq.ang; }
   if (PRI.gateRc) PRI.gateRc.off = false; $('ferrySkip').hidden = true;
