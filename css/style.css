@@ -672,6 +672,12 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #msInfo{position:absolute;left:12px;bottom:12px;font:11px/1.4 monospace;color:#ffd23f;text-shadow:1px 1px 0 #000;pointer-events:none;max-width:60vw}
 #msTalk{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:34;display:flex;gap:10px;align-items:flex-end;width:min(680px,94vw);cursor:pointer;-webkit-user-select:none;user-select:none}
 #msTalk[hidden]{display:none}
+#msLive{position:fixed;left:50%;top:98px;transform:translateX(-50%);z-index:33;display:flex;gap:8px;align-items:center;width:min(520px,78vw);pointer-events:none}
+#msLive[hidden]{display:none}
+#msLivePic{width:46px;height:46px;border:2px solid #fff;border-radius:5px;background:#12101c;flex:none}
+#msLiveBub{flex:1;background:rgba(251,251,255,.94);color:#14121c;border:3px solid #fff;border-radius:10px;padding:6px 10px;font-family:var(--f-display);font-size:10px;line-height:1.6;box-shadow:3px 3px 0 #000}
+#msLiveWho{display:block;font-size:9px;letter-spacing:2px;text-shadow:1px 1px 0 #000}
+#msLiveLine{margin:2px 0 0;min-height:1.6em}
 #msPic{width:92px;height:92px;border:3px solid #fff;border-radius:6px;background:#12101c;flex:none;image-rendering:auto}
 #msBub{flex:1;background:#fbfbff;color:#14121c;border:4px solid #fff;border-radius:14px;padding:10px 14px 18px;position:relative;font-family:var(--f-display);font-size:12px;line-height:1.7;min-height:56px;box-shadow:4px 4px 0 #000}
 #msWho{display:block;font-size:10px;letter-spacing:2px;text-shadow:1px 1px 0 #000}

@@ -65,6 +65,7 @@ function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.h
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
   if (!MS.on || MS.talk || CUT.on) return;
+  msLiveTick(dt);
   MS.t += dt;
   const A = MS.A, F = MS.m.fails;
   if (P.dead) return msFail(F.wasted || 'WASTED');
@@ -77,7 +78,7 @@ function msTick(dt) {                       // js/15 update
 function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPassed(); else msEnter(MS.k + 1); }
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
-  MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd();   // a mission's cutscene still playing: over if ($('msBtn')) $('msBtn').hidden = true;
+  MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd();   // a mission's cutscene still playing: over if ($('msBtn')) $('msBtn').hidden = true;
   $('msObj').hidden = true; $('msInfo').textContent = ''; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
@@ -152,12 +153,12 @@ $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey
 
 /* ---------- dialogue: the portrait, the bubble, the mumble; the game waits ---------- */
 const MS_PICS = {};
-function msPortrait(ch) {                  // the owner's picture (img/chars/<pic>) or a silhouette with the letter till it comes
-  const cv = $('msPic'), g = cv.getContext('2d'), W = cv.width;
+function msPortrait(ch, cv = $('msPic')) {  // the owner's picture (img/chars/<pic>) or a silhouette with the letter till it comes
+  const g = cv.getContext('2d'), W = cv.width;
   g.fillStyle = '#12101c'; g.fillRect(0, 0, W, W);
   const img = ch.pic ? (MS_PICS[ch.pic] || (MS_PICS[ch.pic] = Object.assign(new Image(), { src: 'img/chars/' + ch.pic }))) : null;
   if (img && img.complete && img.naturalWidth) { g.drawImage(img, 0, 0, W, W); return; }
-  if (img) img.onload = () => { if (MS.talk) msPortrait(ch); };
+  if (img) img.onload = () => { if (MS.talk) msPortrait(MS.talk.ch); if (MS_LIVE.cur) msPortrait(MS_LIVE.cur.ch, $('msLivePic')); };
   g.fillStyle = ch.bubble; g.globalAlpha = 0.35; g.beginPath(); g.arc(W / 2, W * 0.4, W * 0.2, 0, TAU); g.fill();
   g.beginPath(); g.ellipse(W / 2, W * 1.02, W * 0.42, W * 0.36, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
   g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.3) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, W * 0.42);
@@ -178,14 +179,41 @@ function msTalkLoop(ts) {
   const L = T.lines[T.i];
   if (T.shown < L.text.length) {
     T.t += dt; const n = Math.min(L.text.length, Math.floor(T.t * MSN.letters));
-    const mu = T.ch.mumble || {}, every = Math.max(1, Math.round(MSN.letters / Math.max(1, mu.rate || 8)));
-    for (let k = T.shown; k < n; k++) if (k % every === 0 && /[a-z0-9]/i.test(L.text[k]) && MSN.mumble > 0 && Snd.tone) {
-      const f = (mu.low || 200) + Math.random() * ((mu.high || 300) - (mu.low || 200)); Snd.tone(f, f * 0.85, 0.07, 0.07 * MSN.mumble, mu.wave || 'square');
-    }
+    msMumble(T.ch, L.text, T.shown, n);
     T.shown = n; $('msLine').textContent = L.text.slice(0, n); if (n >= L.text.length) $('msMore').hidden = false;
   }
   requestAnimationFrame(msTalkLoop);
 }
+function msMumble(ch, text, from, to) {    // the speaker's mumble for the letters just written
+  const mu = ch.mumble || {}, every = Math.max(1, Math.round(MSN.letters / Math.max(1, mu.rate || 8)));
+  for (let k = from; k < to; k++) if (k % every === 0 && /[a-z0-9]/i.test(text[k]) && MSN.mumble > 0 && Snd.tone) {
+    const f = (mu.low || 200) + Math.random() * ((mu.high || 300) - (mu.low || 200)); Snd.tone(f, f * 0.85, 0.07, 0.07 * MSN.mumble, mu.wave || 'square');
+  }
+}
+
+/* ---------- live lines: during play, without pausing - a shout in a fight, a phone call while you drive ---------- */
+const MS_LIVE = { q: [], cur: null };
+function msLive(nums, o = {}) {             // nums: line numbers (1-based); o.phone: a phone call (it rings first); o.now: drop what is waiting; o.done: after the last
+  const lines = nums.map(n => MS.m.lines[n - 1]).filter(Boolean); if (!lines.length) { if (o.done) o.done(); return; }
+  if (o.now) MS_LIVE.q = MS_LIVE.q.filter(e => e.phone);           // a fresh shout goes before the old ones (a call keeps its place)
+  lines.forEach((L, i) => MS_LIVE.q.push({ L, phone: o.phone, ring: o.phone && i === 0, done: i === lines.length - 1 ? o.done : null }));
+}
+function msLiveTick(dt) {                   // msTick: one at a time, written letter by letter, then held a moment
+  const S = MS_LIVE;
+  if (!S.cur && S.q.length) {
+    const e = S.cur = S.q.shift(), ch = msWho(e.L.who) || { name: e.L.who.toUpperCase(), letter: '?', bubble: '#ffffff', mumble: {} };
+    Object.assign(e, { ch, shown: 0, t: e.ring ? -1.2 : 0, hold: MSN.liveHold + e.L.text.length / MSN.letters });
+    $('msLiveWho').textContent = (e.phone ? 'PHONE · ' : '') + ch.name; $('msLiveWho').style.color = ch.bubble; $('msLiveBub').style.borderColor = ch.bubble;
+    $('msLiveLine').textContent = e.ring ? '...' : ''; msPortrait(ch, $('msLivePic')); $('msLive').hidden = false;
+    if (e.ring) { Snd.tone(880, 880, 0.18, 0.08, 'square'); setTimeout(() => Snd.tone(880, 880, 0.18, 0.08, 'square'), 280); }
+  }
+  const e = S.cur; if (!e) return;
+  e.t += dt; if (e.t < 0) return;                                    // the phone still ringing
+  const n = Math.min(e.L.text.length, Math.floor(e.t * MSN.letters));
+  if (n > e.shown) { msMumble(e.ch, e.L.text, e.shown, n); e.shown = n; $('msLiveLine').textContent = e.L.text.slice(0, n); }
+  if (e.t >= e.hold) { S.cur = null; if (!S.q.length) $('msLive').hidden = true; if (e.done) e.done(); }
+}
+function msLiveClear() { MS_LIVE.q = []; MS_LIVE.cur = null; $('msLive').hidden = true; }
 function msTalkNext() {
   const T = MS.talk; if (!T) return;
   const L = T.lines[T.i];
