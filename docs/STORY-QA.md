@@ -34,3 +34,7 @@ questions before building it. Each answer is written here as it comes; the story
 26. The 5 chapters: 1 Arrival (Papa Joe's jobs, the first money); 2 The street (gangs, a name in the city); 3 The trail (Mateo's clues, Crane's men); 4 The war (taking Crane's businesses); 5 The fall (Crane, Mateo, the finale).
 27. The whole city is open in STORY mode from the start, as in FREE ROAM; the quests just happen in different districts.
 28. Papa Joe's look: white hair and a white moustache, a flat cap, a brown cardigan over a shirt, reading glasses on a cord, a toothpick.
+29. The Vargas are Crane's front men: Nico builds Skyline One on Crane's money; bringing Nico down in Quest 06 is a first blow to Crane, though Danny does not know it yet.
+30. The 4 new side storylines: the Casino (a casino dealer, an inside man), the Colony (the hotel's owner, whom Crane wants out), the Prison (a lifer on Iron Key who knows Crane's past) and the Space center (a scientist).
+31. The space center's entry (STORY open item 1): both, by quest - a pass from a quest first; later a disguise (a lab coat or a flight suit from the clothes) also gets Danny past the guards.
+32. The Varga line stays at 6 quests: 30 main + 6 Varga + 4 x 8 new = 68 quests.
