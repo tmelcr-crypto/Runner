@@ -94,3 +94,7 @@ questions before building it. Each answer is written here as it comes; the story
 82. The mystery helper (Mateo) helps 3-4 times in chapters 2 to 4 - a sniper shot that saves Danny, a car left with the keys in it, a pager tip, a cut fence - never seen clearly.
 83. People who appear in two lines (Del in Varga Quest 03 and the Casino line): the quest played first introduces them; the other line's lines change to "we've met".
 84. Small nods: once a side line is done, a line or two in the main quests mentions it (Papa Joe heard about the vault...).
+85. The arrival is a cutscene (the last flight, the wrong suitcase, Papa Joe's cab, the Colony, Esther's room); play starts the next morning at the Colony.
+86. Papa Joe's chapter 1 jobs are errands that drift into crime: a fare who runs without paying, a parcel to deliver, a car to a chop shop, a debt to collect for Joe - until Kessler's men notice Danny.
+87. Danny first hears the name Crane on the first night's drive: a CRANE FOR MAYOR billboard, and Joe grumbles about him.
+88. Mateo's first clue (chapter 1): his old garage, where he worked as a mechanic; his boss says he got a driving job with a rich man.
