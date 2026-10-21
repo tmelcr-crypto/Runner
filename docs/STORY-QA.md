@@ -50,3 +50,7 @@ questions before building it. Each answer is written here as it comes; the story
 42. Its goal: break him out - eight quests build a slow escape plan (guards, a boat, papers, a riot as cover); the last quest is the breakout.
 43. It brings Crane's past and a way in to the finale: the truth about Crane's first murder (it backs up Mateo's proof) and a secret way into Crane's place that Sal knows.
 44. It opens at the start of chapter 3, with the trail: a letter from Sal reaches Danny - someone on the inside knows Crane's past.
+45. The Space center storyline is led by Dr. Iris Kahn, 40s - a rocket engineer, brilliant and stubborn, a lab coat and big glasses; her last launch is all that keeps the center open.
+46. Its story: save the last launch - Crane wants Gravel Flats for a resort; if the rocket fails the center closes. Danny stops his sabotage, quest by quest, up to the launch.
+47. It brings an eye in the sky to the finale: the launched satellite (or the center's radar) shows every one of Crane's men on the map.
+48. It opens at the start of chapter 4, with the war on Crane (his resort plan for Gravel Flats is one of his businesses).
