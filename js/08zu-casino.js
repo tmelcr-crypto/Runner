@@ -14,6 +14,7 @@ const clubOpen = () => { const h = SKY.hour, a = CSN.clubOpen, b = CSN.clubClose
 const smartNow = () => !CSN.dressCode || CL_SLOTS.some(sl => P.outfit && P.outfit[sl] && CLOTH[P.outfit[sl]] && CLOTH[P.outfit[sl]].smart);
 const stripNight = () => SKY.hour >= 19 || SKY.hour < 5;
 function doorWhy(kind) {                  // why the bouncer turns you away ('' : in you go)
+  if (kind === 'club' && MS.on && MS.A && MS.A.clubPass) return '';   // a mission's pass (Del gets you in, js/08zy)
   if (kind === 'club' && !clubOpen()) return 'THE PULSE OPENS AT ' + String(CSN.clubOpen).padStart(2, '0') + ':00';
   if (P.stars > 0) return 'NOT WHILE THE POLICE ARE AFTER YOU';
   if (kind === 'casino' && CX.alarm) return 'YOU ARE NOT WELCOME HERE';

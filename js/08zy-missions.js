@@ -569,3 +569,97 @@ MSCRIPT.q02 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { } };
 })();
+
+/* ================= QUEST 03 - PAPER TRAIL ================= */
+MSCRIPT.q03 = (() => {
+  const N = () => MS.m.numbers, me = () => P.car || P, at = (x, y) => ({ x, y });
+  const face = (p, q) => { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; };
+  const road = (x, y) => { const q = nearestRoad(x, y, 900), t = edgeAt(q.e, q.s, {}); return { x: t.x, y: t.y, a: Math.atan2(t.ty, t.tx) }; };
+  const stay = (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); };
+  const look = id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants });
+  const walkOn = (p, pts, then) => { let i = 0; p.post.step = (q, dt) => { const w = pts[i]; if (walkTo(q, w.x, w.y, WALK * 1.6, dt) < 6) { if (i < pts.length - 1) i++; else { q.vx = q.vy = 0; if (then) { const f = then; then = null; f(q); } } } return true; }; };   // along a few points
+  function setup(A) {
+    SKY.hour = N().hour; A.clubPass = true;                             // night: The Pulse is open; Del's pass opens its door for him (and you)
+    const C = casClub(), [kx, ky] = CASM.cdoor; A.cdoor = at(kx, ky + 26);
+    A.lucia = msPed(11860, 6380, Math.PI, Object.assign(look('lucia'), { msName: 'lucia', step: stay }));
+    A.lcar = msCar('convertible', 11905, 6418, 0, '#2fe0c8');           // Lucia's SUNDANCER at the kerb
+    A.del = msPed(kx, ky - 22, Math.PI / 2, Object.assign(look('del'), { msName: 'del', step: stay }));   // inside, by the door
+    A.book = at(C.x0 + 33, C.y0 + 66);                                  // the cash box at the north end of the bar
+    A.men = [[C.x0 + 93, C.y0 + 154], [C.x0 + 93, C.y0 + 254], [C.x0 + 188, C.y0 + 68], [C.x0 + 128, C.y1 - 44]].map(([x, y], i) =>
+      Object.assign(msFoe(x, y, { gun: i === 2 ? 'smg' : 'pistol', hp: N().foeHp, group: 'club', a: i < 2 ? Math.PI : Math.PI / 2 }), { calm: true }));
+    const d = MARINA.door; A.door = at(d[0] + 22, d[1] + 4);
+    A.marco = msPed(A.door.x, A.door.y, 0, Object.assign(look('marco'), { msName: 'marco', step: stay }));
+    P.x = 11990; P.y = 6386; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // a few steps from Lucia
+  }
+  function delBack(A) { if (!A.delGone && !A.del.dead) walkOn(A.del, [at(CASM.cdoor[0], CASM.cdoor[1] + 28), at(CASM.cdoor[0], CASM.cdoor[1] - 20)], q => { const i = peds.indexOf(q); if (i >= 0) peds.splice(i, 1); A.delGone = true; }); }
+  function luciaJoins(A) { if (!A.lucia.ally) { msAllyFrom(A.lucia, { who: 'lucia', gun: 'pistol', fail: MS.m.fails.luciaDead, hurtLine: 12 }); msLive([11], { now: true }); } }
+  function chasers(A) {                                                // two Varga cars after you as you come out
+    if (A.cars) return;
+    A.cars = [road(11100, 6440), road(12379, 6700)].slice(0, N().chasers).map((r, i) =>
+      msFoeCar(i ? 'sedan' : 'muscle', r.x, r.y, r.a, { crew: 2, gun: i ? 'pistol' : 'smg', group: 'chase', speed: 90 }));
+  }
+  const live = c => !c.dead && !c.fc.out && c.fc.crew > 0;           // still a car with men in it
+  function lost(A, dt) {                                              // every Varga car wrecked or emptied (and its men down), or far behind you for a while
+    const left = A.cars.filter(c => live(c) || (c.fc.men || []).some(m => !m.dead));
+    if (!left.length) return true;
+    const far = left.every(c => live(c) ? dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M : c.fc.men.every(m => m.dead || dist(m.x, m.y, me().x, me().y) > N().loseAt * UNITS_PER_M));
+    A.farT = far ? (A.farT || 0) + dt : 0; return A.farT > N().loseFor;
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.lucia; MS.start = { at: () => A.lucia, label: msWho('lucia').name, go: () => msCut('THE CROUPIER', () => msNext()) }; },   // TALK TO Lucia
+      tick() { return false; },
+      jump(A) { const i = peds.indexOf(A.del); if (i >= 0) peds.splice(i, 1); A.delGone = true; } },
+    { enter(A) { A.clubPass = true; MS.mark = () => A.cdoor; MS.guide = A.cdoor; delBack(A); },   // GO TO the club (Del's pass; he goes back in if the cutscene was skipped)
+      tick() { return inClub(P.x, P.y, 6); },
+      jump(A) { A.clubPass = true; if (P.car) exitCar(true); P.x = CASM.cdoor[0]; P.y = CASM.cdoor[1] - 30; } },
+    { enter(A) { A.bag = A.book; MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = () => A.bag; },   // COLLECT the ledger
+      tick(A) {
+        if (!A.alarm && A.men.some(m => m.alert)) { A.alarm = true; msLive([10], { now: true }); }   // you started it before the book
+        if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > 26) return false;
+        A.bag = null; A.hasBook = true; Snd.pickup(); popup(P.x, P.y - 14, "NICO'S LEDGER", '#b6ff3c');
+        for (const m of A.men) foeAlert(m); if (!A.alarm) { A.alarm = true; msLive([9, 10], { now: true }); }
+        return true; },
+      jump(A) { A.bag = null; A.hasBook = true; A.alarm = true; for (const m of A.men) foeAlert(m); } },
+    { enter(A) { MS.mark = () => A.lucia; MS.guide = () => A.lucia; },   // GO TO Lucia, out of the club
+      tick(A) {
+        if (!inClub(me().x, me().y, -6)) chasers(A);
+        if (!inClub(me().x, me().y, -6) && dist(me().x, me().y, A.lucia.x, A.lucia.y) < N().luciaR) { luciaJoins(A); return true; }
+        return false; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.lucia.x + 30; P.y = A.lucia.y; chasers(A); luciaJoins(A); } },
+    { enter(A) { chasers(A); MS.mark = null; MS.guide = null; A.t4 = gameT; },   // SURVIVE: lose the Varga cars
+      tick(A, dt) {
+        if (!A.called && gameT - A.t4 > 6) { A.called = true; msLive([13, 14], { phone: true }); msLive([15]); }
+        if (!lost(A, dt)) return false; msLive([16], { now: true }); return true; },
+      info: A => A.cars ? A.cars.filter(c => live(c)).length + ' CARS AFTER YOU' : '',
+      jump(A) { for (const c of A.cars || []) { c.fc.out = true; c.fc.men = []; c.driver = null; c.msDrive = null; } } },
+    { enter() { if (P.stars <= 0) $('msObj').hidden = true; },        // LOSE THE POLICE (if any)
+      tick() { return P.stars <= 0; } },
+    { enter(A) { MS.guide = A.door; MS.mark = () => A.marco; },        // DELIVER: the ledger to Marco
+      tick(A) {
+        if (A.home || dist(me().x, me().y, A.door.x, A.door.y) > N().marcoR) return false;
+        A.home = true; if (P.car) exitCar(true);
+        const L = A.lucia; if (L.aboard) allyAlight(L);
+        if (dist(L.x, L.y, A.door.x, A.door.y) > 140) { L.x = A.door.x + 30; L.y = A.door.y + 34; L.vx = L.vy = 0; }
+        msCut('THE BOOKS', () => msNext()); return false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.marco.dead) return F.marcoDead;
+    const f = msCastFail(); if (f) return f;
+    if (A.lucia.dead) return F.luciaDead;
+    if (A.del.dead && !A.delGone) return F.delDead;
+    return '';
+  }
+  const cuts = {
+    'THE CROUPIER': A => [
+      { dur: 3, cam: 'CLOSE', at: () => A.lucia, line: 1, enter: () => face(A.lucia, P) },
+      { dur: 3, cam: 'FOLLOW', at: () => A.del, line: [2, 3], enter: () => { walkOn(A.del, [at(CASM.cdoor[0], CASM.cdoor[1] + 28), at(A.lucia.x - 40, A.lucia.y - 4)], q => face(q, A.lucia)); face(A.lucia, A.del); }, wait: () => dist(A.del.x, A.del.y, A.lucia.x, A.lucia.y) < 50, max: 6 },
+      { dur: 3, cam: 'CLOSE', at: () => A.del, line: [4, 5] },
+      { dur: 3, cam: 'CLOSE', at: () => A.lucia, line: [6, 7] },
+      { dur: 3, cam: 'WIDE', at: () => at(A.lucia.x - 20, A.lucia.y + 20), line: 8, enter: () => { face(A.lucia, P); delBack(A); } }],
+    'THE BOOKS': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [17, 18], enter: () => face(A.marco, P) },
+      { dur: 4, cam: 'WIDE', at: () => at(A.door.x + 60, A.door.y + 30), line: [19, 20], enter: () => { face(A.marco, A.lucia); face(A.lucia, A.marco); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.marco, line: [21, 22], enter: () => face(A.marco, P) }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { } };
+})();
