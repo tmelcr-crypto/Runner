@@ -38,3 +38,7 @@ questions before building it. Each answer is written here as it comes; the story
 30. The 4 new side storylines: the Casino (a casino dealer, an inside man), the Colony (the hotel's owner, whom Crane wants out), the Prison (a lifer on Iron Key who knows Crane's past) and the Space center (a scientist).
 31. The space center's entry (STORY open item 1): both, by quest - a pass from a quest first; later a disguise (a lab coat or a flight suit from the clothes) also gets Danny past the guards.
 32. The Varga line stays at 6 quests: 30 main + 6 Varga + 4 x 8 new = 68 quests.
+33. The Casino storyline is led by Del Ramos, the nervous croupier from Quest 03 who kept the Vargas' books; now he wants out from under Crane's casino bosses and needs Danny.
+34. Its goal: eight quests that build up to one big heist of the Royal Flamingo's vault, where Crane washes his dirty money.
+35. It brings a getaway to the finale (the casino's armoured car or helicopter for the escape).
+36. It opens at the start of chapter 2, when Danny has a name on the street: a marker D on the casino strip at night.
