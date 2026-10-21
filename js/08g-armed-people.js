@@ -8,6 +8,8 @@
    (cops: more cash, and their pistol); both blink for their last 10 seconds and vanish (js/01i). */
 const NPC_RUN = 4.2 * MPS, NPC_GIVEUP = 700, NPC_ANGRY = 45;
 function provoke(p) {                    // an armed passer-by turns on you; false if they have nothing to fight with
+  if (p && p.foe) { foeAlert(p); return true; }                    // a mission's foe: already your enemy (js/08zz)
+  if (p && p.ally) return true;                                     // a mission's friend: never turns on you
   if (!p || p.dead || p.cop || !(p.arm >= 0)) return false;
   if (!p.hostile) { p.hostile = true; p.hostT = 0; p.cool = rand(0.5, 1); }
   p.state = 'fight'; return true;

@@ -102,7 +102,8 @@ function carHitsPeds(c) {
     for (const q of cc) {
       const d = Math.hypot(p.x - q[0], p.y - q[1]);
       if (d < q[2] + 6) {
-        if (spd > 100) { killPed(p, 'car', c.driver === 'player'); Snd.thud(120); c.vx *= 0.98; c.vy *= 0.98; }
+        if (p.ally) { p.x += (p.x - q[0]) / Math.max(d, 1) * 6; p.y += (p.y - q[1]) / Math.max(d, 1) * 6; if (spd > 100) allyHurt(p, 6); }   // a mission's friend: shoved aside (js/08zz)
+        else if (spd > 100) { killPed(p, 'car', c.driver === 'player'); Snd.thud(120); c.vx *= 0.98; c.vy *= 0.98; }
         else { p.x += (p.x - q[0]) / Math.max(d, 1) * 3; p.y += (p.y - q[1]) / Math.max(d, 1) * 3; }
         break;
       }
@@ -166,26 +167,26 @@ function steerToward(c, tx, ty, speedTarget) {
 }
 /* police route: the next point to drive to along the shortest road route to you, or to where you were last seen (RD from roadFieldTo) */
 let copFieldT = 0, copTarget = null;
-function copRoadTarget(c, out) {
+function copRoadTarget(c, out, D = RD, T = copTarget) {   // D, T: another road map (a mission's foes, js/08zz)
   const rs = nearRoads(c.x, c.y, 170); if (!rs.length) return null;
   let best = null, bc = Infinity;
   for (const r of rs) {
     const E = RE[r.e], pen = r.d * 2;
-    if (copTarget && r.e === copTarget.e) { const cost = Math.abs(r.s - copTarget.s) + pen; if (cost < bc) { bc = cost; best = { e: r.e, s: r.s, dir: copTarget.s >= r.s ? 1 : -1, toT: true }; } }
-    const ca = r.s + RD[E.a] + pen, cb = E.len - r.s + RD[E.b] + pen;
+    if (T && r.e === T.e) { const cost = Math.abs(r.s - T.s) + pen; if (cost < bc) { bc = cost; best = { e: r.e, s: r.s, dir: T.s >= r.s ? 1 : -1, toT: true }; } }
+    const ca = r.s + D[E.a] + pen, cb = E.len - r.s + D[E.b] + pen;
     if (ca < bc) { bc = ca; best = { e: r.e, s: r.s, dir: -1 }; }
     if (cb < bc) { bc = cb; best = { e: r.e, s: r.s, dir: 1 }; }
   }
   if (!best || !isFinite(bc)) return null;
   const E = RE[best.e], s = best.s + best.dir * (90 + carSpeed(c) * 0.3);
-  if (best.toT) return edgeAt(best.e, best.dir > 0 ? Math.min(s, copTarget.s) : Math.max(s, copTarget.s), out);
+  if (best.toT) return edgeAt(best.e, best.dir > 0 ? Math.min(s, T.s) : Math.max(s, T.s), out);
   if (s >= 0 && s <= E.len) return edgeAt(best.e, s, out);
   const node = best.dir > 0 ? E.b : E.a, over = s < 0 ? -s : s - E.len;   // past the junction: carry on along the best next edge
   let ne = -1, nc = Infinity;
   for (const ei of RN[node].e) {
     if (ei === best.e) continue;
     const F = RE[ei], fromA = F.a === node;
-    const cost = copTarget && ei === copTarget.e ? (fromA ? copTarget.s : F.len - copTarget.s) : F.len + RD[fromA ? F.b : F.a];
+    const cost = T && ei === T.e ? (fromA ? T.s : F.len - T.s) : F.len + D[fromA ? F.b : F.a];
     if (cost < nc) { nc = cost; ne = ei; }
   }
   if (ne < 0) return edgeAt(best.e, best.dir > 0 ? E.len : 0, out);

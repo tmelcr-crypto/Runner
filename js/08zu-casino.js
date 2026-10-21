@@ -14,6 +14,7 @@ const clubOpen = () => { const h = SKY.hour, a = CSN.clubOpen, b = CSN.clubClose
 const smartNow = () => !CSN.dressCode || CL_SLOTS.some(sl => P.outfit && P.outfit[sl] && CLOTH[P.outfit[sl]] && CLOTH[P.outfit[sl]].smart);
 const stripNight = () => SKY.hour >= 19 || SKY.hour < 5;
 function doorWhy(kind) {                  // why the bouncer turns you away ('' : in you go)
+  if (kind === 'club' && MS.on && MS.A && MS.A.clubPass) return '';   // a mission's pass (Del gets you in, js/08zy)
   if (kind === 'club' && !clubOpen()) return 'THE PULSE OPENS AT ' + String(CSN.clubOpen).padStart(2, '0') + ':00';
   if (P.stars > 0) return 'NOT WHILE THE POLICE ARE AFTER YOU';
   if (kind === 'casino' && CX.alarm) return 'YOU ARE NOT WELCOME HERE';
@@ -99,6 +100,9 @@ function casinoDoors(dt) {
 function casKey() {
   if (!casinoOn() || P.car || P.dead || P.act || state !== 'play' || !inCasino(P.x, P.y, 0)) return null;
   if (CX.rob) return null;
+  const k = casSpot(); return k && msShut() ? null : k;
+}
+function casSpot() {
   const g = CZ.cage, w = WEAPONS[P.weapon];
   if (dist(P.x, P.y, g.win.x, g.win.y) < 24) return { kind: 'rob', ok: !isMelee(w) && !isThrown(w) && P.mag[P.weapon] + P.ammo[P.weapon] > 0 };
   for (const s of CZ.slots) { const u = (P.y - s.y) * s.f; if (Math.abs(P.x - s.x) < 11 && u > 7 && u < 32) return { kind: 'slot', s }; }

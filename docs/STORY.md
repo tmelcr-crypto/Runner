@@ -5,10 +5,12 @@ When work on story mode starts, go through the open items with the owner first.
 
 ## Open items
 
-1. **Space center entry (Gravel Flats).** The space center is built and fenced, and its gate stays shut for now. Later the
-   way in comes with the story: the guards let you through *with permission* (a mission, a pass, a contact) *or in certain
-   clothes* (a disguise - a uniform, a lab coat, a flight suit). Needs a clothing / disguise system and the guards checking it.
-   Asked for on 2026-10-10; to be designed together with the story.
+1. **Space center entry (Gravel Flats)** - answered (October 2026, `docs/STORY-QA.md` answer 31): both, by quest - a pass from
+   the Space center storyline's first quest, then a lab coat or a flight suit (from the clothes) also gets you past the guards.
+
+**The whole story** (October 2026): the owner's answers are in `docs/STORY-QA.md`; the story plan made from them - 68 quests,
+the chapters, the side storylines, the choices and the finale - is `docs/STORY-PLAN.md` (a Word copy: `docs/Story-Plan.docx`,
+from `tools/story_plan_doc.py`), waiting for the owner's approval. The Varga quests below are its Varga storyline (V1-V6).
 
 ## Quest pages (asked October 2026)
 
@@ -57,11 +59,25 @@ A third mode where every new mission is played in the game before it goes into S
 - **Quest 01 (Harbour Favour) is built first**, from the sample in the Word file, with placeholder portraits (a plain silhouette with the
   character's letter) until the owner's pictures come.
 
+## Characters
+
+Every character is in one table, `js/01y-character-data.js` (name, letter, colours, mumble, who they are, how they look, the recipe of
+their pixel-art portrait); the missions name them by id. Portraits: 48 x 48 pixel art, head and shoulders in a 3/4 view, three faces
+(calm, angry, smiling) picked by each line's mood - drawn by `tools/portraits.py`, shown in `docs/Characters.docx` (the owner's answers,
+October 2026: drawn portraits, 48 x 48, free colours per character, everyone who speaks; 3/4 view; three faces; a dark ground glowing in
+the bubble colour; one table and a Word sheet). A new character gets a row in that table (and a portrait) before their first mission. The story plan's people (Danny, Papa Joe, Esther, Crane, Mateo, Kessler, Rosa, Nina, Sachs, Holloway, Pratt, Sal and Iris) are in
+the table now, drawn from the owner's answers 21-107 (October 2026); the minor people come with their quests.
+
 ## Approval list
 
 | Quest | State | Notes |
 | --- | --- | --- |
-| 01 Harbour Favour | built in MISSIONS TEST (placeholder portraits); the owner's first test fixed (START MISSION by Marco, no guide line in cutscenes, Tito's boat round the bay, his fixed way on foot, a sunk boat fails it); waiting for the owner's next test, changes and pictures | Tito heads for the jetty in Mercado, across the bay (Dockside is 8 km away). The player says nothing - asked whether the player should speak |
+| 01 Harbour Favour | built in MISSIONS TEST (placeholder portraits); the owner's first test fixed (START MISSION by Marco, no guide line in cutscenes, Tito's boat round the bay, his fixed way on foot, a sunk boat fails it); second round (October 2026): no guide line at the start, Tito by Marco with the bag runs down pier 1 to his boat in the opening, faster speech (tap anywhere), Tito docks at the jetty's head and steps off by his boat, the bag drops where he is caught, 20 s to come ashore before the 150 m foot limit (new number ashoreIn - for the Word page); waiting for the owner's next test, changes and pictures | Tito heads for the jetty in Mercado, across the bay (Dockside is 8 km away). The player says nothing - asked whether the player should speak |
+| 02 Dock Rats | built in MISSIONS TEST (placeholder portraits), written by me from the owner's answers (October 2026: Quests 02-06 one story, the Varga crew; long talks + live lines; a friend who follows, fights and rides along; missions only); Word page `docs/quests/Quest-02-Dock-Rats.docx`; waiting for the owner's test | Lucia's first quest as a friend; Rocco can die (only his phone matters) |
+| 03 Paper Trail | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-03-Paper-Trail.docx`; waiting for the owner's test | at night (The Pulse opens at 22:00); Nico's first lines (a phone call) |
+| 04 Hot Cargo | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-04-Hot-Cargo.docx`; waiting for the owner's test | Sol Okafor (new, the crane foreman) helps with a shotgun; the Harbor Cold Store is held by the mission (door up, no workers or guard); any time of day |
+| 05 Island Visit | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-05-Island-Visit.docx`; waiting for the owner's test | alone; Ivo Varga and Officer Dunn new; your weapons wait at the gate during the visit; a melee riot (a bat from Ivo); the boat chase on the bay |
+| 06 Skyline | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline, the finale); Word page `docs/quests/Quest-06-Skyline.docx`; waiting for the owner's test | at night; Marco and Lucia both help (they climb the tower with you); Nico jumps his car off the launch ramp; Sol in the closing; Lucia's last line leaves the door open for the next storylines |
 
 ## Connectors - joining the quests into STORY
 
@@ -73,10 +89,18 @@ the connectors below add what happens between quests. Filled in as each quest ar
 - **Between two quests**, for each pair: how the next one starts (the giver's marker, or a phone call - who, and how long after), what the
   one before unlocks (a contact, a place or property, a vehicle, clothes), anything that changes in the city (a gate opens, a shop, the
   police), and whether you must be somewhere or at a time of day.
-- **01 -> 02**: Marco phones a game day after Quest 01 is passed; from Quest 01 on Marco is a contact who can call you. Quest 02 is not
-  written yet.
-- **Story-wide things to settle before STORY is built**: the space center's entry (open item 1); whether the player speaks; saving
-  between quests (STORY saves as now, never during a mission); what a failed or skipped quest does to the ones after it.
+- **01 -> 02**: Marco phones a game day after Quest 01 is passed; from Quest 01 on Marco is a contact who can call you. Quest 02 (Dock Rats)
+  starts with that call.
+- **02 -> 03**: Lucia becomes a contact; Quest 03 (Paper Trail) is her marker at the casino strip (Del the croupier keeps the Vargas' books), at night.
+- **03 -> 04**: Del becomes a contact (casino tips); Quest 04 (Hot Cargo) is Marco's marker at the harbour the next day - Dockside's warehouse three, Sol the foreman.
+- **04 -> 05**: Sol becomes a contact (a friend on the quays at Dockside); Lucia phones a game day later and Quest 05 (Island Visit) starts with that call - Ivo Varga on Iron Key wants to meet you.
+- **05 -> 06**: Ivo becomes a contact (word from Iron Key now and then); Quest 06 (Skyline) is Marco's marker at the harbour the next day - Skyline One, Nico's tower.
+- **After 06**: the Varga story is over - Marco's office stays his (the harbour safe), Marco and Lucia offer work; Ivo's money went into evidence (he won't like it). The owner's next request (October 2026): the characters' looks in pixel art, then the whole story - about 70 quests, the main line plus side storylines that tie together near its end - after at least 100 questions.
+- **The Varga storyline (Quests 02-06, as answered October 2026)**: 02 Dock Rats (Marco, phone; Lucia helps) - 03 Paper Trail (Lucia; the casino
+  strip, the ledger, a car chase; Lucia helps) - 04 Hot Cargo (Marco; Dockside, Marco's stolen engines on a truck; Sol the foreman helps) -
+  05 Island Visit (Lucia, phone; Iron Key, the jailed Ivo Varga, a riot; alone) - 06 Skyline (Marco; Skyline One, Nico Varga; Lucia and Marco help).
+- **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
+  everyone else (6); a failed quest is retried from its marker with nothing lost (63); STORY saves as now, never during a quest.
 
 ## Settled for story mode
 

@@ -4,7 +4,8 @@
    wanted. At night the doors are down and a guard with a torch and a pistol walks the aisle: ram the roller door (the alarm goes off)
    or force the side door on foot; if the guard sees you, the alarm brings IXT.alarmStars and he shoots. The storage yard's lock-ups
    open any time - force the lock. Stashes (cash, a gun, ammo) refill a game day after you empty them. The rare vehicles: yours once
-   you drive off; lost or left, a new one is back at its place a game day later (one kept in a garage stays yours). */
+   you drive off; lost or left, a new one is back at its place a game day later (one kept in a garage stays yours).
+   S.ms: a mission holds the place (Quest 04's cold store) - the roller door stays up, no workers, no guard, no alarm. */
 const IX = { clock: 0, lastH: null, prevSpd: 0, force: null, bellT: 0, bellS: null, warnT: 0 };
 const ixOn = () => IXS.length > 0 && feat('interiors');
 const ixDay = () => SKY.hour >= IXT.openFrom && SKY.hour < IXT.openTo;
@@ -28,11 +29,11 @@ function ixSetup() {
     const ax = Math.max(S.dw / 2 + 14, 46), pistol = WEAPONS.findIndex(w => w.id === 'pistol');
     for (let k = 0; k < IXT.workers; k++) {    // the day shift: beside the aisle, facing it
       const s = k % 2 ? 1 : -1, lz = z1 - 70 - Math.floor(k / 2) * 70, w = ixWorld(S, s * (ax + 14), lz);
-      addPost({ x: w.x, y: w.y, a: S.a + (s > 0 ? Math.PI : 0), kind: 'ixworker', back: 240, need: () => ixOn() && ixDay(), step: standStep,
+      addPost({ x: w.x, y: w.y, a: S.a + (s > 0 ? Math.PI : 0), kind: 'ixworker', back: 240, need: () => ixOn() && ixDay() && !S.ms, step: standStep,
         make: po => { const p = makePed(po.x, po.y); Object.assign(p, { ixworker: S.i, arm: -1, umb: false, shirt: IX_HIVIS[k % 2], pants: '#2a3a6a', hardhat: S.kind === 'hangar' ? undefined : '#ffd23f', speed: 0, state: 'post' }); return p; } });
     }
     const gx = ax - 10, round = [[-gx, z1 - 40], [-gx, z0 + 40], [gx, z0 + 40], [gx, z1 - 40]].map(([x, z]) => { const w = ixWorld(S, x, z); return [w.x, w.y]; });
-    addPost({ x: round[0][0], y: round[0][1], a: 0, kind: 'ixguard', back: 300, patrol: round, need: () => ixOn() && !ixDay(), step: ixGuardStep,
+    addPost({ x: round[0][0], y: round[0][1], a: 0, kind: 'ixguard', back: 300, patrol: round, need: () => ixOn() && !ixDay() && !S.ms, step: ixGuardStep,
       make: po => { const p = makePed(po.x, po.y); Object.assign(p, { ixguard: S.i, arm: pistol, hp: IXT.guardHp, umb: false, shirt: '#2a3a5a', pants: '#1a2230', speed: 1.1 * MPS, state: 'post' }); return p; } });
   }
 }
@@ -71,7 +72,7 @@ function ixPut(st) {
 }
 function ixReset() {                      // js/15 resetGame: doors by the clock, every stash full, the rare vehicles in their places
   IX.clock = 0; IX.lastH = null; IX.force = null; IX.bellT = 0;
-  for (const S of IXS) { S.open = S.pOpen = 0; S.broken = S.forced = S.alarm = false; S.forcedAt = 0; if (S.ds) S.ds.off = false; if (S.ps) S.ps.off = false;
+  for (const S of IXS) { S.open = S.pOpen = 0; S.broken = S.forced = S.alarm = S.ms = false; S.forcedAt = 0; if (S.ds) S.ds.off = false; if (S.ps) S.ps.off = false;
     for (const st of S.spots) { st.p = null; st.takenAt = -1e9; if (ixOn()) ixPut(st); } }
   for (const R of IXR) { if (R.car && cars.includes(R.car) && P.car !== R.car) cars.splice(cars.indexOf(R.car), 1); R.car = null; R.takenAt = null; R.paid = false; }
 }
@@ -88,11 +89,11 @@ function ixTick(dt) {
     if (S.kind !== 'unit') {
       if (day && (S.broken || S.forced || S.alarm)) { S.broken = S.forced = S.alarm = false; }   // morning: mended, locked, quiet
     } else if (S.forced && IX.clock - S.forcedAt > IXT.restock && !near) S.forced = false;     // a lock-up shut again later
-    if (on && P.car && !S.broken && S.open < 0.2 && (S.kind === 'unit' ? !S.forced : !day) && Math.abs(q.x) < S.dw / 2 && q.z > S.hd - 4 && q.z < S.hd + 45 && IX.prevSpd > IXT.ramSpeed) {
+    if (on && P.car && !S.ms && !S.broken && S.open < 0.2 && (S.kind === 'unit' ? !S.forced : !day) && Math.abs(q.x) < S.dw / 2 && q.z > S.hd - 4 && q.z < S.hd + 45 && IX.prevSpd > IXT.ramSpeed) {
       S.broken = true; S.open = 1; if (S.kind === 'unit') { S.forced = true; S.forcedAt = IX.clock; }   // rammed: the door bursts in
       P.car.hp -= 15; Snd.crash && Snd.crash(0.8); if (S.kind !== 'unit') ixAlarm(S, 'A DOOR WAS RAMMED');
     }
-    const want = !on ? 0 : S.kind === 'unit' ? (S.forced || S.broken ? 1 : 0) : day || S.broken ? 1 : 0, pwant = on && (day || S.forced) ? 1 : 0;
+    const want = S.ms ? 1 : !on ? 0 : S.kind === 'unit' ? (S.forced || S.broken ? 1 : 0) : day || S.broken ? 1 : 0, pwant = on && (day || S.forced) ? 1 : 0;
     const blocked = () => [P.car || P, ...cars].some(o => { const l = ixLocal(S, o.x, o.y, {}); return Math.abs(l.x) < S.dw / 2 + 8 && l.z > S.hd - 26 && l.z < S.hd + 20; });
     if (want > S.open) S.open = Math.min(1, S.open + dt / 1.6); else if (want < S.open && !(S.open > 0.15 && blocked())) S.open = Math.max(0, S.open - dt / 1.6);
     S.pOpen = clamp(S.pOpen + (pwant ? 1 : -1) * dt * 2, 0, 1);
@@ -108,6 +109,9 @@ function ixTick(dt) {
 /* ---------- forcing a lock: the side door at night, a lock-up any time ---------- */
 function ixKey() {
   if (!ixOn() || P.car || P.dead || P.act || state !== 'play' || IX.force) return null;
+  const k = ixSpot(); return k && msShut() ? null : k;
+}
+function ixSpot() {
   const day = ixDay(), q = {};
   for (const S of IXS) {
     if (S.kind === 'unit') { if (S.forced || S.broken) continue; ixLocal(S, P.x, P.y, q); if (Math.abs(q.x) < S.dw / 2 && q.z > S.hd - 2 && q.z < S.hd + 34) return { kind: 'lock', S }; }

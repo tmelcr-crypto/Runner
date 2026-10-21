@@ -60,6 +60,7 @@ function buildCar(c) {                       // parts that never move on their o
     part(dg, GSph, mc(pick([0xf2c6a0, 0xd9a07a, 0x9a6a46, 0xffdcbc])), 2.8, 2.8, 2.8, 0.4, 1.6, 0);
     if (cop) part(dg, GB, mc(0x1a2a6a), 4.2, 1.6, 5.2, 0.4, 4, 0);
     m.drv = dg;
+    const pg = dg.clone(); pg.position.z = Wd * 0.2; pg.visible = false; tilt.add(pg); m.pas = pg;   // a passenger beside you (a mission's friend, js/08zz)
   };
   part(g, GCirc, E.shadow, L * 0.62, 1, Wd * 0.64, 0, 1.3, 0);
   if (B === 'truck') {                       // cab with a glass band and a roof, cargo box behind
@@ -360,6 +361,7 @@ function syncCar(c, time, dt) {
   const f = c.hp / c.maxhp, m = c.m;
   m.ug.visible = !c.dead && !c.t.boat; m.hb.visible = !!c.driver && !c.dead && !c.t.boat;   // no glow or headlights on a boat
   if (m.drv) m.drv.visible = !!c.driver && !c.dead;
+  if (m.pas) m.pas.visible = !!(c.mates && c.mates.length) && !c.dead;
   if (m.rider) m.rider.material = c.driver === 'player' ? playerTopMat() : m.riderM;   // you on the bike: in your top's colour
   if (c.dead && !c.dead3) { c.dead3 = true; m.body.emissive.setHex(0); m.body.color.copy(_dark); if (m.cabin) m.cabin.material = E.glassDead; if (m.tp) for (const o of m.tp) o.material = E.black; }
   else if (!c.dead) {                      // there is no health bar: the damage shows - the paint scorches darker, nearly done for it throbs dull red, on fire it flickers orange
@@ -407,7 +409,7 @@ function syncPerson(p, kind, time, dt) {
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0) + (p.z || 0), p.y);       // z: a guard up a watchtower (js/08zp)
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && (p.hostile || p.soldier || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
+  if (kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
   if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
@@ -431,7 +433,7 @@ function syncPerson(p, kind, time, dt) {
     }
     if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
   }
-  const hid = kind === 'ped' && (p.hostile || p.soldier) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
+  const hid = kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }
   if (p.held) {
     if (isMelee(WEAPONS[p.arm])) { const u = p.swingT > 0 ? 1 - p.swingT / 0.25 : 0; p.held.rotation.set(0, p.swingT > 0 ? lerp(1.3, -1.3, u) : 0.7, p.swingT > 0 ? lerp(0.9, 0.1, u) : 1.05); o.arms[1].rotation.z = p.swingT > 0 ? -1.4 * Math.sin(Math.PI * u) : -0.5; }

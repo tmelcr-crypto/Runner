@@ -45,6 +45,7 @@ function guideBuild(pts) {
   GUIDE.mesh = new THREE.Mesh(g, guideMat); GUIDE.mesh.frustumCulled = false; GUIDE.mesh.renderOrder = 2; scene.add(GUIDE.mesh);
 }
 function gfxGuide(time) {                // js/13: worked out again now and then as you go (more often when the target moves)
+  if (state === 'cut') { if (GUIDE.pts) guideBuild(null); GUIDE.key = ''; return; }   // a cutscene (a mission's too, js/08zy): no line
   if (state !== 'play' && state !== 'dying') return;               // a card is up: the line stays as it is
   const tg = feat('guideLine') && !P.dead ? guideTarget() : null;
   if (!tg) { if (GUIDE.pts) guideBuild(null); GUIDE.key = ''; return; }

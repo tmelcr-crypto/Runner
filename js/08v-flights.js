@@ -22,10 +22,10 @@ function placeFlights() {                // a new game: the pad of light in fron
   DESK.pad.position.set(DESK.x, groundH(DESK.x, DESK.y), DESK.y); DESK.pad.visible = feat('flights');
 }
 const nearFly = () => !!AIRF && feat('flights') && state === 'play' && !P.car && !P.dead && !P.act && Math.abs(P.x - DESK.x) < DESK_R && Math.abs(P.y - DESK.y) < DESK_R && dist(P.x, P.y, DESK.x, DESK.y) < DESK_R;
-function flyKey() { if (!nearFly()) return false; const c = nearestCar(); return !(c && dist(c.x, c.y, P.x, P.y) < dist(DESK.x, DESK.y, P.x, P.y) - 8); }
+function flyKey() { if (!nearFly() || msShut()) return false; const c = nearestCar(); return !(c && dist(c.x, c.y, P.x, P.y) < dist(DESK.x, DESK.y, P.x, P.y) - 8); }
 function flyUi(time) {                   // every frame (js/14): the FLIGHTS button by you at the booth
   const bt = $('flyBtn'), on = nearFly(); if (DESK.pad) DESK.pad.userData.ring.scale.setScalar(DESK_R - 6 + Math.sin(time * 3) * 1.5);
-  if (!on) { if (!bt.hidden) bt.hidden = true; return; }
+  if (!on || msShut()) { if (!bt.hidden) bt.hidden = true; return; }
   bt.hidden = false; doorBtnAt(bt);
 }
 $('flyBtn').addEventListener('click', e => { e.stopPropagation(); if (nearFly()) openFlyCard(); });

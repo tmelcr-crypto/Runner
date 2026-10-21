@@ -164,7 +164,7 @@ function placeRaces() {                  // a new game (js/15): no race, no call
 
 /* ---------- the phone: one booth near you rings now and then ---------- */
 function ringTick(dt) {
-  const rg = RACE.ring, busy = RACE.on || JOB.on || RAMP.on || P.stars > 0 || P.dead || P.busted || !feat('streetRaces');
+  const rg = RACE.ring, busy = RACE.on || JOB.on || RAMP.on || msBusy() || P.stars > 0 || P.dead || P.busted || !feat('streetRaces');
   if (rg) {
     rg.t -= dt;
     if (rg.t <= 0 || busy) { RACE.ring = null; RACE.nextRing = gameT + RC.ringEvery * rand(0.7, 1.3); return; }
@@ -192,10 +192,10 @@ function nearRaceSpot() {                // on foot at the ringing booth, or at 
   if (feat('dragStrip')) for (const S of SPW_STRIPS) { const [x, y] = S.booth; if (dist(x, y, P.x, P.y) < 36) return { kind: 'drag', S, b: { x, y } }; }
   return null;
 }
-function raceKey() { const r = nearRaceSpot(); if (!r) return null; const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(r.b.x, r.b.y, P.x, P.y) - 8 ? null : r; }
+function raceKey() { const r = nearRaceSpot(); if (!r || msShut()) return null; const c = nearestCar(); return c && dist(c.x, c.y, P.x, P.y) < dist(r.b.x, r.b.y, P.x, P.y) - 8 ? null : r; }
 function raceUi() {                      // every frame (js/14): ANSWER at the ringing booth, RACE at the speedway's booth
   const r = nearRaceSpot(), bt = $('raceBtn');
-  if (!r) { if (!bt.hidden) bt.hidden = true; return; }
+  if (!r || msShut()) { if (!bt.hidden) bt.hidden = true; return; }
   const k = r.kind;
   if (bt.hidden || bt.dataset.k !== k + (r.S ? r.S.id : '')) { bt.dataset.k = k + (r.S ? r.S.id : ''); bt.hidden = false; bt.querySelector('b').textContent = k === 'phone' ? 'STREET RACE' : k === 'nascar' ? 'NASCAR RACE' : r.S.name; bt.querySelector('.go').textContent = k === 'phone' ? 'ANSWER' : 'RACE'; bt.querySelector('.si').innerHTML = k === 'phone' ? ICON_PHONE : ICON_FLAG; }
   doorBtnAt(bt);
