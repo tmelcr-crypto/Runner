@@ -106,3 +106,7 @@ questions before building it. Each answer is written here as it comes; the story
 94. Nina Park's look: 30s, a sharp black bob, a mustard blazer with big 90s shoulders, small gold earrings; quick and fearless.
 95. Bruno "Bull" Kessler's look: huge, a big neck, a shaved head, a blond goatee, a white tank top, gold chains, a tattoo; loud.
 96. Mateo Cruz's look: like Danny but neat and older - the same jaw, slicked-back hair with grey at the sides, a chauffeur's dark suit and cap, tired eyes; no scar.
+97. The other characters' looks are asked about one by one (minor characters when their quests are built).
+98. The story comes first as one story plan to approve: all 68 quests in a few lines each (giver, place, what happens, what it unlocks), the chapters, the choices and the finale's gifts, as a Word file; then a Word page per quest as each is built.
+99. The quests are built chapter by chapter: main chapter 1 and the Varga line's links; chapter 2 and the Casino line; chapter 3 and the Prison line; chapter 4 with the Colony and Space lines; chapter 5 last.
+100. Each quest goes into MISSIONS TEST as it is built, with its Word page; the owner plays and approves; merges only when the owner says Merge; STORY is built in one piece at the end.
