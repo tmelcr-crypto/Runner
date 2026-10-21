@@ -7,7 +7,7 @@
    cutscene engine (js/15c) with the usual camera from above: WIDE, CLOSE, FOLLOW, OVERHEAD, FIXED, PAN.
    MISSIONS TEST (mode test, docs/STORY.md): picked from a list (MISSIONS on the pause menu, and when the mode starts), you start with
    everything, never saved; helpers: restart, jump to any step, replay a cutscene; the step's info in a corner. */
-const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null, start: null };
+const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null, start: null, pageT: 0 };
 const MSCRIPT = {};                        // each mission's script: { setup(A), steps: [{ enter, tick → true when done, jump, info }], fail(A) → why, cuts: { name: A => shots } }
 const msTest = () => gameMode === 'test';
 
@@ -64,6 +64,7 @@ function msEnter(k) {
 function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.hidden = !txt; o.classList.add('big'); MS.objT = MSN.objTime; }
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
+  if (MS.pageT > 0 && (MS.pageT -= dt) <= 0) $('pager').hidden = true;   // the page goes after a while
   if (!MS.on) return;
   if (MS.talk || CUT.on) { if (MS_LIVE.cur) $('msLive').hidden = true; return; }   // a live line waits out a cutscene or a dialogue, out of sight
   msLiveTick(dt); msCastTick(dt);
@@ -80,7 +81,7 @@ function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPas
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
   MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); msCastClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd();   // a mission's cutscene still playing: over if ($('msBtn')) $('msBtn').hidden = true;
-  $('msObj').hidden = true; $('msInfo').textContent = ''; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
+  $('msObj').hidden = true; $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
   const id = MS.id; msClear();
@@ -167,15 +168,15 @@ function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art 
   g.beginPath(); g.ellipse(W / 2, W * 1.02, W * 0.42, W * 0.36, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
   g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.3) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, W * 0.42);
 }
-function msSay(nums, done) {               // nums: line numbers (1-based) of this mission
+function msSay(nums, done, o = {}) {       // nums: line numbers (1-based) of this mission; o.phone: a call (the others' names under PHONE)
   const lines = nums.map(n => MS.m.lines[n - 1]).filter(Boolean); if (!lines.length) { done && done(); return; }
-  MS.talk = { lines, i: -1, shown: 0, t: 0, last: 0, done, ret: CUT.on ? null : state }; if (MS_LIVE.cur) $('msLive').hidden = true;   // a live line waits out of sight
+  MS.talk = { lines, i: -1, shown: 0, t: 0, last: 0, done, ret: CUT.on ? null : state, phone: !!o.phone }; if (MS_LIVE.cur) $('msLive').hidden = true;   // a live line waits out of sight
   if (!CUT.on) { state = 'talk'; hush(); }
   $('msTalk').hidden = false; msLine(0); requestAnimationFrame(msTalkLoop);
 }
 function msLine(i) {
   const T = MS.talk; T.i = i; T.shown = 0; T.t = 0; const L = T.lines[i], ch = msWho(L.who) || { name: L.who.toUpperCase(), letter: '?', bubble: '#ffffff', mumble: {} };
-  T.ch = ch; $('msWho').textContent = ch.name; $('msWho').style.color = ch.bubble; $('msBub').style.borderColor = ch.bubble; $('msLine').textContent = ''; $('msMore').hidden = true; msPortrait(ch, $('msPic'), L.mood);
+  T.ch = ch; $('msWho').textContent = (T.phone && L.who !== 'danny' ? 'PHONE · ' : '') + ch.name; $('msWho').style.color = ch.bubble; $('msBub').style.borderColor = ch.bubble; $('msLine').textContent = ''; $('msMore').hidden = true; msPortrait(ch, $('msPic'), L.mood);
 }
 function msTalkLoop(ts) {
   const T = MS.talk; if (!T) return;
@@ -219,6 +220,26 @@ function msLiveTick(dt) {                   // msTick: one at a time, written le
   if (e.t >= e.hold) { S.cur = null; if (!S.q.length) $('msLive').hidden = true; if (e.done) e.done(); }
 }
 function msLiveClear() { MS_LIVE.q = []; MS_LIVE.cur = null; $('msLive').hidden = true; }
+
+/* ---------- the pager (mode pager, the story's chapter 1): a page buzzes in; the call is made from the nearest phone booth (js/08o) ---------- */
+function msPage(text) {                    // the pager on screen with its message and a double buzz; gone after a few seconds
+  const el = $('pager'); $('pgText').textContent = text; el.hidden = false; el.classList.remove('buzz'); void el.offsetWidth; el.classList.add('buzz');
+  MS.pageT = 7; Snd.tone(92, 86, 0.24, 0.14, 'square'); setTimeout(() => Snd.tone(92, 86, 0.24, 0.14, 'square'), 340);
+}
+function msBooth(text, nums) {             // a step: the page, then CALL at the nearest phone booth and the call's lines (the game waits); without the pager the call rings at once
+  return {
+    enter(A) {
+      const k = 'call' + MS.k; A[k] = false;
+      if (!feat('pager') || !BOOTHS.length) { msLive(nums, { phone: true, done: () => { A[k] = true; } }); return; }
+      msPage(text);
+      let b = BOOTHS[0]; for (const q of BOOTHS) if (dist(q.x, q.y, P.x, P.y) < dist(b.x, b.y, P.x, P.y)) b = q;
+      A.booth = b; MS.mark = () => ({ x: b.x, y: b.y, h: 40 }); MS.guide = () => b;
+      MS.start = { at: () => b, label: 'CALL', go: () => { MS.mark = null; MS.guide = null; Snd.tone(440, 440, 0.12, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
+    },
+    tick(A) { return !!A['call' + MS.k]; },
+    info: A => A.booth && !A['call' + MS.k] ? Math.round(dist(P.x, P.y, A.booth.x, A.booth.y) / UNITS_PER_M) + ' M TO THE BOOTH' : ''
+  };
+}
 function msTalkNext() {
   const T = MS.talk; if (!T) return;
   const L = T.lines[T.i];
@@ -243,11 +264,11 @@ window.addEventListener('keydown', e => {   // before the game's own keys: E, Sp
 
 /* ---------- cutscenes from the shot lists: the usual camera from above ---------- */
 const MS_CAM = { WIDE: 0.7, CLOSE: 1.9, FOLLOW: 1.3, OVERHEAD: 1.5, FIXED: 1.1, PAN: 1.0 };
-function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
+function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, cap (a caption), enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
   const make = MS.s.cuts && MS.s.cuts[name]; if (!make) { done(); return; }
   if (MS_LIVE.cur) $('msLive').hidden = true;                        // a live line in progress waits out of sight (msLiveTick shows it again)
   const A = MS.A, list = make(A);
-  const shots = list.map((s, i) => ({ dur: s.dur, bars: true, fadeIn: i === 0 ? 0.6 : false, fadeOut: s.fadeOut || (i === list.length - 1 ? 0.6 : 0),
+  const shots = list.map((s, i) => ({ dur: s.dur, bars: true, cap: s.cap, fadeIn: i === 0 ? 0.6 : false, fadeOut: s.fadeOut || (i === list.length - 1 ? 0.6 : 0),
     enter() { s.said = false; s.readT = null; s.waitT = 0; if (s.enter) s.enter(A); this.tick(0, 0, 0); },
     tick(dt, t, u) {
       const place = () => { const p = s.at ? s.at(A) : P, q = s.cam === 'PAN' && s.to ? s.to(A) : null;
@@ -1033,4 +1054,143 @@ MSCRIPT.q06 = (() => {
       { dur: 5, cam: 'CLOSE', at: () => A.marco, line: [29, 30, 31], enter: () => { face(A.marco, P); face(A.lucia, P); } }]
   };
   return { setup, steps, fail, cuts, cleanup() { SKX.ms = false; } };
+})();
+
+/* ================= THE STORY, CHAPTER 1 - ARRIVAL (Papa Joe) ================= */
+const STORY1 = {                           // shared by chapter 1's quests: places and little helpers
+  at: (x, y) => ({ x, y }),
+  face(p, q) { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; },
+  road(x, y) { const q = nearestRoad(x, y, 900), t = edgeAt(q.e, q.s, {}); return { x: t.x, y: t.y, a: Math.atan2(t.ty, t.tx) }; },
+  stay(p, dt) { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); },
+  look: id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants }),
+  kmh: c => carSpeed(c) / KMH,
+  dryNear(x, y) {                          // here, or the nearest dry spot (nothing dropped lies in the water)
+    if (shoreDist(x, y) > -4) return { x, y };
+    for (let r = 12; r <= 96; r += 12) for (let k = 0; k < 12; k++) { const a = k / 12 * TAU, q = { x: x + Math.cos(a) * r, y: y + Math.sin(a) * r }; if (shoreDist(q.x, q.y) > 2) return q; }
+    return { x, y };
+  },
+  sidewalk(x, y) {                         // the nearest sidewalk spot to a point on a street
+    const rd = nearestRoad(x, y, 900); if (!rd) return { x, y };
+    let best = null; for (const side of [1, -1]) { const q = sidewalkPoint({ e: rd.e, fw: 1, s: rd.s, side }, 0, {}); if (!pedBlocked(q.x, q.y) && (!best || dist(q.x, q.y, x, y) < dist(best.x, best.y, x, y))) best = { x: q.x, y: q.y }; }
+    return best || { x, y };
+  },
+  colony() {                               // the Colony: outside its door, the cab's place on the ring drive (east end, by the door)
+    const h = SAFES.find(s => s.id === 'colony'), R = COLONY.ring, k = R.hl + (R.ri + R.ro) / 2;
+    return { door: { x: h.door.x + h.door.fx * 24, y: h.door.y + h.door.fy * 24, fx: h.door.fx, fy: h.door.fy },
+      cab: { x: R.x - R.ux * k, y: R.y - R.uy * k, a: Math.atan2(R.vy, R.vx) } };
+  },
+  rank(x, y) { let b = RANKS[0]; for (const r of RANKS) if (dist(r.x, r.y, x, y) < dist(b.x, b.y, x, y)) b = r; return b; },
+  runStep(speed) {                         // a post.step: running along p.route (points), then standing
+    return (p, dt) => { const R = p.route; if (!R || p.ri >= R.length) return STORY1.stay(p, dt); const q = R[p.ri]; if (walkTo(p, q.x, q.y, NPC_RUN * speed, dt) < 14) p.ri++; return true; };
+  }
+};
+
+/* ================= M01 - LAST FLIGHT ================= */
+MSCRIPT.m01 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    const C = S1.colony(); A.door = C.door; A.cabAt = C.cab;
+    A.cab = msCar('taxi', C.cab.x, C.cab.y, C.cab.a); A.cab.hp = A.cab.maxhp *= N().cabTough;   // Joe's cab on the Colony's ring drive - it has seen worse
+    A.joe = msPed(C.cab.x + 26, C.cab.y + 14, Math.PI, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay }));
+    A.esther = msPed(C.door.x - C.door.fx * 6, C.door.y + 22, Math.PI, Object.assign(S1.look('esther'), { msName: 'esther', step: S1.stay }));
+    A.term = at(CHECKIN.x, CHECKIN.y + 24);                                            // the night: Skyport's forecourt, the kerb, the road into town
+    A.kerb = S1.road(CHECKIN.x, CHECKIN.y);
+    const b = (typeof AD !== 'undefined' && AD.at && AD.at[0]) || at(4209, 9607); A.board = at(b.x, b.y); A.boardRoad = S1.road(b.x, b.y);
+    const rk = S1.rank(CHECKIN.x, CHECKIN.y); A.rank = at(rk.x, rk.y); A.rankA = rk.ang;   // the airport rank; the fare waits on its sidewalk
+    const kp = S1.sidewalk(rk.x, rk.y); A.kid = msPed(kp.x, kp.y, 0, Object.assign(S1.look('kid'), { msName: 'kid', step: S1.stay, spare: true }));   // traffic never runs him down - only you could
+    const dr = S1.rank(COLONY.cx, COLONY.cy); A.drop = at(dr.x, dr.y);                 // where he wants to go: Coral Shore's rank
+  }
+  function morning(A) {                                                               // the next morning: out of the Colony's door, Joe by his cab
+    SKY.hour = N().morning; A.bag = null;
+    if (P.car) exitCar(true); P.x = A.door.x; P.y = A.door.y; P.vx = P.vy = 0; P.ang = Math.atan2(A.door.fy, A.door.fx); cam.x = P.x; cam.y = P.y;
+    const c = A.cab; c.x = A.cabAt.x; c.y = A.cabAt.y; c.ang = A.cabAt.a; c.vx = c.vy = 0;
+    A.joe.x = c.x + 26; A.joe.y = c.y + 14; A.joe.post.x = A.joe.x; A.joe.post.y = A.joe.y; face(A.joe, P);
+    MS.mark = () => A.joe;
+    MS.start = { at: () => A.joe, label: 'START MISSION', go: () => { face(A.joe, P); msSay([9], () => { A.go = true; }); } };
+  }
+  function bail(A) {                                                                  // the fare jumps out and runs
+    const c = A.cab, k = A.kid, rx = -Math.sin(c.ang), ry = Math.cos(c.ang), s = c.t.wid / 2 + 12;
+    let x = c.x + rx * s, y = c.y + ry * s; if (pedBlocked(x, y)) { x = c.x - rx * s; y = c.y - ry * s; }
+    k.x = x; k.y = y; k.vx = k.vy = 0; k.dead = false; if (!peds.includes(k)) peds.push(k);
+    k.route = msRunRoute(x, y, N().runLen); k.ri = 0; k.post.step = S1.runStep(N().kidRun); k.state = 'post'; A.kidIn = false; A.ran = true; A.ranT = gameT;
+    msLive([15, 16], { now: true });
+  }
+  function caught(A) {
+    const k = A.kid; k.post.step = S1.stay; k.post.x = k.x; k.post.y = k.y; face(k, P);
+    A.bag = S1.dryNear(k.x + 14, k.y + 6); A.caught = true; msLive([17], { now: true });
+  }
+  const joeIn = A => { if (!A.joe.ally) msAllyFrom(A.joe, { who: 'joe', calm: true, stay: true, hp: N().joeHp, fail: MS.m.fails.joeDead }); };
+  const toCab = (A, x, y, a) => { const c = A.cab; if (P.car) exitCar(true); c.x = x; c.y = y; c.ang = a; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; enterCar(c); joeIn(A); if (A.joe.aboard !== c) allyBoard(A.joe, c); };
+  const steps = [
+    { enter(A) { msCut('LAST FLIGHT', () => morning(A)); },                          // TALK TO Joe (after the arrival)
+      tick(A) { return !!A.go; },
+      jump(A) { morning(A); MS.start = null; A.go = true; } },
+    { enter(A) { joeIn(A); MS.mark = () => A.cab; MS.guide = null; },                // GET IN his cab - Joe beside you
+      tick(A) { return P.car === A.cab && A.joe.aboard === A.cab; },
+      jump(A) { toCab(A, A.cabAt.x, A.cabAt.y, A.cabAt.a); } },
+    { enter(A) { MS.guide = A.rank; MS.mark = () => A.kid; A.t3 = gameT; A.said = 0; },   // GO TO the airport rank, Joe talking
+      tick(A) {
+        const inCab = P.car === A.cab && A.joe.aboard === A.cab, t = gameT - A.t3;
+        MS.guide = inCab ? A.rank : () => A.cab;
+        if (inCab && A.said < 3 && t > [5, 22, 40][A.said]) msLive([10 + A.said++]);
+        if (!inCab || dist(A.cab.x, A.cab.y, A.rank.x, A.rank.y) > N().rankR * 3) return false;
+        msLive([13], { now: true }); return true; },
+      info: A => Math.round(dist(me().x, me().y, A.rank.x, A.rank.y) / UNITS_PER_M) + ' M TO THE RANK',
+      jump(A) { toCab(A, A.rank.x - Math.cos(A.rankA) * 160, A.rank.y - Math.sin(A.rankA) * 160, A.rankA); } },
+    { enter(A) { MS.mark = () => A.kid; MS.guide = () => A.kid; },                   // COLLECT the fare: stop by him
+      tick(A) {
+        if (P.car !== A.cab || dist(A.cab.x, A.cab.y, A.kid.x, A.kid.y) > N().boardR || S1.kmh(A.cab) > 12) return false;
+        const i = peds.indexOf(A.kid); if (i >= 0) peds.splice(i, 1); A.kidIn = true; msLive([14], { now: true }); return true; },
+      jump(A) { const i = peds.indexOf(A.kid); if (i >= 0) peds.splice(i, 1); A.kidIn = true; } },
+    { enter(A) { MS.guide = A.drop; MS.mark = null; A.t5 = gameT; },                  // DELIVER him - he jumps out at a light
+      tick(A) {
+        const t = gameT - A.t5, v = S1.kmh(A.cab);
+        if ((t > N().bailMin && v < N().bailSlow) || (t > N().bailMax && v < 45) || P.car !== A.cab) { bail(A); return true; }
+        return false; },
+      jump(A) { bail(A); } },
+    { enter(A) { MS.mark = () => A.kid; MS.guide = () => A.kid; },                   // CHASE him down
+      tick(A) {
+        const k = A.kid, near = P.car ? dist(P.car.x, P.car.y, k.x, k.y) < 40 && S1.kmh(P.car) < 15 : dist(P.x, P.y, k.x, k.y) < N().catchR;
+        if (!near || gameT - A.ranT < N().headStart) return false; caught(A); return true; },   // he has a head start out of the door
+      info: A => Math.round(dist(me().x, me().y, A.kid.x, A.kid.y) / UNITS_PER_M) + ' M TO THE FARE (GONE AT ' + N().awayFoot + ')',
+      jump(A) { if (!A.ran) bail(A); caught(A); } },
+    { enter(A) { if (!A.bag) A.bag = S1.dryNear(A.kid.x + 14, A.kid.y + 6); MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = () => A.bag; },   // COLLECT the money
+      tick(A) { if (P.car || !A.bag || dist(P.x, P.y, A.bag.x, A.bag.y) > 26) return false; A.bag = null; Snd.pickup(); popup(P.x, P.y - 14, "JOE'S FARE " + money(N().fare), '#b6ff3c'); return true; },
+      jump(A) { A.bag = null; } },
+    { enter(A) { MS.guide = () => A.cab; MS.mark = () => A.cab; },                   // GO TO the cab: the closing
+      tick(A) {
+        if (A.home || dist(me().x, me().y, A.cab.x, A.cab.y) > N().cabR) return false;
+        A.home = true; if (P.car) exitCar(true); if (A.joe.aboard) allyAlight(A.joe);
+        msCut("YOU'LL DO", () => msNext()); return false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    const f = msCastFail(); if (f) return f;
+    if (A.joe.dead) return F.joeDead;
+    if (A.kid.dead && peds.includes(A.kid)) return F.kidDead;
+    if (MS.k === 5 && dist(me().x, me().y, A.kid.x, A.kid.y) > N().awayFoot * UNITS_PER_M) return F.away;
+    if (A.cab.dead && !A.home) return F.cab;
+    return '';
+  }
+  const cuts = {
+    'LAST FLIGHT': A => [
+      { dur: 4, cam: 'WIDE', cap: 'MIRAVISTA, 1997', at: () => A.term, line: 1,
+        enter: () => { SKY.hour = N().night; if (P.car) exitCar(true); P.x = A.term.x; P.y = A.term.y; P.vx = P.vy = 0; A.bag = at(A.term.x + 12, A.term.y + 4);
+          const c = A.cab; c.x = A.kerb.x - Math.cos(A.kerb.a) * 400; c.y = A.kerb.y - Math.sin(A.kerb.a) * 400; c.ang = A.kerb.a; c.vx = c.vy = 0;
+          A.joe.x = c.x; A.joe.y = c.y; } },
+      { dur: 3, cam: 'CLOSE', at: () => A.cab, line: [2, 3],
+        enter: () => { const c = A.cab; c.x = A.kerb.x; c.y = A.kerb.y; c.ang = A.kerb.a; const rx = -Math.sin(c.ang), ry = Math.cos(c.ang);
+          A.joe.x = c.x + rx * 20; A.joe.y = c.y + ry * 20; face(A.joe, P); } },
+      { dur: 4, cam: 'PAN', at: () => A.kerb, to: () => A.boardRoad, line: 4, enter: () => { CUT.hideP = true; A.bag = null; A.joe.x = A.cab.x; A.joe.y = A.cab.y + 4000; } },
+      { dur: 4, cam: 'FIXED', at: () => at(A.board.x, A.board.y + 80), line: 5,                      // the board above the dialogue, the cab driving past it
+        enter: () => { const r = A.boardRoad, c = A.cab; c.ang = r.a; c.x = r.x - Math.cos(r.a) * 220; c.y = r.y - Math.sin(r.a) * 220; },
+        tick: (A2, dt) => { const c = A.cab; c.x += Math.cos(c.ang) * 110 * dt; c.y += Math.sin(c.ang) * 110 * dt; } },
+      { dur: 4, cam: 'CLOSE', at: () => A.esther, line: [6, 7],
+        enter: () => { CUT.hideP = false; P.x = A.door.x - 30; P.y = A.door.y + 6; const c = A.cab; c.x = A.cabAt.x; c.y = A.cabAt.y; c.ang = A.cabAt.a;
+          A.joe.x = c.x + 26; A.joe.y = c.y + 14; face(A.esther, P); face(A.joe, A.esther); } },
+      { dur: 3, cam: 'WIDE', at: () => at(COLONY.cx - 40, COLONY.cy), line: 8, fadeOut: 1 }],
+    "YOU'LL DO": A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.joe, line: [18, 19], enter: () => face(A.joe, P) },
+      { dur: 4, cam: 'WIDE', at: () => A.cab, line: 20 }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { } };
 })();

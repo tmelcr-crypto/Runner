@@ -674,6 +674,14 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #msTalk[hidden]{display:none}
 #msLive{position:fixed;left:50%;top:98px;transform:translateX(-50%);z-index:33;display:flex;gap:8px;align-items:center;width:min(520px,78vw);pointer-events:none}
 #msLive[hidden]{display:none}
+#pager{position:fixed;right:max(12px,env(safe-area-inset-right));top:236px;z-index:33;pointer-events:none;width:150px;background:linear-gradient(#3a3f52,#22252f);border:3px solid #0c0c12;border-radius:10px 10px 16px 16px;padding:5px 8px 9px;box-shadow:3px 3px 0 #000}
+#pager[hidden]{display:none}
+#pager .pgTop{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-display);font-size:7px;letter-spacing:2px;color:#9aa0b0;margin-bottom:4px}
+#pager .pgLed{width:7px;height:7px;border-radius:50%;background:#ff3a3a;box-shadow:0 0 6px #ff3a3a}
+#pgText{background:#9bd16a;color:#14261a;font:bold 11px/1.4 monospace;padding:6px;border-radius:3px;min-height:2.8em;box-shadow:inset 0 0 6px rgba(0,0,0,.4);text-transform:uppercase;word-break:break-word}
+#pager.buzz{animation:pgBuzz .12s linear 0s 8}
+@keyframes pgBuzz{0%{transform:translateX(0)}25%{transform:translateX(-3px) rotate(-2deg)}75%{transform:translateX(3px) rotate(2deg)}100%{transform:translateX(0)}}
+@media (max-height:500px){#pager{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:132px}}
 #msLivePic{width:48px;height:48px;border:2px solid #fff;border-radius:5px;background:#12101c;flex:none;image-rendering:pixelated}
 #msLiveBub{flex:1;background:rgba(251,251,255,.94);color:#14121c;border:3px solid #fff;border-radius:10px;padding:6px 10px;font-family:var(--f-display);font-size:10px;line-height:1.6;box-shadow:3px 3px 0 #000}
 #msLiveWho{display:block;font-size:9px;letter-spacing:2px;text-shadow:1px 1px 0 #000}
