@@ -102,3 +102,7 @@ questions before building it. Each answer is written here as it comes; the story
 90. Chapter 3's guide: Nina Park, a Bay TV reporter who has been digging into Crane for years; she and Danny trade what they find (and she sets up the TV-or-FBI choice).
 91. In chapter 4 Danny has his own crew: Papa Joe, Rosa and Nina, plus whoever he helped in the side lines.
 92. Chapters show no dates - only the chapter names on their title cards.
+93. Rosa Ortega's look: 40s, black hair pulled back tight, big gold hoop earrings, red lipstick, a red blouse with rolled sleeves, a gold chain; tough and warm.
+94. Nina Park's look: 30s, a sharp black bob, a mustard blazer with big 90s shoulders, small gold earrings; quick and fearless.
+95. Bruno "Bull" Kessler's look: huge, a big neck, a shaved head, a blond goatee, a white tank top, gold chains, a tattoo; loud.
+96. Mateo Cruz's look: like Danny but neat and older - the same jaw, slicked-back hair with grey at the sides, a chauffeur's dark suit and cap, tired eyes; no scar.
