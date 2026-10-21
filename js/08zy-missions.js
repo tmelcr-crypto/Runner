@@ -663,3 +663,112 @@ MSCRIPT.q03 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { } };
 })();
+
+/* ================= QUEST 04 - HOT CARGO ================= */
+MSCRIPT.q04 = (() => {
+  const N = () => MS.m.numbers, me = () => P.car || P, at = (x, y) => ({ x, y });
+  const face = (p, q) => { p.ang = p.hd = Math.atan2(q.y - p.y, q.x - p.x); if (p.post) p.post.a = p.ang; };
+  const road = (x, y) => { const q = nearestRoad(x, y, 900), t = edgeAt(q.e, q.s, {}); return { x: t.x, y: t.y, a: Math.atan2(t.ty, t.tx) }; };
+  const walkSide = (x, y, side) => { const q = nearestRoad(x, y, 900), t = edgeAt(q.e, q.s, {}), off = walkOffset(t.x - t.ty * side * SIDEWALK, t.y + t.tx * side * SIDEWALK) * side; return at(t.x - t.ty * off, t.y + t.tx * off); };   // on the sidewalk beside a street
+  const stay = (p, dt) => { if (p.state === 'flee') p.state = 'post'; return standStep(p, dt); };
+  const look = id => ({ shirt: msWho(id).shirt, pants: msWho(id).pants });
+  const up = list => list.filter(p => !p.dead);
+  const nearest = list => up(list).sort((a, b) => dist(a.x, a.y, me().x, me().y) - dist(b.x, b.y, me().x, me().y))[0];
+  function setup(A) {
+    const S = A.S = IXS.find(q => q.name === 'HARBOR COLD STORE'); S.ms = true; S.open = 1; S.ds.off = true;   // the mission holds the store: its roller door up, nobody at work (js/08zx)
+    const W = (lx, lz) => ixWorld(S, lx, lz, {}), out = S.a + Math.PI / 2;   // out: the way the door faces
+    A.doorIn = W(0, S.hd - 40);
+    const d = MARINA.door; A.door = at(d[0] + 22, d[1] + 4); A.drop = at(8010, 4370);   // Marco at his door; the truck stops on the quay
+    A.marco = msPed(A.door.x, A.door.y, 0, Object.assign(look('marco'), { msName: 'marco', step: stay }));
+    A.sol = msPed(0, 0, 0, Object.assign(look('sol'), { msName: 'sol', hardhat: '#ffd23f', step: stay }));   // Sol: on the sidewalk up the street, looking at the store
+    const s = walkSide(S.dx - 118, S.dy - 440, 1); A.sol.x = A.sol.post.x = s.x; A.sol.y = A.sol.post.y = s.y; face(A.sol, at(S.dx, S.dy));
+    A.guards = [[-52, 30], [52, 36]].map(([lx, dz]) => { const w = W(lx, S.hd + dz); return Object.assign(msFoe(w.x, w.y, { gun: 'pistol', hp: N().foeHp, group: 'door', a: out }), { calm: true }); });
+    A.men = [[-34, 140, 'pistol'], [40, 60, 'smg'], [-40, -20, 'pistol'], [36, -170, 'pistol']].map(([lx, lz, g]) => { const w = W(lx, lz);
+      return Object.assign(msFoe(w.x, w.y, { gun: g, hp: N().foeHp, group: 'store', a: out }), { calm: true }); });
+    const tw = W(0, -100); A.truck = msCar('truck', tw.x, tw.y, out, '#c8ccd2');   // the engine truck at the back, facing the door, the keys in it
+    A.truck.hp = A.truck.maxhp = A.truck.maxhp * N().truckTough;
+    const k = kerbBy(7880, 4300); A.mycar = msCar('sports', k.x, k.y, k.ang, '#f2c14a');   // a car at the kerb by the harbour
+    const st = [[0, 80], [-20, 80], [0, -80], [-40, 40], [-40, -40], [-60, 0]].map(([dx, dy]) => at(A.door.x + dx, A.door.y + dy)).find(q => shoreDist(q.x, q.y) > 10 && !pedBlocked(q.x, q.y)) || at(A.door.x - 40, A.door.y);
+    P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // a few steps from Marco
+  }
+  function solJoins(A) { if (!A.sol.ally) { A.sol.hardhat = '#ffd23f'; msAllyFrom(A.sol, { who: 'sol', gun: 'shotgun', fail: MS.m.fails.solDead, hurtLine: 13 }); } }
+  function chasers(A) {                                                // two Varga cars after the truck: one from up the street, one from behind
+    if (A.cars) return;
+    A.cars = [road(5087, 10450), road(4748, 12400)].slice(0, N().chasers).map((r, i) =>
+      msFoeCar(i ? 'sedan' : 'muscle', r.x, r.y, r.a, { crew: 2, gun: i ? 'pistol' : 'smg', group: 'chase', speed: N().chaseSpeed }));
+    msLive([15], { now: true });
+  }
+  const live = c => !c.dead && !c.fc.out && c.fc.crew > 0;
+  function lost(A, dt) {                                              // every Varga car wrecked or emptied (and its men down), or far behind you for a while
+    const left = A.cars.filter(c => live(c) || (c.fc.men || []).some(m => !m.dead));
+    if (!left.length) return true;
+    const far = left.every(c => live(c) ? dist(c.x, c.y, me().x, me().y) > N().loseAt * UNITS_PER_M : c.fc.men.every(m => m.dead || dist(m.x, m.y, me().x, me().y) > N().loseAt * UNITS_PER_M));
+    A.farT = far ? (A.farT || 0) + dt : 0; return A.farT > N().loseFor;
+  }
+  const started = A => A.guards.concat(A.men).some(m => m.alert || m.dead);   // the fight is on
+  const steps = [
+    { enter(A) { MS.mark = () => A.marco; MS.start = { at: () => A.marco, label: msWho('marco').name, go: () => msCut('BRING THEM HOME', () => msNext()) }; },   // TALK TO Marco
+      tick() { return false; } },
+    { enter(A) { MS.mark = () => A.sol; MS.guide = () => A.sol; },     // GO TO Sol, up the street from the store
+      tick(A) {
+        if (started(A)) { solJoins(A); msLive([22], { now: true }); msEnter(2); return false; }   // you started it before meeting him: he runs to join you
+        if (!A.cutGo && dist(me().x, me().y, A.sol.x, A.sol.y) < N().solR) { A.cutGo = true; msCut('THE COLD STORE', () => msNext()); }
+        return false; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.sol.x + 30; P.y = A.sol.y; } },
+    { enter(A) { solJoins(A); for (const m of A.guards) m.calm = false; MS.mark = () => nearest(A.guards); MS.guide = () => nearest(A.guards); },   // TAKE OUT the door guards: they watch now
+      tick(A) {
+        if (!A.said11 && A.guards.some(m => m.alert)) { A.said11 = true; msLive([11], { now: true }); }
+        return !up(A.guards).length; },
+      info: A => up(A.guards).length + ' AT THE DOOR',
+      jump(A) { solJoins(A); for (const m of A.guards) if (!m.dead) killPed(m, 'gun', false); } },
+    { enter(A) { for (const m of A.men) m.calm = false; MS.mark = () => nearest(A.men); MS.guide = () => nearest(A.men) || A.doorIn; },   // TAKE OUT the men inside
+      tick(A) {
+        if (!A.said12 && A.men.some(m => m.alert)) { A.said12 = true; msLive([12], { now: true }); }
+        if (up(A.men).length) return false; msLive([14], { now: true }); return true; },
+      info: A => up(A.men).length + ' MEN LEFT',
+      jump(A) { solJoins(A); for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); if (P.car) exitCar(true); P.x = A.doorIn.x; P.y = A.doorIn.y; } },
+    { enter(A) { MS.mark = () => A.truck; MS.guide = () => A.truck; },   // GET IN the truck
+      tick(A) { return P.car === A.truck; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.truck.x; P.y = A.truck.y; enterCar(A.truck); allyBoard(A.sol, A.truck); } },
+    { enter(A) { chasers(A); MS.mark = () => P.car === A.truck ? null : A.truck; MS.guide = () => P.car === A.truck ? A.drop : A.truck; A.t5 = gameT; },   // SURVIVE: the Varga cars, on the way back
+      tick(A, dt) {
+        if (!A.called && gameT - A.t5 > 8) { A.called = true; msLive([16, 17, 18], { phone: true }); msLive([19]); }
+        if (!lost(A, dt)) return false; msLive([20], { now: true }); return true; },
+      info: A => A.cars ? A.cars.filter(c => live(c)).length + ' CARS AFTER YOU' : '',
+      jump(A) { chasers(A); for (const c of A.cars) { c.fc.out = true; c.fc.men = []; c.driver = null; c.msDrive = null; } } },
+    { enter() { if (P.stars <= 0) $('msObj').hidden = true; },        // LOSE THE POLICE (if any)
+      tick() { return P.stars <= 0; } },
+    { enter(A) { MS.guide = () => P.car === A.truck ? A.drop : A.truck; MS.mark = () => P.car === A.truck ? A.marco : A.truck; A.t7 = gameT; },   // DELIVER: the truck to the quay by Marco
+      tick(A) {
+        if (!A.told && gameT - A.t7 > N().storyAt && A.sol.aboard) { A.told = true; msLive([21]); }   // Sol's story on the way
+        if (A.home || dist(A.truck.x, A.truck.y, A.drop.x, A.drop.y) > N().dropR) return false;
+        A.home = true; if (P.car) exitCar(true);
+        const L = A.sol; if (L.aboard) allyAlight(L);
+        if (dist(L.x, L.y, A.door.x, A.door.y) > 160) { const d = allyDoor(A.truck); L.x = d.x; L.y = d.y; L.vx = L.vy = 0; }   // he is with you
+        msCut('TWELVE ENGINES', () => msNext()); return false; },
+      info: A => P.car === A.truck ? Math.round(dist(A.truck.x, A.truck.y, A.drop.x, A.drop.y) / UNITS_PER_M) + ' M TO MARCO' : 'GET BACK IN THE TRUCK' }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.marco.dead) return F.marcoDead;
+    const f = msCastFail(); if (f) return f;
+    if (A.sol.dead) return F.solDead;
+    if (A.truck.dead || A.truck.burn > 0 || A.truck.sunk) return F.truckDead;
+    return '';
+  }
+  const cuts = {
+    'BRING THEM HOME': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [1, 2], enter: () => face(A.marco, P) },
+      { dur: 4, cam: 'WIDE', at: () => at(A.door.x + 60, A.door.y + 30), line: [3, 4], enter: () => face(A.marco, at(A.marco.x - 200, A.marco.y + 600)) },
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: 5, enter: () => face(A.marco, P) }],
+    'THE COLD STORE': A => [
+      { dur: 3, cam: 'CLOSE', at: () => A.sol, line: 6, enter: () => face(A.sol, P) },
+      { dur: 5, cam: 'WIDE', at: () => at(A.S.dx - 30, A.S.dy), line: [7, 8], enter: () => face(A.sol, at(A.S.dx, A.S.dy)) },
+      { dur: 3, cam: 'CLOSE', at: () => A.sol, line: 9, enter: () => face(A.sol, P) },
+      { dur: 3, cam: 'CLOSE', at: () => A.sol, line: 10, enter: () => { A.sol.arm = gunIdx('shotgun'); Snd.tone(220, 140, 0.08, 0.1, 'square'); } }],   // he racks his shotgun
+    'TWELVE ENGINES': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [23, 24], enter: () => { face(A.marco, A.truck); face(A.sol, A.marco); } },
+      { dur: 4, cam: 'WIDE', at: () => at(A.door.x + 60, A.door.y + 30), line: [25, 26], enter: () => face(A.marco, at(A.marco.x + 400, A.marco.y + 300)) },
+      { dur: 4, cam: 'CLOSE', at: () => A.marco, line: 27, enter: () => face(A.marco, P) }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.S) A.S.ms = false; } };
+})();

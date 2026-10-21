@@ -85,6 +85,22 @@ function allyTargets() {                     // the foes on foot, and the foes' 
   return out;
 }
 
+/* ---------- the way in or out of a top-down place (js/10z): through an open door (the roller door, or the side door by day) when one is inside and the other is not ---------- */
+function castWay(p, x, y) {
+  for (const S of IXS) {
+    if (S.kind === 'unit' || dist(p.x, p.y, S.cx, S.cy) > S.hw + S.hd + 300) continue;
+    const a = ixIn(S, p.x, p.y, -8); if (a === ixIn(S, x, y, -8)) continue;
+    const doors = []; if (S.open > 0.85) doors.push([0, S.dw / 2 - 8]); if (S.px !== null && S.pOpen > 0.5) doors.push([S.px, IX_PD / 2 - 3]);   // [its x, half its lane]
+    if (!doors.length) return null;
+    const l = ixLocal(S, p.x, p.y, {}), t = ixLocal(S, x, y, {}), via = d => Math.hypot(l.x - d[0], l.z - S.hd) + Math.hypot(t.x - d[0], t.z - S.hd);
+    const [dx, half] = doors.reduce((b, d) => via(d) < via(b) ? d : b), lane = Math.abs(l.x - dx) < half;
+    if (a) return lane && l.z > S.hd - 44 ? ixWorld(S, dx, S.hd + 40, {}) : ixWorld(S, dx, S.hd - 40, {});   // inside: to the door, then out
+    return lane && l.z > S.hd - 12 && l.z < S.hd + 44 ? ixWorld(S, dx, S.hd - 40, {}) : ixWorld(S, dx, S.hd + 40, {});   // outside: to the door, then in
+  }
+  return null;
+}
+const castTo = (p, o) => castWay(p, o.x, o.y) || o;
+
 /* ---------- a foe on foot ---------- */
 function foeAlert(p) {                      // it fights now, and so do the others of its group near it, a moment later
   if (p.alert) return; p.alert = true; p.calm = false; p.cool = rand(0.3, 0.9);
@@ -93,7 +109,7 @@ function foeAlert(p) {                      // it fights now, and so do the othe
 function foeStep(p, dt) {                   // its post.step (js/08j postStep): always in charge of it
   if (p.state === 'flee') p.state = 'post';                         // never runs (alertPeds, a knock)
   const po = p.post;
-  const back = () => { if (walkTo(p, po.x, po.y, WALK, dt) < 4) { p.vx = p.vy = 0; p.ang = p.hd = po.a; } };
+  const back = () => { const w = castWay(p, po.x, po.y); if (w) walkTo(p, w.x, w.y, WALK, dt); else if (walkTo(p, po.x, po.y, WALK, dt) < 4) { p.vx = p.vy = 0; p.ang = p.hd = po.a; } };
   if (!feat('msFoes') || p.calm) { back(); return true; }             // calm: waiting for a cutscene (a shot near, and it fights anyway)
   if (p.alertIn !== undefined && (p.alertIn -= dt) <= 0) { delete p.alertIn; foeAlert(p); }
   if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = castPick(p, foeTargets(), p.alert ? MSN.foeLeash * UNITS_PER_M : MSN.foeSee * UNITS_PER_M); }
@@ -103,11 +119,11 @@ function foeStep(p, dt) {                   // its post.step (js/08j postStep): 
   const o = t.o, d = dist(p.x, p.y, o.x, o.y), w = WEAPONS[p.arm], face = () => { p.ang = p.hd = Math.atan2(o.y - p.y, o.x - p.x); };
   if (isMelee(w)) {                                                 // a bat, a knife: at you
     const reach = (w.reach || 20) + 16 + (t.kind === 'P' && P.car ? P.car.t.wid / 2 : 0);
-    if (d > reach) walkTo(p, o.x, o.y, NPC_RUN, dt); else { stepCop(p, 0, 0, 0, dt); face(); if ((p.cool -= dt) <= 0) { p.cool = w.rate * 2.6 + rand(0, 0.4); p.swingT = 0.25; castMelee(t, w); } }
+    if (d > reach) { const w = castTo(p, o); walkTo(p, w.x, w.y, NPC_RUN, dt); } else { stepCop(p, 0, 0, 0, dt); face(); if ((p.cool -= dt) <= 0) { p.cool = w.rate * 2.6 + rand(0, 0.4); p.swingT = 0.25; castMelee(t, w); } }
     return true;
   }
   const range = Math.min(w.range || 300, COP.fireRange);
-  if (!t.see || d > range * 0.85) walkTo(p, o.x, o.y, NPC_RUN * (p.boss ? 0.85 : 1), dt);   // closing in
+  if (!t.see || d > range * 0.85) { const w = castTo(p, o); walkTo(p, w.x, w.y, NPC_RUN * (p.boss ? 0.85 : 1), dt); }   // closing in (by a door if it must)
   else if (d < 70) { const a = Math.atan2(p.y - o.y, p.x - o.x); stepCop(p, Math.cos(a), Math.sin(a), NPC_RUN * 0.5, dt); }   // too close: a step back
   else { if ((p.sdT -= dt) < 0) { p.sdT = rand(1.2, 2.6); p.sd = -p.sd; } const a = Math.atan2(o.y - p.y, o.x - p.x) + p.sd * Math.PI / 2; stepCop(p, Math.cos(a), Math.sin(a), WALK * 1.3, dt); }   // side-stepping
   face();
@@ -149,7 +165,7 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
   if (P.car && allyRides(P.car) && carSpeed(P.car) < MSN.allyBoard * KMH) {   // you stopped in a car: in with you
     const dr = allyDoor(P.car, p);
     if (dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700) { allyBoard(p, P.car); return true; }   // far behind, out of sight: it caught up
-    if (dP < 300) { if (walkTo(p, dr.x, dr.y, dP > 90 ? SPRINT : RUN, dt) < 16) allyBoard(p, P.car); return true; }
+    if (dP < 300) { const w = castTo(p, dr); if (walkTo(p, w.x, w.y, dP > 90 ? SPRINT : RUN, dt) < 16 && w === dr) allyBoard(p, P.car); return true; }
   }
   if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = castPick(p, allyTargets(), MSN.allyRange * UNITS_PER_M); }
   const t = p.tg && p.tg.see ? p.tg : null, w = WEAPONS[p.arm];
@@ -162,7 +178,7 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
     if (t.d > range * 0.9) walkTo(p, t.o.x, t.o.y, RUN, dt); else stepCop(p, 0, 0, 0, dt);
     p.ang = p.hd = Math.atan2(t.o.y - p.y, t.o.x - p.x);
     if (t.d < range && (p.cool -= dt) <= 0) { p.cool = rand(0.55, 1.05); castShot(p, t, w, MSN.allyAim); }
-  } else if (df > keep * 0.45) walkTo(p, fx, fy, df > keep * 3 ? SPRINT : df > keep ? RUN : WALK * 1.6, dt);
+  } else if (df > keep * 0.45) { const w = castWay(p, fx, fy) || { x: fx, y: fy }; walkTo(p, w.x, w.y, df > keep * 3 ? SPRINT : df > keep ? RUN : WALK * 1.6, dt); }
   else { stepCop(p, 0, 0, 0, dt); if (t) p.ang = p.hd = Math.atan2(t.o.y - p.y, t.o.x - p.x); }
   return true;
 }
