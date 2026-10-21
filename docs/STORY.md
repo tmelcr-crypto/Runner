@@ -5,10 +5,12 @@ When work on story mode starts, go through the open items with the owner first.
 
 ## Open items
 
-1. **Space center entry (Gravel Flats).** The space center is built and fenced, and its gate stays shut for now. Later the
-   way in comes with the story: the guards let you through *with permission* (a mission, a pass, a contact) *or in certain
-   clothes* (a disguise - a uniform, a lab coat, a flight suit). Needs a clothing / disguise system and the guards checking it.
-   Asked for on 2026-10-10; to be designed together with the story.
+1. **Space center entry (Gravel Flats)** - answered (October 2026, `docs/STORY-QA.md` answer 31): both, by quest - a pass from
+   the Space center storyline's first quest, then a lab coat or a flight suit (from the clothes) also gets you past the guards.
+
+**The whole story** (October 2026): the owner's answers are in `docs/STORY-QA.md`; the story plan made from them - 68 quests,
+the chapters, the side storylines, the choices and the finale - is `docs/STORY-PLAN.md` (a Word copy: `docs/Story-Plan.docx`,
+from `tools/story_plan_doc.py`), waiting for the owner's approval. The Varga quests below are its Varga storyline (V1-V6).
 
 ## Quest pages (asked October 2026)
 
@@ -96,8 +98,8 @@ the connectors below add what happens between quests. Filled in as each quest ar
 - **The Varga storyline (Quests 02-06, as answered October 2026)**: 02 Dock Rats (Marco, phone; Lucia helps) - 03 Paper Trail (Lucia; the casino
   strip, the ledger, a car chase; Lucia helps) - 04 Hot Cargo (Marco; Dockside, Marco's stolen engines on a truck; Sol the foreman helps) -
   05 Island Visit (Lucia, phone; Iron Key, the jailed Ivo Varga, a riot; alone) - 06 Skyline (Marco; Skyline One, Nico Varga; Lucia and Marco help).
-- **Story-wide things to settle before STORY is built**: the space center's entry (open item 1); whether the player speaks; saving
-  between quests (STORY saves as now, never during a mission); what a failed or skipped quest does to the ones after it.
+- **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
+  everyone else (6); a failed quest is retried from its marker with nothing lost (63); STORY saves as now, never during a quest.
 
 ## Settled for story mode
 
