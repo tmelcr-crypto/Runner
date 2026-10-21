@@ -26,3 +26,7 @@ questions before building it. Each answer is written here as it comes; the story
 18. The suitcase holds nothing important - someone's holiday clothes, a running joke through the story.
 19. Danny finds Mateo only at the very end.
 20. Danny's first friend: an airport taxi driver who picks him up on the first night, talks too much, knows everyone and gives him the first jobs.
+21. The taxi driver: Papa Joe, 70 - the oldest cabbie at the airport; he has seen everything, tells stories and knows where the bodies are buried.
+22. Mateo hides proof of Crane's crimes (a ledger or a tape that could bring Crane down); he stopped writing to keep Danny out of danger.
+23. The main story is 5 chapters of 6 quests.
+24. The Varga storyline (Marco and Lucia) opens after a set main quest.
