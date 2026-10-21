@@ -1384,7 +1384,7 @@ MSCRIPT.m04 = (() => {
         return false; },
       jump(A) { if (P.car) exitCar(true); P.x = A.shop.x + A.shop.fx * 60; P.y = A.shop.y + A.shop.fy * 60; } },
     { enter(A) { for (const m of A.men) foeAlert(m); MS.mark = () => A.men.filter(m => !m.dead)[0]; MS.guide = null; const i = peds.indexOf(A.lou); if (i >= 0) peds.splice(i, 1); },   // TAKE OUT the heavies (Lou ducks inside meanwhile)
-      tick(A) { blind(A, true); return A.men.every(m => m.dead); },
+      tick(A) { return A.men.every(m => m.dead); },
       info: A => A.men.filter(m => !m.dead).length + ' LEFT',
       jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
     { enter(A) { if (!A.ran) louRuns(A); MS.mark = () => A.louIn ? A.lcar : A.lou; MS.guide = () => A.louIn ? A.lcar : A.lou; A.stopT = 0; },   // CHASE Lou's car
@@ -1453,7 +1453,7 @@ MSCRIPT.m05 = (() => {
         return false; },
       jump(A) { if (P.car) exitCar(true); P.x = A.rank.x + 80; P.y = A.rank.y + 60; } },
     { enter(A) { for (const m of A.men) foeAlert(m); msLive([3], { now: true }); MS.mark = () => A.men.filter(m => !m.dead)[0]; MS.guide = null; },   // TAKE OUT Kessler's men
-      tick(A) { return A.men.every(m => m.dead); },
+      tick(A) { blind(A, true); return A.men.every(m => m.dead); },
       info: A => A.men.filter(m => !m.dead).length + ' LEFT',
       jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
     { enter(A) { blind(A, false); msLive([11, 4, 5]); if (!A.joe.ally) msAllyFrom(A.joe, { who: 'joe', calm: true, hp: N().joeHp, fail: MS.m.fails.joeDead }); MS.mark = () => A.joe; MS.guide = null; },   // GET Joe INTO A CAR (any car)
