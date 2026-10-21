@@ -90,3 +90,7 @@ questions before building it. Each answer is written here as it comes; the story
 78. The city's side activities (rampages, races, vehicle jobs, robberies, break-ins) are all open from the start in STORY, like FREE ROAM; they stay shut during a quest.
 79. A quest that needs an hour (the casino at night) moves the clock to its hour in the opening cutscene.
 80. The police in STORY are as in FREE ROAM, but once Chief Holloway is down in chapter 4 they come slower and give up sooner.
+81. The main story's three safehouses: chapter 2 the Mercado flat (Kessler's old place), chapter 3 the Palm Heights loft (Sachs' office loft), chapter 4 the penthouse (Pratt's, taken in the war).
+82. The mystery helper (Mateo) helps 3-4 times in chapters 2 to 4 - a sniper shot that saves Danny, a car left with the keys in it, a pager tip, a cut fence - never seen clearly.
+83. People who appear in two lines (Del in Varga Quest 03 and the Casino line): the quest played first introduces them; the other line's lines change to "we've met".
+84. Small nods: once a side line is done, a line or two in the main quests mentions it (Papa Joe heard about the vault...).
