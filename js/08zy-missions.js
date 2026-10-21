@@ -1275,3 +1275,62 @@ MSCRIPT.m02 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A.signM) scene.remove(A.signM); } };
 })();
+
+/* ================= M03 - GREASE MONKEY ================= */
+MSCRIPT.m03 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour;
+    const rk = S1.rank(COLONY.cx, COLONY.cy), kp = S1.sidewalk(rk.x, rk.y);             // Joe by his cab at the Coral Shore rank; you a few steps off, a car at the kerb
+    A.joeCab = msCar('taxi', rk.x, rk.y, rk.ang); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay }));
+    P.x = kp.x + 40; P.y = kp.y + 6; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;
+    const k = kerbBy(rk.x - 160, rk.y); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
+    const S = A.S = IXS.find(q => q.name === 'DOCKSIDE MOTOR WORKS'); S.ms = true; S.open = 1; S.ds.off = true;   // the quest holds Manny's garage: the roller door up, nobody at work (js/08zx)
+    const W = (lx, lz) => ixWorld(S, lx, lz, {}), out = S.a + Math.PI / 2;
+    A.doorIn = W(0, S.hd - 40); A.doorOut = W(0, S.hd + 70);
+    const mw = W(34, S.hd * 0.45); A.manny = msPed(mw.x, mw.y, out, Object.assign(S1.look('manny'), { msName: 'manny', step: S1.stay }));   // Manny by the aisle near the door
+    const cw = W(0, S.hd * 0.2); A.hot = msCar('sports', cw.x, cw.y, out, '#c8202a');   // the hot car on the middle aisle, nose to the door A.hot.hp = A.hot.maxhp *= N().carTough;   // the hot car, nose to the door
+    const [x0, y0, x1, y1] = SALV.area; A.junk = at((x0 + x1) / 2, (y0 + y1) / 2);
+  }
+  const heat = A => { if (A.heated) return; A.heated = true; P.heat = Math.max(P.heat, COP.lv.heat[N().stars] + 1); msLive([9], { now: true }); };   // out of the garage: the plates are known
+  const steps = [
+    { enter(A) { MS.mark = () => A.joe; MS.start = { at: () => A.joe, label: 'START MISSION', go: () => { face(A.joe, P); msCut('THE PHOTO', () => { A.go = true; }); } }; },   // TALK TO Joe: the photo
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.guide = A.doorOut; MS.mark = () => A.manny; },                     // GO TO Manny's garage
+      tick(A) { return dist(me().x, me().y, A.doorIn.x, A.doorIn.y) < N().doorR; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.doorOut.x; P.y = A.doorOut.y; } },
+    { enter(A) { MS.mark = () => A.manny; MS.guide = null; },                          // TALK TO Manny: the first clue
+      tick(A) { if (!A.cut3 && !P.car && dist(P.x, P.y, A.manny.x, A.manny.y) < N().mannyR) { A.cut3 = true; msCut('MANNY', () => msNext()); } return false; },
+      jump(A) { P.x = A.doorIn.x; P.y = A.doorIn.y; } },
+    { enter(A) { MS.mark = () => A.hot; },                                             // GET IN the hot car
+      tick(A) { return P.car === A.hot; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.hot.x; P.y = A.hot.y; enterCar(A.hot); } },
+    { enter(A) { MS.mark = null; MS.guide = A.doorOut; if (!ixIn(A.S, A.hot.x, A.hot.y, 0)) heat(A); },   // LOSE THE POLICE - they come once you drive out
+      tick(A) { if (!A.heated) { if (!ixIn(A.S, A.hot.x, A.hot.y, 0)) { heat(A); MS.guide = null; } return false; } return P.stars <= 0; },
+      info: A => A.heated ? P.stars + ' STARS' : 'DRIVE OUT',
+      jump(A) { A.heated = true; P.heat = 0; P.stars = 0; const r = S1.road(A.doorOut.x, A.doorOut.y + 300), c = A.hot; c.x = r.x; c.y = r.y; c.ang = r.a; c.vx = c.vy = 0; if (P.car !== c) { if (P.car) exitCar(true); P.x = c.x; P.y = c.y; enterCar(c); } } },
+    { enter(A) { MS.guide = A.junk; MS.mark = () => A.junk; },                         // DELIVER it to the junkyard (no tail)
+      tick(A) {
+        if (A.home || P.car !== A.hot || !jyIn(A.hot.x, A.hot.y) || P.stars > 0) return false;
+        A.home = true; msCut('CHOP SHOP', () => msNext()); return false; },
+      info: A => P.stars > 0 ? 'LOSE THE POLICE FIRST' : Math.round(dist(me().x, me().y, A.junk.x, A.junk.y) / UNITS_PER_M) + ' M TO THE JUNKYARD' }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.joe.dead) return F.joeDead;
+    if (A.manny.dead) return F.mannyDead;
+    if (A.hot.dead || A.hot.burn > 0) return F.car;
+    return '';
+  }
+  const cuts = {
+    'THE PHOTO': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.joe, line: 1, enter: () => { face(A.joe, P); P.ang = Math.atan2(A.joe.y - P.y, A.joe.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.joe, line: [2, 3] }],
+    'MANNY': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.manny, line: [4, 5], enter: () => { face(A.manny, P); P.ang = Math.atan2(A.manny.y - P.y, A.manny.x - P.x); } },
+      { dur: 4, cam: 'WIDE', at: () => A.hot, line: [6, 7], enter: () => face(A.manny, A.hot) },
+      { dur: 4, cam: 'CLOSE', at: () => A.manny, line: 8, enter: () => face(A.manny, P) }],
+    'CHOP SHOP': A => [
+      { dur: 5, cam: 'CLOSE', at: () => P, line: 10, enter: () => { if (P.car) exitCar(true); } }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.S) A.S.ms = false; } };
+})();

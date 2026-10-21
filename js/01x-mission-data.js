@@ -579,7 +579,63 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The street", "Saul, Danny", "Saul hands over an envelope. Fade out.", "WIDE", "4", "10"]]}],
     "start": {"how": "phone", "marker": "-", "phone": "Joe pages you (the pager, STORY only) a game day after M01; call him from the nearest phone booth. In MISSIONS TEST you start outside the Colony's door, a car on the ring drive."},
     "failing": "Retry from the page: it buzzes again at once.",
-    "notes": {"places": "The phone booths (the street races' booths); the Coral Shore taxi rank; the streets to Mercado; Uncle Saul's pawnshop (a shop front in Mercado, a PAWN sign over its door while the quest needs it).", "people": "Joe at the rank; two scooter thieves (no guns); Saul at his door.", "music": "The radio while you drive.", "new": "The pager and calls from phone booths. Scooter thieves who fall off and run when you knock them down.", "other": "-"}}}
+    "notes": {"places": "The phone booths (the street races' booths); the Coral Shore taxi rank; the streets to Mercado; Uncle Saul's pawnshop (a shop front in Mercado, a PAWN sign over its door while the quest needs it).", "people": "Joe at the rank; two scooter thieves (no guns); Saul at his door.", "music": "The radio while you drive.", "new": "The pager and calls from phone booths. Scooter thieves who fall off and run when you knock them down.", "other": "-"}}},
+  {"id": "m03", "no": "M03", "title": "GREASE MONKEY", "giver": "joe", "start": "marker", "where": "Papa Joe at the Coral Shore rank; Manny's garage in Dockside",
+   "story": "Danny shows Joe his brother's last photo. Joe knows the garage behind him: Dockside Motor Works, Manny's place. Manny remembers Mateo - his best mechanic, gone a year ago to drive for a rich man. To earn more, Danny takes a hot car from Manny's garage to the junkyard - with the police on its plates.",
+   "chars": ["joe", "danny", "manny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO PAPA JOE AT THE RANK"},
+     {"word": "GO TO", "show": "GO TO MANNY'S GARAGE IN DOCKSIDE"},
+     {"word": "TALK TO", "show": "TALK TO MANNY"},
+     {"word": "GET IN", "show": "GET IN THE HOT CAR"},
+     {"word": "LOSE THE POLICE", "show": "LOSE THE POLICE"},
+     {"word": "DELIVER", "show": "TAKE THE CAR TO THE JUNKYARD"}],
+   "lines": [
+     {"who": "danny", "text": "Joe. My brother, Mateo. His last photo - a year ago.", "mood": "calm", "when": "The photo, shot 1"},
+     {"who": "joe", "text": "Skinny fella, grease to the elbows... That's Manny's place behind him. Dockside Motor Works.", "mood": "warm", "when": "The photo, shot 2"},
+     {"who": "joe", "text": "Manny knows every engine in town. Tell him Joe sent you.", "mood": "warm", "when": "The photo, shot 2"},
+     {"who": "manny", "text": "Mateo? Best mechanic I ever had. Hands like a surgeon.", "mood": "warm", "when": "Manny, shot 1"},
+     {"who": "manny", "text": "Left a year ago. A driving job for a rich man - a big car with a phone in it. Never came back.", "mood": "tired", "when": "Manny, shot 1"},
+     {"who": "danny", "text": "Which rich man?", "mood": "calm", "when": "Manny, shot 2"},
+     {"who": "manny", "text": "He didn't say, I didn't ask. Want to help? That car over there is hot. The junkyard takes it.", "mood": "dry", "when": "Manny, shot 2"},
+     {"who": "manny", "text": "The cops have its plates by now. Lose them first - the junkyard won't touch a car with a tail.", "mood": "dry", "when": "Manny, shot 3"},
+     {"who": "danny", "text": "Hot is right.", "mood": "dry", "when": "LIVE - the police on you", "live": true},
+     {"who": "danny", "text": "A driving job for a rich man. Who are you driving for, Mateo?", "mood": "calm", "when": "Chop shop, shot 1"}],
+   "fails": {"joeDead": "PAPA JOE IS DEAD", "mannyDead": "MANNY IS DEAD", "car": "THE HOT CAR IS WRECKED", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 13, "doorR": 120, "mannyR": 60, "stars": 2, "junkR": 110, "carTough": 3},
+   "reward": {"cash": 500, "vehicle": "", "clothes": "", "next": "M04 - Joe pages you", "place": "", "contact": "Manny (Dockside Motor Works)"},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 1) - change anything you like.",
+    "glance": {"kind": "story", "given": "PAPA JOE (J on the map)", "where": "Papa Joe at the Coral Shore rank; Dockside Motor Works (Manny's garage); the junkyard at the port", "unlocked": "Passing M02", "time": "Any (MISSIONS TEST: the afternoon)", "length": "About 5 to 8 minutes", "limit": "None"},
+    "chars": {
+     "joe": {"gives": true, "role": "Gives the quest at the Coral Shore rank; knows the garage in the photo.", "looks": "Seventy, a flat cap, a brown cardigan, a toothpick.", "bubble": "Sandy tan", "mumble": "Quick and chatty."},
+     "danny": {"gives": false, "role": "You - with Mateo's photo.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "manny": {"gives": false, "role": "Owner of Dockside Motor Works, where Mateo worked; gives the first clue and the hot car.", "looks": "Sixties, a grey beard, a greasy blue jumpsuit with MANNY on it, a red rag over the shoulder.", "bubble": "Grease orange", "mumble": "Low and gruff: a sawtooth, slow."}},
+    "steps": [
+     ["START MISSION by Joe at the rank; the cutscene THE PHOTO.", ""],
+     ["To Dockside Motor Works in the port's industrial streets; its roller door stands open (the quest holds the garage: no workers).", ""],
+     ["Manny inside by the hot car; the cutscene MANNY (the first clue to Mateo).", ""],
+     ["The hot car (a sports car) in the garage.", "Three times as tough as usual."],
+     ["Driving it out of the garage brings 2 stars. Lose them.", ""],
+     ["Into the junkyard by its gate; the closing cutscene.", "With stars the junkyard waits until you lose them."]],
+    "fails": [
+     ["Papa Joe is killed", "PAPA JOE IS DEAD"],
+     ["Manny is killed", "MANNY IS DEAD"],
+     ["The hot car is destroyed", "THE HOT CAR IS WRECKED"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE PHOTO\"", "plays": "At START MISSION by Joe.", "shots": [
+      ["The rank", "Danny, Joe", "Danny holds out a photo.", "CLOSE on Joe", "4", "1"],
+      ["The rank", "Joe", "Joe squints at it, then grins.", "CLOSE on Joe", "5", "2, 3"]]},
+     {"title": "DURING STEP 3 - \"MANNY\"", "plays": "When you walk up to Manny in his garage.", "shots": [
+      ["The garage", "Manny, Danny", "Manny wipes his hands on his rag.", "CLOSE on Manny", "5", "4, 5"],
+      ["The garage", "Manny, the hot car", "He nods at the car.", "WIDE", "4", "6, 7"],
+      ["The garage", "Manny", "He taps the plates.", "CLOSE on Manny", "4", "8"]]},
+     {"title": "CLOSING - \"CHOP SHOP\"", "plays": "When you bring the car into the junkyard with no stars.", "shots": [
+      ["The junkyard", "Danny, the car", "Danny gets out among the wrecks and looks at the photo.", "CLOSE", "5", "10"]]}],
+    "start": {"how": "marker", "marker": "J - Papa Joe by his cab at the Coral Shore rank", "phone": "-"},
+    "failing": "Retry from Joe's marker.",
+    "notes": {"places": "The Coral Shore taxi rank; Dockside Motor Works (an interior, held by the quest); the junkyard in the port's maintenance yard.", "people": "Joe, Manny.", "music": "The radio in the hot car; the police sirens.", "new": "Mateo's first clue.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
