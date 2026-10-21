@@ -22,3 +22,7 @@ questions before building it. Each answer is written here as it comes; the story
 14. Danny arrives on the airport's last flight of the night - a borrowed suit and someone else's suitcase.
 15. He came to find his missing older brother, who came here a year ago and stopped writing; the trail leads, slowly, to Crane.
 16. The city is called Miravista.
+17. The brother: Mateo Cruz is alive and works for Crane as his driver and fixer; he is hiding something and is trying to get out.
+18. The suitcase holds nothing important - someone's holiday clothes, a running joke through the story.
+19. Danny finds Mateo only at the very end.
+20. Danny's first friend: an airport taxi driver who picks him up on the first night, talks too much, knows everyone and gives him the first jobs.
