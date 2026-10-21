@@ -739,7 +739,60 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The hospital door", "Joe", "Joe waves him off. Fade out.", "WIDE", "4", "10"]]}],
     "start": {"how": "phone", "marker": "-", "phone": "Esther pages you (STORY only) a game day after M04 - a message, no call."},
     "failing": "Retry from the page.",
-    "notes": {"places": "The airport taxi rank by the gate; the hospital in Mercado.", "people": "Kessler's men (first seen), Joe.", "music": "The radio on the dash to the hospital.", "new": "A page that is a message (no call).", "other": "Joe's cab is wrecked here (it comes back later). The gate cops looking away is the first sign that the police are in Crane's pocket."}}}
+    "notes": {"places": "The airport taxi rank by the gate; the hospital in Mercado.", "people": "Kessler's men (first seen), Joe.", "music": "The radio on the dash to the hospital.", "new": "A page that is a message (no call).", "other": "Joe's cab is wrecked here (it comes back later). The gate cops looking away is the first sign that the police are in Crane's pocket."}}},
+  {"id": "m06", "no": "M06", "title": "HARBOUR LIGHTS", "giver": "joe", "start": "marker", "where": "Papa Joe outside the hospital in Mercado; Sunset Harbor's quay",
+   "story": "Joe, his arm in a sling, tells Danny to disappear for a while: Marco Vale at Sunset Harbor owes Joe a favour and needs a man who knows boats. Kessler's men wait outside the hospital in two cars. Danny loses them across the city in Esther's car; on the quay Joe drops him off and Marco meets \"the boatman\".",
+   "chars": ["joe", "danny", "marco", "bull"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO PAPA JOE AT THE HOSPITAL"},
+     {"word": "GET IN", "show": "GET IN ESTHER'S CAR WITH JOE"},
+     {"word": "LOSE", "show": "LOSE KESSLER'S MEN"},
+     {"word": "GO TO", "show": "DRIVE TO SUNSET HARBOR"}],
+   "lines": [
+     {"who": "joe", "text": "They stitched me up like an old baseball. Now listen, son - you have to disappear for a while.", "mood": "tired", "when": "Sling, shot 1"},
+     {"who": "danny", "text": "Disappear where?", "mood": "calm", "when": "Sling, shot 1"},
+     {"who": "joe", "text": "Sunset Harbor. Marco Vale owes me a favour - and he needs a man who knows boats.", "mood": "warm", "when": "Sling, shot 2"},
+     {"who": "danny", "text": "I worked the boats up north.", "mood": "dry", "when": "Sling, shot 2"},
+     {"who": "joe", "text": "I know. Esther sent her car - and those two over the road are Kessler's. Drive like my wife did.", "mood": "dry", "when": "Sling, shot 3"},
+     {"who": "bull", "text": "There's the old man! Don't lose them!", "mood": "shouting", "when": "LIVE - Kessler's cars pull out", "live": true},
+     {"who": "joe", "text": "Left! No - your other left! Lose them, son!", "mood": "yelling", "when": "LIVE - the chase", "live": true},
+     {"who": "joe", "text": "Ha! Gone. My wife would've been proud of that one.", "mood": "relieved", "when": "LIVE - you lose them", "live": true},
+     {"who": "joe", "text": "Marco's the one with the boats and the bad jokes. Tell him Papa Joe sent you.", "mood": "warm", "when": "The boatman, shot 1"},
+     {"who": "danny", "text": "Go home, Joe. Get some sleep.", "mood": "calm", "when": "The boatman, shot 1"},
+     {"who": "marco", "text": "So you're the boatman Joe won't shut up about.", "mood": "amused", "when": "The boatman, shot 2"},
+     {"who": "danny", "text": "Danny. Danny Cruz.", "mood": "calm", "when": "The boatman, shot 2"},
+     {"who": "marco", "text": "Boatman suits you better. Come by tomorrow - I've always got work for a man who knows boats.", "mood": "grinning", "when": "The boatman, shot 3"}],
+   "fails": {"joeDead": "PAPA JOE IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 19.3, "joeHp": 300, "kessSpeed": 80, "loseR": 120, "loseT": 3, "line7": 6, "quayR": 120, "homeSpeed": 45, "carTough": 3},
+   "reward": {"cash": 800, "vehicle": "", "clothes": "", "next": "The Varga storyline opens (Quest 01 - Marco's marker at Sunset Harbor); chapter 2 (M07)", "place": "", "contact": "Marco Vale (Sunset Harbor)"},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 1) - change anything you like.",
+    "glance": {"kind": "story", "given": "PAPA JOE (J on the map, outside the hospital)", "where": "The hospital in Mercado; the streets; Sunset Harbor's quay", "unlocked": "Passing M05", "time": "Any (MISSIONS TEST: dusk - the harbour lights come on)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "joe": {"gives": true, "role": "Out of hospital, his arm in a sling; sends Danny to Marco and rides with him (he does not fight).", "looks": "Seventy, a flat cap, a brown cardigan, a toothpick - and a sling.", "bubble": "Sandy tan", "mumble": "Quick and chatty."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "marco": {"gives": false, "role": "Sunset Harbor's charter boats; meets Danny on the quay and calls him \"the boatman\". His Quest 01 opens next.", "looks": "As in Quest 01.", "bubble": "Orange", "mumble": "As in Quest 01."},
+     "bull": {"gives": false, "role": "Kessler's men in two cars outside the hospital (one bubble for all of them).", "looks": "Dockside heavies: shaved heads, white vests, gold chains, jeans.", "bubble": "Burnt orange", "mumble": "Gruff: a sawtooth."}},
+    "steps": [
+     ["START MISSION by Joe outside the hospital, his arm in a sling; the cutscene SLING.", "MISSIONS TEST: you start beside Joe, at dusk."],
+     ["Esther's turquoise convertible waits in the hospital's ambulance bay (any car will do). Stop by Joe and he gets in.", "Esther's car is three times as tough as most. Joe rides with you and stays in the car when you get out."],
+     ["Kessler's two cars pull out after you (two men in each, pistols from the windows). They drive at 80 km/h at most. Lose them: 120 m from all of them for 3 seconds, or put them out of action.", "If Joe has to get out (a wreck), pick him up again first."],
+     ["Sunset Harbor: stop by the harbour office on the quay; the closing cutscene.", ""]],
+    "fails": [
+     ["Joe is killed", "PAPA JOE IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"SLING\"", "plays": "At START MISSION by Joe.", "shots": [
+      ["The hospital door", "Joe, Danny", "Joe on the steps, his arm in a sling.", "CLOSE on Joe", "5", "1, 2"],
+      ["The hospital door", "Joe", "Joe taps his nose: he has a plan.", "CLOSE on Joe", "5", "3, 4"],
+      ["The street", "Kessler's two cars", "Two dark cars across the road, men inside.", "WIDE", "4", "5"]]},
+     {"title": "CLOSING - \"THE BOATMAN\"", "plays": "When you stop by the harbour office with Joe.", "shots": [
+      ["The quay", "Joe, Danny", "Danny gets out; Joe slides over to the wheel.", "CLOSE on Joe", "4", "9, 10"],
+      ["The harbour office", "Marco, Danny", "Joe drives off one-handed; Marco at his door, the harbour lights coming on.", "WIDE", "4", "11, 12"],
+      ["The harbour office", "Marco", "Marco grins. Fade out.", "CLOSE on Marco", "4", "13"]]}],
+    "start": {"how": "marker", "marker": "J - Papa Joe outside the hospital in Mercado", "phone": "-"},
+    "failing": "Retry from Joe's marker.",
+    "notes": {"places": "The Mercado hospital and its ambulance bay; the streets; Sunset Harbor's quay by the harbour office (Marco's door).", "people": "Joe (rides with you), Kessler's men in two cars, Marco at the quay.", "music": "The radio in Esther's car.", "new": "The Varga storyline opens: Marco's Quest 01 marker appears at Sunset Harbor (STORY).", "other": "Joe's sling is in the lines and the page only - the city figures have no sling yet. Esther's car goes home with Joe."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
