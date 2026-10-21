@@ -115,6 +115,10 @@ the connectors below add what happens between quests. Filled in as each quest ar
   - **M05 -> M06**: Esther becomes a contact who can page you; M06 is Joe's marker J outside the Mercado hospital the next day (Joe in a sling).
   - **M06 -> chapter 2 and the Varga storyline**: Marco becomes a contact; the Varga storyline opens - Quest 01's marker M at Sunset Harbor,
     playable any time from now (answer 25); chapter 2 (M07) follows as the story plan says. The billboards and the pager are STORY only.
+  - **The Varga line's links** (answer 108, done with chapter 1): Quest 01 opens with Marco knowing Danny from Joe ("Boatman! Joe said you'd
+    come..."); in Quest 06 Nico talks of his partners buying the sky, and Lucia's last line points past him ("Nico was only the face. The
+    money behind Skyline One has another name."). Still for STORY itself: Del's lines in Quest 03 and Officer Dunn's in Quest 05 turn to
+    "we've met" when the Casino or the Prison line came first.
   - **Places the quests dress up while they run** (props, not new buildings): UNCLE SAUL'S PAWN and LUCKY LOU'S over Mercado shop fronts;
     Dockside Motor Works (an interior, held by M03); Esther's car and Joe's cab are the quests' own cars.
 - **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
