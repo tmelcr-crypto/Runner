@@ -54,3 +54,7 @@ questions before building it. Each answer is written here as it comes; the story
 46. Its story: save the last launch - Crane wants Gravel Flats for a resort; if the rocket fails the center closes. Danny stops his sabotage, quest by quest, up to the launch.
 47. It brings an eye in the sky to the finale: the launched satellite (or the center's radar) shows every one of Crane's men on the map.
 48. It opens at the start of chapter 4, with the war on Crane (his resort plan for Gravel Flats is one of his businesses).
+49. Crane has four lieutenants: the muscle (a gang boss who does the dirty work), the cop (the police chief), the politician (a city councilman) and the money (his lawyer, who moves the money); Danny takes them down one by one.
+50. Victor Crane's look: 50s, silver hair swept back, a deep tan, a white linen suit, a gold watch - the smiling face on the billboards.
+51. Crane's own place, the scene of the finale: the Pearl Key estate - his walled mansion on Pearl Key with gates, guards, a dock and a helipad.
+52. The city loves Crane: a builder running for mayor, his posters everywhere, the TV on his side; only the street knows the truth.
