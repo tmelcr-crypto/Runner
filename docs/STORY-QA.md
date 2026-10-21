@@ -42,3 +42,7 @@ questions before building it. Each answer is written here as it comes; the story
 34. Its goal: eight quests that build up to one big heist of the Royal Flamingo's vault, where Crane washes his dirty money.
 35. It brings a getaway to the finale (the casino's armoured car or helicopter for the escape).
 36. It opens at the start of chapter 2, when Danny has a name on the street: a marker D on the casino strip at night.
+37. The Colony Hotel is owned by Esther Bloom, 70s - a sharp old widow who has run it since the 50s; pearls, sunglasses, a cigarette holder; she refuses every offer from Crane. She leads the Colony storyline.
+38. The Colony storyline: save the hotel from Crane, who wants it torn down for a tower - his thugs, a fire, bought inspectors, a forged deed; Danny beats each move.
+39. It brings a base and its people to the finale: the hotel becomes Danny's headquarters for the war; its staff and guests come out to help at the end.
+40. Danny's first bed in STORY: a Colony room - Papa Joe takes him there on the first night and Esther gives him a room on credit (the free safehouse of FREE ROAM).
