@@ -1832,7 +1832,56 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["By the limousine", "Danny; an airport police car", "The airport police pull up. Fade out.", "CLOSE on Danny", "5", "7"]]}],
     "start": {"how": "phone", "marker": "-", "phone": "NINA PARK calls a game day after M17"},
     "failing": "Nina calls again (retry).",
-    "notes": {"places": "The private jet: a new model on Skyport's apron (for this quest). After M18 the PALM HEIGHTS LOFT is Danny's, free (STORY; FREE ROAM still sells it).", "people": "Sachs; the airport police.", "music": "-", "new": "Mateo's trail, clue 4: the ledger. Choice 2.", "other": "Chapter 3 ends; chapter 4 opens with Rosa's call (M19). The files to the police: Holloway buries them (a star at the start of chapter 4's quests until M23). Kept: Danny blackmails Pratt (M21 without a fight)."}}}
+    "notes": {"places": "The private jet: a new model on Skyport's apron (for this quest). After M18 the PALM HEIGHTS LOFT is Danny's, free (STORY; FREE ROAM still sells it).", "people": "Sachs; the airport police.", "music": "-", "new": "Mateo's trail, clue 4: the ledger. Choice 2.", "other": "Chapter 3 ends; chapter 4 opens with Rosa's call (M19). The files to the police: Holloway buries them (a star at the start of chapter 4's quests until M23). Kept: Danny blackmails Pratt (M21 without a fight)."}}},
+  {"id": "p1", "no": "P1", "title": "VISITING HOURS", "giver": "sal", "start": "marker", "where": "The Iron Key ferry's kiosk on the promenade; Iron Key prison (the yard); the quay back",
+   "story": "A letter reaches the Colony's desk: \"I knew Victor Crane before he was Crane.\" Danny takes the ferry to Iron Key and, over chess in the yard, the lifer Sal Moretti tells the first part of 1975 - and asks for help: twenty years is enough. On the quay back, Holloway's men want to know what he said.",
+   "chars": ["danny", "sal"],
+   "steps": [
+     {"word": "GO TO", "show": "TAKE THE FERRY TO IRON KEY"},
+     {"word": "GO TO", "show": "GO TO THE PRISON GATE"},
+     {"word": "TALK TO", "show": "TALK TO SAL MORETTI"},
+     {"word": "GO TO", "show": "BACK OUT THROUGH THE GATE"},
+     {"word": "GO TO", "show": "TAKE THE FERRY BACK"},
+     {"word": "TAKE OUT", "show": "TAKE OUT HOLLOWAY'S MEN"}],
+   "lines": [
+     {"who": "danny", "text": "\"I knew Victor Crane before he was Crane. Come and see me. - Sal Moretti, Iron Key.\"", "mood": "reading", "when": "The letter"},
+     {"who": "danny", "text": "An old con with a story. Let's hear it.", "mood": "dry", "when": "The letter"},
+     {"who": "sal", "text": "Nineteen seventy-five. Victor and I ran cargo off the docks - his trucks, my boats.", "mood": "quiet", "when": "1975, shot 1"},
+     {"who": "sal", "text": "One night a shipment went wrong. A man died. Victor walked; I got life.", "mood": "quiet", "when": "1975, shot 1"},
+     {"who": "sal", "text": "Twenty years. I'm done waiting. Help me out, and you'll hear the rest.", "mood": "hard", "when": "1975, shot 2"},
+     {"who": "danny", "text": "Your move, Sal.", "mood": "calm", "when": "1975, shot 3"},
+     {"who": "danny", "text": "Holloway's boys. Word travels fast.", "mood": "cold", "when": "LIVE - on the quay", "live": true},
+     {"who": "danny", "text": "I don't talk to cops who work for Crane.", "mood": "cold", "when": "LIVE - on the quay", "live": true},
+     {"who": "danny", "text": "Sal's got friends in low places - and enemies in high ones.", "mood": "dry", "when": "LIVE - the end", "live": true}],
+   "fails": {"salDead": "SAL MORETTI IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"gateR": 40, "menHp": 70},
+   "reward": {"cash": 2000, "vehicle": "", "clothes": "", "next": "P2 - Sal's marker S by the Iron Key ferry (the next day)", "place": "", "contact": "Sal Moretti (Iron Key)"},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) - change anything you like.",
+    "glance": {"kind": "story", "given": "SAL MORETTI - his letter; marker S by the Iron Key ferry's kiosk", "where": "The promenade's ferry pier; Iron Key prison's gate and yard", "unlocked": "The start of chapter 3 (the letter at the Colony's desk)", "time": "Visiting hours (by day)", "length": "About 5 minutes", "limit": "None"},
+    "chars": {
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sal": {"gives": true, "role": "Sal Moretti, the lifer on Iron Key: knew Crane in 1975.", "looks": "Sixties, short grey hair combed back, a grey moustache, reading glasses, prison blues buttoned to the top.", "bubble": "As in the table", "mumble": "As in the table."}},
+    "steps": [
+     ["At marker S: READ Sal's letter (the cutscene THE LETTER), then take the ferry to Iron Key (or any boat).", "MISSIONS TEST: you start by the ferry kiosk on the promenade."],
+     ["Go to the prison gate: you are searched - your weapons wait at the gate.", ""],
+     ["Talk to Sal in the yard: the cutscene 1975.", ""],
+     ["Back out through the gate: your weapons back.", ""],
+     ["Take the ferry back to the promenade: Holloway's three men wait on the quay.", ""],
+     ["Take them out.", ""]],
+    "fails": [
+     ["Sal is killed", "SAL MORETTI IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE LETTER\"", "plays": "At marker S.", "shots": [
+      ["The promenade", "Danny", "Danny reads the letter from the Colony's desk.", "CLOSE on Danny", "6", "1, 2"]]},
+     {"title": "\"1975\"", "plays": "When you talk to Sal.", "shots": [
+      ["Iron Key's yard, a chess table", "Sal, Danny", "Sal moves a knight and talks.", "CLOSE on Sal", "7", "3, 4"],
+      ["The yard", "Sal", "He looks up from the board.", "CLOSE on Sal", "6", "5"],
+      ["The yard", "Danny", "Danny moves a pawn. Fade out.", "CLOSE on Danny", "4", "6"]]}],
+    "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk", "phone": "-"},
+    "failing": "Sal's marker S again (retry).",
+    "notes": {"places": "Iron Key: the visit as in Quest 05.", "people": "Sal; three of Holloway's men.", "music": "-", "new": "The Prison storyline opens.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
