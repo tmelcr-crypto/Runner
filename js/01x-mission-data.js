@@ -1540,7 +1540,53 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Del's lock-up", "Del, Danny", "The roller door comes down. Fade out.", "CLOSE on Del", "5", "12, 13"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at his lock-up, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "The SUBSTATION (blown); the ROYAL FLAMINGO (top-down) and THE VAULT under it (side-on: the count room, B1 the guards' room, B2 security, B3 the vault).", "people": "Del, Fay; the vault's guards; Lenny Gold's men in two cars; the police.", "music": "-", "new": "STORY: the van stays yours (the finale's chase to Skyport); Papa Joe hears about the vault (answer 84).", "other": "The strip stays dark until the quest ends."}}}
+    "notes": {"places": "The SUBSTATION (blown); the ROYAL FLAMINGO (top-down) and THE VAULT under it (side-on: the count room, B1 the guards' room, B2 security, B3 the vault).", "people": "Del, Fay; the vault's guards; Lenny Gold's men in two cars; the police.", "music": "-", "new": "STORY: the van stays yours (the finale's chase to Skyport); Papa Joe hears about the vault (answer 84).", "other": "The strip stays dark until the quest ends."}}},
+  {"id": "m13", "no": "M13", "title": "BREAKING NEWS", "giver": "nina", "start": "phone", "where": "A call from Nina Park; the streets of Mercado; BAY TV's newsroom",
+   "story": "Nina Park of Bay TV calls the man who took down Bull Kessler: Crane's men have just driven off in her news van with three years of her tapes in the back. Danny runs the van down, takes out Crane's men and brings the tapes to her newsroom. In return she shows him a photo of Crane cutting a ribbon - and the driver holding his door is Mateo.",
+   "chars": ["nina", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "ANSWER THE PHONE - NINA PARK"},
+     {"word": "CHASE", "show": "CHASE NINA'S NEWS VAN"},
+     {"word": "TAKE OUT", "show": "TAKE OUT CRANE'S MEN"},
+     {"word": "COLLECT", "show": "PICK UP NINA'S TAPES"},
+     {"word": "DELIVER", "show": "TAKE THE TAPES TO NINA AT BAY TV"}],
+   "lines": [
+     {"who": "nina", "text": "Danny Cruz? Nina Park, Bay TV. They say you're the man who took down Bull Kessler.", "mood": "quick", "when": "The call"},
+     {"who": "nina", "text": "Crane's goons just drove off in my news van - three years of tapes in the back. I want them back.", "mood": "angry", "when": "The call"},
+     {"who": "danny", "text": "What's on the tapes?", "mood": "calm", "when": "The call"},
+     {"who": "craneman", "text": "We've got company! Lose him!", "mood": "shouting", "when": "LIVE - the chase", "live": true},
+     {"who": "craneman", "text": "Out! Take him here!", "mood": "shouting", "when": "LIVE - they bail out", "live": true},
+     {"who": "nina", "text": "You got them back. All of them. Thank you, Danny Cruz.", "mood": "warm", "when": "The photo, shot 1"},
+     {"who": "nina", "text": "Now look at this. Crane cutting the ribbon at Skyline One - and who's holding his door?", "mood": "quick", "when": "The photo, shot 1"},
+     {"who": "danny", "text": "...That's my brother. That's Mateo.", "mood": "shaken", "when": "The photo, shot 2"},
+     {"who": "nina", "text": "Crane's driver? Then we want the same man. Come and see me - we'll trade what we find.", "mood": "hard", "when": "The photo, shot 2"}],
+   "fails": {"away": "THE NEWS VAN GOT AWAY", "ninaDead": "NINA PARK IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 15, "vanSpeed": 95, "away": 450, "menHp": 70, "bagR": 30, "ninaR": 50},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "M14 - Nina's marker N in BAY TV's newsroom (the next day)", "place": "", "contact": "Nina Park (BAY TV, Mercado)"},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 3; the news van, answer 143; the newsroom, answer 157) - change anything you like.",
+    "glance": {"kind": "story", "given": "NINA PARK - a call on the brick phone", "where": "Mercado's streets; BAY TV's newsroom on the TV tower's plaza", "unlocked": "Chapter 3: a game day after M12", "time": "Any (MISSIONS TEST: 15:00)", "length": "About 5 to 7 minutes", "limit": "None"},
+    "chars": {
+     "nina": {"gives": true, "role": "Nina Park, Bay TV's reporter: has dug into Crane for years; trades what she knows for Danny's help.", "looks": "Thirties, a sharp black bob, a mustard blazer with big shoulders, small gold earrings.", "bubble": "Amber", "mumble": "Quick and clear."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Crane's men in Nina's stolen van (one bubble for all of them).", "looks": "Slicked-back hair, dark sunglasses, charcoal suits, white shirts.", "bubble": "Silver", "mumble": "Flat and low: a triangle."}},
+    "steps": [
+     ["The phone rings (NINA): ANSWER, or E.", "MISSIONS TEST: you start in Mercado by the TV tower, a car at the kerb."],
+     ["Chase Nina's NEWS VAN (BAY TV on the roof) and ram it till the two men inside bail out.", "It gets 450 m away: it's gone."],
+     ["Take out Crane's men.", "Killing them is no crime."],
+     ["Pick up the box of tapes by the van.", ""],
+     ["Take the tapes to Nina in BAY TV's newsroom (the glass pavilion by the tower); the closing cutscene THE PHOTO.", ""]],
+    "fails": [
+     ["The van gets 450 m away", "THE NEWS VAN GOT AWAY"],
+     ["Nina is killed", "NINA PARK IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "CLOSING - \"THE PHOTO\"", "plays": "When you bring the tapes to Nina.", "shots": [
+      ["BAY TV's newsroom", "Nina, Danny", "Nina stacks the tapes on her desk and pulls out a photo.", "CLOSE on Nina", "5", "6, 7"],
+      ["BAY TV's newsroom", "Danny, Nina", "The photo close: Crane at a ribbon, the driver at his door. Fade out.", "CLOSE on Danny", "5", "8, 9"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "NINA PARK calls a game day after M12"},
+    "failing": "Nina calls again (retry).",
+    "notes": {"places": "BAY TV's newsroom (answer 157): Nina's marker N from now on.", "people": "Nina; two of Crane's men.", "music": "-", "new": "Mateo's trail, clue 3: the photo. The NEWS VAN is a new vehicle (also in traffic).", "other": "Chapter 3 opens; the Prison storyline's letter reaches the Colony (P1)."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

@@ -141,7 +141,11 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "cguard", "name": "CASINO GUARD", "letter": "Q", "bubble": "#8a8fa8", "shirt": "#16161c", "pants": "#16161c", "mumble": {"low": 120, "high": 170, "rate": 10, "wave": "square", "gap": 0.06},
    "role": "The Royal Flamingo's guards (one bubble for all of them).", "look": "Thirties, a crew cut, a black suit with a gold flamingo pin, an earpiece.",
    "skin": "#c89a76", "hair": "#2a1a14", "hairStyle": "buzz", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
-   "top": "suit", "topColour": "#16161c", "topColour2": "#f0f0f0", "extras": ["earring"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"}
+   "top": "suit", "topColour": "#16161c", "topColour2": "#f0f0f0", "extras": ["earring"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "craneman", "name": "CRANE MAN", "letter": "Q", "bubble": "#c8ccd4", "shirt": "#3a3f4c", "pants": "#2a2d36", "mumble": {"low": 110, "high": 160, "rate": 10, "wave": "triangle", "gap": 0.07},
+   "role": "Victor Crane's men - his drivers, bodyguards and fixers (one bubble for all of them).", "look": "Thirties to forties, slicked-back hair, dark sunglasses, a charcoal suit, a white shirt, no tie.",
+   "skin": "#d9b08c", "hair": "#1a1410", "hairStyle": "slick", "facial": "none", "facialColour": "", "eyes": "#2a2a2a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "shades", "glassesColour": "#14141a",
+   "top": "suit", "topColour": "#3a3f4c", "topColour2": "#f4f4f4", "extras": [], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */
