@@ -104,6 +104,7 @@ the table now, drawn from the owner's answers 21-107 (October 2026); the minor p
 | M16 Cold Storage | built in MISSIONS TEST; Word page `docs/quests/Quest-M16-Cold-Storage.docx`; waiting for the owner's test | Sachs' lock-up at the storage yard at night, the van's LOADING bar; Kessler finished: a three-way fight; spared: the back way in; only copies; €4,500 |
 | M17 The Safe | built in MISSIONS TEST; Word page `docs/quests/Quest-M17-The-Safe.docx`; waiting for the owner's test | the Palm Heights loft side-on at night, three bodyguards, the alarm cut and Sachs' door open (helper 2), the originals from his safe; Sachs runs; €5,000 |
 | M18 Closing Argument | built in MISSIONS TEST; Word page `docs/quests/Quest-M18-Closing-Argument.docx`; waiting for the owner's test | Nina's call; stop Sachs' limousine before his private jet leaves (the BOARDING bar); CORNERED - Crane's driver has a ledger; Choice 2 by where you drive the files; €6,000; the loft |
+| P1 Visiting Hours | built in MISSIONS TEST (the Prison storyline); Word page `docs/quests/Quest-P1-Visiting-Hours.docx`; waiting for the owner's test | Sal's letter; the ferry to Iron Key, the gate's search (as in Quest 05); 1975 over chess; Holloway's three men on the quay back; €2,000 |
 
 ## Connectors - joining the quests into STORY
 
