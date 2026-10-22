@@ -65,6 +65,7 @@ function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.h
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
   if (MS.pageT > 0 && (MS.pageT -= dt) <= 0) $('pager').hidden = true;   // the page goes after a while
+  if (MS.ring && (MS.ringT = (MS.ringT || 0) - dt) <= 0) { MS.ringT = 1.6; Snd.tone(1046, 1046, 0.09, 0.07, 'square'); setTimeout(() => Snd.tone(880, 880, 0.09, 0.07, 'square'), 120); setTimeout(() => Snd.tone(1046, 1046, 0.09, 0.07, 'square'), 240); }   // brrring
   if (!MS.on) return;
   if (MS.talk || CUT.on) { if (MS_LIVE.cur) $('msLive').hidden = true; return; }   // a live line waits out a cutscene or a dialogue, out of sight
   msLiveTick(dt); msCastTick(dt);
@@ -81,7 +82,7 @@ function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPas
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
   MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); msCastClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd(); if ($('msBtn')) $('msBtn').hidden = true;   // a mission's cutscene still playing: over
-  $('msObj').hidden = true; $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
+  $('msObj').hidden = true; $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; msRingStop(); if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
   const id = MS.id; msClear();
@@ -142,10 +143,11 @@ function msShut() {                        // a side activity's spot during a mi
   return true;
 }
 function msKey() {
+  if (MS.on && MS.ring && !P.dead && state === 'play' && !CUT.on && !MS.talk) return MS.ring;   // the phone: answered anywhere, even in a car
   const s = MS.on && MS.start; if (!s || P.car || P.dead || P.act || state !== 'play' || CUT.on || MS.talk) return null;
   const t = s.at(); return t && !t.dead && dist(P.x, P.y, t.x, t.y) < 60 ? s : null;
 }
-function msUse(s) { MS.start = null; $('msBtn').hidden = true; s.go(); }
+function msUse(s) { MS.start = null; $('msBtn').hidden = true; if (s === MS.ring) MS.ring = null; s.go(); }
 function msUi() {                          // every frame (js/14): the button by you
   const k = msKey(), b = $('msBtn'); if (!b) return;
   if (!k) { if (!b.hidden) b.hidden = true; return; }
@@ -239,6 +241,21 @@ function msBooth(text, nums) {             // a step: the page, then CALL at the
     },
     tick(A) { return !!A['call' + MS.k]; },
     info: A => A.booth && !A['call' + MS.k] ? Math.round(dist(P.x, P.y, A.booth.x, A.booth.y) / UNITS_PER_M) + ' M TO THE BOOTH' : ''
+  };
+}
+/* ---------- the brick phone (mode phone, the story from M07): it rings with the caller's name; ANSWER (or E) even in a car ---------- */
+function msRing(who) { const ch = msWho(who) || CHARS[who] || { name: String(who).toUpperCase() }; $('phWho').textContent = ch.name; $('phone').hidden = false; $('phone').classList.add('ring'); MS.ringT = 0; }
+function msRingStop() { MS.ring = null; $('phone').classList.remove('ring'); $('phone').hidden = true; }
+function msPhone(who, nums) {               // a step: the phone rings; answered, the call's lines (the game waits); without the phone the call plays on the move
+  return {
+    enter(A) {
+      const k = 'call' + MS.k; A[k] = false;
+      if (!feat('phone')) { msLive(nums, { phone: true, done: () => { A[k] = true; } }); return; }
+      msRing(who); MS.ring = { label: 'ANSWER', at: () => P, go: () => { msRingStop(); Snd.tone(440, 440, 0.1, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
+    },
+    tick(A) { return !!A['call' + MS.k]; },
+    info: A => MS.ring ? 'THE PHONE IS RINGING' : '',
+    jump(A) { msRingStop(); A['call' + MS.k] = true; }
   };
 }
 function msTalkNext() {

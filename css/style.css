@@ -711,3 +711,15 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #gymBar i{display:block;width:200px;height:10px;background:#2a1418;border:2px solid #000;box-shadow:0 0 0 1px #ff3b4a}
 #gymBar span{display:block;height:100%;width:100%;background:linear-gradient(#ff7a7a,#c8202c);transition:width .15s}
 @media (max-height:500px){#gymBar{top:48px;font-size:9px}#gymBar i{width:150px;height:8px}}
+/* the brick phone (story chapter 2 on): it rings with the caller's name (js/08zy msPhone) */
+#phone{position:fixed;right:max(16px,env(safe-area-inset-right));top:226px;z-index:33;pointer-events:none;width:84px}
+#phone[hidden]{display:none}
+#phone .phAnt{display:block;width:7px;height:30px;margin-left:12px;background:linear-gradient(90deg,#14161c,#3a3f4a,#14161c);border-radius:3px 3px 0 0;border:2px solid #0c0c12;border-bottom:0}
+#phone .phBody{background:linear-gradient(90deg,#1c1f27,#3a3f4c 40%,#1c1f27);border:3px solid #0c0c12;border-radius:10px 10px 14px 14px;padding:7px 6px 8px;box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+#phScreen{background:#9bd16a;color:#14261a;border-radius:3px;padding:5px 4px;text-align:center;font:bold 10px/1.35 monospace;box-shadow:inset 0 0 6px rgba(0,0,0,.4);display:flex;flex-direction:column}
+#phScreen span{font-size:8px;letter-spacing:1px;animation:phBlink .5s steps(1) infinite}
+#phone .phKeys{height:44px;margin-top:6px;background:radial-gradient(circle,#c8ccd6 1.6px,transparent 2.2px) 0 0/13px 11px;opacity:.85}
+#phone.ring{animation:phShake .1s linear infinite}
+@keyframes phShake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(-2px,0) rotate(-4deg)}75%{transform:translate(2px,0) rotate(4deg)}}
+@keyframes phBlink{50%{opacity:.2}}
+@media (max-height:500px){#phone{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:70px}#phone .phKeys{height:26px}}

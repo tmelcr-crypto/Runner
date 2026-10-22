@@ -49,12 +49,17 @@ function pkFence(T, x0, z0, x1, z1, h, col, gap) {        // a fence round a rec
 function pkPerson(T, x, z, col, sit) {                    // a little figure standing (or sitting) - for a stall keeper, a player
   const y0 = sit ? 3.6 : 0.8; box5(T, x - 1.6, y0, z - 1.2, x + 1.6, y0 + (sit ? 7 : 11), z + 1.2, _C(col)); box5(T, x - 1.2, y0 + (sit ? 7 : 11), z - 1.2, x + 1.2, y0 + (sit ? 9.6 : 13.6), z + 1.2, _C('#d9a074'));
 }
+const pkName = s => s.name === 'FARMERS MARKET' && feat('rosaMarket') ? "ROSA'S MARKET" : s.name;   // STORY's name for Mercado's market (modes: rosaMarket)
+function pkRename() {                                     // js/15 resetGame: a place built under the other name is built again when you come near
+  for (const q of PARKS_AT) if (q.lm && q.lm.mesh && q.lm.shown !== pkName(q.s)) dropDrawable(q.lm);
+}
 function pkSign(T, s, x, z) {                             // the place's name on a pylon at the front corner, turned to the side the camera sees
-  const w = Math.min(46, fasciaFit(s.name, 8, 46)), px = x === undefined ? s.w / 2 - w / 2 - 6 : x, pz = z === undefined ? s.h / 2 - 5 : z, ry = s.ry;
+  const name = pkName(s); s.shown = name;
+  const w = Math.min(46, fasciaFit(name, 8, 46)), px = x === undefined ? s.w / 2 - w / 2 - 6 : x, pz = z === undefined ? s.h / 2 - 5 : z, ry = s.ry;
   const ax = Math.cos(ry), az = -Math.sin(ry);                                     // along the panel
   for (const k of [-1, 1]) box5(T, px + ax * k * (w / 2 - 2) - 1, 0, pz + az * k * (w / 2 - 2) - 1, px + ax * k * (w / 2 - 2) + 1, 10, pz + az * k * (w / 2 - 2) + 1, _C(PK_IRON));
   pkS(px - 3, pz - 3, px + 3, pz + 3);
-  return m => { for (const back of [0, Math.PI]) { const sg = fasciaSign(s.name, s.c, w, 9); sg.position.set(px + Math.sin(ry + back) * 0.6, 14.5, pz + Math.cos(ry + back) * 0.6); sg.rotation.y = ry + back; m.add(sg); m.userData.own.push(sg.material); }
+  return m => { for (const back of [0, Math.PI]) { const sg = fasciaSign(name, s.c, w, 9); sg.position.set(px + Math.sin(ry + back) * 0.6, 14.5, pz + Math.cos(ry + back) * 0.6); sg.rotation.y = ry + back; m.add(sg); m.userData.own.push(sg.material); }
     const bd = new THREE.Mesh(GB, mc(0x2b2e38)); bd.scale.set(w + 2, 11, 1); bd.position.set(px, 14.5, pz); bd.rotation.y = ry; m.add(bd); };
 }
 const pkAnim = (m, f) => { const old = m.userData.anim; m.userData.anim = old ? t => { old(t); f(t); } : f; };
@@ -605,8 +610,8 @@ function pkPlace(row, x, y, a, w, h, site, clear) {      // measure the design's
   PK_S = []; withSeed(seed, () => (PK[row.kind] || PK.fountain)(new GeoBuilder(), new GeoBuilder(), s)); const S = PK_S; PK_S = null;
   const ca = Math.cos(a), sa = Math.sin(a);
   for (const [x0, z0, x1, z1, soft] of S) { const lx = (x0 + x1) / 2, lz = (z0 + z1) / 2; makeSolid(x + ca * lx - sa * lz, y + sa * lx + ca * lz, Math.max(1, x1 - x0), Math.max(1, z1 - z0), a, soft ? { soft: true } : {}); }
-  LMS.push({ cx: x, cy: y, a, rad: Math.hypot(w, h) / 2 + 40, make: () => withSeed(seed, () => pkMesh(row.kind, s)), mesh: null }); LM_CLEAR.push(clear);
-  PARKS_AT.push({ row, x, y, a, w, h, site });
+  const lm = { cx: x, cy: y, a, rad: Math.hypot(w, h) / 2 + 40, make: () => withSeed(seed, () => { const m = pkMesh(row.kind, s); lm.shown = s.shown; return m; }), mesh: null }; LMS.push(lm); LM_CLEAR.push(clear);
+  PARKS_AT.push({ row, x, y, a, w, h, site, lm, s });
 }
 function pkProp(p, a, w, h, ex, ey) {     // js/10b genLandmarks: a plaza or a court of the map takes its row of the table (false: none, the old model stays)
   if (typeof PARKS_TABLE === 'undefined') return false;

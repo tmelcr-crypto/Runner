@@ -121,7 +121,15 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "bull", "name": "KESSLER MAN", "letter": "Q", "bubble": "#d87a4a", "shirt": "#f0f0ea", "pants": "#3a4a6a", "mumble": {"low": 100, "high": 150, "rate": 11, "wave": "sawtooth", "gap": 0.08},
    "role": "One of Bull Kessler's men - Dockside heavies, every one much like the next.", "look": "Thirties, a buzz cut, stubble, a white vest or an orange work shirt, gold chains, jeans.",
    "skin": "#d9a27a", "hair": "#3a2a20", "hairStyle": "buzz", "facial": "stubble", "facialColour": "#3a2a20", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
-   "top": "tanktop", "topColour": "#f0f0ea", "topColour2": "#d8d8d2", "extras": ["chain"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "broad"}
+   "top": "tanktop", "topColour": "#f0f0ea", "topColour2": "#d8d8d2", "extras": ["chain"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "broad"},
+  {"id": "gus", "name": "GUS DELGADO", "letter": "W", "bubble": "#b8a07a", "shirt": "#f0ece0", "pants": "#5a4a3a", "mumble": {"low": 120, "high": 190, "rate": 10, "wave": "triangle", "gap": 0.12},
+   "role": "Runs DELGADO HARDWARE in Dockside; the one shopkeeper on the street who will not pay Kessler his rent.", "look": "Sixties, bald with a grey fringe, round glasses, a grey moustache, a brown shopkeeper's apron over a white shirt; stubborn.",
+   "skin": "#c99a76", "hair": "#b0b0b4", "hairStyle": "sides", "facial": "moustache", "facialColour": "#a8a8ac", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "reading", "glassesColour": "#2a2a30",
+   "top": "waistcoat", "topColour": "#7a5a3a", "topColour2": "#f0ece0", "extras": ["wrinkles"], "smileEyes": "happy", "calmMouth": "frown", "age": "old", "build": "normal"},
+  {"id": "rosaman", "name": "ROSA'S MAN", "letter": "R", "bubble": "#e04a5a", "shirt": "#f2f2f2", "pants": "#2a3a5a", "mumble": {"low": 110, "high": 170, "rate": 11, "wave": "triangle", "gap": 0.07},
+   "role": "One of Rosa Ortega's market men - porters and stall-keepers who stand by her (one bubble for all of them).", "look": "Thirties, short black hair, stubble, a red bandana over the shoulder, a white vest, strong arms.",
+   "skin": "#b8805a", "hair": "#1a1416", "hairStyle": "short", "facial": "stubble", "facialColour": "#1a1416", "eyes": "#2a1a12", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "tanktop", "topColour": "#f2f2f2", "topColour2": "#e0e0e0", "extras": ["rag"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */
