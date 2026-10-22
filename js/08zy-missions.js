@@ -67,6 +67,10 @@ function msEnter(k) {
   const st = MS.s.steps[k]; if (st.enter) st.enter(MS.A);
   msObjective(MS.m.steps[k].show);
 }
+function msBar(label, k, col) {             // a meter under the objective (a quest's suspicion, heat and the like): k 0..1
+  const b = $('msBar'); b.hidden = false; b.classList.toggle('low', !$('msLive').hidden); $('msBarLab').textContent = label; const f = $('msBarFill'); f.style.width = (Math.max(0, Math.min(1, k)) * 100).toFixed(1) + '%'; f.style.background = col || (k > 0.7 ? '#ff3b4a' : k > 0.4 ? '#ffd23f' : '#b6ff3c');
+}
+function msBarOff() { $('msBar').hidden = true; }
 function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.hidden = !txt; o.classList.add('big'); MS.objT = MSN.objTime; }
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
@@ -89,7 +93,7 @@ function msClear() {                        // the mission's people and vehicles
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
   SB.ms = null; if (SV.on && SV.h && SV.h.kind) closeSide();   // a quest's hold on a side-on building (js/08zzj) goes; out in the street
   MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); msCastClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd(); if ($('msBtn')) $('msBtn').hidden = true;   // a mission's cutscene still playing: over
-  $('msObj').hidden = true; $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; msRingStop(); if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
+  $('msObj').hidden = true; msBarOff(); $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; msRingStop(); if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
   const id = MS.id; msClear();

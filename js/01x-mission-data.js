@@ -1586,7 +1586,56 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["BAY TV's newsroom", "Danny, Nina", "The photo close: Crane at a ribbon, the driver at his door. Fade out.", "CLOSE on Danny", "5", "8, 9"]]}],
     "start": {"how": "phone", "marker": "-", "phone": "NINA PARK calls a game day after M12"},
     "failing": "Nina calls again (retry).",
-    "notes": {"places": "BAY TV's newsroom (answer 157): Nina's marker N from now on.", "people": "Nina; two of Crane's men.", "music": "-", "new": "Mateo's trail, clue 3: the photo. The NEWS VAN is a new vehicle (also in traffic).", "other": "Chapter 3 opens; the Prison storyline's letter reaches the Colony (P1)."}}}
+    "notes": {"places": "BAY TV's newsroom (answer 157): Nina's marker N from now on.", "people": "Nina; two of Crane's men.", "music": "-", "new": "Mateo's trail, clue 3: the photo. The NEWS VAN is a new vehicle (also in traffic).", "other": "Chapter 3 opens; the Prison storyline's letter reaches the Colony (P1)."}}},
+  {"id": "m14", "no": "M14", "title": "FOLLOW THE MONEY", "giver": "nina", "start": "marker", "where": "BAY TV's newsroom; FIRST CORAL BANK; the gas station up north; the PALM HEIGHTS LOFT",
+   "story": "Crane's money goes through his lawyer, Leonard Sachs, and every week Sachs' courier takes a case from FIRST CORAL BANK to an office nobody knows. Nina sends Danny after him: tail the courier's car without being seen. If Kessler was finished in M12, his gang comes for Danny on the way; if he was spared, Kessler calls with a tip - the courier changes cars at the gas station. The case ends up at the Palm Heights loft, in Sachs' hands.",
+   "chars": ["nina", "danny", "kessler", "sachs"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO NINA"},
+     {"word": "GO TO", "show": "WAIT IN A CAR BY FIRST CORAL BANK"},
+     {"word": "FOLLOW", "show": "FOLLOW THE COURIER - DON'T LET HIM SEE YOU"}],
+   "lines": [
+     {"who": "nina", "text": "Crane's money goes through one man: Leonard Sachs, his lawyer.", "mood": "quick", "when": "The courier, shot 1"},
+     {"who": "nina", "text": "Every week his courier takes a case from First Coral Bank to Sachs' office. Nobody knows where that is.", "mood": "quick", "when": "The courier, shot 1"},
+     {"who": "danny", "text": "So I follow the case.", "mood": "calm", "when": "The courier, shot 2"},
+     {"who": "nina", "text": "From a distance, Danny. If he sees you, we never see that case again.", "mood": "hard", "when": "The courier, shot 2"},
+     {"who": "danny", "text": "Kessler's boys. They want payback - not now!", "mood": "angry", "when": "LIVE - Kessler finished: his gang's cars come up behind", "live": true},
+     {"who": "kessler", "text": "Cruz. Kessler. You let me walk, so here's one for free.", "mood": "low", "when": "LIVE - Kessler spared: his call", "live": true},
+     {"who": "kessler", "text": "Sachs' courier changes cars at the gas station up north. Watch the white one.", "mood": "low", "when": "LIVE - Kessler spared: his call", "live": true},
+     {"who": "sachs", "text": "Right on time. Nobody followed you? Good. Mr. Crane will be pleased.", "mood": "cheerful", "when": "The office, shot 1"},
+     {"who": "danny", "text": "Nina - it's the Palm Heights loft. Sachs has the top floors.", "mood": "calm", "when": "The office, shot 2 (phone)"},
+     {"who": "nina", "text": "The loft... Good work. Now we find out what's in that case.", "mood": "warm", "when": "The office, shot 2 (phone)"}],
+   "fails": {"lost": "YOU LOST THE COURIER", "spotted": "THE COURIER SPOTTED YOU", "wrecked": "THE COURIER'S CAR IS WRECKED", "ninaDead": "NINA PARK IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 10, "waitM": 60, "walk": 0.45, "carSpeed": 55, "slowSpeed": 35, "lostM": 150, "closeM": 18, "mirrorM": 45, "mirrorCone": 35, "closeRate": 0.22, "mirrorRate": 0.08, "coolRate": 0.06, "gasStop": 6, "tipT": 8, "gangT": 25, "gangSpeed": 100},
+   "reward": {"cash": 3500, "vehicle": "", "clothes": "", "next": "M15 - Nina's marker N in BAY TV's newsroom (the next day)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 3; the suspicion bar, answer 146; Choice 1 in MISSIONS TEST, answer 144) - change anything you like.",
+    "glance": {"kind": "story", "given": "NINA PARK - her marker N in BAY TV's newsroom", "where": "Downtown: FIRST CORAL BANK, the gas station up north, the PALM HEIGHTS LOFT", "unlocked": "A game day after M13", "time": "Day (MISSIONS TEST: 10:00)", "length": "About 5 minutes", "limit": "None - but the suspicion bar"},
+    "chars": {
+     "nina": {"gives": true, "role": "Nina Park, Bay TV's reporter: knows about the courier, wants to know where the money goes.", "looks": "Thirties, a sharp black bob, a mustard blazer with big shoulders, small gold earrings.", "bubble": "Amber", "mumble": "Quick and clear."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "kessler": {"gives": false, "role": "Only if he was spared in M12: he calls with a tip.", "looks": "As in chapter 2.", "bubble": "As in the table", "mumble": "As in the table."},
+     "sachs": {"gives": false, "role": "Leonard Sachs, Crane's lawyer (first seen here): takes the case at his door.", "looks": "Round and cheerful, a bow tie, a pocket watch.", "bubble": "Sage green", "mumble": "Soft and slow."}},
+    "steps": [
+     ["Talk to Nina in BAY TV's newsroom (marker N); the opening cutscene THE COURIER.", "MISSIONS TEST: you start in the newsroom, a car at the kerb outside."],
+     ["Wait in a car within 60 m of FIRST CORAL BANK.", "The courier comes out with the case and gets into his dark saloon."],
+     ["Follow him: stay within 150 m, but not close behind him for long (18 m) and not in his mirrors (behind him, within 45 m). The SUSPICION bar rises while you are; it falls when you hang back. He stops at the gas station up north, then drives on to the PALM HEIGHTS LOFT, where Sachs takes the case; the closing cutscene THE OFFICE.", "Kessler finished (M12): two of his gang's cars come up behind you after about 25 s - the courier is slowed by traffic while they are about. Kessler spared: he calls - the courier changes into a white car at the gas station; the dark one drives off another way."]],
+    "fails": [
+     ["You get more than 150 m from the courier", "YOU LOST THE COURIER"],
+     ["The suspicion bar fills", "THE COURIER SPOTTED YOU"],
+     ["The courier's car is wrecked (or he gets out)", "THE COURIER'S CAR IS WRECKED"],
+     ["Nina is killed", "NINA PARK IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE COURIER\"", "plays": "When you talk to Nina.", "shots": [
+      ["BAY TV's newsroom", "Nina, Danny", "Nina at her desk with a photo of Sachs.", "CLOSE on Nina", "6", "1, 2"],
+      ["BAY TV's newsroom", "Danny, Nina", "Danny takes his keys. Fade out.", "CLOSE on Danny", "5", "3, 4"]]},
+     {"title": "CLOSING - \"THE OFFICE\"", "plays": "When the courier reaches Sachs' door.", "shots": [
+      ["The PALM HEIGHTS LOFT's door", "Sachs, the courier", "Sachs takes the case and checks his pocket watch.", "CLOSE on Sachs", "5", "8"],
+      ["Down the street", "Danny (on the phone)", "Danny watches from his car, calling Nina. Fade out.", "CLOSE on Danny", "6", "9, 10"]]}],
+    "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
+    "failing": "Nina's marker N again (retry).",
+    "notes": {"places": "FIRST CORAL BANK; the gas station up north; the PALM HEIGHTS LOFT (Sachs' office - Danny's after M18).", "people": "Nina; the courier; Sachs; Kessler's gang (finished) or Kessler on the phone (spared).", "music": "-", "new": "The suspicion bar (a meter under the objective, for any quest).", "other": "Choice 1 (M12) changes the middle: test both with the KESSLER switch on the MISSIONS list."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

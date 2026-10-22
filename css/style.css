@@ -670,6 +670,12 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 @media (max-width:520px){#stuntBanner{font-size:17px}#stuntBanner small{font-size:11px}}
 
 /* missions (js/08zy): the objective, the test info, the dialogue, the list and the end card */
+#msBar{position:absolute;left:50%;top:96px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;pointer-events:none}
+#msBar[hidden]{display:none}
+#msBar.low{top:172px}
+#msBarLab{font-family:var(--f-display);font-weight:400;font-size:9px;letter-spacing:1px;color:#fff;text-shadow:2px 2px 0 #000}
+#msBar i{display:block;width:160px;height:10px;border:2px solid #fff;background:rgba(0,0,0,.5)}
+#msBar s{display:block;height:100%;width:0;background:var(--good)}
 #msObj{position:absolute;left:50%;top:70px;transform:translateX(-50%);font-family:var(--f-display);font-size:11px;letter-spacing:2px;color:#b6ff3c;text-shadow:2px 2px 0 #000;white-space:nowrap;pointer-events:none;transition:font-size .4s,top .4s}
 #msObj.big{font-size:18px;top:24%}
 #msObj[hidden]{display:none}
