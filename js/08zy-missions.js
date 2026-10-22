@@ -157,7 +157,7 @@ $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey
 /* ---------- dialogue: the portrait, the bubble, the mumble; the game waits ---------- */
 const MS_PICS = {};
 const msFace = mood => { const F = CHARACTER_TABLE.faces, w = String(mood || '').toLowerCase(); return F.angry.includes(w) ? 'angry' : F.smile.includes(w) ? 'smile' : 'calm'; };
-function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, 40 x 64, transparent - tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
+function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, 48 x 75, transparent - tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
   const g = cv.getContext('2d'), W = cv.width, H = cv.height; g.imageSmoothingEnabled = false;
   g.fillStyle = '#12101c'; g.fillRect(0, 0, W, H);                // the night-dark ground and a glow in the speaker's bubble colour behind the picture
   const gl = g.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, H * 0.6); gl.addColorStop(0, ch.bubble + '80'); gl.addColorStop(1, ch.bubble + '00'); g.fillStyle = gl; g.fillRect(0, 0, W, H);

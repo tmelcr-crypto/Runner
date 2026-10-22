@@ -62,10 +62,10 @@ A third mode where every new mission is played in the game before it goes into S
 ## Characters
 
 Every character is in one table, `js/01y-character-data.js` (name, letter, colours, mumble, who they are, how they look, the recipe of
-their pixel-art portrait); the missions name them by id. Portraits: 40 x 64 pixel art in the style of the owner's reference picture (answers 117-120), head and shoulders nearly face on, three faces
+their pixel-art portrait); the missions name them by id. Portraits: 48 x 75 pixel art built from the owner's reference picture (answers 117-121), head and shoulders in its 3/4 view, three faces
 (calm, angry, smiling) picked by each line's mood - drawn by `tools/portraits.py`, shown in `docs/Characters.docx` (the owner's answers,
 October 2026: drawn portraits, free colours per character, everyone who speaks; three faces; one table and a Word sheet; then the
-reference picture's style - 40 x 64, transparent, the game drawing the dark ground and the bubble-colour glow behind). A new character gets a row in that table (and a portrait) before their first mission. The story plan's people (Danny, Papa Joe, Esther, Crane, Mateo, Kessler, Rosa, Nina, Sachs, Holloway, Pratt, Sal and Iris) are in
+reference picture's style - 48 x 75, transparent, the game drawing the dark ground and the bubble-colour glow behind). A new character gets a row in that table (and a portrait) before their first mission. The story plan's people (Danny, Papa Joe, Esther, Crane, Mateo, Kessler, Rosa, Nina, Sachs, Holloway, Pratt, Sal and Iris) are in
 the table now, drawn from the owner's answers 21-107 (October 2026); the minor people come with their quests.
 
 ## Approval list

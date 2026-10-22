@@ -139,3 +139,4 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 118. Background: transparent pictures; the game draws the dark ground and the bubble-colour glow behind them (the owner's own pictures fit the same way).
 119. The reference sets the style only: every character keeps the look from the answers (Danny: thirties, buzz cut, scar, leather jacket).
 120. Three faces each, as before: calm, angry and smiling, picked by each line's mood.
+121. The first redraw was "really bad": get close to the reference. Done by building the portraits from the reference itself - its own pixel grid (48 x 75, so that is the size now), its face, hair and shirt as hand-cleaned parts, recoloured and dressed per character.

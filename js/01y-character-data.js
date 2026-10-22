@@ -2,7 +2,7 @@
 /* ---------- 1y. THE CHARACTERS: one table for every mission (their names, letters, colours, voices and looks) ----------
    Each character once, the same in every mission that has them: the name and the letter on the maps, the bubble colour, the clothes
    their figure wears in the city (shirt, pants), their mumble, who they are (role) and how they look (look), and the recipe their
-   pixel-art portrait is drawn from (tools/portraits.py: 40 x 64, head and shoulders nearly face on, transparent, three faces - calm, angry and
+   pixel-art portrait is drawn from (tools/portraits.py: 48 x 75, the owner's reference style, transparent, three faces - calm, angry and
    smiling, picked by the mood written on each line; img/chars/<id>-<face>.png). The missions (js/01x) name their characters by id.
    tools/characters_sheet.py exports the table to Apple Numbers or Excel and writes an edited copy back:
    python3 tools/characters_sheet.py export characters.numbers. Keep the JSON between the markers valid. */

@@ -83,7 +83,7 @@ def build(m):
         pc0 = cell0.tables[0].rows[0].cells[0]; set_cell(pc0, 'PORTRAIT'); png = os.path.join(ROOT, 'img', 'chars', pic)
         if os.path.exists(png):
             from PIL import Image
-            big = os.path.join(OUT, '_' + pic); Image.open(png).resize((160, 256), Image.NEAREST).save(big)
+            big = os.path.join(OUT, '_' + pic); Image.open(png).resize((192, 300), Image.NEAREST).save(big)
             pc0.add_paragraph().add_run().add_picture(big, width=docx.shared.Cm(1.8)); os.remove(big)
         else: pc0.add_paragraph('img/chars/' + pic)
         for r, v in zip(cell1.tables[0].rows, [c['name'], c.get('letter') if pc.get('gives') else '-', pc['role'], pc['looks'], pc['bubble'], pic]):
@@ -132,7 +132,7 @@ def build(m):
     for rr in list(pics.rows): pics._tbl.remove(rr._tr)
     for c in m['chars']:
         tr = copy.deepcopy(proto); pics._tbl.append(tr); row = docx.table._Row(tr, pics)
-        set_cell(row.cells[0], c['id'] + '-calm / -angry / -smile.png'); set_cell(row.cells[1], c['name'] + ' - drawn (pixel art, 40 x 64, docs/Characters.docx); a picture of your own replaces them')
+        set_cell(row.cells[0], c['id'] + '-calm / -angry / -smile.png'); set_cell(row.cells[1], c['name'] + ' - drawn (pixel art, 48 x 75, docs/Characters.docx); a picture of your own replaces them')
     name = 'Quest-%s-%s.docx' % (m['no'], '-'.join(w.capitalize() for w in re.sub(r'[^A-Za-z ]', '', m['title']).split()))
     path = os.path.join(OUT, name); d.save(path); return path
 

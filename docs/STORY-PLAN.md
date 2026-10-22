@@ -42,7 +42,7 @@ What really happened, told to the player bit by bit:
 
 ## The people
 
-New characters get a row in the character table and a 40 x 64 portrait before their first quest (the looks below are the owner's answers).
+New characters get a row in the character table and a 48 x 75 portrait before their first quest (the looks below are the owner's answers).
 
 | Character | Who | Look | First seen |
 | --- | --- | --- | --- |

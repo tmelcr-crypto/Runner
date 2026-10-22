@@ -17,7 +17,7 @@ function adTexture(kind) {                // the board (512 x 256) or the poster
     g.fillStyle = '#d8b04a'; g.fillRect(0, 0, W, kind === 'board' ? 10 : 6); g.fillRect(0, H - (kind === 'board' ? 10 : 6), W, kind === 'board' ? 10 : 6);
     const font = (s, w) => w + ' ' + s + 'px "Arial Black",Impact,sans-serif';
     if (kind === 'board') {
-      if (img.complete && img.naturalWidth) { const w = 212 * img.naturalWidth / img.naturalHeight; g.drawImage(img, 18 + (212 - w) / 2, 22, w, 212); }   // the tall portrait (40 x 64), its own shape
+      if (img.complete && img.naturalWidth) { const w = 212 * img.naturalWidth / img.naturalHeight; g.drawImage(img, 18 + (212 - w) / 2, 22, w, 212); }   // the tall portrait (48 x 75), its own shape
       g.textAlign = 'center'; g.fillStyle = '#ffffff'; g.font = font(54, 'bold'); g.fillText('VICTOR', 372, 82); g.fillText('CRANE', 372, 140);
       g.fillStyle = '#d8b04a'; g.font = font(40, 'bold'); g.fillText('FOR MAYOR', 372, 192);
       g.fillStyle = '#9fc4ff'; g.font = font(18, 'bold'); g.fillText('BUILDING TOMORROW, TODAY', 372, 228);
