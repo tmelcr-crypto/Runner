@@ -61,3 +61,52 @@ MSCRIPT.c1 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() {} };
 })();
+
+/* ================= C2 - BLUEPRINTS ================= */
+MSCRIPT.c2 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.door = CASL.door();
+    A.del = msPed(A.door.x + 8, A.door.y - 16, 0, Object.assign(S1.look('del'), { msName: 'del', step: S1.stay, spare: true }));
+    const q = S1.free(A.del.x, A.del.y, 46); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.del, P);   // MISSIONS TEST: on the strip at 1:00, a car at the kerb
+    const r = S1.road(A.door.x + 90, A.door.y + 120), k = kerbBy(r.x, r.y); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
+    A.crown = sbCrown(); A.at = at(A.crown.door.x, A.crown.door.y + 24);
+    SB.ms = { open: true, liftTop: N().liftTop, spotted: false,              // the Crown held tonight: the offices open, three guards on the top floors
+      guards: [sbGuard(8, 190, 1230, 980, -1), sbGuard(9, 170, 1240, 360, 1), sbGuard(10, 170, 1200, 560, 1)],
+      item: { fl: 10, room: 'CRANE DEVELOPMENT', x: 620, label: 'TAKE THE PLANS', toast: 'THE VAULT PLANS', got: false } };
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.del; MS.start = { at: () => A.del, label: 'START MISSION', go: () => { face(A.del, P); msCut('THE PLANS', () => { A.go = true; }); } }; },   // TALK TO Del
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.guide = A.at; MS.mark = () => A.at; },                           // GO INTO the Crown
+      tick(A) { if (!SV.on || SV.h.id !== 'crown') return false; msLive([5], { now: true }); return true; },
+      info: A => SV.on ? 'INSIDE' : Math.round(dist(me().x, me().y, A.at.x, A.at.y) / UNITS_PER_M) + ' M TO THE CROWN',
+      jump(A) { if (P.car) exitCar(true); P.x = A.at.x; P.y = A.at.y - 6; P.vx = P.vy = 0; if (!SV.on) sbUse(A.crown); } },
+    { enter(A) { MS.guide = A.at; MS.mark = () => A.at; SB.ms.item.done = () => msLive([6], { now: true }); },   // STEAL the plans, unseen
+      tick() { return SB.ms.item.got; },
+      info: () => SV.on ? (SV.room ? SV.room.door.name : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl) + ' · CRANE DEVELOPMENT IS ON 10' : 'BACK INTO THE CROWN',
+      jump() { SB.ms.item.got = true; } },
+    { enter(A) { MS.guide = A.at; MS.mark = () => A.at; },                           // GET OUT, unseen
+      tick() { return !SV.on; },
+      info: () => SV.on ? (SV.fl === 0 ? 'LOBBY - THE DOOR IS ON THE LEFT' : 'FLOOR ' + SV.fl) : 'OUT',
+      jump() { if (SV.on) closeSide(); } },
+    { enter(A) { MS.guide = A.door; MS.mark = () => A.del; },                       // DELIVER the plans to Del: the closing
+      tick(A) { if (A.home || P.car || dist(P.x, P.y, A.del.x, A.del.y) > N().delR) return false; A.home = true; msCut('THE PLANS READ', () => msNext()); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.del.x, A.del.y) / UNITS_PER_M) + ' M TO DEL',
+      jump(A) { if (SV.on) closeSide(); if (P.car) exitCar(true); const q = S1.free(A.del.x, A.del.y, 30); P.x = q.x; P.y = q.y; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (SB.ms && SB.ms.spotted) return F.spotted;
+    if (A.del.dead) return F.delDead;
+    return '';
+  }
+  const cuts = {
+    'THE PLANS': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [1, 2], enter: () => { face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [3, 4] }],
+    'THE PLANS READ': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [7, 8], enter: () => { face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [9, 10], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { SB.ms = null; } };
+})();

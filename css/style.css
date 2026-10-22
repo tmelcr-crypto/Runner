@@ -535,6 +535,10 @@ button.stRow:hover,button.stRow:focus{outline:0;border-color:var(--good);box-sha
 #sideView{position:fixed;inset:0;z-index:25;background:#05030c;touch-action:none;overflow:hidden}
 #svCv{position:absolute;left:0;top:0;display:block}
 #svTop{position:absolute;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center;gap:10px}
+#svObj{position:absolute;left:50%;top:46px;transform:translateX(-50%);margin:0;font-family:var(--f-display);font-size:10px;letter-spacing:1px;color:#b6ff3c;text-shadow:2px 2px 0 #000;white-space:nowrap;pointer-events:none}
+#svObj[hidden]{display:none}
+#sideView.seen::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px 14px rgba(255,40,60,.6)}
+#svFloors button.lock{opacity:.35;cursor:not-allowed}
 #svTitle{font-family:var(--f-display);font-weight:400;font-size:10px;letter-spacing:1px;color:var(--paper);text-shadow:2px 2px 0 #000}
 #svMenu{font-family:var(--f-display);font-size:9px;color:var(--cyan);background:rgba(11,6,26,.8);border:2px solid var(--cyan);padding:8px 10px;cursor:pointer;touch-action:manipulation}
 #svHint{position:absolute;left:0;right:0;bottom:118px;margin:0;text-align:center;font-family:var(--f-display);font-size:11px;color:var(--good);text-shadow:2px 2px 0 #000;pointer-events:none}

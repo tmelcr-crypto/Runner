@@ -28,6 +28,10 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
   {"id": "allyRange", "group": "Fights", "name": "A friend fights enemies within", "unit": "m", "min": 5, "max": 60, "v": 26, "note": "In sight."},
   {"id": "allyBoard", "group": "Fights", "name": "A friend gets in when you are slower than", "unit": "km/h", "min": 1, "max": 60, "v": 12, "note": "Stop near them and they get in with you (up to three); get out and so do they."},
   {"id": "allyCatch", "group": "Fights", "name": "A friend left behind catches up from", "unit": "m", "min": 20, "max": 400, "v": 70, "note": "Further than this and out of sight, they catch up with you (in your car if you have stopped)."},
+  {"id": "warnT", "group": "Stealth", "name": "Seen: you must be out of sight within", "unit": "s", "min": 0.5, "max": 10, "v": 2, "note": "A guard who sees you shows \"!\" and the tone rises; still in his sight after this long, the quest fails (SPOTTED)."},
+  {"id": "seeNight", "group": "Stealth", "name": "A guard's torch reaches", "unit": "m", "min": 2, "max": 40, "v": 9, "note": "At night, ahead of him, along his hall (the side-on view: about 30 pixels to a metre)."},
+  {"id": "seeDay", "group": "Stealth", "name": "A guard sees by day", "unit": "m", "min": 2, "max": 60, "v": 13, "note": "With the lights on, ahead of him."},
+  {"id": "guardWalk", "group": "Stealth", "name": "A guard walks at", "unit": "m/s", "min": 0.3, "max": 4, "v": 1.4, "note": "You walk at 5 m/s in the side-on view."},
   {"id": "objTime", "group": "Cards", "name": "A new step's words stay big for", "unit": "s", "min": 1, "max": 10, "v": 3, "note": "Then they shrink into the bar at the top."}
 ],
 "missions": [
@@ -1183,7 +1187,56 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Del's door", "Del", "He grins for the first time. Fade out.", "CLOSE on Del", "5", "10"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "The Royal Flamingo's door; a sidewalk door a few blocks west, Del's place.", "people": "Del; three of Gold's men on foot; Gold's car with two more.", "music": "-", "new": "The Casino storyline (the vault heist): C2 next. In STORY, if Quest 03 came first, Del's lines say 'we've met' (answer 83).", "other": "Lenny Gold himself stays in the car this time."}}}
+    "notes": {"places": "The Royal Flamingo's door; a sidewalk door a few blocks west, Del's place.", "people": "Del; three of Gold's men on foot; Gold's car with two more.", "music": "-", "new": "The Casino storyline (the vault heist): C2 next. In STORY, if Quest 03 came first, Del's lines say 'we've met' (answer 83).", "other": "Lenny Gold himself stays in the car this time."}}},
+  {"id": "c2", "no": "C2", "title": "BLUEPRINTS", "giver": "del", "start": "marker", "where": "Del on the casino strip; THE CROWN downtown - Crane Development's office on the top floor",
+   "story": "Crane's own people built the Royal Flamingo's vault, and the plans sit in Crane Development's office at the top of the Crown. At night the lift stops at seven and guards with torches walk the floors above. Danny goes in, climbs past them unseen, takes the plans off the drafting table and walks out the way he came. Del reads them: the vault is three floors under the cashier's cage - they will need a uniform, and someone with fingers.",
+   "chars": ["del", "danny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL ON THE STRIP"},
+     {"word": "GO TO", "show": "GO INTO THE CROWN DOWNTOWN"},
+     {"word": "STEAL", "show": "TAKE THE VAULT PLANS - CRANE DEVELOPMENT, FLOOR 10 - UNSEEN"},
+     {"word": "GET OUT", "show": "GET OUT OF THE CROWN UNSEEN"},
+     {"word": "DELIVER", "show": "TAKE THE PLANS TO DEL"}],
+   "lines": [
+     {"who": "del", "text": "Crane's people built our vault. The plans sit in his office - the top floor of the Crown.", "mood": "nervous", "when": "The plans, shot 1"},
+     {"who": "danny", "text": "And you want me to borrow them.", "mood": "dry", "when": "The plans, shot 1"},
+     {"who": "del", "text": "At night the lift stops at seven. Above that, guards with torches. If one sees you, it's over - for both of us.", "mood": "nervous", "when": "The plans, shot 2"},
+     {"who": "del", "text": "In and out. Nobody sees you. Nobody.", "mood": "nervous", "when": "The plans, shot 2"},
+     {"who": "danny", "text": "Lift stops at seven. Stairs from there - and quiet.", "mood": "calm", "when": "LIVE - in the lobby", "live": true},
+     {"who": "danny", "text": "Got them. Now out the way I came.", "mood": "calm", "when": "LIVE - the plans taken", "live": true},
+     {"who": "del", "text": "You've got them? And nobody saw you?", "mood": "nervous", "when": "The plans read, shot 1"},
+     {"who": "danny", "text": "Only the night man's dreams.", "mood": "dry", "when": "The plans read, shot 1"},
+     {"who": "del", "text": "Three floors under the cashier's cage... a door like a bank's. We'll need someone with fingers.", "mood": "wry", "when": "The plans read, shot 2"},
+     {"who": "del", "text": "And a uniform first. Come back tomorrow night.", "mood": "calm", "when": "The plans read, shot 2"}],
+   "fails": {"spotted": "SPOTTED - A GUARD SAW YOU", "delDead": "DEL RAMOS IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 1, "liftTop": 7, "delR": 50},
+   "reward": {"cash": 2500, "vehicle": "", "clothes": "", "next": "C3 - Del's marker D on the strip, the next night", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line; the Crown side-on, answer 134; stealth, answer 141) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, the Royal Flamingo's door at night)", "where": "The casino strip; THE CROWN downtown (inside: the side-on view)", "unlocked": "Passing C1", "time": "Night (MISSIONS TEST: 1:00)", "length": "About 5 to 8 minutes", "limit": "Seen by a guard: 2 seconds to get out of his sight"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos, the croupier: wants the vault's plans before he dares anything.", "looks": "As in Quest 03 and C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You - alone in the Crown.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."}},
+    "steps": [
+     ["START MISSION by Del at the Royal Flamingo's door; the cutscene THE PLANS.", "MISSIONS TEST: you start on the strip at 1:00, a car at the kerb."],
+     ["Drive downtown to THE CROWN and go in at its door (ENTER, or E): the side-on view.", "The lobby: the night man asleep over his desk."],
+     ["Up to Crane Development on floor 10, unseen: the lift goes to 7 (the higher floors need a keycard); from there the stairs, which switch ends floor by floor - so you cross the halls of 8, 9 and 10, where guards walk with torches. Seen: a \"!\" and a rising tone - out of his sight in 2 seconds (behind him, into an office - they are open tonight - or hidden: DOWN at a door or a plant, standing still). In Crane's office: TAKE THE PLANS from the drafting table.", "Outside this quest the offices are locked and nobody walks the halls at night."],
+     ["Back down and out of the lobby door, still unseen.", ""],
+     ["Take the plans to Del on the strip; the closing cutscene THE PLANS READ.", ""]],
+    "fails": [
+     ["A guard sees you for 2 seconds", "SPOTTED - A GUARD SAW YOU"],
+     ["Del is killed", "DEL RAMOS IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE PLANS\"", "plays": "At START MISSION by Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del smoking under the canopy's bulbs.", "CLOSE on Del", "5", "1, 2"],
+      ["The strip", "Del", "He nods up the avenue, towards downtown.", "CLOSE on Del", "5", "3, 4"]]},
+     {"title": "CLOSING - \"THE PLANS READ\"", "plays": "When you bring the plans to Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del unrolls the plans on a car's bonnet.", "CLOSE on Del", "5", "7, 8"],
+      ["The Royal Flamingo's door", "Del", "His finger on the vault. Fade out.", "CLOSE on Del", "5", "9, 10"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "THE CROWN's inside (side-on, permanent: lobby and lift open in both modes, the offices locked outside C2).", "people": "Del; three night guards on floors 8, 9 and 10; the night man asleep in the lobby.", "music": "-", "new": "Stealth (answer 141). The vault plans: C8 follows them (three floors under the cashier's cage).", "other": "In MISSIONS TEST the guards walk only during C2."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
