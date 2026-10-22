@@ -10,6 +10,9 @@
 const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null, start: null, pageT: 0 };
 const MSCRIPT = {};                        // each mission's script: { setup(A), steps: [{ enter, tick → true when done, jump, info }], fail(A) → why, cuts: { name: A => shots } }
 const msTest = () => gameMode === 'test';
+const MS_CHOICE = { kessler: 'finished', files: 'police' };   // the story's choices as MISSIONS TEST plays them (STORY: what you chose)
+MS_CHOICE.from = { m12: 'kessler', m18: 'files' };   // playing the choosing quest sets the switch too
+const MS_CHOICES = [['kessler', 'KESSLER', ['finished', 'spared']], ['files', "SACHS' FILES", ['police', 'kept']]];
 
 /* ---------- MISSIONS TEST: the kit and the list ---------- */
 function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the mission picked
@@ -32,6 +35,9 @@ function paintMsCard() {
     b.addEventListener('click', () => msPick(m.id)); L.appendChild(b);
   }
   $('msSub').textContent = MS.fromNew ? 'MISSIONS TEST · PICK A MISSION TO START' : 'MISSIONS TEST · PICK ONE TO PLAY';
+  const CH = $('msChoices'); if (CH) { CH.innerHTML = '';                    // the switches: which way the earlier choices went (M14/M16 by Kessler; chapter 4 by the files)
+    for (const [k, name, opts] of MS_CHOICES) { const b = document.createElement('button'); b.type = 'button'; b.className = 'alt msStep'; b.textContent = name + ': ' + MS_CHOICE[k].toUpperCase();
+      b.addEventListener('click', e => { e.stopPropagation(); MS_CHOICE[k] = opts[(opts.indexOf(MS_CHOICE[k]) + 1) % opts.length]; paintMsCard(); }); CH.appendChild(b); } }
   const on = MS.on && !MS.fromNew, H = $('msHelp'); H.hidden = !on; if (!on) return;
   $('msNow').textContent = 'NOW: ' + MS.m.no + ' · ' + MS.m.title + ' · STEP ' + (MS.k + 1) + '/' + MS.m.steps.length;
   const S = $('msSteps'); S.innerHTML = '';
@@ -92,6 +98,7 @@ function msFail(why) {
 }
 function msPassed() {
   const m = MS.m, r = m.reward, id = MS.id, ch = MS.A && MS.A.choice; msClear();   // ch: a choice made by what you did (M12)
+  if (MS_CHOICE.from && MS_CHOICE.from[id] && ch) MS_CHOICE[MS_CHOICE.from[id]] = ch.includes('FINISHED') ? 'finished' : ch.includes('SPARED') ? 'spared' : ch.includes('POLICE') ? 'police' : ch.includes('KEPT') ? 'kept' : MS_CHOICE[MS_CHOICE.from[id]];
   if (r.cash > 0) addScore(r.cash, P.x, P.y, 'MISSION');
   Snd.tone(523, 784, 0.18, 0.12, 'square'); setTimeout(() => Snd.tone(784, 1046, 0.25, 0.12, 'square'), 180);
   const list = [r.cash > 0 && money(r.cash), ch && 'CHOICE: ' + ch, r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.next && 'NEXT: ' + r.next].filter(Boolean);

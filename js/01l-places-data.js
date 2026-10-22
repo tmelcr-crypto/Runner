@@ -104,7 +104,9 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "depotVanBack", "group": "Armoured-car depot", "name": "A taken van is back after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after it was driven off - if it was lost or left (one kept in a garage stays yours)."},
   {"id": "funSlide", "group": "Lunapark funhouse", "name": "The tilted room slides you at", "unit": "m/s", "min": 0, "max": 6, "v": 1.6, "note": "Toward its low wall, while you stand or walk in it (walk the other way to get up the slope)."},
   {"id": "substDark", "group": "Substation", "name": "Blown, the strip stays dark for", "unit": "s", "min": 10, "max": 600, "v": 90, "note": "The neon of the Royal Flamingo, THE PULSE and the bars is off; then the repair crew comes and the lights come back."},
-  {"id": "substCrew", "group": "Substation", "name": "The repair crew stays", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Their truck at the gate, two men at the units; the burnt units are mended when they go."}
+  {"id": "substCrew", "group": "Substation", "name": "The repair crew stays", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Their truck at the gate, two men at the units; the burnt units are mended when they go."},
+  {"id": "newsOpen", "group": "Newsroom", "name": "BAY TV's newsroom opens at", "unit": "h", "min": 0, "max": 23, "v": 8, "note": "Its door unlocks and the reporters come in."},
+  {"id": "newsClose", "group": "Newsroom", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 20, "note": "Then the door is locked till morning (a quest can hold it open)."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */
