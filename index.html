@@ -60,6 +60,8 @@
   <button id="boatBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 6.5V21M8 10h8M4 14c0 4 4 7 8 7s8-3 8-7"/></svg></span><b></b><span class="go">ENTER</span></button>
   <button id="casBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM11 0h2v5h-2zm0 19h2v5h-2zM0 11h5v2H0zm19 0h5v2h-5z"/><circle cx="12" cy="12" r="3"/></svg></span><b></b><span class="go">PLAY</span></button>
   <button id="ixBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H5v12h14V10h-2V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9zm3 4a2 2 0 0 1 1 3.7V20h-2v-2.3A2 2 0 0 1 12 14z"/></svg></span><b></b><span class="go">FORCE</span></button>
+  <button id="gymBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 3h6a5 5 0 0 1 5 5v4a4 4 0 0 1-2 3.5V18H8v-2.6A5 5 0 0 1 5 11V7a4 4 0 0 1 3-4zM7 19h11v3H7z"/></svg></span><b></b><span class="go">FIGHT</span></button>
+  <div id="gymBar" hidden><b id="gymName"></b><i><span id="gymHp"></span></i></div>
   <button id="msBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b></b><span class="go">START MISSION</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
   <div id="wheel" hidden><div id="wgTitle" hidden>WEAPONS</div><div id="wgrid" hidden></div><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
@@ -314,8 +316,12 @@
         <li>Tap MISSIONS TEST on the NEW GAME screen and tap a mission: the game starts with it. <b>MISSIONS</b> on the pause menu picks another; while one runs, the same list restarts it, jumps to any step or replays a cutscene.</li>
         <li>A mission begins by its giver: walk up on foot and tap <b>START MISSION</b> (or E). Follow the words at the top, the lime line and the green arrow. In a dialogue, tap anywhere (or E) for the rest of the line, again for the next; SKIP ends a cutscene. Small bubbles under the objective are live lines (a shout, a phone call): play on, they go by themselves.</li>
         <li>Enemies (red dots) fight you and your friends; a friend (a bar over them) follows you, fights, gets in when you stop your car and shoots from it - keep them alive. Killing a mission's enemies is no crime.</li>
-        <li>While a mission runs, rampages, races, jobs, the scenic flight, the casino games, break-ins and the docks delivery are shut (NOT DURING A MISSION). Shops and the Pay 'n' Spray stay open.</li>
+        <li>While a mission runs, rampages, races, jobs, the scenic flight, the casino games, break-ins, the ring fights and the docks delivery are shut (NOT DURING A MISSION). Shops and the Pay 'n' Spray stay open.</li>
         <li>The story's first chapter (M01-M06) is in the list too. The <b>pager</b> on the right buzzes with a message: go to the marked phone booth and tap <b>CALL</b>. A friend who does not fight (Papa Joe) rides with you and stays in the car when you get out - stop by him and he gets in.</li></ul></div>
+      <div><h3>BULL'S GYM</h3><ul>
+        <li>Bull Kessler's boxing gym at Dockside (a red glove on the maps), open 7:00-23:00: boxers at the bags, the ring at the back.</li>
+        <li>At the ring's steps tap <b>RING</b> (or E) for a bout: fists only, no armour. Jab him, step back out of his reach when he swings. Five opponents, each tougher and paying more (€200 up to €3,200).</li>
+        <li>Knocked out, you wake outside the door with a little health - try again any time.</li></ul></div>
       <div><h3>HANGARS AND WAREHOUSES</h3><ul>
         <li>The airport's three hangars, six warehouses at Dockside and Gravel Flats and the storage yard's eight lock-ups (a brown crate on the maps): walk or drive in, the roof turns see-through.</li>
         <li>Stashes of cash, guns and ammo inside, and four rare vehicles - a classic under a dust sheet, a race bike, a prototype, an armoured van with money in the back. Drive one off and it is yours; lost, a new one is back a day later.</li>
@@ -596,6 +602,7 @@
 <script src="js/01w-interior-data.js?v=57"></script>
 <script src="js/01x-mission-data.js?v=57"></script>
 <script src="js/01y-character-data.js?v=57"></script>
+<script src="js/01z-gym-data.js?v=57"></script>
 <script src="js/02-audio.js?v=57"></script>
 <script src="js/02b-radio.js?v=57"></script>
 <script src="js/02c-music.js?v=57"></script>
@@ -643,6 +650,7 @@
 <script src="js/08zx-interiors.js?v=57"></script>
 <script src="js/08zy-missions.js?v=57"></script>
 <script src="js/08zz-mission-cast.js?v=57"></script>
+<script src="js/08zzg-gym.js?v=57"></script>
 <script src="js/09-render-core-buildings.js?v=57"></script>
 <script src="js/10-render-city-map.js?v=57"></script>
 <script src="js/10b-render-landmarks.js?v=57"></script>
@@ -671,6 +679,7 @@
 <script src="js/10y-stunts.js?v=57"></script>
 <script src="js/10z-interiors.js?v=57"></script>
 <script src="js/10za-ads.js?v=57"></script>
+<script src="js/10zb-gym.js?v=57"></script>
 <script src="js/11-render-dynamic-meshes.js?v=57"></script>
 <script src="js/11b-weapon-models.js?v=57"></script>
 <script src="js/11c-clothes-models.js?v=57"></script>

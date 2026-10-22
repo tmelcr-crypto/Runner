@@ -88,6 +88,7 @@ $('wring').addEventListener('click', e => e.stopPropagation());
 $('wcenter').addEventListener('click', e => { e.stopPropagation(); toggleWheel(false); });
 $('wheel').addEventListener('click', () => toggleWheel(false));            // tap outside the wheel: back to the game, weapon unchanged
 function toggleWheel(on) {
+  if (on !== false && GYM.fight) { toast('FISTS ONLY IN THE RING', true); return; }   // a bout in BULL'S GYM (js/08zzg)
   wheelOpen = (on === undefined ? !wheelOpen : on) && state === 'play' && !P.dead;
   $('wheel').hidden = !wheelOpen;
   if (!wheelOpen) return;

@@ -53,10 +53,12 @@ function meleeHits(w) {
     const a = P.ang - half + (2 * half) * k / 6, r = R - 2;
     addP({ x: P.x + Math.cos(a) * r, y: P.y + Math.sin(a) * r, z: 13, vz: 0, grav: 0, vx: Math.cos(a) * 30, vy: Math.sin(a) * 30, life: 0.16, max: 0.16, s0: 3.2, s1: 1, col: w.color, drag: 2, alpha: 0.9 });
   }
-  alertPeds(P.x, P.y, w.panic);
-  if (hit) { Snd.melee(w.sound, true); cam.shake = Math.max(cam.shake, w.shake); reportCrime(w.heat * COP.crime.gunfire, w.hear, P.x, P.y, false); }
+  const bout = !!GYM.fight;                                         // a bout in BULL'S GYM: nobody panics, no crime (js/08zzg)
+  if (!bout) alertPeds(P.x, P.y, w.panic);
+  if (hit) { Snd.melee(w.sound, true); cam.shake = Math.max(cam.shake, w.shake); if (!bout) reportCrime(w.heat * COP.crime.gunfire, w.hear, P.x, P.y, false); }
 }
 function hitPerson(p, w, officer) {
+  if (p.ring) { gymHit(p, w); return; }                            // the opponent in BULL'S GYM's ring (js/08zzg)
   const a = Math.atan2(p.y - P.y, p.x - P.x), nx = Math.cos(a), ny = Math.sin(a), fly = w.push > 3 * MPS;
   bloodFx(p.x, p.y, w.dmg >= 30 ? 6 : 2, a); p.hp -= w.dmg;
   if (p.hp <= 0) { if (officer) killOfficer(p, true); else killPed(p, 'melee', true, a); }

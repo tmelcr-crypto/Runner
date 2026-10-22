@@ -705,3 +705,9 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #msObj{white-space:normal;text-align:center;width:max-content;max-width:92vw;line-height:1.5}
 #msObj.big{font-size:clamp(13px,4.6vw,18px)}
 #startCard .build{margin:2px 0 10px;font-size:9px;letter-spacing:2px;opacity:.55}
+/* BULL'S GYM: the opponent's name and health over the ring (js/08zzg) */
+#gymBar{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;font-family:var(--f-display);font-size:11px;color:#fff;text-shadow:0 2px 0 #000}
+#gymBar[hidden]{display:none}
+#gymBar i{display:block;width:200px;height:10px;background:#2a1418;border:2px solid #000;box-shadow:0 0 0 1px #ff3b4a}
+#gymBar span{display:block;height:100%;width:100%;background:linear-gradient(#ff7a7a,#c8202c);transition:width .15s}
+@media (max-height:500px){#gymBar{top:48px;font-size:9px}#gymBar i{width:150px;height:8px}}

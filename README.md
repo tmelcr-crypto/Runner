@@ -640,6 +640,17 @@ Ten buildings you can **walk and drive into**, the roof turning see-through whil
 - **The lock-ups** have no guard: at a lock-up's door, **FORCE** (or E) and hold still - or ram it. An opened lock-up stays open a game day.
 - Numbers: the **interiors table** (`js/01w-interior-data.js`; `python3 tools/settings_sheet.py interiors export interiors.numbers`): the opening hours, the workers, how far the guard sees, the stars of the alarm, the speed that rams a door, how long a lock takes, the stashes and their cash, how long until a stash and a rare vehicle are back, the money in the van. The money is also in the economy sheet; the rare vehicles are rows of the vehicles table.
 
+## BULL'S GYM and the ring fights
+
+Bull Kessler's boxing gym in a **Dockside warehouse** (modes `gym` and `ringFights`, both modes; `js/08zzg-gym.js`, the building in `js/10zb-gym.js`, the numbers in `js/01z-gym-data.js`): the top-down kind, the roof turning see-through while you are inside. BULL'S GYM is painted big on its roof and a **red glove** marks it on the maps. Through the glass door: the front desk and a trophy case, **Kessler's office** behind glass (a desk, a safe, a filing cabinet), lockers, two rows of **heavy bags** with boxers punching them, the speed bags, the **weights** and at the back **the ring**.
+
+- **Open** 7:00-23:00; then the door is locked and nobody is in.
+- **Ring fights**: at the ring's steps, **RING** (or E) starts the next bout - you in the near corner, he in the far one, the steps shut behind you, a count-in and the bell. **Fists only** (the weapon wheel stays shut); body armour does not count. Your jabs take his health (his bar shows over the screen); he blocks some, and a jab staggers him. His punch lands a moment after he starts it - step out of his reach in time and it misses.
+- **Five opponents**, one after another, each tougher and paying more: KID RAMIREZ (€200), SAILOR DUKE (€400), THE BUTCHER (€800), IRON MIKE MORALES (€1,600) and Kessler's champion TANK (€3,200). Knock one out and the pay is yours; the next one waits. After the fifth nobody is left who will fight you.
+- **Lose** (your health down to 10) and you are knocked out and **thrown out of the door** with 25 health - try again any time. Nobody panics and nobody calls the police over a bout.
+- STORY: the gym is Kessler's in chapter 2 (M07, M12) and the fights stop after M12. A mission holds the gym while it needs it (the door open, nobody training, no bouts).
+- Numbers: the **gym table** (`js/01z-gym-data.js`; `python3 tools/settings_sheet.py gym export gym.numbers`): the hours, the boxers, the count-in, where you go down and how much health you are thrown out with, his reach, how long his punch takes, how long your jab staggers him, how long he lies, and each opponent's health, punch, footwork, time between punches, blocks and pay (the pay is also in the economy sheet).
+
 ## Stats and 100%
 
 **STATS** in the pause menu (mode `stats`, both modes; `js/08zs-stats.js`) - its button and the pause line show how much of the city you have done, as a per cent. The card has three tabs:
@@ -795,7 +806,9 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/08zr-roadblocks.js` | police roadblocks: where one goes on the road ahead, the cars across the street and the cops behind them by wanted level, how they hold their places and shoot (pistols, SMG bursts, rifles), taking it down |
 | `js/08zp-prison.js` | Iron Key: the ferry (shuttling, boarding over the ramp, walking its deck, skipping the crossing, not while wanted), the tower and gate guards, the prisoners in the yard, the restricted area and the alarm, being let out when busted, the gate, the searchlights, the map icons |
 | `js/08zu-casino.js` | the casino strip at work: the bouncers and the dress code, the slot machines' and the dice table's card, trouble and the guards, robbing the cashier's cage, the club's music and its lights, the people on the strip at night, the map icons |
+| `js/01z-gym-data.js` | the gym table: BULL'S GYM's hours and boxers, a bout's rules, the five opponents' numbers and pay |
 | `js/01y-character-data.js` | the characters of the missions: names, letters, colours, mumbles, who they are, how they look, the recipes of their pixel-art portraits, the moods that pick a face |
+| `js/08zzg-gym.js` | BULL'S GYM at work: the door, the boxers at the bags, the ring fights (bouts, the opponent's moves, knockouts, thrown out), the RING button, the glove on the maps, saves |
 | `js/08zz-mission-cast.js` | a mission's cast: enemies who shoot at you and your friends (guard, fight, their cars with gunners and crews), the friends who help you (follow, fight, ride along and shoot from your car), the bars and the map dots |
 | `js/08zy-missions.js` | the missions: MISSIONS TEST (the kit, the list, the helpers), the mission engine (steps, the objective, the target, dialogue with portraits and mumbles, cutscenes from shot lists, fails, the end card) and each mission's script (Quest 01) |
 | `js/08zx-interiors.js` | the hangars, warehouses and lock-ups at work: the doors by the clock, ramming and forcing them, the workers and the night guard, the alarm, the stashes, the rare vehicles, the crates on the maps, saves; a mission holding a place (its roller door up, nobody at work) |
@@ -840,6 +853,7 @@ Gunfire alone only makes people run. Killed, they drop their weapon in its colou
 | `js/10t-salvage.js` | the junkyard: where the wreck stacks go, the fence and the solids, the model - ground, fence, gateway and sign, the spot, the stacks, the crusher and its press, the crane (tracks, the turning house and boom, cable and magnet), the shack, the kennel, the floodlights |
 | `js/10u-prison.js` | Iron Key's models and solids: the island's rocks and scrub, the wall, the towers and their searchlights, the cell blocks, the office, the yard and court, the gate, the path and the pier; the ferry pier on the Palm Heights shore; the ferry; the ferry's route |
 | `js/10w-casino.js` | the casino strip's solids and models: the ROYAL FLAMINGO (walls, door, canopy, slot rows, dice tables, cage, roof with the neon flamingo), THE PULSE (walls, door and rope, DJ, bar, sofas, the dance floor, the light rig, roof with the heartbeat), the bars' neon across the avenue, the people's places |
+| `js/10zb-gym.js` | BULL'S GYM: which warehouse, its walls and glass door, the ring, bags, weights and Kessler's office, the model with a roof that fades and the name on it |
 | `js/10z-interiors.js` | the hangars, warehouses and the storage yard: which buildings, their walls and doors, the racks and containers inside, the models with roofs that fade |
 | `js/10y-stunts.js` | the stunt ramps: their jumps (with Skyline One's launch ramp as the twentieth), the clear ground round them, the model |
 | `js/10x-marina.js` | Sunset Harbor's solids and model (the office and lighthouse, the sunset sign, the piers, the berths, the fuel dock) and the eight jetties round the coast |

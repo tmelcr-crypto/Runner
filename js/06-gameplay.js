@@ -53,6 +53,7 @@ function gibPerson(p, ang) {             // torn apart by a blast (js/01j gibs):
 }
 function damagePlayer(d) {
   if (P.dead || state === 'over') return;
+  if (gymHurt(d)) return;                                          // a bout in BULL'S GYM: knocked out, never killed (js/08zzg)
   const a = Math.min(P.armor, d); P.armor -= a; d -= a;              // body armor takes it first (js/01g)
   P.hp -= d; P.hurtT = 0.25; Snd.hurt(); cam.shake = Math.max(cam.shake, 4);
   if (P.hp <= 0) killPlayer();
