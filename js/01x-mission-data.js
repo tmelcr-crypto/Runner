@@ -1135,7 +1135,55 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The east quay", "Rosa", "She hands Danny a key. Fade out.", "CLOSE on Rosa", "5", "10"]]}],
     "start": {"how": "marker", "marker": "R - Rosa at her market in Mercado", "phone": "-"},
     "failing": "Retry from Rosa's marker.",
-    "notes": {"places": "ROSA'S MARKET; BULL'S GYM held by the quest (door open, nobody training); the port's east quay.", "people": "Rosa, two of her men, Kessler, six of his men.", "music": "-", "new": "Choice 1 (STORY keeps it: finished or spared). The Mercado flat - Kessler's old place - is Danny's, free (STORY). Chapter 3 follows. In STORY the gym's ring fights stop after this quest.", "other": "In MISSIONS TEST the end card says which choice you made."}}}
+    "notes": {"places": "ROSA'S MARKET; BULL'S GYM held by the quest (door open, nobody training); the port's east quay.", "people": "Rosa, two of her men, Kessler, six of his men.", "music": "-", "new": "Choice 1 (STORY keeps it: finished or spared). The Mercado flat - Kessler's old place - is Danny's, free (STORY). Chapter 3 follows. In STORY the gym's ring fights stop after this quest.", "other": "In MISSIONS TEST the end card says which choice you made."}}},
+  {"id": "c1", "no": "C1", "title": "DEALER'S CHOICE", "giver": "del", "start": "marker", "where": "The Royal Flamingo on the casino strip; Del's place a few blocks away",
+   "story": "Del Ramos counts the Royal Flamingo's money every night - dirty money in, clean chips out - and tonight a little of it walks home with him. He wants Danny beside him. Halfway there the pit boss Lenny Gold's crew comes after them; Danny fights them off and gets Del to his door, where Del says whose money it really is - Crane's - and that one night he will take the whole vault.",
+   "chars": ["del", "danny", "lenny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL AT THE ROYAL FLAMINGO"},
+     {"word": "FOLLOW", "show": "WALK DEL HOME - STAY CLOSE"},
+     {"word": "TAKE OUT", "show": "TAKE OUT LENNY GOLD'S CREW"},
+     {"word": "DELIVER", "show": "GET DEL TO HIS DOOR"}],
+   "lines": [
+     {"who": "del", "text": "Joe's boatman? Good. I count the house money every night - dirty money in, clean chips out.", "mood": "nervous", "when": "The count, shot 1"},
+     {"who": "del", "text": "Tonight a little of it walks home with me. And you walk with me.", "mood": "nervous", "when": "The count, shot 1"},
+     {"who": "danny", "text": "Whose money is it?", "mood": "calm", "when": "The count, shot 2"},
+     {"who": "del", "text": "Don't ask that out loud on this strip. Come on - before Lenny sees us.", "mood": "nervous", "when": "The count, shot 2"},
+     {"who": "lenny", "text": "Ramos! The house money doesn't go for walks! Get him, boys!", "mood": "yelling", "when": "LIVE - Gold's crew comes", "live": true},
+     {"who": "del", "text": "That's Lenny Gold - the pit boss! Don't let them take me!", "mood": "panicked", "when": "LIVE - the fight", "live": true},
+     {"who": "del", "text": "They're down... Let's go before more of them come.", "mood": "shaken", "when": "LIVE - after the fight", "live": true},
+     {"who": "del", "text": "Home. You know whose money that is? Crane's. Every chip on that floor.", "mood": "calm", "when": "Del's door, shot 1"},
+     {"who": "danny", "text": "Crane again.", "mood": "calm", "when": "Del's door, shot 1"},
+     {"who": "del", "text": "One night I take the whole vault. I need plans, a van, a uniform - and fingers. Come back tomorrow night.", "mood": "wry", "when": "Del's door, shot 2"}],
+   "fails": {"delDead": "DEL RAMOS IS DEAD", "lost": "DEL IS ON HIS OWN - YOU WENT TOO FAR", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 3, "delHp": 220, "attackT": 22, "menHp": 70, "homeR": 50, "farR": 120},
+   "reward": {"cash": 2000, "vehicle": "", "clothes": "", "next": "C2 - Del's marker D on the strip, the next night", "place": "", "contact": "Del Ramos (the casino strip)"},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, the Royal Flamingo's door at night)", "where": "The casino strip in Sunstrip; the streets to Del's place", "unlocked": "The start of chapter 2 (after M07 in STORY)", "time": "Night (MISSIONS TEST: 3:00, after closing)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos, the croupier who counts the house money; wants out - with some of it. Walks with you (he does not fight).", "looks": "As in Quest 03: thirties, thin and pale, slicked black hair, a pencil moustache, a wine-red croupier's waistcoat.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "lenny": {"gives": false, "role": "Lenny Gold, the pit boss: heard in the street as his crew comes (his crew: one bubble).", "looks": "Forties, heavy, a bad toupee, a burgundy suit, gold chains.", "bubble": "Gold", "mumble": "Loud and low: a sawtooth."}},
+    "steps": [
+     ["START MISSION by Del at the Royal Flamingo's door; the cutscene THE COUNT.", "MISSIONS TEST: you start on the strip at 3:00."],
+     ["Walk Del home: he follows you (the marker shows his door). Don't leave him more than 120 m behind.", "He rides with you if you take a car."],
+     ["Lenny Gold's crew comes - three men on foot and a car with two more: take them all out. Del must live.", "Killing them is no crime."],
+     ["Bring Del to his door; the closing cutscene DEL'S DOOR.", ""]],
+    "fails": [
+     ["Del is killed", "DEL RAMOS IS DEAD"],
+     ["You leave Del 120 m behind", "DEL IS ON HIS OWN - YOU WENT TOO FAR"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE COUNT\"", "plays": "At START MISSION by Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del, his coat over his waistcoat, a fat envelope under his arm.", "CLOSE on Del", "5", "1, 2"],
+      ["The strip", "Del, Danny", "He glances back at the doors.", "CLOSE on Del", "5", "3, 4"]]},
+     {"title": "CLOSING - \"DEL'S DOOR\"", "plays": "When you bring Del to his door.", "shots": [
+      ["Del's door", "Del, Danny", "Del fumbles for his keys.", "CLOSE on Del", "5", "8, 9"],
+      ["Del's door", "Del", "He grins for the first time. Fade out.", "CLOSE on Del", "5", "10"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "The Royal Flamingo's door; a sidewalk door a few blocks west, Del's place.", "people": "Del; three of Gold's men on foot; Gold's car with two more.", "music": "-", "new": "The Casino storyline (the vault heist): C2 next. In STORY, if Quest 03 came first, Del's lines say 'we've met' (answer 83).", "other": "Lenny Gold himself stays in the car this time."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

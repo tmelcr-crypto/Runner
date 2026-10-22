@@ -19,14 +19,14 @@ function msFoe(x, y, o = {}) {              // o: { gun, hp, a (facing), alert (
   const p = msPed(x, y, o.a || 0, { arm: gunIdx(o.gun || 'pistol'), shirt: o.shirt || '#2a2d3a', pants: o.pants || '#14121c', speed: 1, msName: o.name, step: foeStep });
   return Object.assign(p, { foe: true, crim: true, hp: o.hp || MSN.foeHp, alert: !!o.alert, group: o.group || 'foes', boss: !!o.boss, cool: rand(0.5, 1.2), tgT: 0, sd: Math.random() < 0.5 ? 1 : -1, sdT: rand(1, 2), pref: rand(0.55, 1.3) });   // pref < 1: it rather goes for your friend
 }
-function msAlly(x, y, o) {                  // o: { who (a character of the mission), gun, hp, a, fail (the words when killed), hurtLine, calm (never fights), stay (stays in the car when you get out) }
+function msAlly(x, y, o) {                  // o: { who (a character of the mission), gun, hp, a, fail (the words when killed), hurtLine, calm (never fights), stay (stays in the car when you get out), near (never catches up by itself: left behind, it stays behind) }
   const ch = msWho(o.who) || {};
   return msAllyFrom(msPed(x, y, o.a || 0, { shirt: ch.shirt, pants: ch.pants, msName: o.who, speed: 1 }), o);
 }
 function msAllyFrom(p, o) {                 // someone of the mission (standing at their place so far) becomes your friend now
   const ch = msWho(o.who) || {}, hp = o.hp || MSN.allyHp;
   p.arm = o.calm ? -1 : gunIdx(o.gun || 'pistol'); p.post.step = allyStep; p.state = 'post';
-  Object.assign(p, { ally: true, calm: !!o.calm, stay: !!o.stay, hp, hpMax: hp, hurtT: 99, cool: 0, tgT: 0, fail: o.fail || (ch.name || 'YOUR FRIEND') + ' IS DEAD', hurtLine: o.hurtLine, saidT: -99, col: ch.bubble || '#b6ff3c' });
+  Object.assign(p, { ally: true, calm: !!o.calm, stay: !!o.stay, near: !!o.near, hp, hpMax: hp, hurtT: 99, cool: 0, tgT: 0, fail: o.fail || (ch.name || 'YOUR FRIEND') + ' IS DEAD', hurtLine: o.hurtLine, saidT: -99, col: ch.bubble || '#b6ff3c' });
   MS_CAST.allies.push(p); return p;
 }
 function msFoeCar(type, x, y, ang, o = {}) {   // o: { crew, gun, mode: 'chase' | 'flee' | 'park', to (fleeing: where), speed (km/h), group, tough, color }
@@ -199,7 +199,7 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
   const me = P.car || P, dP = dist(p.x, p.y, me.x, me.y), keep = MSN.allyKeep * UNITS_PER_M;
   if (P.car && allyRides(P.car) && carSpeed(P.car) < MSN.allyBoard * KMH) {   // you stopped in a car: in with you
     const dr = Object.assign(allyDoor(P.car, p), { z: zOf(P.car) });
-    if (dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700) { allyBoard(p, P.car); return true; }   // far behind, out of sight: it caught up
+    if (!p.near && dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700) { allyBoard(p, P.car); return true; }   // far behind, out of sight: it caught up
     if (dP < 300) { const w = castTo(p, dr); if (castWalk(p, w.x, w.y, dP > 90 ? SPRINT : RUN, dt) < 16 && w === dr) allyBoard(p, P.car); castLift(p); return true; }
   }
   if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = p.calm ? null : castPick(p, allyTargets(), MSN.allyRange * UNITS_PER_M); }
@@ -207,7 +207,7 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
   const i = MS_CAST.allies.indexOf(p), side = i % 2 ? 1 : -1, ma = P.car ? P.car.ang : (P.ang || 0);
   const fx = me.x - Math.cos(ma) * keep * 0.6 + Math.cos(ma + Math.PI / 2) * side * keep * 0.6, fy = me.y - Math.sin(ma) * keep * 0.6 + Math.sin(ma + Math.PI / 2) * side * keep * 0.6;
   const df = dist(p.x, p.y, fx, fy);
-  if (!P.car && dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700 && dist(fx, fy, cam.x, cam.y) > 420 && !pedBlocked(fx, fy) && shoreDist(fx, fy) > 2) { p.x = fx; p.y = fy; p.z = zOf(me); p.vx = p.vy = 0; return true; }   // far behind and out of sight: it caught up
+  if (!P.car && !p.near && dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700 && dist(fx, fy, cam.x, cam.y) > 420 && !pedBlocked(fx, fy) && shoreDist(fx, fy) > 2) { p.x = fx; p.y = fy; p.z = zOf(me); p.vx = p.vy = 0; return true; }   // far behind and out of sight: it caught up
   if (t && dP < keep * 4) {                                         // a foe in sight and you not far off: hold and shoot
     const range = Math.min(w.range || 300, COP.fireRange);
     if (t.d > range * 0.9) castWalk(p, t.o.x, t.o.y, RUN, dt); else stepCop(p, 0, 0, 0, dt);
