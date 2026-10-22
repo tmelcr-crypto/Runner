@@ -276,6 +276,7 @@ Street races, a NASCAR race and a drag strip, in both modes. Every number - fees
 | Limo | 10 m | 144 km/h | long and low |
 | Motorbike | 3 m | 330 km/h | one seat; leans into bends, stands on its stand when parked; the rider is in the open (you ride in yellow) |
 | Truck | 6.5 m | 130 km/h | box truck |
+| Produce truck | 6.8 m | 120 km/h | open back with eight crates of fruit and vegetables; hit it hard and a crate falls off (fruit all over the road); now and then in traffic; Rosa's truck in M10 |
 | Bus | 10 m | 100 km/h | slow, wide turns, never parks |
 | Trash truck | 7 m | 80 km/h | stops at the bins along its way, beacon flashing; armoured |
 | Ambulance | 6 m | 147 km/h | comes for the dead with lights and siren; its paramedics take the bodies to hospital |

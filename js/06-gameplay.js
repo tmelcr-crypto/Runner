@@ -63,12 +63,24 @@ function killPlayer() {
   if (P.car) { P.car.driver = null; P.car.thr = 0; P.car.str = 0; P.car = null; }
   $('wasted').style.display = 'flex';
 }
+const PRODUCE_KNOCK = 22;                   // a hit this hard (car damage) knocks a crate off the produce truck; twice as hard, two
+function produceSpill(c, d) {             // crates off the back of the produce truck, fruit all over the road
+  if (c.crates === undefined) c.crates = 8;
+  const n = Math.min(c.crates, d >= PRODUCE_KNOCK * 2 ? 2 : 1); if (n <= 0) return;
+  const back = -c.t.len * 0.3, x = c.x + Math.cos(c.ang) * back, y = c.y + Math.sin(c.ang) * back;
+  for (let k = 0; k < n; k++) {
+    c.crates--; if (c.m && c.m.crates && c.m.crates[c.crates]) c.m.crates[c.crates].visible = false;
+    for (let i = 0; i < 16; i++) { const a = rand(0, TAU), s = rand(40, 170); addP({ x, y, z: 12, vz: rand(40, 150), grav: 420, vx: Math.cos(a) * s + c.vx * 0.4, vy: Math.sin(a) * s + c.vy * 0.4, life: rand(1.5, 3.2), max: 3.2, s0: rand(2, 3.6), s1: 1.6, col: pick(['#ff8a1f', '#e8262a', '#ffd23f', '#3dbb4a', '#b48a58']), drag: 1.4, hold: true }); }
+  }
+  Snd.smash('crate', clamp(1 - dist(x, y, P.x, P.y) / 700, 0, 1));
+}
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
   if (c.tk) d *= c.tk.arm;                                         // tuned armour takes some of it (js/08y)
   d /= jobTough(c);                                                // a job's vehicle while the job is on (js/08n)
   c.hp -= d; if (byPlayer) c.byPlayer = true;
   if (c.noWreck) c.hp = Math.max(c.hp, 1);                         // a mission's prop car: dented, never burns (js/08zy)
+  if (c.t.body === 'produce' && d >= PRODUCE_KNOCK) produceSpill(c, d);   // the produce truck: a crate off the back
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;

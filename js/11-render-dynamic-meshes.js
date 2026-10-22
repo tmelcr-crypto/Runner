@@ -88,6 +88,22 @@ function buildCar(c) {                       // parts that never move on their o
     part(tilt, GB, E.black, L * 0.42, 0.6, Wd - 3, -L * 0.27, 12.3, 0);
     for (const x of [L * 0.32, -L * 0.32]) axle(x, 5.6);
     lamps(9, 2.6, 9, 2.6); seat(L * 0.14, 19);
+  } else if (B === 'produce') {              // an open-back truck: the cab up front, a wooden bed with stake sides, eight crates of produce (they fall off when it is hit hard, js/06)
+    merged('b', body, [[GB, L * 0.28, 12, Wd, L * 0.36, 9, 0], [GB, L * 0.28, 1.6, Wd, L * 0.36, 21.8, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.24, 6, Wd - 2, L * 0.37, 18, 0);
+    merged('f', E.black, [[GB, L * 0.7, 2.4, Wd - 2, -L * 0.14, 5.6, 0]]);
+    const bedL = L * 0.66, bx = -L * 0.155, stakes = [[GB, bedL, 1.2, Wd, bx, 7.8, 0]];
+    for (let k = 0; k <= 4; k++) for (const s of [-1, 1]) stakes.push([GB, 1.3, 7, 1.3, bx - bedL / 2 + 0.7 + k * (bedL - 1.4) / 4, 11.5, s * (Wd / 2 - 0.7)]);
+    for (const s of [-1, 1]) stakes.push([GB, bedL, 1, 0.9, bx, 14.4, s * (Wd / 2 - 0.7)], [GB, bedL, 1, 0.9, bx, 11, s * (Wd / 2 - 0.7)]);
+    merged('w', mc(0x8a6a48), stakes);
+    m.crates = []; const cw = bedL / 4 - 1.2, cd = Wd / 2 - 2.4, wood = mc(0xb48a58), fruit = [0xff8a1f, 0xe8262a, 0x3dbb4a, 0xffd23f, 0xff8a1f, 0x7a2a8a, 0xe8262a, 0x3dbb4a];
+    for (let i = 0; i < 8; i++) {
+      const cg = new THREE.Group(), x = bx - bedL / 2 + (3 - Math.floor(i / 2) + 0.5) * bedL / 4, z = (i % 2 ? 1 : -1) * (cd / 2 + 0.9);
+      part(cg, GB, wood, cw, 5, cd, x, 11, z); part(cg, GB, mc(fruit[i]), cw - 1.2, 1.6, cd - 1.2, x, 14, z); tilt.add(cg); m.crates.push(cg);
+    }
+    const left = c.crates === undefined ? 8 : c.crates; m.crates.forEach((cg, i) => { cg.visible = i < left; });
+    for (const x of [L * 0.34, -L * 0.12, -L * 0.36]) axle(x, 5);
+    lamps(7, 3, 8, 3, 5); seat(L * 0.38, 21);
   } else if (B === 'limo') {                 // a long, low cabin and a chrome line
     merged('b', body, [[GB, L, 7.5, Wd, 0, 6.75, 0], [GB, L * 0.6, 1.3, Wd - 7, -L * 0.03, 17.6, 0]]);
     m.cabin = part(tilt, GB, GLASS, L * 0.64, 6.5, Wd - 5, -L * 0.03, 13.75, 0);
