@@ -151,7 +151,7 @@ function msUse(s) { MS.start = null; $('msBtn').hidden = true; if (s === MS.ring
 function msUi() {                          // every frame (js/14): the button by you
   const k = msKey(), b = $('msBtn'); if (!b) return;
   if (!k) { if (!b.hidden) b.hidden = true; return; }
-  if (b.hidden) { b.hidden = false; b.querySelector('b').textContent = k.label; b.style.setProperty('--sc', '#b6ff3c'); }
+  if (b.hidden || b.dataset.s !== k.label) { b.hidden = false; b.dataset.s = k.label; b.querySelector('b').textContent = k.label; b.querySelector('.go').textContent = k.go2 || 'START MISSION'; b.style.setProperty('--sc', '#b6ff3c'); }
   doorBtnAt(b);
 }
 $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey(); if (k) msUse(k); });
@@ -244,14 +244,14 @@ function msBooth(text, nums) {             // a step: the page, then CALL at the
   };
 }
 /* ---------- the brick phone (mode phone, the story from M07): it rings with the caller's name; ANSWER (or E) even in a car ---------- */
-function msRing(who) { const ch = msWho(who) || CHARS[who] || { name: String(who).toUpperCase() }; $('phWho').textContent = ch.name; $('phone').hidden = false; $('phone').classList.add('ring'); MS.ringT = 0; }
-function msRingStop() { MS.ring = null; $('phone').classList.remove('ring'); $('phone').hidden = true; }
+function msRing(who) { const ch = msWho(who) || CHARS[who] || { name: String(who).toUpperCase() }; $('phWho').textContent = ch.name; $('phone').hidden = false; $('phone').classList.add('ringing'); MS.ringT = 0; }
+function msRingStop() { MS.ring = null; $('phone').classList.remove('ringing'); $('phone').hidden = true; }
 function msPhone(who, nums) {               // a step: the phone rings; answered, the call's lines (the game waits); without the phone the call plays on the move
   return {
     enter(A) {
       const k = 'call' + MS.k; A[k] = false;
       if (!feat('phone')) { msLive(nums, { phone: true, done: () => { A[k] = true; } }); return; }
-      msRing(who); MS.ring = { label: 'ANSWER', at: () => P, go: () => { msRingStop(); Snd.tone(440, 440, 0.1, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
+      msRing(who); MS.ring = { label: ((msWho(who) || CHARS[who] || {}).name || 'PHONE') + ' CALLING', go2: 'ANSWER', at: () => P, go: () => { msRingStop(); Snd.tone(440, 440, 0.1, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
     },
     tick(A) { return !!A['call' + MS.k]; },
     info: A => MS.ring ? 'THE PHONE IS RINGING' : '',
@@ -282,7 +282,7 @@ window.addEventListener('keydown', e => {   // before the game's own keys: E, Sp
 
 /* ---------- cutscenes from the shot lists: the usual camera from above ---------- */
 const MS_CAM = { WIDE: 0.7, CLOSE: 1.9, FOLLOW: 1.3, OVERHEAD: 1.5, FIXED: 1.1, PAN: 1.0 };
-function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, cap (a caption), enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
+function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, phone (its lines come down the phone), cap (a caption), enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
   const make = MS.s.cuts && MS.s.cuts[name]; if (!make) { done(); return; }
   if (MS_LIVE.cur) $('msLive').hidden = true;                        // a live line in progress waits out of sight (msLiveTick shows it again)
   const A = MS.A, list = make(A);
@@ -292,7 +292,7 @@ function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y
       const place = () => { const p = s.at ? s.at(A) : P, q = s.cam === 'PAN' && s.to ? s.to(A) : null;
         cam.x = q ? lerp(p.x, q.x, smooth01(0, 1, u)) : p.x; cam.y = q ? lerp(p.y, q.y, smooth01(0, 1, u)) : p.y; cam.zoom = MS_CAM[s.cam] || 1.2; };
       if (MS.talk) { CUT.t = Math.max(0, CUT.t - dt); place(); return; }        // a line on screen: the shot waits for it, the camera stays
-      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([].concat(s.line), () => {}); place(); return; }   // one line, or several one after another
+      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([].concat(s.line), () => {}, { phone: !!s.phone }); place(); return; }   // one line, or several one after another
       if (s.tick) s.tick(A, dt, u);
       place();
       const end = CUT.T - (this.fadeOut || 0);

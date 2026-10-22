@@ -2,7 +2,7 @@
 /* ---------- 7zb. BULL'S GYM: Bull Kessler's boxing gym in a Dockside warehouse (js/08zzg at work; numbers: js/01z; mode: gym) ----------
    The top-down kind, like the Pay 'n' Spray: the warehouse's own box stops being solid, brick walls of the gym's own take its place
    with a glass door in the short side facing the street, and the roof turns see-through while you are inside. From the door in: the
-   front desk and a trophy case on one side, Kessler's office on the other (a desk, a safe, a filing cabinet, glass to the floor),
+   front desk and a trophy case on the near side, Kessler's office on the far one (a desk, a safe, a filing cabinet, glass walls),
    lockers, two rows of heavy bags and the speed bags, the weights, and at the back the ring - a raised canvas, corner posts and pads,
    three ropes a side, the steps in at the near corner. GYM.S: { cx, cy, a, ca, sa, hw, hd, H, ring: { x, z, rs, gapX0, gapX1 },
    door, gate, bags, office, desk, steps, lm, pt } (local x across, z from the back wall to the door). */
@@ -17,8 +17,8 @@ function genGym() {                         // js/04 genWorld, after the interio
   const hw = f.hw, hd = f.hd, W = GYM_WT, S = GYM.S = { cx: r.cx, cy: r.cy, a: f.A, ca: Math.cos(f.A), sa: Math.sin(f.A), hw, hd, H: clamp(r.H || 50, 44, 60), r, ms: false, roof: 1, open: 0 };
   r.H = S.H + 3;
   const rs = 42, rz = -hd + W + 22 + rs; S.ring = { x: 0, z: rz, rs, gapX0: -rs, gapX1: -rs + 20 };
-  S.office = { x0: hw - W - 72, x1: hw - W, z0: hd - W - 104, z1: hd - W, door: [hd - W - 92, hd - W - 66] };
-  S.desk = { x: S.office.x0 + 40, z: S.office.z0 + 58 };
+  S.office = { x0: -hw + W, x1: -hw + W + 72, z0: hd - W - 104, z1: hd - W, door: [hd - W - 92, hd - W - 66] };   // on the far side, so no wall hides it from the camera
+  S.desk = { x: S.office.x0 + 32, z: S.office.z0 + 58 }; S.desk.kx = S.desk.x - 13; S.desk.fx = S.desk.x + 22;   // Kessler behind it, a visitor in front
   S.bags = []; for (const s of [-1, 1]) for (const z of [-10, 52, 114]) S.bags.push({ x: s * 56, z });
   S.steps = { x: S.ring.gapX0 + 10, z: rz + rs + 18 };              // where you stand to climb in (the RING button)
   const sol = (lx, lz, w, h, extra) => { const p = ixWorld(S, lx, lz); return makeSolid(p.x, p.y, w, h, S.a, Object.assign({ bld: true, ixw: true }, extra)); };
@@ -30,9 +30,9 @@ function genGym() {                         // js/04 genWorld, after the interio
   sol((R.gapX1 + rs) / 2, R.z + rs, rs - R.gapX1 + 3, 3);
   S.gate = sol((R.gapX0 + R.gapX1) / 2, R.z + rs, R.gapX1 - R.gapX0 + 2, 3, { ixDoor: true }); S.gate.off = true;
   const O = S.office;                                                // the office: glass walls to the floor, a door in the side
-  sol(O.x0, (O.z0 + O.door[0]) / 2, 3, O.door[0] - O.z0); sol(O.x0, (O.door[1] + O.z1) / 2, 3, O.z1 - O.door[1]); sol((O.x0 + O.x1) / 2, O.z0, O.x1 - O.x0, 3);
-  sol(S.desk.x, S.desk.z, 14, 30); sol(O.x1 - 9, O.z1 - 12, 14, 14); sol(O.x1 - 8, O.z0 + 16, 12, 20);   // the desk, the safe, the filing cabinet
-  sol(-hw + W + 16, hd - W - 62, 22, 40);                            // the front desk
+  sol(O.x1, (O.z0 + O.door[0]) / 2, 3, O.door[0] - O.z0); sol(O.x1, (O.door[1] + O.z1) / 2, 3, O.z1 - O.door[1]); sol((O.x0 + O.x1) / 2, O.z0, O.x1 - O.x0, 3);
+  sol(S.desk.x, S.desk.z, 14, 30); sol(O.x0 + 9, O.z1 - 12, 14, 14); sol(O.x0 + 8, O.z0 + 16, 12, 20);   // the desk, the safe, the filing cabinet
+  sol(hw - W - 16, hd - W - 62, 22, 40);                             // the front desk
   sol(-hw + W + 5, 150, 10, 110);                                    // the lockers
   for (const b of S.bags) sol(b.x, b.z, 9, 9);
   sol(hw - W - 6, -128, 10, 120); sol(70, -170, 12, 28); sol(70, -112, 12, 28); sol(-78, -150, 30, 18);   // the dumbbell rack, two benches, the squat rack
@@ -94,9 +94,9 @@ function makeGym(S) {
   for (let k = 0; k < 4; k++) T.prism(-110 + W, -60 + k * 9, 6, 0, 2 + k, dark, 12, 6, true);
 
   /* the front: the desk with a till, the trophy case, the lockers, fight posters on the walls */
-  box5(T, -hw + W + 5, 0, hd - W - 82, -hw + W + 27, 13, hd - W - 42, wood); box5(T, -hw + W + 8, 13, hd - W - 72, -hw + W + 16, 18, hd - W - 64, dark);
-  box5(T, -hw + W, 0, hd - W - 30, -hw + W + 8, 30, hd - W - 6, C('#4a3a2a'));
-  for (let k = 0; k < 4; k++) T.prism(-hw + W + 4, hd - W - 26 + k * 6, 1.6, 14 + (k % 2) * 6, 20 + (k % 2) * 6, gold, 6, 1, true);
+  box5(T, hw - W - 27, 0, hd - W - 82, hw - W - 5, 13, hd - W - 42, wood); box5(T, hw - W - 16, 13, hd - W - 72, hw - W - 8, 18, hd - W - 64, dark);
+  box5(T, hw - W - 8, 0, hd - W - 30, hw - W, 30, hd - W - 6, C('#4a3a2a'));
+  for (let k = 0; k < 4; k++) T.prism(hw - W - 4, hd - W - 26 + k * 6, 1.6, 14 + (k % 2) * 6, 20 + (k % 2) * 6, gold, 6, 1, true);
   for (let z = 98; z < 202; z += 10) box5(T, -hw + W, 0, z, -hw + W + 10, 32, z + 9.2, C(z % 20 ? '#2a5ab8' : '#24509f'));
   const poster = (z, col) => { box5(T, x1 - 0.8, 20, z, x1, 34, z + 10, C(col)); box5(T, x1 - 0.9, 26, z + 2, x1 - 0.1, 28, z + 8, trim); };
   [[150, '#c8202c'], [200, '#ffd23f'], [-30, '#2bf3ff'], [-250, '#c8202c']].forEach(([z, c]) => poster(z, c));
@@ -104,14 +104,13 @@ function makeGym(S) {
 
   /* Kessler's office: glass walls, a desk with a lamp and a phone, his chair, the safe, a filing cabinet, a rug */
   const O = S.office, glass = C('#9fc4d8');
-  box5(T, O.x0 - 1.5, 0, O.z0, O.x0 + 1.5, 3, O.door[0], C('#5a5d66')); box5(T, O.x0 - 1.5, 0, O.door[1], O.x0 + 1.5, 3, O.z1, C('#5a5d66')); box5(T, O.x0, 0, O.z0 - 1.5, O.x1, 3, O.z0 + 1.5, C('#5a5d66'));
-  box5(T, O.x0 - 1, 3, O.z0, O.x0 + 1, 30, O.door[0], glass); box5(T, O.x0 - 1, 3, O.door[1], O.x0 + 1, 30, O.z1, glass); box5(T, O.x0, 3, O.z0 - 1, O.x1, 30, O.z0 + 1, glass);
-  flat(T, O.x0 + 8, O.z0 + 28, O.x1 - 10, O.z1 - 14, 0.5, C('#7a1a22'));
-  const dk = S.desk; box5(T, dk.x - 7, 0, dk.z - 15, dk.x + 7, 12, dk.z + 15, C('#5a3a22')); box5(T, dk.x - 4, 12, dk.z + 6, dk.x - 1, 13.4, dk.z + 11, dark); T.prism(dk.x + 2, dk.z - 10, 1.6, 12, 17, gold, 6, 2.6, true);
-  box5(T, dk.x + 10, 0, dk.z - 6, dk.x + 20, 16, dk.z + 6, C('#2a1a14'));
-  box5(T, O.x1 - 16, 0, O.z1 - 19, O.x1 - 2, 18, O.z1 - 5, C('#3a3d47')); T.prism(O.x1 - 16.6, O.z1 - 12, 2, 8, 12, steel, 8);
-  box5(T, O.x1 - 14, 0, O.z0 + 6, O.x1 - 2, 22, O.z0 + 26, C('#6a6d78'));
-
+  box5(T, O.x1 - 1.5, 0, O.z0, O.x1 + 1.5, 3, O.door[0], C('#5a5d66')); box5(T, O.x1 - 1.5, 0, O.door[1], O.x1 + 1.5, 3, O.z1, C('#5a5d66')); box5(T, O.x0, 0, O.z0 - 1.5, O.x1, 3, O.z0 + 1.5, C('#5a5d66'));
+  box5(T, O.x1 - 1, 3, O.z0, O.x1 + 1, 30, O.door[0], glass); box5(T, O.x1 - 1, 3, O.door[1], O.x1 + 1, 30, O.z1, glass); box5(T, O.x0, 3, O.z0 - 1, O.x1, 30, O.z0 + 1, glass);
+  flat(T, O.x0 + 10, O.z0 + 28, O.x1 - 8, O.z1 - 14, 0.5, C('#7a1a22'));
+  const dk = S.desk; box5(T, dk.x - 7, 0, dk.z - 15, dk.x + 7, 12, dk.z + 15, C('#5a3a22')); box5(T, dk.x + 1, 12, dk.z + 6, dk.x + 4, 13.4, dk.z + 11, dark); T.prism(dk.x - 2, dk.z - 10, 1.6, 12, 17, gold, 6, 2.6, true);
+  box5(T, dk.x - 20, 0, dk.z - 6, dk.x - 10, 16, dk.z + 6, C('#2a1a14'));
+  box5(T, O.x0 + 2, 0, O.z1 - 19, O.x0 + 16, 18, O.z1 - 5, C('#3a3d47')); T.prism(O.x0 + 16.6, O.z1 - 12, 2, 8, 12, steel, 8);
+  box5(T, O.x0 + 2, 0, O.z0 + 6, O.x0 + 14, 22, O.z0 + 26, C('#6a6d78'));
   /* tube lights down the hall */
   for (const x of [-hw * 0.45, hw * 0.45]) for (let z = -120; z < hd - 30; z += 58) box5(Gl, x - 1.2, H - 6, z, x + 1.2, H - 5, z + 26, C('#e8f6ff'));
 

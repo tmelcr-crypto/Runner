@@ -63,7 +63,7 @@ function killPlayer() {
   if (P.car) { P.car.driver = null; P.car.thr = 0; P.car.str = 0; P.car = null; }
   $('wasted').style.display = 'flex';
 }
-const PRODUCE_KNOCK = 22;                   // a hit this hard (car damage) knocks a crate off the produce truck; twice as hard, two
+const PRODUCE_KNOCK = 10;                   // a hit this hard (car damage: a ram at about 60 km/h) knocks a crate off the produce truck; twice as hard, two
 function produceSpill(c, d) {             // crates off the back of the produce truck, fruit all over the road
   if (c.crates === undefined) c.crates = 8;
   const n = Math.min(c.crates, d >= PRODUCE_KNOCK * 2 ? 2 : 1); if (n <= 0) return;

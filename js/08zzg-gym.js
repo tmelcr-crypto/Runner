@@ -5,7 +5,8 @@
    wheel stays shut); body armour does not count. Your jabs (FISTS) take his health; he blocks some, a jab staggers him; his punch lands
    GYMT.windup after he starts it if you are still in his reach. His health to nothing: KNOCKOUT - the pay, the next opponent waits.
    Yours down to GYMT.koHp: knocked out, thrown out of the door with GYMT.loseHp. Five opponents, each tougher and paying more; nobody
-   panics, nobody calls the police. A mission can hold the gym (S.ms): the door open, nobody training, no bouts (M07, M12). */
+   panics, nobody calls the police. A mission can hold the gym (S.ms): the door open, no bouts; 'busy' keeps the boxers training (M07),
+   true empties it (M12). */
 const GYM = { S: null, won: 0, fight: null, champT: 0 };
 const gymOn = () => !!GYM.S && feat('gym');
 const gymOpen = () => SKY.hour >= GYMT.openFrom && SKY.hour < GYMT.openTo;
@@ -20,7 +21,7 @@ function gymSetup() {
   const S = GYM.S, fists = gymFists();
   S.bags.slice(0, GYMT.trainers).forEach((b, k) => {
     const sx = b.x < 0 ? 1 : -1, w = gymWorld(b.x + sx * 14, b.z), t = gymWorld(b.x, b.z), face = Math.atan2(t.y - w.y, t.x - w.x);   // beside the bag, facing it
-    addPost({ x: w.x, y: w.y, a: face, kind: 'gymboxer', back: 240, need: () => gymOn() && gymOpen() && !S.ms, step: trainStep,
+    addPost({ x: w.x, y: w.y, a: face, kind: 'gymboxer', back: 240, need: () => gymOn() && gymOpen() && (!S.ms || S.ms === 'busy'), step: trainStep,
       make: po => { const p = makePed(po.x, po.y); Object.assign(p, { boxer: true, arm: fists, umb: false, shirt: GYM_KIT[k % GYM_KIT.length][0], pants: GYM_KIT[k % GYM_KIT.length][1], speed: 0, state: 'post' }); return p; } });
   });
 }
