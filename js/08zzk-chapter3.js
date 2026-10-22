@@ -149,3 +149,87 @@ MSCRIPT.m14 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { NEWS.ms = null; } };
 })();
+
+/* ================= M15 - PRESS PASS ================= */
+MSCRIPT.m15 = (() => {
+  const S1 = STORY1, S3 = STORY3, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  const smart = () => CL_SLOTS.some(sl => P.outfit && P.outfit[sl] && CLOTH[P.outfit[sl]] && CLOTH[P.outfit[sl]].smart);
+  function setup(A) {
+    SKY.hour = N().hour; S3.nina(A); const S = NEWS.S;
+    P.x = S.inside.x; P.y = S.inside.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;        // MISSIONS TEST: in the newsroom, a car at the kerb
+    const r0 = S1.road(S.door.x, S.door.y + 80), k0 = kerbBy(r0.x + 60, r0.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
+    const sh = A.shell = rallyUp(true), L = MAP.lm.find(l => l.t === 'park');
+    A.gate = at(sh.x, L.y - L.h / 2 + 40);                                                   // the press gate: the park's north gate, nearest the stage
+    A.crane = msPed(sh.x, sh.front - 4, 0, Object.assign(S1.look('crane'), { msName: 'crane', step: S1.stay, spare: true, shield: true })); A.crane.ang = A.crane.hd = Math.PI / 2;
+    const sp = S1.free(sh.x + 120, sh.front + 20, 4); A.sachs = msPed(sp.x, sp.y, 0, Object.assign(S1.look('sachs'), { msName: 'sachs', step: S1.stay, spare: true, shield: true }));
+    face(A.sachs, at(sh.x, sh.front));
+    A.case = S1.free(sp.x + 12, sp.y + 8, 2);
+    const cm = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 2), new THREE.MeshLambertMaterial({ color: '#5a3a22' })); cm.position.set(A.case.x, groundH(A.case.x, A.case.y) + 2.5, A.case.y); scene.add(cm); A.caseMesh = cm;
+    A.guards = [[150, -2, 0], [92, 70, 2.1], [40, 96, 4.2]].map(([dx, dy, ph]) => { const q = S1.free(sh.x + dx, sh.front + dy, 4);
+      const g = msPed(q.x, q.y, 0, Object.assign(S1.look('craneman'), { msName: 'craneman', step: S1.stay, spare: true }));
+      g.base = Math.atan2(A.case.y - g.y, A.case.x - g.x); g.ph = ph;
+      const n = 14, h = N().cone * Math.PI / 360, pos = [0, 0, 0]; for (let k = 0; k <= n; k++) { const a = -h + 2 * h * k / n; pos.push(Math.cos(a), 0, Math.sin(a)); }
+      const idx = []; for (let k = 1; k <= n; k++) idx.push(0, k, k + 1);
+      const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setIndex(idx);
+      g.cone = new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide })); scene.add(g.cone);
+      return g; });
+    A.seenT = 0;
+  }
+  function look(A, dt) {                    // the guards sweep their eyes over the briefcase; when the crowd cheers they look at the stage
+    A.lt = (A.lt || 0) + dt; const sh = A.shell, cheer = gameT - RALLY.cheerAt < N().cheerLook, half = N().cone * Math.PI / 360, R = N().seeM * M;
+    let seen = false;
+    for (const g of A.guards) {
+      if (g.dead) { g.cone.visible = false; continue; }
+      const a = cheer ? Math.atan2(sh.front - g.y, sh.x - g.x) : g.base + Math.sin(A.lt * TAU / N().sweepT + g.ph) * N().sweep * Math.PI / 180;
+      g.ang = g.hd = a; if (g.post) g.post.a = a;
+      g.cone.position.set(g.x, groundH(g.x, g.y) + 0.8, g.y); g.cone.rotation.y = -a; g.cone.scale.set(R, 1, R);
+      const d = dist(g.x, g.y, P.x, P.y);
+      if (!P.car && d < R && Math.abs(angDiff(a, Math.atan2(P.y - g.y, P.x - g.x))) < half && losClear(g.x, g.y, P.x, P.y)) seen = g;
+    }
+    return seen;
+  }
+  const steps = [
+    S3.meet('PRESS PASS'),
+    { enter(A) { MS.mark = null; MS.guide = null; if (smart()) { A.worn = true; return; } },   // PUT ON smart clothes (Nina's jacket, if you have none on)
+      tick(A) { if (!A.worn && !MS.start && !P.car) MS.start = { at: () => P, label: "NINA'S JACKET", go2: 'PUT IT ON', go: () => { A.old = Object.assign({}, P.outfit); if (!P.wardrobe.includes('velvet_suit_b')) P.wardrobe.push('velvet_suit_b'); P.outfit.top = 'velvet_suit_b'; P.outfit.hat = null; Snd.pickup(); A.worn = true; } }; return !!A.worn; },
+      jump(A) { if (!A.worn) { MS.start = null; A.old = Object.assign({}, P.outfit); P.outfit.top = 'velvet_suit_b'; A.worn = true; } } },
+    { enter(A) { MS.guide = A.gate; MS.mark = () => A.gate; },                                   // GO TO the press gate (on foot, in smart clothes)
+      tick(A) { if (A.in) return !!A.go2; if (P.car || dist(P.x, P.y, A.gate.x, A.gate.y) > N().gateM * M) return false; A.in = true; msCut('THE RALLY', () => { A.go2 = true; }); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.gate.x, A.gate.y) / M) + ' M TO THE PRESS GATE',
+      jump(A) { if (P.car) exitCar(true); P.x = A.gate.x; P.y = A.gate.y + 10; } },
+    { enter(A) { MS.guide = null; MS.mark = () => A.case; },                                     // PLANT the bug in Sachs' briefcase, unseen
+      tick(A, dt) {
+        const g = look(A, dt), near = dist(P.x, P.y, A.case.x, A.case.y) < N().nearM * M;
+        if (g && near) { if (A.seenT === 0) { popup(g.x, g.y - 20, '!', '#ff3b4a'); Snd.tone(600, 900, 0.3, 0.06, 'square'); } A.seenT += dt; } else A.seenT = Math.max(0, A.seenT - dt);
+        if (!A.planted && !MS.start && !P.car) MS.start = { at: () => A.case, label: "SACHS' BRIEFCASE", go2: 'PLANT THE BUG', go: () => { if (look(A, 0)) A.caught = true; else { A.planted = true; Snd.pickup(); popup(P.x, P.y - 14, 'BUG PLANTED', '#b6ff3c'); } } };
+        return !!A.planted;
+      },
+      info: A => A.seenT > 0 ? 'THEY ARE LOOKING!' : 'WAIT FOR THE GUARDS TO LOOK AWAY - OR FOR A CHEER',
+      jump(A) { MS.start = null; A.planted = true; } },
+    { enter(A) { MS.mark = null; MS.guide = A.gate; for (const g of A.guards) g.cone.visible = false; },   // GET AWAY from the rally: Nina listens in
+      tick(A) { if (!A.call && dist(P.x, P.y, A.case.x, A.case.y) > N().leaveM * M) { A.call = true; msLive([9, 10, 11], { phone: true, done: () => { A.fin = true; } }); } return !!A.fin; },
+      info: A => A.call ? '' : Math.round(Math.max(0, N().leaveM - dist(P.x, P.y, A.case.x, A.case.y) / M)) + ' M MORE',
+      jump(A) { A.call = true; A.fin = true; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.nina && A.nina.dead) return F.ninaDead;
+    if (A.sachs.dead || A.guards.some(g => g.dead) || RALLY.crowd.some(p => p.dead || p.state === 'flee')) return F.scene;
+    if (MS.k === 3 && (A.caught || A.seenT > N().warnT)) return F.seen;
+    return '';
+  }
+  const cuts = {
+    'PRESS PASS': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.nina, line: [1, 2], enter: () => { face(A.nina, P); P.ang = Math.atan2(A.nina.y - P.y, A.nina.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [3, 4], fadeOut: true }],
+    'THE RALLY': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.crane, line: [5, 6], enter: () => { rallyCheer(); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.sachs, line: [7] },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [8], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) {
+    NEWS.ms = null; rallyDown();
+    if (A && A.caseMesh) { scene.remove(A.caseMesh); A.caseMesh.geometry.dispose(); A.caseMesh.material.dispose(); }
+    if (A && A.guards) for (const g of A.guards) { scene.remove(g.cone); g.cone.geometry.dispose(); g.cone.material.dispose(); }
+    if (A && A.old && msTest()) Object.assign(P.outfit, A.old);
+  } };
+})();

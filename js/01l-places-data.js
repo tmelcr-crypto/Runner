@@ -106,7 +106,10 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "substDark", "group": "Substation", "name": "Blown, the strip stays dark for", "unit": "s", "min": 10, "max": 600, "v": 90, "note": "The neon of the Royal Flamingo, THE PULSE and the bars is off; then the repair crew comes and the lights come back."},
   {"id": "substCrew", "group": "Substation", "name": "The repair crew stays", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Their truck at the gate, two men at the units; the burnt units are mended when they go."},
   {"id": "newsOpen", "group": "Newsroom", "name": "BAY TV's newsroom opens at", "unit": "h", "min": 0, "max": 23, "v": 8, "note": "Its door unlocks and the reporters come in."},
-  {"id": "newsClose", "group": "Newsroom", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 20, "note": "Then the door is locked till morning (a quest can hold it open)."}
+  {"id": "newsClose", "group": "Newsroom", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 20, "note": "Then the door is locked till morning (a quest can hold it open)."},
+  {"id": "rallyHour", "group": "Rally", "name": "Crane's rally starts at", "unit": "h", "min": 0, "max": 23, "v": 12, "note": "Every game day (STORY, after M15): the crowd gathers at Bayfront Park's band shell."},
+  {"id": "rallyLen", "group": "Rally", "name": "And lasts", "unit": "h", "min": 1, "max": 6, "v": 2, "note": "Then the crowd goes home."},
+  {"id": "rallyCrowd", "group": "Rally", "name": "People in the crowd", "unit": "", "min": 6, "max": 60, "v": 26, "note": "Standing before the stage, facing Crane; they cheer now and then."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

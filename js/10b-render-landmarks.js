@@ -673,7 +673,7 @@ function genLandmarks() {
     else if (L.t === 'park') {
       const lk = L.lake, bz = lk[1] + lk[3] + 34; makeSolid(lk[0], bz, 100, 50, 0, {});              // boathouse
       const rz = lk[3] + 110; makeSolid(lk[0], lk[1] - rz - 80, 100, 100, 0, {});                    // band shell
-      LM_CLEAR.push([lk[0], bz, 60, 40], [lk[0], lk[1] - rz - 80, 60, 60]);
+      LM_CLEAR.push([lk[0], bz, 60, 40], [lk[0], lk[1] - rz - 80, 60, 60], [lk[0], lk[1] - rz + 60, 130, 80]);   // and a lawn before the band shell (Crane's rallies, js/10zg)
       LMS.push({ cx: L.x, cy: L.y, a: 0, rad: Math.hypot(L.w, L.h) / 2, make: () => makePark(L), mesh: null });
     }
     else if (L.t === 'tvtower') { makeSolid(L.x, L.y, 100, 100, 0, {}); add(L.x, L.y, 0, 700, makeTV, 90, 90); }

@@ -1635,7 +1635,62 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Down the street", "Danny (on the phone)", "Danny watches from his car, calling Nina. Fade out.", "CLOSE on Danny", "6", "9, 10"]]}],
     "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
     "failing": "Nina's marker N again (retry).",
-    "notes": {"places": "FIRST CORAL BANK; the gas station up north; the PALM HEIGHTS LOFT (Sachs' office - Danny's after M18).", "people": "Nina; the courier; Sachs; Kessler's gang (finished) or Kessler on the phone (spared).", "music": "-", "new": "The suspicion bar (a meter under the objective, for any quest).", "other": "Choice 1 (M12) changes the middle: test both with the KESSLER switch on the MISSIONS list."}}}
+    "notes": {"places": "FIRST CORAL BANK; the gas station up north; the PALM HEIGHTS LOFT (Sachs' office - Danny's after M18).", "people": "Nina; the courier; Sachs; Kessler's gang (finished) or Kessler on the phone (spared).", "music": "-", "new": "The suspicion bar (a meter under the objective, for any quest).", "other": "Choice 1 (M12) changes the middle: test both with the KESSLER switch on the MISSIONS list."}}},
+  {"id": "m15", "no": "M15", "title": "PRESS PASS", "giver": "nina", "start": "marker", "where": "BAY TV's newsroom; Bayfront Park's band shell (Crane's rally)",
+   "story": "Crane holds a rally at Bayfront Park's band shell, and Sachs never leaves his side - nor his briefcase. Nina gives Danny a press pass and a bug the size of a button. In smart clothes, he walks in through the press gate, sees Crane for the first time from the crowd, and slips the bug into Sachs' briefcase while the guards look the other way.",
+   "chars": ["nina", "danny", "crane", "sachs", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO NINA"},
+     {"word": "PUT ON", "show": "PUT ON SOMETHING SMART"},
+     {"word": "GO TO", "show": "GO TO THE RALLY'S PRESS GATE - ON FOOT"},
+     {"word": "PLANT", "show": "PLANT THE BUG IN SACHS' BRIEFCASE - UNSEEN"},
+     {"word": "GET AWAY", "show": "WALK AWAY FROM THE STAGE"}],
+   "lines": [
+     {"who": "nina", "text": "Crane's holding a rally at Bayfront Park. Sachs never leaves his side - or his briefcase.", "mood": "quick", "when": "Press pass, shot 1"},
+     {"who": "nina", "text": "Here's a press pass and a bug the size of a button. Put it in his case.", "mood": "quick", "when": "Press pass, shot 1"},
+     {"who": "danny", "text": "And if his guards see me?", "mood": "calm", "when": "Press pass, shot 2"},
+     {"who": "nina", "text": "Then you're a reporter who got lost. Wear something smart.", "mood": "dry", "when": "Press pass, shot 2"},
+     {"who": "crane", "text": "Bay City! They said this town was finished. I say we're just getting started!", "mood": "booming", "when": "The rally, shot 1"},
+     {"who": "crane", "text": "Skyline One is only the beginning - jobs, towers, a city that shines!", "mood": "booming", "when": "The rally, shot 1"},
+     {"who": "sachs", "text": "Marvellous, sir. Marvellous. Every word.", "mood": "cheerful", "when": "The rally, shot 2"},
+     {"who": "danny", "text": "So that's Crane.", "mood": "cold", "when": "The rally, shot 3"},
+     {"who": "danny", "text": "Nina - it's in.", "mood": "calm", "when": "LIVE - walking away (phone)", "live": true},
+     {"who": "nina", "text": "I hear him loud and clear. Something about files at the storage yard - tonight.", "mood": "quick", "when": "LIVE - walking away (phone)", "live": true},
+     {"who": "nina", "text": "Stay by your phone, Danny.", "mood": "warm", "when": "LIVE - walking away (phone)", "live": true}],
+   "fails": {"seen": "SACHS' GUARDS SAW YOU", "scene": "YOU STARTED TROUBLE AT THE RALLY", "ninaDead": "NINA PARK IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 12, "gateM": 8, "nearM": 5, "seeM": 12, "cone": 50, "sweep": 60, "sweepT": 5, "warnT": 1.2, "cheerLook": 4, "leaveM": 80},
+   "reward": {"cash": 4000, "vehicle": "", "clothes": "", "next": "M16 - Nina's marker N in BAY TV's newsroom (that night)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 3; the rally at Bayfront Park's band shell, answers 147 and 148) - change anything you like.",
+    "glance": {"kind": "story", "given": "NINA PARK - her marker N in BAY TV's newsroom", "where": "Bayfront Park's band shell, Crane's rally", "unlocked": "A game day after M14", "time": "Noon (the rally)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "nina": {"gives": true, "role": "Nina Park: the press pass and the bug.", "looks": "Thirties, a sharp black bob, a mustard blazer with big shoulders, small gold earrings.", "bubble": "Amber", "mumble": "Quick and clear."},
+     "danny": {"gives": false, "role": "You - a reporter for the day.", "looks": "Thirties, a buzz cut, a scar; something smart on.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "crane": {"gives": false, "role": "Victor Crane on the stage - the first time Danny sees him.", "looks": "As in the table.", "bubble": "As in the table", "mumble": "As in the table."},
+     "sachs": {"gives": false, "role": "Leonard Sachs by the stage, his briefcase at his feet.", "looks": "Round and cheerful, a bow tie, a pocket watch.", "bubble": "Sage green", "mumble": "Soft and slow."},
+     "craneman": {"gives": false, "role": "Sachs' three guards, watching the briefcase.", "looks": "Slicked-back hair, dark sunglasses, charcoal suits, white shirts.", "bubble": "Silver", "mumble": "Flat and low."}},
+    "steps": [
+     ["Talk to Nina in BAY TV's newsroom (marker N); the opening cutscene PRESS PASS.", "MISSIONS TEST: you start in the newsroom, a car at the kerb outside."],
+     ["Put on something smart: if you already wear a smart piece (as for the casino's dress code), this step is done; otherwise Nina's jacket (the black suit jacket) - PUT IT ON.", ""],
+     ["Walk in through the rally's press gate (Bayfront Park's north gate); the cutscene THE RALLY - Crane on the stage, Sachs beside it.", ""],
+     ["Plant the bug in Sachs' briefcase: walk up and PLANT THE BUG. Three guards sweep their eyes over it (yellow cones on the ground); seen within 5 m of the case for more than a moment, or planting while one looks, and the quest fails. When the crowd cheers (confetti), the guards look at the stage for 4 s.", "Anywhere else in the crowd they let you be - you have a press pass."],
+     ["Walk 80 m away from the stage; Nina's call, then the quest is passed.", ""]],
+    "fails": [
+     ["A guard sees you at the briefcase", "SACHS' GUARDS SAW YOU"],
+     ["You hurt Sachs, a guard or the crowd (or scare it off)", "YOU STARTED TROUBLE AT THE RALLY"],
+     ["Nina is killed", "NINA PARK IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"PRESS PASS\"", "plays": "When you talk to Nina.", "shots": [
+      ["BAY TV's newsroom", "Nina, Danny", "Nina holds up a press pass and a tiny bug.", "CLOSE on Nina", "6", "1, 2"],
+      ["BAY TV's newsroom", "Danny, Nina", "Danny pockets them. Fade out.", "CLOSE on Danny", "5", "3, 4"]]},
+     {"title": "\"THE RALLY\"", "plays": "At the press gate.", "shots": [
+      ["The band shell", "Crane, the crowd", "Crane at the stage's lip under CRANE FOR MAYOR; the crowd cheers, confetti.", "CLOSE on Crane", "6", "5, 6"],
+      ["Beside the stage", "Sachs, his guards", "Sachs claps, the briefcase at his feet.", "CLOSE on Sachs", "5", "7"],
+      ["The press gate", "Danny", "Danny watches. Fade out.", "CLOSE on Danny", "4", "8"]]}],
+    "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
+    "failing": "Nina's marker N again (retry).",
+    "notes": {"places": "Bayfront Park's band shell: from now on in STORY Crane holds a rally there every game day at noon for two hours (places table, Rally) until the election (chapter 5).", "people": "Crane, Sachs, three guards, the crowd.", "music": "-", "new": "Crane's rallies (modes table: rallies, STORY).", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
