@@ -90,6 +90,14 @@ the table now, drawn from the owner's answers 21-107 (October 2026); the minor p
 | M10 The Produce Run | built in MISSIONS TEST (chapter 2); Word page `docs/quests/Quest-M10-The-Produce-Run.docx`; waiting for the owner's test | the new produce truck from the Harbor Cold Store to Rosa's market; Kessler's cars ram it; at least 4 of the 8 crates must arrive |
 | M11 Betting Shop | built in MISSIONS TEST (chapter 2); Word page `docs/quests/Quest-M11-Betting-Shop.docx`; waiting for the owner's test | Lucky Lou's again (Kessler's now); Kessler's men in two cars; the helper's first shot from a roof (Helper 1) |
 | M12 Bull Run | built in MISSIONS TEST (chapter 2, its last quest); Word page `docs/quests/Quest-M12-Bull-Run.docx`; waiting for the owner's test | two of Rosa's men (new: ROSA'S MAN) storm BULL'S GYM with you; the truck chase to the port's east quay; Choice 1 by what you do - shoot him or walk 40 m away |
+| C1 Dealer's Choice | built in MISSIONS TEST (the Casino storyline, the Casino line's first quest); Word page `docs/quests/Quest-C1-Dealers-Choice.docx`; waiting for the owner's test | walk Del home from the Royal Flamingo; Lenny Gold's crew (on foot and a car); Del must stay within 120 m |
+| C2 Blueprints | built in MISSIONS TEST (the Casino storyline); Word page `docs/quests/Quest-C2-Blueprints.docx`; waiting for the owner's test | THE CROWN's inside (side-on, new, both modes); stealth guards with torches on 8-10 (new, STORY and MISSIONS TEST); the vault plans in Crane Development's office |
+| C3 The Uniform | built in MISSIONS TEST (the Casino storyline); Word page `docs/quests/Quest-C3-The-Uniform.docx`; waiting for the owner's test | the laundry van (the truck with a laundry livery - no new vehicle row); the casino guard's uniform (reward clothes, new); mark three cameras and the staff door |
+| C4 The Cash Van | built in MISSIONS TEST (the Casino storyline); Word page `docs/quests/Quest-C4-The-Cash-Van.docx`; waiting for the owner's test | the cash depot (new, both modes) - the gate at the hut, 2 stars; the armoured van in the casino's colours; Del's lock-up at the storage yard |
+| C5 Fingers | built in MISSIONS TEST (the Casino storyline); Word page `docs/quests/Quest-C5-Fingers.docx`; waiting for the owner's test | the lunapark's FUNHOUSE (new, both modes: mirror maze, tilted room); free Fay from Gold's men; Fay joins |
+| C6 Dry Run | built in MISSIONS TEST (the Casino storyline); Word page `docs/quests/Quest-C6-Dry-Run.docx`; waiting for the owner's test | the back door to the lock-up inside 2 minutes; a patrol car sees the van (1 star) |
+| C7 Lights Out | built in MISSIONS TEST (the Casino storyline); Word page `docs/quests/Quest-C7-Lights-Out.docx`; waiting for the owner's test | the substation (new, both modes: blown, the strip goes dark, a repair crew); plant three charges past two guards (5 m sight, 2 s) |
+| C8 The Vault | built in MISSIONS TEST (the Casino storyline, the Casino line's finale); Word page `docs/quests/Quest-C8-The-Vault.docx`; waiting for the owner's test | the blackout; the uniform through the casino; THE VAULT side-on under the cage (count room, B1-B3); Fay cracks it; the getaway from Gold's men and the police; €100,000 |
 
 ## Connectors - joining the quests into STORY
 
@@ -134,6 +142,12 @@ the connectors below add what happens between quests. Filled in as each quest ar
   - **M09 -> M10**: Rosa becomes a contact - her marker R at ROSA'S MARKET the next day; Kessler is an enemy (his men may turn up in Dockside - to settle with the owner when STORY is built).
   - **M10 -> M11 -> M12**: Rosa's marker R, a game day apart each.
   - **After M12**: the Mercado flat (the safehouse already in Mercado) is Danny's, free, without its FOR SALE sign (answer 129); the gym's ring fights stop (answer 126); Choice 1 is kept for chapter 3 (M14, M16) and M27; chapter 3 starts with Nina Park's call (M13).
+- **The Casino storyline (C1-C8, built October 2026)** - how it joins in STORY:
+  - **Opens** after M07: Del's marker D at the Royal Flamingo's door, at night (answer 122). In C1, if Quest 03 came first, Del's lines say "we've met" (answer 83).
+  - **C1 -> C2 -> C3 -> C4**: Del's marker D on the strip, a game day apart, at night. After C3 the guard's uniform is in the wardrobe (answer 137).
+  - **C4 -> C5 -> C6 -> C7 -> C8**: Del's marker D at his lock-up (the storage yard's unit nearest the strip), a game day apart, at night. Fay is a contact after C5.
+  - **After C8**: €100,000; the armoured van in the casino's colours stays Danny's - in the lock-up and in his garage (answer 138) - the line's gift to the finale: the chase to Skyport (M30); Papa Joe hears about the vault (answer 84). The Royal Flamingo's vault stays empty.
+  - **Decided while building (ask to change)**: stealth is STORY and MISSIONS TEST only; the laundry van is the truck with a laundry livery (no new vehicle row, not in traffic); the Crown has ten floors, the night lift goes to 7; the substation stands west of the casino block across from THE PULSE; the depot is the lot just north of the casino block; the funhouse stands west of the lunapark's snack booths.
 - **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
   everyone else (6); a failed quest is retried from its marker with nothing lost (63); STORY saves as now, never during a quest.
 
