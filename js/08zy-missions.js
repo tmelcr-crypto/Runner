@@ -90,10 +90,10 @@ function msFail(why) {
   msEndCard('MISSION FAILED', why, [], id);
 }
 function msPassed() {
-  const m = MS.m, r = m.reward, id = MS.id; msClear();
+  const m = MS.m, r = m.reward, id = MS.id, ch = MS.A && MS.A.choice; msClear();   // ch: a choice made by what you did (M12)
   if (r.cash > 0) addScore(r.cash, P.x, P.y, 'MISSION');
   Snd.tone(523, 784, 0.18, 0.12, 'square'); setTimeout(() => Snd.tone(784, 1046, 0.25, 0.12, 'square'), 180);
-  const list = [r.cash > 0 && money(r.cash), r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.next && 'NEXT: ' + r.next].filter(Boolean);
+  const list = [r.cash > 0 && money(r.cash), ch && 'CHOICE: ' + ch, r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.next && 'NEXT: ' + r.next].filter(Boolean);
   msEndCard('MISSION PASSED', m.no + ' · ' + m.title, list, id);
 }
 function msEndCard(head, sub, list, id) {   // over the game: what happened, then RETRY, MISSIONS or CARRY ON
@@ -240,7 +240,8 @@ function msBooth(text, nums) {             // a step: the page, then CALL at the
       MS.start = { at: () => b, label: 'CALL', go: () => { MS.mark = null; MS.guide = null; Snd.tone(440, 440, 0.12, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
     },
     tick(A) { return !!A['call' + MS.k]; },
-    info: A => A.booth && !A['call' + MS.k] ? Math.round(dist(P.x, P.y, A.booth.x, A.booth.y) / UNITS_PER_M) + ' M TO THE BOOTH' : ''
+    info: A => A.booth && !A['call' + MS.k] ? Math.round(dist(P.x, P.y, A.booth.x, A.booth.y) / UNITS_PER_M) + ' M TO THE BOOTH' : '',
+    jump(A) { MS.mark = null; MS.guide = null; MS.start = null; A['call' + MS.k] = true; }
   };
 }
 /* ---------- the brick phone (mode phone, the story from M07): it rings with the caller's name; ANSWER (or E) even in a car ---------- */

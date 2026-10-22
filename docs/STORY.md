@@ -84,6 +84,12 @@ the table now, drawn from the owner's answers 21-107 (October 2026); the minor p
 | M04 Collection Day | built in MISSIONS TEST (chapter 1); Word page `docs/quests/Quest-M04-Collection-Day.docx`; waiting for the owner's test | Lucky Lou's betting shop (LUCKY LOU'S over a Mercado shop front); two heavies with a bat and fists; Lou's convertible; the first time Danny hears of Bull Kessler |
 | M05 Wrong Street | built in MISSIONS TEST (chapter 1); Word page `docs/quests/Quest-M05-Wrong-Street.docx`; waiting for the owner's test | Esther's page; four of Kessler's men at the airport rank; the two cops at the airport gate look the other way (my choice - Crane owns the police; the fight sits right by their post, so they would always give stars - change it if you like); Joe to the Mercado hospital in 80 s with Kessler's car behind |
 | M06 Harbour Lights | built in MISSIONS TEST (chapter 1, its last quest); Word page `docs/quests/Quest-M06-Harbour-Lights.docx`; waiting for the owner's test | Joe in a sling at the hospital; Esther's turquoise convertible; lose Kessler's two cars (80 km/h at most, 120 m for 3 s); Joe drops Danny at the quay and drives Esther's car home; Marco meets "the boatman" - the Varga storyline opens |
+| M07 Bull's Offer | built in MISSIONS TEST (chapter 2, written from the story plan and answers 122-141); Word page `docs/quests/Quest-M07-Bulls-Offer.docx`; waiting for the owner's test | a Kessler man at the Colony; Kessler's office in BULL'S GYM (the boxers keep training); the brick phone; rent from three Dockside shops - Gus Delgado (new) won't pay until his window goes |
+| M08 Valet Parking | built in MISSIONS TEST (chapter 2); Word page `docs/quests/Quest-M08-Valet-Parking.docx`; waiting for the owner's test | the first call on the brick phone; Crane's town car from the Royal Flamingo's valet bay to the junkyard and back (150 s, not badly dented); clue 2 - the cap with M. CRUZ inside |
+| M09 Market Fire | built in MISSIONS TEST (chapter 2); Word page `docs/quests/Quest-M09-Market-Fire.docx`; waiting for the owner's test | Kessler's two men ride with you, then run for Rosa's stalls with petrol (8 s each); Rosa takes Danny in; Kessler an enemy from now on |
+| M10 The Produce Run | built in MISSIONS TEST (chapter 2); Word page `docs/quests/Quest-M10-The-Produce-Run.docx`; waiting for the owner's test | the new produce truck from the Harbor Cold Store to Rosa's market; Kessler's cars ram it; at least 4 of the 8 crates must arrive |
+| M11 Betting Shop | built in MISSIONS TEST (chapter 2); Word page `docs/quests/Quest-M11-Betting-Shop.docx`; waiting for the owner's test | Lucky Lou's again (Kessler's now); Kessler's men in two cars; the helper's first shot from a roof (Helper 1) |
+| M12 Bull Run | built in MISSIONS TEST (chapter 2, its last quest); Word page `docs/quests/Quest-M12-Bull-Run.docx`; waiting for the owner's test | two of Rosa's men (new: ROSA'S MAN) storm BULL'S GYM with you; the truck chase to the port's east quay; Choice 1 by what you do - shoot him or walk 40 m away |
 
 ## Connectors - joining the quests into STORY
 
@@ -121,6 +127,13 @@ the connectors below add what happens between quests. Filled in as each quest ar
     "we've met" when the Casino or the Prison line came first.
   - **Places the quests dress up while they run** (props, not new buildings): UNCLE SAUL'S PAWN and LUCKY LOU'S over Mercado shop fronts;
     Dockside Motor Works (an interior, held by M03); Esther's car and Joe's cab are the quests' own cars.
+- **Chapter 2 of the main story (M07-M12, built October 2026)** - how they join in STORY:
+  - **M06 -> M07**: a game day after M06 a Kessler man waits at the Colony's door (his marker, then Kessler's B at BULL'S GYM).
+  - **M07 -> M08**: Kessler becomes a contact; the brick phone replaces the pager and the phone booths (answer 123); a game day later Kessler calls at night. The Casino storyline opens: Del's marker D on the strip at night (answer 122 - built next).
+  - **M08 -> M09**: Danny keeps Mateo's chauffeur's cap (a STORY wardrobe piece, clue 2); Kessler calls a game day later, at night.
+  - **M09 -> M10**: Rosa becomes a contact - her marker R at ROSA'S MARKET the next day; Kessler is an enemy (his men may turn up in Dockside - to settle with the owner when STORY is built).
+  - **M10 -> M11 -> M12**: Rosa's marker R, a game day apart each.
+  - **After M12**: the Mercado flat (the safehouse already in Mercado) is Danny's, free, without its FOR SALE sign (answer 129); the gym's ring fights stop (answer 126); Choice 1 is kept for chapter 3 (M14, M16) and M27; chapter 3 starts with Nina Park's call (M13).
 - **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
   everyone else (6); a failed quest is retried from its marker with nothing lost (63); STORY saves as now, never during a quest.
 

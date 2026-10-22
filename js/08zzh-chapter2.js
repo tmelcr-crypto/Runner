@@ -281,3 +281,162 @@ MSCRIPT.m10 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { } };
 })();
+
+/* ================= M11 - BETTING SHOP ================= */
+MSCRIPT.m11 = (() => {
+  const S1 = STORY1, S2 = STORY2, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.mk = S2.market();
+    A.rosa = msPed(A.mk.back.x, A.mk.back.y, 0, Object.assign(S1.look('rosa'), { msName: 'rosa', step: S1.stay, spare: true, shield: true }));
+    const q = S1.free(A.rosa.x, A.rosa.y, 50); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.rosa, P);   // MISSIONS TEST: in the market, a car at the kerb
+    const k0 = kerbBy(A.mk.street.x, A.mk.street.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
+    const sf = S1.shopFront(6600, 9800); A.shop = sf; A.signM = S1.sign("LUCKY LOU'S", '#2ad480', sf);   // the same shop as in M04 - Kessler's now
+    A.lou = msPed(sf.x, sf.y, sf.a, Object.assign(S1.look('lou'), { msName: 'lou', step: S1.stay, spare: true }));
+  }
+  function backup(A) {                                                             // Kessler's men pull up from both ends of the street
+    if (A.kc) return; const s = A.shop, tx = -s.fy, ty = s.fx;
+    A.kc = [1, -1].map(d => { const r = S1.road(s.x + tx * d * 520, s.y + ty * d * 520); return msFoeCar('muscle', r.x, r.y, r.a, { crew: 2, gun: 'pistol', group: 'kessm', speed: 90, shirt: '#f0f0ea', pants: '#3a4a6a' }); });
+    msLive([6], { now: true });
+  }
+  function helper(A) {                                                             // a gunman steps out behind you - and a shot from a roof drops him
+    const a = (P.car ? P.car.ang : P.ang) + Math.PI, q = S1.free(P.x + Math.cos(a) * 70, P.y + Math.sin(a) * 70, 6);
+    const g = msFoe(q.x, q.y, { gun: 'pistol', hp: 40, group: 'back', a: Math.atan2(P.y - q.y, P.x - q.x), alert: true, shirt: '#f0f0ea', pants: '#3a4a6a' });
+    let roof = null, bd = 1e9; for (const r of BLD) { const d = dist(r.cx, r.cy, g.x, g.y); if ((r.H || 0) >= 40 && d > 140 && d < 480 && d < bd) { bd = d; roof = r; } }
+    A.helping = { t: gameT, g, roof: roof ? at(roof.cx, roof.cy) : at(g.x + 260, g.y - 200) };
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.rosa; MS.start = { at: () => A.rosa, label: 'START MISSION', go: () => { face(A.rosa, P); msCut('THE TAKINGS', () => { A.go = true; }); } }; },   // TALK TO Rosa
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.guide = A.shop; MS.mark = () => A.lou; },                        // GO TO Lucky Lou's: Lou again
+      tick(A) { if (A.cut2 || dist(me().x, me().y, A.shop.x, A.shop.y) > N().shopR) return false; A.cut2 = true; if (P.car) exitCar(true); msCut('LOU AGAIN', () => msNext()); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.shop.x, A.shop.y) / UNITS_PER_M) + " M TO LUCKY LOU'S",
+      jump(A) { if (P.car) exitCar(true); P.x = A.shop.x + A.shop.fx * 50; P.y = A.shop.y + A.shop.fy * 50; } },
+    { enter(A) { const i = peds.indexOf(A.lou); if (i >= 0) peds.splice(i, 1); if (!A.bag) A.bag = S1.dryNear(A.shop.x + A.shop.fx * 22, A.shop.y + A.shop.fy * 22); MS.mark = () => A.bag && at(A.bag.x, A.bag.y); MS.guide = null; },   // COLLECT the bag
+      tick(A) { if (P.car || !A.bag || dist(P.x, P.y, A.bag.x, A.bag.y) > N().bagR) return false; A.bag = null; Snd.pickup(); popup(P.x, P.y - 14, "KESSLER'S TAKINGS " + money(N().takings) + " (ROSA'S)", '#ffd23f'); backup(A); return true; },
+      jump(A) { A.bag = null; } },
+    { enter(A) { backup(A); A.t4 = gameT; MS.mark = () => peds.find(p => p.foe && !p.dead && p.group === 'kessm') || A.kc.find(c => !c.dead); },   // TAKE OUT Kessler's men; the shot from the roof
+      tick(A) {
+        const left = msFoesLeft('kessm');
+        if (!A.helping && (left === 0 || (!P.car && (gameT - A.t4 > N().helpT || P.hp < hpMax() * N().helpHp)))) helper(A);
+        const H = A.helping;
+        if (H && !H.shot && gameT - H.t > 0.8) {
+          H.shot = true; tracers.push({ x1: H.roof.x, y1: H.roof.y, x2: H.g.x, y2: H.g.y, life: 0.14 }); Snd.tone(1500, 90, 0.18, 0.13, 'sawtooth');
+          if (!H.g.dead) killPed(H.g, 'gun', false); msCut('THE ROOF', () => { A.helped = true; });
+        }
+        return A.helped && msFoesLeft('kessm') === 0; },
+      info: A => msFoesLeft('kessm') + ' LEFT',
+      jump(A) { backup(A); for (const c of A.kc) { c.fc.crew = 0; } for (const p of peds) if (p.foe && !p.dead) killPed(p, 'gun', false); if (!A.helping) helper(A); A.helping.shot = true; if (!A.helping.g.dead) killPed(A.helping.g, 'gun', false); A.helped = true; } },
+    { enter(A) { MS.guide = A.mk.street; MS.mark = () => A.rosa; },                  // DELIVER the money to Rosa: the closing
+      tick(A) { if (A.home || P.car || dist(P.x, P.y, A.rosa.x, A.rosa.y) > N().rosaR) return false; A.home = true; msCut('A FRIEND', () => msNext()); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.rosa.x, A.rosa.y) / UNITS_PER_M) + ' M TO ROSA',
+      jump(A) { if (P.car) exitCar(true); const q = S1.free(A.rosa.x, A.rosa.y, 30); P.x = q.x; P.y = q.y; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.rosa.dead) return F.rosaDead;
+    if (A.lou.dead) return F.louDead;
+    return '';
+  }
+  const cuts = {
+    'THE TAKINGS': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: [1, 2], enter: () => { face(A.rosa, P); P.ang = Math.atan2(A.rosa.y - P.y, A.rosa.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: 3 }],
+    'LOU AGAIN': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.lou, line: 4, enter: () => { P.x = A.shop.x + A.shop.fx * 40; P.y = A.shop.y + A.shop.fy * 40; P.vx = P.vy = 0; face(A.lou, P); P.ang = Math.atan2(A.lou.y - P.y, A.lou.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.lou, line: 5, enter: () => { A.bag = S1.dryNear(A.shop.x + A.shop.fx * 22, A.shop.y + A.shop.fy * 22); } }],
+    'THE ROOF': A => [
+      { dur: 2.5, cam: 'CLOSE', at: () => A.helping.g },
+      { dur: 4, cam: 'FIXED', at: () => A.helping.roof, line: 7 }],
+    'A FRIEND': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: [8, 9], enter: () => { face(A.rosa, P); P.ang = Math.atan2(A.rosa.y - P.y, A.rosa.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: 10, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.signM) scene.remove(A.signM); } };
+})();
+
+/* ================= M12 - BULL RUN ================= */
+MSCRIPT.m12 = (() => {
+  const S1 = STORY1, S2 = STORY2, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.mk = S2.market(); A.g = S2.gym(); S2.hold(true);       // the gym held: its door open, nobody training
+    A.rosa = msPed(A.mk.back.x, A.mk.back.y, 0, Object.assign(S1.look('rosa'), { msName: 'rosa', step: S1.stay, spare: true, shield: true }));
+    const q = S1.free(A.rosa.x, A.rosa.y, 50); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.rosa, P);   // MISSIONS TEST: in the market at night, a car at the kerb
+    const k0 = kerbBy(A.mk.street.x, A.mk.street.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
+    A.kess = msPed(A.g.kess.x, A.g.kess.y, 0, Object.assign(S1.look('kessler'), { msName: 'kessler', step: S1.stay, spare: true, shield: true })); face(A.kess, A.g.front);
+    const O = GYM.S.office, spots = [[-40, 30], [44, 92], [-72, -118], [58, -150], [-28, -196], [O.x1 + 22, O.z0 - 20]];
+    A.men = spots.map(([lx, lz], i) => { const w = gymWorld(lx, lz); return msFoe(w.x, w.y, { gun: i % 3 === 1 ? 'bat' : 'pistol', hp: N().menHp, group: 'gym', a: Math.atan2(A.g.door.y - w.y, A.g.door.x - w.x), shirt: i % 2 ? '#ff7a1a' : '#f0f0ea', pants: '#3a4a6a' }); });
+    const k = kerbBy(A.g.door.x - 30, A.g.door.y + 40); A.truckAt = k;           // Bull's truck at the kerb outside, the way to the port
+    A.route = [S1.road(5600, 12100), S1.road(6500, 12250), S1.road(6860, 13000)]; A.quay = S1.dryNear(6955, 13260);
+    A.truck = msFoeCar('truck', k.x, k.y, k.ang, { mode: 'park', crew: 0, gun: null, group: 'bullrun', speed: N().kessSpeed, to: A.route, color: '#2a2a32' });
+  }
+  const down = A => A.men.filter(m => m.dead).length;
+  function crash(A) {                                                              // the truck slams into the quay: Kessler crawls out
+    if (A.crashed) return; A.crashed = true;
+    const t = A.truck; t.driver = null; t.msDrive = null; t.thr = t.str = 0; t.fc.mode = 'park';
+    t.x = A.quay.x; t.y = A.quay.y; t.ang = 0; t.vx = t.vy = 0; t.noWreck = true; t.hp = Math.max(1, Math.min(t.hp, t.maxhp * 0.2));
+    const k = A.kess; k.x = t.x - 18; k.y = t.y + 34; k.vx = k.vy = 0; k.dead = false; k.shield = false; k.hp = N().kessHp; k.stunT = 9999; k.post.x = k.x; k.post.y = k.y;
+    if (!peds.includes(k)) peds.push(k);
+  }
+  function choose(A, how) {                                                        // Choice 1: by what you did
+    if (A.choice) return; A.choice = how === 'finished' ? 'KESSLER FINISHED' : 'KESSLER SPARED';
+    const q = S1.free(P.x, P.y, 40); A.rosa.x = q.x; A.rosa.y = q.y; A.rosa.post.x = q.x; A.rosa.post.y = q.y; if (!peds.includes(A.rosa)) peds.push(A.rosa);   // Rosa's car pulls up
+    if (how === 'spared') { const i = peds.indexOf(A.kess); if (i >= 0) peds.splice(i, 1); }   // he crawls off into the dark
+    msCut(how === 'finished' ? 'FINISHED' : 'SPARED', () => { A.closed = true; });
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.rosa; MS.start = { at: () => A.rosa, label: 'START MISSION', go: () => { face(A.rosa, P); msCut('TONIGHT', () => { A.go = true; }); } }; },   // TALK TO Rosa: two of her men join you
+      tick(A) { return !!A.go; } },
+    { enter(A) { if (!A.mates) A.mates = [-1, 1].map(s => { const q = S1.free(P.x + s * 26, P.y + 20, 6); return msAlly(q.x, q.y, { who: 'rosaman', gun: 'shotgun', hp: N().allyHp, fail: MS.m.fails.allyDead }); });
+        MS.guide = A.g.door; MS.mark = () => A.g.door; },                          // GO TO the gym with them
+      tick(A) { if (!(gymIn(me().x, me().y, 0) || dist(me().x, me().y, A.g.door.x, A.g.door.y) < N().gymR)) return false; msLive([4], { now: true }); for (const m of A.men) foeAlert(m); return true; },
+      info: A => Math.round(dist(me().x, me().y, A.g.door.x, A.g.door.y) / UNITS_PER_M) + " M TO BULL'S GYM",
+      jump(A) { if (!A.mates) A.mates = [-1, 1].map(s => msAlly(P.x + s * 20, P.y, { who: 'rosaman', gun: 'shotgun', hp: N().allyHp, fail: MS.m.fails.allyDead })); if (P.car) exitCar(true);
+        P.x = A.g.inside.x; P.y = A.g.inside.y; for (const m of A.mates) { if (m.aboard) allyAlight(m); const q = S1.free(P.x, P.y, 20); m.x = q.x; m.y = q.y; } } },
+    { enter(A) { MS.mark = () => A.men.filter(m => !m.dead)[0]; MS.guide = null; },   // TAKE OUT his men: Bull runs
+      tick(A) {
+        if (A.cut3 || (down(A) < 4 && dist(P.x, P.y, A.g.office.x, A.g.office.y) > 50)) return false;
+        A.cut3 = true; msCut('BULL RUNS', () => { msLive([6], { now: true }); msNext(); }); return false; },
+      info: A => down(A) + '/6 DOWN',
+      jump(A) { for (const m of A.men.slice(0, 4)) if (!m.dead) killPed(m, 'gun', true); } },
+    { enter(A) { MS.mark = () => A.truck; MS.guide = () => A.truck; if (A.truck.fc.mode === 'park' && !A.crashed) { const i = peds.indexOf(A.kess); if (i >= 0) peds.splice(i, 1); foeCarGo(A.truck, 'flee'); } },   // CHASE the truck to the quay
+      tick(A) {
+        const t = A.truck, last = A.route[A.route.length - 1];
+        if (A.cut4) return false;
+        if (A.crashed || t.hp < t.maxhp * N().crashHp || t.fc.gone || dist(t.x, t.y, last.x, last.y) < 220) { A.cut4 = true; crash(A); msCut('THE QUAY', () => msNext()); }
+        return false; },
+      info: A => Math.round(dist(me().x, me().y, A.truck.x, A.truck.y) / UNITS_PER_M) + ' M TO THE TRUCK (GONE AT ' + N().away + ')',
+      jump(A) { crash(A); if (P.car) exitCar(true); const q = S1.free(A.quay.x, A.quay.y, 60); P.x = q.x; P.y = q.y; } },
+    { enter(A) { msLive([8], { now: true }); MS.mark = () => A.kess; MS.guide = null; },   // CHOOSE: shoot him, or walk away
+      tick(A) {
+        if (A.closed) return true;
+        if (!A.choice && A.kess.dead) choose(A, 'finished');
+        else if (!A.choice && dist(P.x, P.y, A.kess.x, A.kess.y) > N().walkR * UNITS_PER_M) choose(A, 'spared');
+        return false; },
+      info: A => A.choice ? A.choice : 'SHOOT HIM, OR WALK ' + N().walkR + ' M AWAY',
+      jump(A) { const a = Math.atan2(P.y - A.kess.y, P.x - A.kess.x); P.x = A.kess.x + Math.cos(a) * (N().walkR + 5) * UNITS_PER_M; P.y = A.kess.y + Math.sin(a) * (N().walkR + 5) * UNITS_PER_M; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    const f = msCastFail(); if (f) return f;
+    if (A.rosa.dead) return F.rosaDead;
+    if (MS.k === 3 && !A.cut4 && dist(me().x, me().y, A.truck.x, A.truck.y) > N().away * UNITS_PER_M) return F.away;
+    return '';
+  }
+  const cuts = {
+    'TONIGHT': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: 1, enter: () => { face(A.rosa, P); P.ang = Math.atan2(A.rosa.y - P.y, A.rosa.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [2, 3] }],
+    'BULL RUNS': A => [
+      { dur: 4, cam: 'FOLLOW', at: () => A.kess, line: 5, enter: () => { A.kess.post.step = (p, dt) => { walkTo(p, A.g.door.x, A.g.door.y, NPC_RUN * 1.1, dt); return true; }; },
+        tick: (A2, dt) => { if (dist(A.kess.x, A.kess.y, A.g.door.x, A.g.door.y) < 20) { const i = peds.indexOf(A.kess); if (i >= 0) peds.splice(i, 1); } } },
+      { dur: 3, cam: 'WIDE', at: () => A.truck, enter: () => { const i = peds.indexOf(A.kess); if (i >= 0) peds.splice(i, 1); A.kess.post.step = S1.stay; A.truck.fc.wait = 0.4; foeCarGo(A.truck, 'flee'); } }],
+    'THE QUAY': A => [
+      { dur: 3, cam: 'WIDE', at: () => A.truck, enter: () => { if (P.car) { P.car.vx *= 0.2; P.car.vy *= 0.2; } } },
+      { dur: 5, cam: 'CLOSE', at: () => A.kess, line: 7 }],
+    'FINISHED': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: 9, enter: () => { if (P.car) exitCar(true); face(A.rosa, P); P.ang = Math.atan2(A.rosa.y - P.y, A.rosa.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: 10, fadeOut: true }],
+    'SPARED': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: [11, 12], enter: () => { if (P.car) exitCar(true); face(A.rosa, P); P.ang = Math.atan2(A.rosa.y - P.y, A.rosa.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.rosa, line: 10, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { S2.hold(false); } };
+})();

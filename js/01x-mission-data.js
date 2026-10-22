@@ -1017,7 +1017,125 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Rosa's market", "Rosa", "She claps Danny on the shoulder. Fade out.", "CLOSE on Rosa", "5", "9"]]}],
     "start": {"how": "marker", "marker": "R - Rosa at her market in Mercado", "phone": "-"},
     "failing": "Retry from Rosa's marker.",
-    "notes": {"places": "ROSA'S MARKET; the Harbor Cold Store by the port (the truck waits by its door).", "people": "Rosa; Kessler's men in three cars.", "music": "The truck's radio.", "new": "The produce truck (now also in traffic now and then, both modes).", "other": "Rosa pays the same however many crates arrive (4 or more)."}}}
+    "notes": {"places": "ROSA'S MARKET; the Harbor Cold Store by the port (the truck waits by its door).", "people": "Rosa; Kessler's men in three cars.", "music": "The truck's radio.", "new": "The produce truck (now also in traffic now and then, both modes).", "other": "Rosa pays the same however many crates arrive (4 or more)."}}},
+  {"id": "m11", "no": "M11", "title": "BETTING SHOP", "giver": "rosa", "start": "marker", "where": "Rosa's market; Lucky Lou's betting shop in Mercado, now Kessler's",
+   "story": "Rosa hits Bull where it hurts: his money. Kessler took over Lucky Lou's betting shop after M04, and the weekend's takings sit in the back. Lou, terrified, hands them over - and Kessler's men pull up. In the fight a gunman steps out behind Danny; a shot from a roof drops him. Danny looks up: nobody there. Someone in Miravista is watching his back.",
+   "chars": ["rosa", "danny", "lou", "bull"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ROSA AT HER MARKET"},
+     {"word": "GO TO", "show": "GO TO LUCKY LOU'S IN MERCADO - KESSLER'S NOW"},
+     {"word": "COLLECT", "show": "TAKE KESSLER'S TAKINGS"},
+     {"word": "TAKE OUT", "show": "TAKE OUT KESSLER'S MEN"},
+     {"word": "DELIVER", "show": "TAKE THE MONEY TO ROSA"}],
+   "lines": [
+     {"who": "rosa", "text": "Bull took over Lucky Lou's betting shop. The weekend's takings sit in the back till Monday.", "mood": "hard", "when": "The takings, shot 1"},
+     {"who": "rosa", "text": "Hit Bull where it hurts - his money. Bring it to me.", "mood": "hard", "when": "The takings, shot 1"},
+     {"who": "danny", "text": "Lou's going to love seeing me again.", "mood": "dry", "when": "The takings, shot 2"},
+     {"who": "lou", "text": "You again?! It's not my shop anymore - it's Bull's! Take it, take it - just leave me out of it!", "mood": "panicked", "when": "Lou again, shot 1"},
+     {"who": "lou", "text": "And run! His boys come by at two!", "mood": "yelling", "when": "Lou again, shot 2"},
+     {"who": "bull", "text": "That's him! He's got Bull's money!", "mood": "yelling", "when": "LIVE - Kessler's men pull up", "live": true},
+     {"who": "danny", "text": "...Who's up there?", "mood": "calm", "when": "The roof, shot 2"},
+     {"who": "rosa", "text": "Bull's going to be very, very angry.", "mood": "amused", "when": "A friend, shot 1"},
+     {"who": "danny", "text": "Somebody shot a man behind me. From a roof. Then - nobody.", "mood": "calm", "when": "A friend, shot 1"},
+     {"who": "rosa", "text": "Then you've got a friend in this town, Danny Cruz. Count your blessings - and my money.", "mood": "warm", "when": "A friend, shot 2"}],
+   "fails": {"rosaDead": "ROSA ORTEGA IS DEAD", "louDead": "LUCKY LOU IS DEAD - ROSA WANTED THE MONEY, NOT HIM", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 14, "shopR": 130, "menHp": 70, "helpT": 10, "helpHp": 0.7, "bagR": 30, "rosaR": 50, "takings": 6000},
+   "reward": {"cash": 2500, "vehicle": "", "clothes": "", "next": "M12 - Rosa's marker R (the next day)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 2) - change anything you like.",
+    "glance": {"kind": "story", "given": "ROSA ORTEGA (R on the map, her market in Mercado)", "where": "ROSA'S MARKET; LUCKY LOU'S in Mercado (Kessler's now)", "unlocked": "Passing M10", "time": "Any (MISSIONS TEST: the afternoon)", "length": "About 5 to 7 minutes", "limit": "None"},
+    "chars": {
+     "rosa": {"gives": true, "role": "Sends Danny after Kessler's money.", "looks": "As in M09.", "bubble": "Crimson", "mumble": "Quick and firm."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "lou": {"gives": false, "role": "Lucky Lou Fontaine: Kessler runs his shop now and Lou minds it for him, scared stiff.", "looks": "As in M04.", "bubble": "Lime green", "mumble": "Fast and loud."},
+     "bull": {"gives": false, "role": "Kessler's men in two cars (one bubble for all of them).", "looks": "As in M07.", "bubble": "Burnt orange", "mumble": "Gruff."}},
+    "steps": [
+     ["START MISSION by Rosa at her market; the cutscene THE TAKINGS.", "MISSIONS TEST: you start in the market, a car at the kerb."],
+     ["Drive to LUCKY LOU'S (the same shop as in M04); the cutscene LOU AGAIN - he drops the bag at your feet.", ""],
+     ["Pick up the bag.", "Lou must not die."],
+     ["Kessler's men pull up in two cars and get out shooting: take them all out. Somewhere in the fight a gunman steps out behind you - and a shot from a roof drops him; the cutscene THE ROOF.", "Killing Kessler's men is no crime."],
+     ["Take the money to Rosa; the closing cutscene A FRIEND.", ""]],
+    "fails": [
+     ["Rosa is killed", "ROSA ORTEGA IS DEAD"],
+     ["Lou is killed", "LUCKY LOU IS DEAD - ROSA WANTED THE MONEY, NOT HIM"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE TAKINGS\"", "plays": "At START MISSION by Rosa.", "shots": [
+      ["Rosa's market", "Rosa, Danny", "Rosa counting crates of limes.", "CLOSE on Rosa", "5", "1, 2"],
+      ["Rosa's market", "Danny", "Danny pulls a face.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "\"LOU AGAIN\"", "plays": "When you reach the betting shop.", "shots": [
+      ["Lucky Lou's", "Lou, Danny", "Lou backs into his doorway, hands up.", "CLOSE on Lou", "5", "4"],
+      ["Lucky Lou's", "Lou", "He throws a bag at Danny's feet and slams the door.", "CLOSE on Lou", "4", "5"]]},
+     {"title": "\"THE ROOF\"", "plays": "When the shot from the roof drops the gunman behind you.", "shots": [
+      ["The street", "The gunman", "He falls, his pistol skidding away.", "CLOSE", "3", "-"],
+      ["A rooftop", "Nobody", "The camera on the roof the shot came from: empty.", "FIXED", "4", "7"]]},
+     {"title": "CLOSING - \"A FRIEND\"", "plays": "When you bring the money to Rosa.", "shots": [
+      ["Rosa's market", "Rosa, Danny", "Rosa weighs the bag in her hand.", "CLOSE on Rosa", "5", "8, 9"],
+      ["Rosa's market", "Rosa", "She looks at the rooftops round the market. Fade out.", "CLOSE on Rosa", "5", "10"]]}],
+    "start": {"how": "marker", "marker": "R - Rosa at her market in Mercado", "phone": "-"},
+    "failing": "Retry from Rosa's marker.",
+    "notes": {"places": "ROSA'S MARKET; LUCKY LOU'S (a Mercado shop front, the sign up for the quest).", "people": "Rosa, Lou, Kessler's men in two cars, the gunman behind Danny, the unseen shooter on a roof.", "music": "-", "new": "Mateo's trail: the helper's first shot (Helper 1) - nobody is seen.", "other": "The takings go to Rosa (only the pay at the end is yours)."}}},
+  {"id": "m12", "no": "M12", "title": "BULL RUN", "giver": "rosa", "start": "marker", "where": "Rosa's market; Bull's Gym at Dockside; the port's east quay",
+   "story": "Enough running: tonight Rosa's men and Danny storm Bull's Gym. Kessler's men fight among the bags and the ring; Bull bolts from his office to his truck and runs for the port. Danny chases him until the truck smashes into the east quay. Kessler crawls out, finished either way - and the choice is Danny's: shoot him, or walk away.",
+   "chars": ["rosa", "rosaman", "danny", "kessler", "bull"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ROSA AT HER MARKET"},
+     {"word": "GO TO", "show": "GO TO BULL'S GYM WITH ROSA'S MEN"},
+     {"word": "TAKE OUT", "show": "TAKE OUT KESSLER'S MEN IN THE GYM"},
+     {"word": "CHASE", "show": "CHASE KESSLER'S TRUCK"},
+     {"word": "CHOOSE", "show": "FINISH KESSLER - OR WALK AWAY"}],
+   "lines": [
+     {"who": "rosa", "text": "Enough running. Tonight we take Bull's gym - and Bull with it.", "mood": "hard", "when": "Tonight, shot 1"},
+     {"who": "rosaman", "text": "Two of us go with you, Danny. Say when.", "mood": "hard", "when": "Tonight, shot 2"},
+     {"who": "danny", "text": "Then let's go and see Bull.", "mood": "hard", "when": "Tonight, shot 2"},
+     {"who": "kessler", "text": "Cruz! In MY gym?! Somebody break his legs!", "mood": "furious", "when": "LIVE - you walk in", "live": true},
+     {"who": "kessler", "text": "Not like this... not in my own gym!", "mood": "yelling", "when": "Bull runs, shot 1"},
+     {"who": "rosaman", "text": "He's going for his truck! After him!", "mood": "shouting", "when": "LIVE - the chase begins", "live": true},
+     {"who": "kessler", "text": "Okay... okay, boatman. You win. Look at me - I'm finished either way.", "mood": "tired", "when": "The quay, shot 2"},
+     {"who": "rosaman", "text": "Your call, Danny.", "mood": "calm", "when": "LIVE - the choice", "live": true},
+     {"who": "rosa", "text": "It's done, then. Bull Kessler won't hurt anybody again.", "mood": "hard", "when": "Finished, shot 1"},
+     {"who": "rosa", "text": "His place in Mercado is yours now - the flat he never paid for. You earned it.", "mood": "warm", "when": "Finished and Spared, last shot"},
+     {"who": "rosa", "text": "You let him go? He'll crawl to Crane, Danny. Men like Bull always do.", "mood": "worried", "when": "Spared, shot 1"},
+     {"who": "danny", "text": "Then let him crawl. I'm not him.", "mood": "calm", "when": "Spared, shot 1"}],
+   "fails": {"rosaDead": "ROSA ORTEGA IS DEAD", "allyDead": "ROSA'S MAN IS DEAD", "away": "KESSLER GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 23, "gymR": 90, "menHp": 80, "allyHp": 300, "runAfter": 4, "kessSpeed": 105, "crashHp": 0.45, "away": 450, "walkR": 40, "kessHp": 60},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "Chapter 3 - Nina Park calls (M13)", "place": "The Mercado flat (Kessler's old place) - a safehouse, free", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 2) - change anything you like.",
+    "glance": {"kind": "story", "given": "ROSA ORTEGA (R on the map, her market in Mercado)", "where": "ROSA'S MARKET; BULL'S GYM at Dockside; the streets to the port; the port's east quay", "unlocked": "Passing M11", "time": "Night (MISSIONS TEST: 23:00)", "length": "About 6 to 9 minutes", "limit": "None"},
+    "chars": {
+     "rosa": {"gives": true, "role": "Calls the night: storm Bull's gym. Meets Danny at the quay after.", "looks": "As in M09.", "bubble": "Crimson", "mumble": "Quick and firm."},
+     "rosaman": {"gives": false, "role": "Two of Rosa's market men who fight beside Danny (one bubble for both).", "looks": "Thirties, short black hair, stubble, a red bandana over the shoulder, a white vest.", "bubble": "Coral red", "mumble": "Steady: a triangle."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "kessler": {"gives": false, "role": "Holed up in his gym; runs for his truck; crashes on the quay.", "looks": "As in M07.", "bubble": "Brick red", "mumble": "Deep and loud."},
+     "bull": {"gives": false, "role": "Kessler's men in the gym.", "looks": "As in M07.", "bubble": "Burnt orange", "mumble": "Gruff."}},
+    "steps": [
+     ["START MISSION by Rosa; the cutscene TONIGHT - two of her men join you.", "MISSIONS TEST: you start in the market at night, a car at the kerb. Rosa's men follow, fight and ride with you; if one dies the quest fails."],
+     ["Drive to BULL'S GYM (the door is open tonight, nobody training).", ""],
+     ["Kessler's six men fight among the bags, the weights and the ring. When four are down (or you reach his office) the cutscene BULL RUNS: he bolts out of the door to his truck.", "Kessler can't be hurt until the quay."],
+     ["Chase his truck to the port. Ram it till it is badly damaged, or follow it to the east quay: either way it smashes into the quay; the cutscene THE QUAY.", "Lose it (450 m) and he gets away."],
+     ["Choice 1, by what you do: shoot Kessler where he lies - or walk 40 m away. The closing cutscene follows your choice (FINISHED or SPARED).", "STORY: finished, his gang hunts you in chapter 3; spared, he tips you off - and later sells Joe's address to Crane."]],
+    "fails": [
+     ["Rosa is killed", "ROSA ORTEGA IS DEAD"],
+     ["One of Rosa's men is killed", "ROSA'S MAN IS DEAD"],
+     ["Kessler's truck gets 450 m away", "KESSLER GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"TONIGHT\"", "plays": "At START MISSION by Rosa.", "shots": [
+      ["Rosa's market", "Rosa, Danny", "Rosa at night among the shuttered stalls.", "CLOSE on Rosa", "5", "1"],
+      ["Rosa's market", "Rosa's men, Danny", "Two of her men step up, loading shotguns.", "CLOSE on them", "5", "2, 3"]]},
+     {"title": "\"BULL RUNS\"", "plays": "When four of his men are down, or you reach his office.", "shots": [
+      ["Bull's Gym", "Kessler", "Kessler bursts out of his office and runs for the door.", "FOLLOW Kessler", "4", "5"],
+      ["Outside the gym", "Kessler", "He jumps into his truck; it roars off.", "WIDE", "3", "-"]]},
+     {"title": "\"THE QUAY\"", "plays": "When his truck smashes into the quay.", "shots": [
+      ["The east quay", "Kessler's truck", "The truck slammed against the bollards, smoking.", "WIDE", "3", "-"],
+      ["The east quay", "Kessler", "Kessler crawls out and slumps against a bollard.", "CLOSE on Kessler", "5", "7"]]},
+     {"title": "CLOSING - \"FINISHED\" or \"SPARED\"", "plays": "After your choice.", "shots": [
+      ["The east quay", "Rosa, Danny", "Rosa's car pulls up; she looks at what is left.", "CLOSE on Rosa", "5", "9 (finished) / 11, 12 (spared)"],
+      ["The east quay", "Rosa", "She hands Danny a key. Fade out.", "CLOSE on Rosa", "5", "10"]]}],
+    "start": {"how": "marker", "marker": "R - Rosa at her market in Mercado", "phone": "-"},
+    "failing": "Retry from Rosa's marker.",
+    "notes": {"places": "ROSA'S MARKET; BULL'S GYM held by the quest (door open, nobody training); the port's east quay.", "people": "Rosa, two of her men, Kessler, six of his men.", "music": "-", "new": "Choice 1 (STORY keeps it: finished or spared). The Mercado flat - Kessler's old place - is Danny's, free (STORY). Chapter 3 follows. In STORY the gym's ring fights stop after this quest.", "other": "In MISSIONS TEST the end card says which choice you made."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
