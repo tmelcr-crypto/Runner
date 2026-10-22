@@ -13,7 +13,7 @@ top's two colours - and adds its own parts on top: a hair style (drawn in clumps
 glasses, the top and extras (wrinkles, an earring, a chain, a scar, a gold tooth, sweat, tired eyes, a toothpick, hoop earrings,
 lipstick, a tattoo, pearls, a cigarette holder, a pencil behind the ear, a bow tie, grey temples, jowls, gold braid, a jeweller's loupe,
 a cigar, a rag over the shoulder). Women (told by their hair style - pixie, bob, bun, pulled, wave - or lipstick) get a finer face:
-thin brows, lashes, lips and a softer chin. The three faces - calm, angry, smiling - differ in the brows, eyes and mouth.
+thin brows, lashes, rosy lips, a blush and a softer chin. The three faces - calm, angry, smiling - differ in the brows, eyes and mouth.
 Needs Pillow (and python-docx for the Word sheet)."""
 import json, os, re, sys
 from math import atan2, cos, sin, hypot, pi
@@ -142,12 +142,19 @@ def face_patch(g, face, ch, fem, extras):
         toothy = 'goldtooth' in extras or ch['id'] in ('tito', 'nico', 'rocco', 'sol')
         if toothy: setrow(41, 25, 'tttttt'); setrow(42, 25, '000000')
         if 'goldtooth' in extras: g[(28, 41)] = 'g'
-    if fem:                                   # thin brows, lashes at the outer corners, a lighter nose, full lips
-        for (x, y), c in list(g.items()):
-            if c == 'B' and y >= 27 and face != 'angry': g[(x, y)] = '3' if x > 26 else '2'
+    if fem:                                   # thin arched brows, lashes at the outer corners, a lighter, smaller nose, full lips, a blush
+        brows = [(x, y) for (x, y), c in g.items() if c == 'B']
+        for (x, y) in brows:                  # one pixel thick: only the top of each column stays
+            if any((x, yy) in brows for yy in range(y - 2, y)): g[(x, y)] = '3'
+        for (x, y) in ((24, 25), (23, 25)) if face != 'angry' else ():
+            if g.get((x, y)) == 'B': g[(x, y)] = '3'
         for x, y in ((17, 29), (16, 28), (15, 28), (37, 29), (38, 28), (17, 30), (37, 30)): g[(x, y)] = 'L'
         for (x, y), c in list(g.items()):
-            if 26 <= x <= 32 and 33 <= y <= 39 and c in '01': g[(x, y)] = {'0': '1', '1': '2'}[c]
+            if 26 <= x <= 33 and 33 <= y <= 38 and c in '012': g[(x, y)] = {'0': '1', '1': '2', '2': '3'}[c]
+        for x in (26, 27, 32, 33):
+            if g.get((x, 38)) in ('1', '2'): g[(x, 38)] = '3'
+        for (x, y) in [(x, y) for x in range(18, 22) for y in (35, 36)] + [(x, y) for x in range(33, 36) for y in (34, 35)]:
+            if g.get((x, y)) in ('3', '4'): g[(x, y)] = 'k'
         if face != 'angry':
             for x in range(24, 32):
                 if g.get((x, 41)) in ('0', 'M'): g[(x, 41)] = 'M'
@@ -232,6 +239,8 @@ def hair_mask(hs):
         front = hairline(lambda x: 17 + (1.5 if x < 17 or x > 33 else 0), 0.3, 26, 23); flow = 'buzz'
     elif hs == 'pixie':
         front = hairline(lambda x: 17 + max(0, min(7, (x - 16) * 0.45)), 1.6, 32, 26); flow, crown = 'part', (15, 8)
+        front |= {(x, y) for y in range(33, 38) for x in range(10, 14 - (y - 33) // 2)}           # a lock in front of the ear
+        front |= {p for p in poly_px([(3, 22), (7, 11), (16, 6), (14, 44), (8, 45), (4, 36)]) if p not in HEAD}   # the nape, past the jaw
     elif hs == 'curly':
         for k in range(18):
             a = pi * (0.95 + k / 17 * 1.1)
@@ -249,7 +258,11 @@ def hair_mask(hs):
         back = poly_px([(5, 21), (8, 10), (16, 5), (32, 5), (40, 10), (43, 21), (43, 48), (5, 48)])
     elif hs in ('bun', 'pulled'):
         front = hairline(lambda x: 16.5, 0.8, 27, 24); flow, crown = 'back', (14, 13)
-        if hs == 'bun': front |= ellipse_px(22, 5.5, 7.5, 5.0)
+        if hs == 'bun':                       # a messy bun on top, loose curls at the temples
+            front |= ellipse_px(22, 5.5, 7.5, 5.0)
+            front |= {(x, y) for y in range(25, 38) for x in (10, 11) if (y // 2 + x) % 3} | {(12, y) for y in range(25, 31)}
+            front |= {(x, y) for y in range(21, 30) for x in (37, 38) if (y + x) % 3}
+            front |= {p for p in poly_px([(3, 22), (7, 11), (16, 6), (14, 41), (9, 43), (5, 38), (3, 30)]) if p not in HEAD}   # curls fallen loose behind the ear
         else: back = ellipse_px(8, 16, 5.0, 5.4)
     elif hs == 'wave':                        # a set 50s wave: full round the face to the jaw, rolls over the brow
         front = hairline(lambda x: 16 + 2.5 * sin((x - 8) / 4.5), 2.6) | {(x, y) for y in range(19, 43) for x in range(4, 14)} | {(x, y) for y in range(17, 39) for x in range(37, 43)}
@@ -307,8 +320,9 @@ def shade_hair(px, crown, flow):
                     if l > -2 and 2 <= step <= 6 and sign == 1:     # a sheen streak beside the strand, on the light's side
                         n = (q[0] + (1 if fy > 0 else 0), q[1] - (1 if abs(fx) > 0.5 else 0))
                         if n in px and out.get(n) != 'e': out[n] = 'd' if l > 3 else 'c'
+    beside = lambda x, y: (x, y) in px or (y >= 30 and (x, y) in HEAD)          # hair down past the jaw lies on the head: no outline there
     for (x, y) in px:
-        if edge(px, x, y): out[(x, y)] = 'a'
+        if any(not beside(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): out[(x, y)] = 'a'
     return out
 
 
@@ -566,9 +580,10 @@ def draw(ch, face):
     brow = hr['a'] if sum(hair) < 200 else dark(hair, 0.62)
     if hs == 'bald': brow = dark(fcol, 0.7)
     lip_line = mix(sk['0'], (96, 20, 26), 0.35); lip = mix(sk['3'], (206, 96, 96), 0.38)
+    if fem: lip_line, lip = mix(sk['0'], (150, 30, 56), 0.55), mix(sk['4'], (214, 92, 112), 0.5)     # rosy lips without lipstick too
     if 'lipstick' in extras: lip_line, lip = (140, 14, 40), (206, 34, 64)
     pal.update({'B': brow, 'L': (16, 10, 16), 'W': (236, 232, 228), 'I': mix(eyes, (255, 255, 255), 0.25), 'J': dark(eyes, 0.45),
-                'M': lip_line, 'm': lip, 't': (244, 240, 230), 'n': (84, 18, 28), 'g': (255, 210, 70), 's': mix(sk['4'], (236, 180, 176), 0.6)})
+                'M': lip_line, 'm': lip, 'k': mix(sk['4'], (236, 128, 138), 0.2), 't': (244, 240, 230), 'n': (84, 18, 28), 'g': (255, 210, 70), 's': mix(sk['4'], (236, 180, 176), 0.6)})
     pic = Pic()
     front, back, crown, flow = hair_mask(hs) if hs not in ('short', 'bald') else (set(), set(), None, None)
     if back:                                  # hair behind the head and neck, in shade
