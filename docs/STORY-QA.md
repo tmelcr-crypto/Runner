@@ -163,3 +163,22 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 139. The armoured-car depot: permanent, both modes - a fenced yard with a gate, a guard hut and two parked vans on an existing lot near the casino strip; in FREE ROAM you can break in and take a van (2 stars).
 140. The substation: permanent, both modes - a small fenced yard of humming transformers beside the casino block; blow it up (in any mode) and the strip goes dark, its neon off, for a minute or two until the repair crew comes.
 141. Stealth: when a guard sees you, a "!" over him and a rising tone - get out of his sight within 2 seconds or the quest fails (SPOTTED); at night guards carry torches, so you see where they look.
+
+## Building chapter 3 and the Prison line (October 2026)
+
+142. Delivery: chapter 3 (M13-M18) first, pushed for testing in MISSIONS TEST; then the Prison line (P1-P8).
+143. M13's news van: a new vehicle row, NEWS VAN - a box van with a satellite dish in Bay TV's colours; also in traffic now and then, in both modes.
+144. Choice 1 in MISSIONS TEST: a KESSLER: FINISHED / SPARED switch on the missions list, to test both versions of M14 and M16.
+145. M17 The Safe: the PALM HEIGHTS LOFT tower (side-on view) at night, Sachs' bodyguards walking the halls (the C2 stealth), his office on floor 5 with the safe. After M18 the loft is Danny's, free (STORY); FREE ROAM still sells it.
+146. M14's tailing: a suspicion bar - stay within 150 m, but not close behind him for long or in his mirrors; full, he is spooked and the quest fails.
+147. M15's rally at Bayfront Park's band shell; after M15, Crane holds rallies there in STORY until the election (chapter 5).
+148. The rallies: every game day at noon.
+149. M16 Cold Storage: the existing LOCK-UP STORAGE - Sachs rents another of its lock-ups (not Del's); his men load a van in the yard at night.
+150. Choice 2 (M18) by where you drive: any police station's door (to the police) or your safehouse's door (kept).
+151. P5 Laundry Day: the truck crosses on the ferry in a cutscene; the ferry stays foot-only otherwise.
+152. Iron Key's watchtowers get searchlights at night, permanent, both modes: caught in a beam, the prison's alarm; a tower's power box cut, its light is out till morning.
+153. Dunn's spare uniform (an Iron Key prison guard's): a STORY wardrobe piece after P5; worn on Iron Key the guards take you for one of them (STORY and MISSIONS TEST).
+154. P2's loan shark: "Sharkey" Vince Lomax - fifties, slicked-back hair, a pinstripe suit, a cigar, a gold tooth; a pawn-and-loan in Mercado with two heavies.
+155. P3's forger: old printer Otto - seventies, thick glasses, an ink-stained apron, a cardigan; his shop OTTO'S PRINTING stays in Mercado for good, in both modes (nothing to do inside).
+156. After P8 Sal lies low at the Colony (Esther gives him a room); his marker S moves there for the finale's links.
+157. Nina's marker N: inside a new Bay TV newsroom at the TV tower's base - the top-down kind, permanent, both modes (open by day in FREE ROAM). M18's plane: a new private jet on Skyport's apron.
