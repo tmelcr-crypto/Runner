@@ -1334,7 +1334,60 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Del's lock-up", "Del", "The roller door comes down. Fade out.", "CLOSE on Del", "5", "8"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "The CASH DEPOT (permanent, both modes, answer 139); Del's LOCK-UP: a unit at the storage yard, its door held open by the quest.", "people": "Del; three depot guards.", "music": "-", "new": "The van in the casino's colours (answer 138): STORY keeps it in the lock-up for C6 and C8, and in your garage after C8.", "other": "In FREE ROAM the depot's gate gives 2 stars any night - the vans are there to take."}}}
+    "notes": {"places": "The CASH DEPOT (permanent, both modes, answer 139); Del's LOCK-UP: a unit at the storage yard, its door held open by the quest.", "people": "Del; three depot guards.", "music": "-", "new": "The van in the casino's colours (answer 138): STORY keeps it in the lock-up for C6 and C8, and in your garage after C8.", "other": "In FREE ROAM the depot's gate gives 2 stars any night - the vans are there to take."}}},
+  {"id": "c5", "no": "C5", "title": "FINGERS", "giver": "del", "start": "marker", "where": "Del on the casino strip; the FUNHOUSE in the lunapark on Heron Key; Del's lock-up",
+   "story": "The vault needs Fay \"Fingers\", the best safecracker in Miravista - and Lenny Gold's men hold her in the lunapark's funhouse till she pays what she owes him. Danny fights through the mirror maze, unties her in the tilted room and brings her to Del's lock-up, where she looks at the plans and grins.",
+   "chars": ["del", "danny", "fay"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL ON THE STRIP"},
+     {"word": "GO TO", "show": "GO TO THE FUNHOUSE IN THE LUNAPARK - HERON KEY"},
+     {"word": "TAKE OUT", "show": "TAKE OUT LENNY GOLD'S MEN"},
+     {"word": "FREE", "show": "FREE FAY - THE TILTED ROOM AT THE BACK"},
+     {"word": "DELIVER", "show": "BRING FAY TO DEL'S LOCK-UP"}],
+   "lines": [
+     {"who": "del", "text": "Fay Fingers. Best safecracker in Miravista - she once opened a bank vault with a stethoscope and a hairpin.", "mood": "wry", "when": "Fingers, shot 1"},
+     {"who": "danny", "text": "Where is she?", "mood": "calm", "when": "Fingers, shot 1"},
+     {"who": "del", "text": "She owes Lenny Gold. His boys keep her in the lunapark's funhouse till she pays - or opens a safe for him.", "mood": "nervous", "when": "Fingers, shot 2"},
+     {"who": "fay", "text": "Hey! Back here! Mind the mirrors - they're not doors!", "mood": "shouting", "when": "LIVE - you walk in", "live": true},
+     {"who": "fay", "text": "About time! You Del's guy? These clowns tied me up in the crooked room. My legs are asleep!", "mood": "fast", "when": "Fay, shot 1"},
+     {"who": "danny", "text": "Can you walk?", "mood": "calm", "when": "Fay, shot 1"},
+     {"who": "fay", "text": "Walk? I can run. Get me out of this nightmare before the clowns come back.", "mood": "fast", "when": "Fay, shot 2"},
+     {"who": "del", "text": "Fay! You came.", "mood": "warm", "when": "The crew, shot 1"},
+     {"who": "fay", "text": "Your guy came. A vault under the Royal Flamingo, huh? Show me the plans and I'll show you the door open.", "mood": "cocky", "when": "The crew, shot 1"},
+     {"who": "del", "text": "Then we're nearly ready. Next we practise the getaway.", "mood": "calm", "when": "The crew, shot 2"}],
+   "fails": {"fayDead": "FAY IS DEAD", "delDead": "DEL RAMOS IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 22, "funR": 160, "menHp": 70, "fayHp": 220, "delR": 60, "freeR": 36},
+   "reward": {"cash": 3500, "vehicle": "", "clothes": "", "next": "C6 - Del's marker D on the strip, the next night", "place": "", "contact": "Fay \"Fingers\""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line; Fay, answer 133; the funhouse, answer 135) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, the Royal Flamingo's door at night)", "where": "The casino strip; the FUNHOUSE in the lunapark on Heron Key (inside: top-down); Del's LOCK-UP", "unlocked": "Passing C4", "time": "Night (MISSIONS TEST: 22:00)", "length": "About 6 to 8 minutes", "limit": "None"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos: knows where Fay is.", "looks": "As in C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "fay": {"gives": false, "role": "Fay \"Fingers\", the safecracker: held by Gold's men; talks fast; follows you out and fights beside you with a pistol.", "looks": "Twenties, a dyed red undercut, a leather jacket, a nose ring.", "bubble": "Hot pink", "mumble": "Fast and high."}},
+    "steps": [
+     ["START MISSION by Del; the cutscene FINGERS.", "MISSIONS TEST: you start on the strip at 22:00, a car at the kerb."],
+     ["Drive to Heron Key: the FUNHOUSE stands west of the snack booths, by the wooden coaster.", "Its roof turns see-through when you go in."],
+     ["Lenny Gold's six men: two at the door, the rest in the hall, the mirror maze and the tilted room. Take them all out.", "Killing them is no crime."],
+     ["At the back of the tilted room: UNTIE FAY; the cutscene FAY - you come out of the funhouse together.", "The tilted room slides you to its low wall."],
+     ["Bring Fay to Del at his lock-up at the storage yard; the closing cutscene THE CREW.", "Fay rides with you and fights beside you."]],
+    "fails": [
+     ["Fay is killed", "FAY IS DEAD"],
+     ["Del is killed", "DEL RAMOS IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"FINGERS\"", "plays": "At START MISSION by Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del shows a photo: a girl with a red undercut.", "CLOSE on Del", "5", "1, 2"],
+      ["The strip", "Del", "He points across the bay to the lunapark's lights.", "CLOSE on Del", "5", "3"]]},
+     {"title": "\"FAY\"", "plays": "When you untie her.", "shots": [
+      ["The tilted room", "Fay, Danny", "Fay on a chair, ropes falling off.", "CLOSE on Fay", "5", "5, 6"],
+      ["Outside the funhouse", "Fay, Danny", "They come out through the clown's door.", "CLOSE on Fay", "5", "7"]]},
+     {"title": "CLOSING - \"THE CREW\"", "plays": "When you bring Fay to Del.", "shots": [
+      ["Del's lock-up", "Del, Fay, Danny", "Del hugs Fay; she pushes him off, grinning.", "CLOSE on Del", "5", "8, 9"],
+      ["Del's lock-up", "Del", "The plans on the van's bonnet, three heads over them. Fade out.", "CLOSE on Del", "5", "10"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "The FUNHOUSE (permanent, both modes; answer 135): the hall, the mirror maze, the tilted room.", "people": "Del; Fay; six of Gold's men.", "music": "The funhouse's organ.", "new": "Fay joins the crew (C8 opens the vault).", "other": "Lenny Gold himself is not there."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

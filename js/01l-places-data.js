@@ -101,7 +101,8 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."},
   {"id": "depotStars", "group": "Armoured-car depot", "name": "Opening the gate gives", "unit": "stars", "min": 0, "max": 5, "v": 2, "note": "A break-in at the cash depot by the casino strip: the alarm calls the police."},
   {"id": "depotGate", "group": "Armoured-car depot", "name": "The gate stays open for", "unit": "s", "min": 5, "max": 300, "v": 25, "note": "Then it slides shut again (not while something stands in the gateway)."},
-  {"id": "depotVanBack", "group": "Armoured-car depot", "name": "A taken van is back after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after it was driven off - if it was lost or left (one kept in a garage stays yours)."}
+  {"id": "depotVanBack", "group": "Armoured-car depot", "name": "A taken van is back after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after it was driven off - if it was lost or left (one kept in a garage stays yours)."},
+  {"id": "funSlide", "group": "Lunapark funhouse", "name": "The tilted room slides you at", "unit": "m/s", "min": 0, "max": 6, "v": 1.6, "note": "Toward its low wall, while you stand or walk in it (walk the other way to get up the slope)."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

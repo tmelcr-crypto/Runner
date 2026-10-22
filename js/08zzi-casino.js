@@ -234,3 +234,57 @@ MSCRIPT.c4 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { DEPOT.ms = null; if (A.H) A.H.S.ms = false; } };
 })();
+
+/* ================= C5 - FINGERS ================= */
+MSCRIPT.c5 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.door = CASL.door(); A.F = FUN.S; A.H = CASL.hideout(); FUN.ms = true;
+    A.del = msPed(A.door.x + 8, A.door.y - 16, 0, Object.assign(S1.look('del'), { msName: 'del', step: S1.stay, spare: true }));
+    const q = S1.free(A.del.x, A.del.y, 46); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.del, P);   // MISSIONS TEST: on the strip at 22:00, a car at the kerb
+    const r = S1.road(A.door.x + 90, A.door.y + 120), k = kerbBy(r.x, r.y); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
+    const F = A.F, W = (lx, lz) => funWorld(lx, lz), M = F.maze;
+    const fp = W(F.fay.x, F.fay.z); A.fay = msPed(fp.x, fp.y, Math.PI, Object.assign(S1.look('fay'), { msName: 'fay', step: S1.stay, spare: true })); A.fay.hp = N().fayHp;   // tied to a chair in the tilted room
+    A.men = [[-20, F.hd + 30], [20, F.hd + 30], [-30, 76], [M.x0 + M.cw * 1.5, M.z0 + M.ch * 2.5], [M.x0 + M.cw * 2.5, M.z0 + M.ch * 0.5], [F.tilt.x0 + 22, -20]].map(([lx, lz], i) => {
+      const w = W(lx, lz); return msFoe(w.x, w.y, { gun: i % 3 === 2 ? 'bat' : 'pistol', hp: N().menHp, group: 'fun', a: -Math.PI / 2, shirt: '#6b1426', pants: '#1a1a20' }); });
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.del; MS.start = { at: () => A.del, label: 'START MISSION', go: () => { face(A.del, P); msCut('FINGERS', () => { A.go = true; const d = A.H.del; A.del.x = d.x; A.del.y = d.y; A.del.post.x = d.x; A.del.post.y = d.y; }); } }; },   // TALK TO Del
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.guide = A.F.door; MS.mark = () => A.F.door; },                   // GO TO the funhouse
+      tick(A) { if (dist(me().x, me().y, A.F.door.x, A.F.door.y) > N().funR) return false; msLive([4], { now: true }); return true; },
+      info: A => Math.round(dist(me().x, me().y, A.F.door.x, A.F.door.y) / UNITS_PER_M) + ' M TO THE FUNHOUSE',
+      jump(A) { if (P.car) exitCar(true); P.x = A.F.door.x; P.y = A.F.door.y + 30; } },
+    { enter(A) { MS.guide = null; MS.mark = () => A.men.find(m => !m.dead); },       // TAKE OUT Gold's men
+      tick() { return msFoesLeft('fun') === 0; },
+      info: () => msFoesLeft('fun') + ' LEFT',
+      jump(A) { for (const m of A.men) if (!m.dead) killPed(m, 'gun', false); } },
+    { enter(A) { MS.mark = () => A.fay; MS.start = { at: () => A.fay, label: 'FAY', go2: 'UNTIE HER', go: () => msCut('FAY', () => { A.freed = true; }) }; },   // FREE Fay
+      tick(A) { if (A.freed) return true; if (!MS.start && !CUT.on) MS.start = { at: () => A.fay, label: 'FAY', go2: 'UNTIE HER', go: () => msCut('FAY', () => { A.freed = true; }) }; return false; },
+      info: A => funIn(P.x, P.y, 0) ? 'THE TILTED ROOM, AT THE BACK RIGHT' : 'INTO THE FUNHOUSE',
+      jump(A) { A.freed = true; } },
+    { enter(A) { if (!A.fay.ally) { const d = A.F.door; A.fay.x = d.x + 16; A.fay.y = d.y; msAllyFrom(A.fay, { who: 'fay', gun: 'pistol', hp: N().fayHp, fail: MS.m.fails.fayDead }); }   // BRING Fay to Del
+        MS.guide = A.H.door; MS.mark = () => A.del; },
+      tick(A) { if (A.home || P.car || dist(P.x, P.y, A.del.x, A.del.y) > N().delR || A.fay.aboard || dist(A.fay.x, A.fay.y, A.del.x, A.del.y) > N().delR * 3) return false; A.home = true; msCut('THE CREW', () => msNext()); return false; },
+      info: A => A.fay.aboard || dist(A.fay.x, A.fay.y, me().x, me().y) < 120 ? Math.round(dist(me().x, me().y, A.del.x, A.del.y) / UNITS_PER_M) + " M TO DEL'S LOCK-UP" : 'FAY IS BEHIND YOU',
+      jump(A) { if (P.car) exitCar(true); if (A.fay.aboard) allyAlight(A.fay); const q = S1.free(A.del.x, A.del.y, 30); P.x = q.x; P.y = q.y; const f = S1.free(A.del.x, A.del.y, 44); A.fay.x = f.x; A.fay.y = f.y; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    const f = msCastFail(); if (f) return f;
+    if (A.fay.dead) return F.fayDead;
+    if (A.del.dead) return F.delDead;
+    return '';
+  }
+  const cuts = {
+    'FINGERS': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [1, 2], enter: () => { face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: 3 }],
+    'FAY': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.fay, line: [5, 6], enter: () => { const q = S1.free(A.fay.x, A.fay.y, 22); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; face(A.fay, P); P.ang = Math.atan2(A.fay.y - P.y, A.fay.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.fay, line: 7, enter: () => { const d = A.F.door; P.x = d.x - 14; P.y = d.y + 6; A.fay.x = d.x + 14; A.fay.y = d.y + 6; A.fay.post.x = A.fay.x; A.fay.post.y = A.fay.y; face(A.fay, P); } }],
+    'THE CREW': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [8, 9], enter: () => { face(A.del, A.fay); face(A.fay, A.del); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: 10, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { FUN.ms = null; } };
+})();
