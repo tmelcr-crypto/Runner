@@ -78,6 +78,12 @@ the table now, drawn from the owner's answers 21-107 (October 2026); the minor p
 | 04 Hot Cargo | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-04-Hot-Cargo.docx`; waiting for the owner's test | Sol Okafor (new, the crane foreman) helps with a shotgun; the Harbor Cold Store is held by the mission (door up, no workers or guard); any time of day |
 | 05 Island Visit | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline); Word page `docs/quests/Quest-05-Island-Visit.docx`; waiting for the owner's test | alone; Ivo Varga and Officer Dunn new; your weapons wait at the gate during the visit; a melee riot (a bat from Ivo); the boat chase on the bay |
 | 06 Skyline | built in MISSIONS TEST (placeholder portraits), written by me (the Varga storyline, the finale); Word page `docs/quests/Quest-06-Skyline.docx`; waiting for the owner's test | at night; Marco and Lucia both help (they climb the tower with you); Nico jumps his car off the launch ramp; Sol in the closing; Lucia's last line leaves the door open for the next storylines |
+| M01 Last Flight | built in MISSIONS TEST (chapter 1 of the main story, written by me from the story plan); Word page `docs/quests/Quest-M01-Last-Flight.docx`; waiting for the owner's test | the arrival cutscene at night (MIRAVISTA, 1997, the first CRANE FOR MAYOR billboard), then the morning: Joe rides in his cab, the fare runs off without paying; hurting the fare fails it |
+| M02 Special Delivery | built in MISSIONS TEST (chapter 1); Word page `docs/quests/Quest-M02-Special-Delivery.docx`; waiting for the owner's test | the first page (the pager, STORY and MISSIONS TEST only) and a call from a phone booth; two scooter thieves; Uncle Saul's pawnshop (UNCLE SAUL'S PAWN over a Mercado shop front while the quest needs it) |
+| M03 Grease Monkey | built in MISSIONS TEST (chapter 1); Word page `docs/quests/Quest-M03-Grease-Monkey.docx`; waiting for the owner's test | Mateo's first clue from Manny at Dockside Motor Works (the quest holds the garage); the hot car brings 2 stars; the junkyard only with no stars |
+| M04 Collection Day | built in MISSIONS TEST (chapter 1); Word page `docs/quests/Quest-M04-Collection-Day.docx`; waiting for the owner's test | Lucky Lou's betting shop (LUCKY LOU'S over a Mercado shop front); two heavies with a bat and fists; Lou's convertible; the first time Danny hears of Bull Kessler |
+| M05 Wrong Street | built in MISSIONS TEST (chapter 1); Word page `docs/quests/Quest-M05-Wrong-Street.docx`; waiting for the owner's test | Esther's page; four of Kessler's men at the airport rank; the two cops at the airport gate look the other way (my choice - Crane owns the police; the fight sits right by their post, so they would always give stars - change it if you like); Joe to the Mercado hospital in 80 s with Kessler's car behind |
+| M06 Harbour Lights | built in MISSIONS TEST (chapter 1, its last quest); Word page `docs/quests/Quest-M06-Harbour-Lights.docx`; waiting for the owner's test | Joe in a sling at the hospital; Esther's turquoise convertible; lose Kessler's two cars (80 km/h at most, 120 m for 3 s); Joe drops Danny at the quay and drives Esther's car home; Marco meets "the boatman" - the Varga storyline opens |
 
 ## Connectors - joining the quests into STORY
 
@@ -99,6 +105,22 @@ the connectors below add what happens between quests. Filled in as each quest ar
 - **The Varga storyline (Quests 02-06, as answered October 2026)**: 02 Dock Rats (Marco, phone; Lucia helps) - 03 Paper Trail (Lucia; the casino
   strip, the ledger, a car chase; Lucia helps) - 04 Hot Cargo (Marco; Dockside, Marco's stolen engines on a truck; Sol the foreman helps) -
   05 Island Visit (Lucia, phone; Iron Key, the jailed Ivo Varga, a riot; alone) - 06 Skyline (Marco; Skyline One, Nico Varga; Lucia and Marco help).
+- **Chapter 1 of the main story (M01-M06, built October 2026)** - how they join in STORY:
+  - **The start of STORY -> M01**: STORY opens with M01's arrival cutscene at night (Skyport, the last flight); in the morning you walk out of
+    the Colony's door with a room on credit (the Colony is your first safehouse) and Joe's marker J waits by his cab on the ring drive.
+  - **M01 -> M02**: Joe becomes a contact who can page you; a game day later the pager buzzes (JOE - CALL ME) and M02 starts at the nearest phone booth.
+  - **M02 -> M03**: Uncle Saul becomes a contact (Mercado); M03 is Joe's marker J at the Coral Shore rank the next day.
+  - **M03 -> M04**: Manny becomes a contact (Dockside Motor Works); Joe pages you a game day later; M04 starts at a phone booth.
+  - **M04 -> M05**: a game day later Esther pages you (a message, no call - she is your landlady at the Colony) and M05 starts at once.
+  - **M05 -> M06**: Esther becomes a contact who can page you; M06 is Joe's marker J outside the Mercado hospital the next day (Joe in a sling).
+  - **M06 -> chapter 2 and the Varga storyline**: Marco becomes a contact; the Varga storyline opens - Quest 01's marker M at Sunset Harbor,
+    playable any time from now (answer 25); chapter 2 (M07) follows as the story plan says. The billboards and the pager are STORY only.
+  - **The Varga line's links** (answer 108, done with chapter 1): Quest 01 opens with Marco knowing Danny from Joe ("Boatman! Joe said you'd
+    come..."); in Quest 06 Nico talks of his partners buying the sky, and Lucia's last line points past him ("Nico was only the face. The
+    money behind Skyline One has another name."). Still for STORY itself: Del's lines in Quest 03 and Officer Dunn's in Quest 05 turn to
+    "we've met" when the Casino or the Prison line came first.
+  - **Places the quests dress up while they run** (props, not new buildings): UNCLE SAUL'S PAWN and LUCKY LOU'S over Mercado shop fronts;
+    Dockside Motor Works (an interior, held by M03); Esther's car and Joe's cab are the quests' own cars.
 - **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
   everyone else (6); a failed quest is retried from its marker with nothing lost (63); STORY saves as now, never during a quest.
 

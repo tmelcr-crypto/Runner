@@ -25,7 +25,7 @@ function copSees(ex, ey, face, px, py, wide) {
 const isPatrolCar = c => c.t.cop && (c.driver === 'ai' || c.driver === 'cop') && !c.dead;
 function forCops(fn) {                   // every cop who can look: police cars with a crew inside (eyes at the windscreen), foot patrols, officers
   for (const c of cars) if (isPatrolCar(c)) fn(c, c.x + Math.cos(c.ang) * c.t.len * 0.3, c.y + Math.sin(c.ang) * c.t.len * 0.3, c.ang);
-  for (const q of peds) if (q.cop && !q.dead && !q.knocked) fn(q, q.x, q.y, q.hd || 0);
+  for (const q of peds) if (q.cop && !q.dead && !q.knocked && !q.blind) fn(q, q.x, q.y, q.hd || 0);   // q.blind: a quest's cops who look the other way (js/08zy)
   for (const o of officers) if (!o.dead && !o.knocked) fn(o, o.x, o.y, o.ang);
 }
 function unitSees(u, ex, ey, face) {     // a cop who has just seen you keeps watching all round (COP.track)

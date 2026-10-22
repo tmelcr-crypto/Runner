@@ -101,7 +101,27 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "iris", "name": "DR. IRIS KAHN", "letter": "K", "bubble": "#6affc0", "shirt": "#f0f0f0", "pants": "#2a2a40", "mumble": {"low": 230, "high": 360, "rate": 14, "wave": "triangle", "gap": 0.04},
    "role": "A rocket engineer at the space center, brilliant and stubborn; her last launch is all that keeps the center open.", "look": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.",
    "skin": "#d8a888", "hair": "#2a1c18", "hairStyle": "bun", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "square", "glassesColour": "#2a2a30",
-   "top": "labcoat", "topColour": "#f0f0f0", "topColour2": "#2a3a6a", "extras": ["pencil"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "slim"}
+   "top": "labcoat", "topColour": "#f0f0f0", "topColour2": "#2a3a6a", "extras": ["pencil"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "slim"},
+  {"id": "manny", "name": "MANNY", "letter": "G", "bubble": "#d08a4a", "shirt": "#2a4a8a", "pants": "#2a4a8a", "mumble": {"low": 85, "high": 125, "rate": 8, "wave": "sawtooth", "gap": 0.16},
+   "role": "Owner of Manny's Auto in Dockside, where Mateo worked as a mechanic; grumpy, fond of Mateo.", "look": "Sixties, a grey beard, short grey hair, a greasy blue jumpsuit with MANNY on it, a red rag over the shoulder.",
+   "skin": "#c8946a", "hair": "#b8b8bc", "hairStyle": "short", "facial": "beard", "facialColour": "#a8a8ac", "eyes": "#4a3a2a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "jumpsuit", "topColour": "#2a4a8a", "topColour2": "#1e3a6e", "extras": ["wrinkles", "rag"], "smileEyes": "happy", "calmMouth": "frown", "age": "old", "build": "broad"},
+  {"id": "saul", "name": "UNCLE SAUL", "letter": "U", "bubble": "#d8c890", "shirt": "#7a7a80", "pants": "#3a3a40", "mumble": {"low": 150, "high": 230, "rate": 9, "wave": "sine", "gap": 0.14},
+   "role": "Papa Joe's old friend, the pawnbroker in Mercado; takes Joe's parcels, asks no questions.", "look": "Seventies, bald with white tufts, a jeweller's loupe pushed up on his glasses, a grey cardigan over a cream shirt.",
+   "skin": "#e2bc9a", "hair": "#eeeeea", "hairStyle": "sides", "facial": "none", "facialColour": "", "eyes": "#4a4a3a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "reading", "glassesColour": "#8a7a50",
+   "top": "cardigan", "topColour": "#7a7a80", "topColour2": "#e8e4d8", "extras": ["wrinkles", "loupe"], "smileEyes": "happy", "calmMouth": "line", "age": "old", "build": "slim"},
+  {"id": "lou", "name": "LUCKY LOU", "letter": "F", "bubble": "#2ad480", "shirt": "#c8a040", "pants": "#3a3a3a", "mumble": {"low": 160, "high": 260, "rate": 13, "wave": "square", "gap": 0.05},
+   "role": "\"Lucky\" Lou Fontaine, a bookie who owes Papa Joe two grand from cards; loud and flashy.", "look": "Forties, a pencil moustache, slicked hair, a green visor, a loud check jacket, a cigar.",
+   "skin": "#e0b088", "hair": "#2a1a14", "hairStyle": "slick", "facial": "pencil", "facialColour": "#2a1a14", "eyes": "#3a2a1a", "hat": "visor", "hatColour": "#3ac070", "hatColour2": "#1a1a20", "glasses": "none", "glassesColour": "",
+   "top": "checkjacket", "topColour": "#c8a040", "topColour2": "#7a3a20", "extras": ["cigar"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "broad"},
+  {"id": "kid", "name": "THE FARE", "letter": "X", "bubble": "#3affd0", "shirt": "#7a3aff", "pants": "#1a1a24", "mumble": {"low": 300, "high": 460, "rate": 16, "wave": "square", "gap": 0.02},
+   "role": "A punk kid who rides Joe's cab from the airport and runs without paying.", "look": "Late teens, skinny, spiky pink hair, an earring, a purple and neon-green windbreaker.",
+   "skin": "#e8c0a0", "hair": "#ff3aa0", "hairStyle": "spiky", "facial": "none", "facialColour": "", "eyes": "#3a5a7a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "windbreaker", "topColour": "#7a3aff", "topColour2": "#3affd0", "extras": ["earring"], "smileEyes": "happy", "calmMouth": "smirk", "age": "young", "build": "slim"},
+  {"id": "bull", "name": "KESSLER MAN", "letter": "Q", "bubble": "#d87a4a", "shirt": "#f0f0ea", "pants": "#3a4a6a", "mumble": {"low": 100, "high": 150, "rate": 11, "wave": "sawtooth", "gap": 0.08},
+   "role": "One of Bull Kessler's men - Dockside heavies, every one much like the next.", "look": "Thirties, a buzz cut, stubble, a white vest or an orange work shirt, gold chains, jeans.",
+   "skin": "#d9a27a", "hair": "#3a2a20", "hairStyle": "buzz", "facial": "stubble", "facialColour": "#3a2a20", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "tanktop", "topColour": "#f0f0ea", "topColour2": "#d8d8d2", "extras": ["chain"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "broad"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */

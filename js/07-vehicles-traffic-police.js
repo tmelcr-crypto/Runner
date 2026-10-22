@@ -103,7 +103,7 @@ function carHitsPeds(c) {
       const d = Math.hypot(p.x - q[0], p.y - q[1]);
       if (d < q[2] + 6) {
         if (p.ally) { p.x += (p.x - q[0]) / Math.max(d, 1) * 6; p.y += (p.y - q[1]) / Math.max(d, 1) * 6; if (spd > 100) allyHurt(p, 6); }   // a mission's friend: shoved aside (js/08zz)
-        else if (spd > 100) { killPed(p, 'car', c.driver === 'player'); Snd.thud(120); c.vx *= 0.98; c.vy *= 0.98; }
+        else if (spd > 100 && !(p.spare && c.driver !== 'player')) { killPed(p, 'car', c.driver === 'player'); Snd.thud(120); c.vx *= 0.98; c.vy *= 0.98; }   // p.spare: a mission's person traffic only shoves aside (js/08zy)
         else { p.x += (p.x - q[0]) / Math.max(d, 1) * 3; p.y += (p.y - q[1]) / Math.max(d, 1) * 3; }
         break;
       }

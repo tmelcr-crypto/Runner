@@ -118,3 +118,14 @@ questions before building it. Each answer is written here as it comes; the story
 106. Esther Bloom's look: 70s, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress that matches the hotel's bands, a cigarette holder.
 107. Dr. Iris Kahn's look: 40s, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.
 108. The Varga quests 01-06 keep their play; only their lines are updated to fit the new story (Danny's name, Nico as Crane's front man, Lucia's last line points at Crane, Marco's "boatman").
+
+## Building chapter 1 (October 2026)
+
+109. The pager (it buzzes with a message; a call is made from one of the street races' phone booths, marked on the map): STORY only (with MISSIONS TEST); FREE ROAM stays as it is.
+110. Crane's campaign - CRANE FOR MAYOR billboards on a few big roads and posters on walls: STORY only (with MISSIONS TEST); gone after the finale.
+111. Kessler's men: Dockside heavies - shaved heads or crew cuts, white vests or orange work shirts, gold chains, jeans.
+112. Manny (Manny's Auto, Mateo's old boss): an old mechanic - sixties, a grey beard, a greasy blue jumpsuit with MANNY on it, a rag over the shoulder; grumpy, fond of Mateo.
+113. The pawnbroker in Mercado (M02): "Uncle Saul", Joe's old friend - seventies, bald with white tufts, a jeweller's loupe pushed up on his glasses, a grey cardigan.
+114. The bookie who owes Joe (M04): "Lucky" Lou Fontaine - loud and flashy, forties, a pencil moustache, a green visor, a loud check jacket, a cigar.
+115. The fare who runs without paying (M01): a skinny punk kid in a neon windbreaker; no lines, just a shout; he runs through the airport car park and gives up the cash when caught.
+116. M01's morning starts at the Colony's door: Danny walks out of the hotel's front door; Joe's cab waits on the ring drive, Joe leaning on it; START by Joe.
