@@ -145,7 +145,15 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "craneman", "name": "CRANE MAN", "letter": "Q", "bubble": "#c8ccd4", "shirt": "#3a3f4c", "pants": "#2a2d36", "mumble": {"low": 110, "high": 160, "rate": 10, "wave": "triangle", "gap": 0.07},
    "role": "Victor Crane's men - his drivers, bodyguards and fixers (one bubble for all of them).", "look": "Thirties to forties, slicked-back hair, dark sunglasses, a charcoal suit, a white shirt, no tie.",
    "skin": "#d9b08c", "hair": "#1a1410", "hairStyle": "slick", "facial": "none", "facialColour": "", "eyes": "#2a2a2a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "shades", "glassesColour": "#14141a",
-   "top": "suit", "topColour": "#3a3f4c", "topColour2": "#f4f4f4", "extras": [], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"}
+   "top": "suit", "topColour": "#3a3f4c", "topColour2": "#f4f4f4", "extras": [], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "sharkey", "name": "\"SHARKEY\" VINCE LOMAX", "letter": "L", "bubble": "#4ab8c8", "shirt": "#2a2d3a", "pants": "#2a2d3a", "mumble": {"low": 100, "high": 150, "rate": 11, "wave": "sawtooth", "gap": 0.06},
+   "role": "The loan shark: a pawn-and-loan in Mercado, two heavies at the door; Officer Dunn owes him (P2).", "look": "Fifties, slicked-back hair, a pinstripe suit, a cigar, a gold tooth.",
+   "skin": "#d9a87c", "hair": "#2a2420", "hairStyle": "slick", "facial": "none", "facialColour": "", "eyes": "#2a2018", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "suit", "topColour": "#2a2d3a", "topColour2": "#e8e0d0", "extras": ["cigar", "goldtooth", "temples"], "smileEyes": "happy", "calmMouth": "smirk", "age": "old", "build": "broad"},
+  {"id": "otto", "name": "OTTO", "letter": "T", "bubble": "#b89a6a", "shirt": "#7a6a50", "pants": "#3a3430", "mumble": {"low": 120, "high": 170, "rate": 8, "wave": "triangle", "gap": 0.14},
+   "role": "The old printer of OTTO'S PRINTING in Mercado - and a forger, for friends (P3).", "look": "Seventies, thick glasses, an ink-stained apron over a cardigan.",
+   "skin": "#ecc8a8", "hair": "#d8d8d8", "hairStyle": "sides", "facial": "none", "facialColour": "", "eyes": "#4a4a5a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "square", "glassesColour": "#2a2a2a",
+   "top": "cardigan", "topColour": "#7a6a50", "topColour2": "#3a3a4a", "extras": ["wrinkles", "pencil"], "smileEyes": "happy", "calmMouth": "line", "age": "old", "build": "slim"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */
