@@ -394,3 +394,92 @@ MSCRIPT.c7 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { SUBST.ms = null; } };
 })();
+
+/* ================= C8 - THE VAULT ================= */
+MSCRIPT.c8 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.H = CASL.hideout(); A.H.S.ms = true; A.back = CASL.backDoor(); CASL.wear(A);   // MISSIONS TEST: in the guard's uniform from the start
+    const S = A.H.S, v = A.H.inside; A.van = depotVan(v.x, v.y, S.a - Math.PI / 2); cars.push(A.van); A.list.push(A.van);
+    const d = A.H.del; A.del = msPed(d.x, d.y, 0, Object.assign(S1.look('del'), { msName: 'del', step: S1.stay, spare: true }));
+    const f = S1.free(A.H.door.x, A.H.door.y, 30); A.fay = msPed(f.x, f.y, 0, Object.assign(S1.look('fay'), { msName: 'fay', step: S1.stay, spare: true }));
+    const q = ixWorld(S, -S.hw * 0.3, S.hd + 22); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.del, P); face(A.fay, P);
+    SUBST.ms = { blowable: true, hold: true, dark: 9999 };                         // tonight's blast keeps the strip dark till the quest ends
+    A.V = sbVault(); A.staff = at(A.V.door.x, A.V.door.y + 12);
+    SB.ms = { for: 'vault', disguise: true, crackT: N().crackT, item: { fl: 3, room: 'THE VAULT', x: 520, label: 'TAKE THE MONEY', toast: 'THE BAGS - CRANE\'S MONEY' },
+      guards: [sbGuard(1, 180, 960, 640, 1), sbGuard(2, 180, 960, 320, -1), sbGuard(3, 180, 760, 420, 1)],
+      onCrack: () => msLive([7], { now: true }), onOpen: () => msLive([8], { now: true }) };
+  }
+  const inVan = A => P.car === A.van;
+  function goDown(A) {                                                             // through the staff door: the side-on view, Fay with you
+    const i = peds.indexOf(A.fay); if (i >= 0) peds.splice(i, 1); A.fayIn = true;
+    if (P.car) exitCar(true); SB.ms.mate = { x: 40, fl: 0, face: 1 }; P.vx = P.vy = 0; openSide(A.V); SV.x = 140;
+  }
+  function comeOut(A) {                                                            // out of the count room: Fay beside you again, and the alarm
+    if (!A.fayIn) return; A.fayIn = false; const q = S1.free(P.x, P.y, 20); A.fay.x = q.x; A.fay.y = q.y; if (!peds.includes(A.fay)) peds.push(A.fay);
+    if (A.alarm) return; A.alarm = true;
+    P.heat = Math.max(P.heat, COP.lv.heat[N().stars] + 1); updateStars(); msLive([9], { now: true });
+    const c = casHall(); A.gold = [S1.road(c.x0 - 200, c.y1 + 260), S1.road(c.x1 + 260, c.y0 - 200)].map(r => { const k = kerbBy(r.x, r.y); return msFoeCar('sedan', k.x, k.y, k.ang, { crew: 2, gun: 'smg', group: 'gold', speed: 110, color: '#6b1426' }); });
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.del; MS.start = { at: () => A.del, label: 'START MISSION', go: () => { face(A.del, P); msCut('THE NIGHT', () => { A.go = true; }); } }; },   // TALK TO Del
+      tick(A) { return !!A.go; } },
+    { enter(A) { if (!A.fay.ally) msAllyFrom(A.fay, { who: 'fay', gun: 'pistol', hp: N().fayHp, fail: MS.m.fails.fayDead, stay: true }); MS.mark = () => A.van; },   // GET IN the van, Fay too
+      tick(A) { return inVan(A) && A.fay.aboard === A.van; },
+      info: A => !inVan(A) ? 'GET IN THE VAN' : 'WAIT FOR FAY',
+      jump(A) { if (P.car) exitCar(true); P.x = A.van.x; P.y = A.van.y; enterCar(A.van); if (A.fay.aboard !== A.van) allyBoard(A.fay, A.van); } },
+    { enter(A) { MS.guide = A.back; MS.mark = () => A.back; },                       // GO TO the back door
+      tick(A) { if (!inVan(A) || dist(A.van.x, A.van.y, A.back.x, A.back.y) > N().backR || S1.kmh(A.van) > N().stopKmh) return false; msLive([4], { now: true }); return true; },
+      info: A => inVan(A) ? Math.round(dist(me().x, me().y, A.back.x, A.back.y) / UNITS_PER_M) + ' M TO THE BACK DOOR' : 'GET BACK IN THE VAN',
+      jump(A) { const v = A.van; if (P.car !== v) { if (P.car) exitCar(true); P.x = v.x; P.y = v.y; enterCar(v); } v.x = A.back.x; v.y = A.back.y; v.vx = v.vy = 0; } },
+    { enter(A) { MS.mark = null; MS.guide = null; },                                // BLOW the substation
+      tick(A) { if (A.blown) return true; if (!P.car && !MS.start) MS.start = { at: () => P, label: 'RADIO TRIGGER', go2: 'LIGHTS OUT', go: () => { A.blown = true; substBlow(9999); msLive([5, 6], { now: true }); } }; return false; },
+      info: () => P.car ? 'GET OUT OF THE VAN' : 'THE BUTTON BY YOU',
+      jump(A) { if (P.car) exitCar(true); A.blown = true; substBlow(9999); } },
+    { enter(A) { MS.mark = () => A.staff; MS.guide = CASL.door(); },                 // to the STAFF DOOR, in the uniform
+      tick(A) {
+        if (SV.on && SV.h.id === 'vault') return true;
+        const near = !P.car && dist(P.x, P.y, A.staff.x, A.staff.y) < N().doorR;
+        if (near && !MS.start) MS.start = { at: () => A.staff, label: 'STAFF DOOR', go2: CASL.uniform() ? 'GO DOWN' : 'LOCKED - THE UNIFORM', go: () => { if (CASL.uniform()) goDown(A); else toast('STAFF ONLY - YOU NEED THE UNIFORM', true); } };
+        if (!near && MS.start) MS.start = null;
+        return false; },
+      info: A => inCasino(P.x, P.y, 0) ? 'BEHIND THE CASHIER\'S CAGE' : 'INTO THE ROYAL FLAMINGO (THE FRONT DOOR)',
+      jump(A) { if (P.car) exitCar(true); P.x = A.staff.x; P.y = A.staff.y; goDown(A); } },
+    { enter(A) { MS.mark = null; MS.guide = null; },                                // DOWN to B3: Fay opens the vault
+      tick() { return !!(SB.ms && SB.ms.cracked); },
+      info: () => SV.on ? (SV.fl === 0 ? 'THE COUNT ROOM' : 'B' + SV.fl) + ' · THE VAULT IS ON B3' : 'BACK DOWN TO THE VAULT',
+      jump() { if (!SV.on) return; SV.fl = 3; SV.x = 860; SB.ms.cracked = true; } },
+    { tick() { return !!(SB.ms && SB.ms.item.got); },                                // TAKE the money
+      jump() { SB.ms.item.got = true; } },
+    { enter(A) { MS.mark = () => A.van; MS.guide = () => A.van; },                  // OUT to the van: the alarm
+      tick(A) { if (SV.on) return false; comeOut(A); return inVan(A); },
+      info: A => SV.on ? (SV.fl === 0 ? 'OUT ON THE LEFT' : 'UP THE STAIRS') : inVan(A) ? '' : Math.round(dist(P.x, P.y, A.van.x, A.van.y) / UNITS_PER_M) + ' M TO THE VAN',
+      jump(A) { if (SV.on) closeSide(); comeOut(A); const v = A.van; P.x = v.x; P.y = v.y; enterCar(v); if (A.fay.aboard !== v) allyBoard(A.fay, v); } },
+    { enter(A) { MS.guide = A.H.door; MS.mark = () => A.H.inside; },                // GETAWAY: lose them all, the lock-up
+      tick(A) {
+        const v = A.van; if (A.home || !inVan(A) || P.stars > 0 || !ixIn(A.H.S, v.x, v.y, 0) || S1.kmh(v) > N().stopKmh) return false;
+        if ((A.gold || []).some(c => !c.dead && !c.fc.gone && dist(c.x, c.y, v.x, v.y) < N().goldR)) return false;
+        A.home = true; msCut('THE TAKE', () => msNext()); return false; },
+      info: A => !inVan(A) ? 'GET BACK IN THE VAN' : P.stars > 0 ? 'LOSE THE POLICE' : (A.gold || []).some(c => !c.dead && dist(c.x, c.y, A.van.x, A.van.y) < N().goldR) ? "LOSE GOLD'S MEN" : Math.round(dist(me().x, me().y, A.H.inside.x, A.H.inside.y) / UNITS_PER_M) + " M TO DEL'S LOCK-UP",
+      jump(A) { const v = A.van; if (P.car !== v) { if (P.car) exitCar(true); P.x = v.x; P.y = v.y; enterCar(v); } P.stars = 0; P.heat = 0; resetPolice();
+        for (const c of A.gold || []) { c.fc.crew = 0; c.fc.mode = 'park'; c.driver = null; c.msDrive = null; c.x += 3000; } for (const p of peds) if (p.foe && !p.dead && p.group === 'gold') killPed(p, 'gun', false);
+        v.x = A.H.inside.x; v.y = A.H.inside.y; v.vx = v.vy = 0; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    const f = msCastFail(); if (f) return f;
+    if (A.fay.dead) return F.fayDead;
+    if (A.del.dead) return F.delDead;
+    if (A.van.dead) return F.wrecked;
+    if (SB.ms && SB.ms.spotted) return F.spotted;
+    return '';
+  }
+  const cuts = {
+    'THE NIGHT': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [1, 2], enter: () => { face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: 3 }],
+    'THE TAKE': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [10, 11], enter: () => { if (P.car) exitCar(true); if (A.fay.aboard) allyAlight(A.fay); face(A.del, A.van); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [12, 13], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { CASL.unwear(A); SB.ms = null; if (A.H) A.H.S.ms = false; SUBST.ms = null; if (SUBST.dark) SUBST.until = gameT; } };
+})();

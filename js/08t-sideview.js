@@ -120,7 +120,7 @@ function sideFrame(dt, time) {               // UP and DOWN keys: js/15 handleKe
   if (SV.note && (SV.note.t -= dt) <= 0) SV.note = null;
   if (!SV.room && SV.fl === 0 && Math.abs(SV.x - 270) < 120 && !SV.greeted) { SV.greeted = true; SV.say = { t: 2.2, x: 270, fl: 0, clerk: true, text: SKY.hour >= 18 || SKY.hour < 5 ? 'GOOD EVENING!' : SKY.hour < 12 ? 'GOOD MORNING!' : 'GOOD AFTERNOON!' }; }
   const s = svSpot(); $('svHint').textContent = SV.note ? SV.note.text : SV.lift ? 'GOING ' + (SV.lift.to > SV.lift.from ? 'UP' : 'DOWN') + '...' : SV.hide ? 'HIDDEN - WALK ON TO COME OUT' : s ? '▲ ' + s.label : '';
-  $('svTitle').textContent = SV.h.name + '  ·  ' + (SV.room ? (SV.room.mine ? 'YOUR FLAT' : SV.room.door.name || 'ROOM ' + SV.room.door.n) : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl);
+  $('svTitle').textContent = SV.h.name + '  ·  ' + (SV.room ? (SV.room.mine ? 'YOUR FLAT' : SV.room.door.name || 'ROOM ' + SV.room.door.n) : SV.h.kind === 'vault' ? (SV.fl === 0 ? 'COUNT ROOM' : 'B' + SV.fl) : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl);
   if (SV.h.kind) sbTick(dt);               // the Crown: its guards, the quest (js/08zzj)
   if (SV.on && state === 'side') drawSide(time);
 }

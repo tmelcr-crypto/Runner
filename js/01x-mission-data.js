@@ -1476,7 +1476,71 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The substation from afar", "-", "The yard in the dark, three red lights blinking.", "WIDE", "6", "5, 6, 7"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at his lock-up, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "The SUBSTATION (permanent, both modes; answer 140): its gate open for the night guards in this quest.", "people": "Del, Fay; two night guards with torches.", "music": "-", "new": "C8 sets the charges off: the strip goes dark for the heist.", "other": "In FREE ROAM any blast in the yard puts the strip out for a minute or two."}}}
+    "notes": {"places": "The SUBSTATION (permanent, both modes; answer 140): its gate open for the night guards in this quest.", "people": "Del, Fay; two night guards with torches.", "music": "-", "new": "C8 sets the charges off: the strip goes dark for the heist.", "other": "In FREE ROAM any blast in the yard puts the strip out for a minute or two."}}},
+  {"id": "c8", "no": "C8", "title": "THE VAULT", "giver": "del", "start": "marker", "where": "Del's lock-up; the Royal Flamingo's back door; the vault under the cashier's cage; the getaway",
+   "story": "The heist night. Danny and Fay drive the armoured van to the Royal Flamingo's back door and Danny sets off the charges: the strip goes dark. In the guard's uniform he walks across the casino floor to the staff door behind the cage, Fay at his heels, down past the guards' room to the vault three floors under. Fay works the dial; the door swings open on Crane's dirty money. They carry the bags up and out - and Lenny Gold's men are waiting. A chase through the dark, the police behind, and the van rolls into Del's lock-up.",
+   "chars": ["del", "danny", "fay", "lenny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL AT THE LOCK-UP"},
+     {"word": "GET IN", "show": "GET IN THE ARMOURED VAN - FAY RIDES WITH YOU"},
+     {"word": "GO TO", "show": "DRIVE TO THE ROYAL FLAMINGO'S BACK DOOR AND STOP"},
+     {"word": "BLOW", "show": "ON FOOT: SET OFF THE CHARGES - LIGHTS OUT"},
+     {"word": "GO TO", "show": "IN THE UNIFORM: TO THE STAFF DOOR BEHIND THE CASHIER'S CAGE"},
+     {"word": "OPEN", "show": "DOWN TO THE VAULT ON B3 - FAY OPENS IT"},
+     {"word": "TAKE", "show": "TAKE THE MONEY"},
+     {"word": "GET OUT", "show": "UP AND OUT TO THE VAN"},
+     {"word": "GETAWAY", "show": "LOSE THEM ALL AND HIDE THE VAN IN DEL'S LOCK-UP"}],
+   "lines": [
+     {"who": "del", "text": "Tonight's the night. The lights go out, you walk in like a guard, Fay opens the door, the money goes in the van.", "mood": "nervous", "when": "The night, shot 1"},
+     {"who": "fay", "text": "And then we're rich and very far away. I like this plan.", "mood": "cocky", "when": "The night, shot 1"},
+     {"who": "danny", "text": "Let's go and see Crane's money.", "mood": "calm", "when": "The night, shot 2"},
+     {"who": "fay", "text": "Back door. Your turn, Danny - push the button.", "mood": "fast", "when": "LIVE - at the back door", "live": true},
+     {"who": "danny", "text": "Lights out, Miravista.", "mood": "calm", "when": "LIVE - the strip goes dark", "live": true},
+     {"who": "fay", "text": "Behind the cage. Walk like you're bored - you're a guard.", "mood": "fast", "when": "LIVE - in the casino", "live": true},
+     {"who": "fay", "text": "Shh. Let me listen to her... left... right... come on, baby...", "mood": "whisper", "when": "LIVE - at the vault door", "live": true},
+     {"who": "fay", "text": "She's open! Bags, Danny - all of them!", "mood": "excited", "when": "LIVE - the vault opens", "live": true},
+     {"who": "lenny", "text": "Stop that van! That's the house money! Stop them!", "mood": "furious", "when": "LIVE - out of the casino", "live": true},
+     {"who": "del", "text": "Is that... all of it?", "mood": "amazed", "when": "The take, shot 1"},
+     {"who": "fay", "text": "Every bag. Crane's going to have a very bad morning.", "mood": "cocky", "when": "The take, shot 1"},
+     {"who": "del", "text": "Half of Miravista's dirty money, in my lock-up. Danny Cruz - you're a rich man.", "mood": "warm", "when": "The take, shot 2"},
+     {"who": "danny", "text": "Keep the van. We'll need it again.", "mood": "calm", "when": "The take, shot 2"}],
+   "fails": {"fayDead": "FAY IS DEAD", "delDead": "DEL RAMOS IS DEAD", "wrecked": "THE VAN IS WRECKED", "spotted": "SPOTTED - A GUARD SAW YOU", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 2, "backR": 70, "stopKmh": 10, "crackT": 15, "stars": 3, "fayHp": 280, "goldR": 300, "doorR": 34},
+   "reward": {"cash": 100000, "vehicle": "THE ARMOURED VAN in the casino's colours (yours - kept in the lock-up and your garage in STORY)", "clothes": "", "next": "The Casino line is done: its gift to the finale - the van for the chase to Skyport (M30)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line; the vault, answer 136; the uniform, answer 137; the van, answer 138; the substation, answer 140) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, at his lock-up at night)", "where": "Del's LOCK-UP; the ROYAL FLAMINGO's back door and floor; THE VAULT (side-on, under the cashier's cage); the streets back", "unlocked": "Passing C7", "time": "Night (MISSIONS TEST: 2:00)", "length": "About 10 to 15 minutes", "limit": "None"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos: waits at the lock-up.", "looks": "As in C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You, in the casino guard's uniform.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "fay": {"gives": false, "role": "Fay \"Fingers\": rides along, follows you down and opens the vault; fights beside you.", "looks": "As in C5.", "bubble": "Hot pink", "mumble": "Fast and high."},
+     "lenny": {"gives": false, "role": "Lenny Gold, the pit boss: his men come after the van.", "looks": "Forties, heavy, a bad toupee, a burgundy suit, gold chains.", "bubble": "Gold", "mumble": "Loud and low: a sawtooth."}},
+    "steps": [
+     ["START MISSION by Del at his lock-up; the cutscene THE NIGHT.", "MISSIONS TEST: you start at the lock-up in the guard's uniform; the van inside."],
+     ["Get in the van; Fay gets in with you.", ""],
+     ["Drive to the Royal Flamingo's back door (the north side of the casino block) and stop.", ""],
+     ["Get out: the RADIO TRIGGER - the substation blows, the strip goes dark (and stays dark till the end of the quest).", ""],
+     ["In the uniform, through the casino to the STAFF DOOR behind the cashier's cage (Fay follows): GO DOWN - the side-on view.", "The guards take you for one of them."],
+     ["Down past the guards' room to B3 (the stairs switch ends floor by floor): at the round vault door, UP - Fay works the dial for 15 seconds.", "Without the uniform the guards see you (2 seconds: SPOTTED)."],
+     ["Into the vault: TAKE THE MONEY.", ""],
+     ["Up the stairs and out at the count room; through the casino to the van. Outside, the alarm: 3 stars, and Lenny Gold's men in two cars.", ""],
+     ["Lose the police and Gold's men, and drive the van into Del's lock-up and stop; the closing cutscene THE TAKE.", "€100,000."]],
+    "fails": [
+     ["Fay is killed", "FAY IS DEAD"],
+     ["Del is killed", "DEL RAMOS IS DEAD"],
+     ["The van is wrecked", "THE VAN IS WRECKED"],
+     ["A guard sees you out of uniform for 2 seconds", "SPOTTED - A GUARD SAW YOU"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE NIGHT\"", "plays": "At START MISSION by Del.", "shots": [
+      ["Del's lock-up", "Del, Fay, Danny", "Del in the van's headlights, the plans in his hand.", "CLOSE on Del", "5", "1, 2"],
+      ["Del's lock-up", "Danny", "Danny straightens the guard's cap.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "CLOSING - \"THE TAKE\"", "plays": "When the van stops in the lock-up, nobody on your tail.", "shots": [
+      ["Del's lock-up", "Del, Fay", "The van's back doors open on the bags; Del stares.", "CLOSE on Del", "5", "10, 11"],
+      ["Del's lock-up", "Del, Danny", "The roller door comes down. Fade out.", "CLOSE on Del", "5", "12, 13"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at his lock-up, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "The SUBSTATION (blown); the ROYAL FLAMINGO (top-down) and THE VAULT under it (side-on: the count room, B1 the guards' room, B2 security, B3 the vault).", "people": "Del, Fay; the vault's guards; Lenny Gold's men in two cars; the police.", "music": "-", "new": "STORY: the van stays yours (the finale's chase to Skyport); Papa Joe hears about the vault (answer 84).", "other": "The strip stays dark until the quest ends."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
