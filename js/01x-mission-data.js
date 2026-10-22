@@ -1236,7 +1236,58 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The Royal Flamingo's door", "Del", "His finger on the vault. Fade out.", "CLOSE on Del", "5", "9, 10"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "THE CROWN's inside (side-on, permanent: lobby and lift open in both modes, the offices locked outside C2).", "people": "Del; three night guards on floors 8, 9 and 10; the night man asleep in the lobby.", "music": "-", "new": "Stealth (answer 141). The vault plans: C8 follows them (three floors under the cashier's cage).", "other": "In MISSIONS TEST the guards walk only during C2."}}}
+    "notes": {"places": "THE CROWN's inside (side-on, permanent: lobby and lift open in both modes, the offices locked outside C2).", "people": "Del; three night guards on floors 8, 9 and 10; the night man asleep in the lobby.", "music": "-", "new": "Stealth (answer 141). The vault plans: C8 follows them (three floors under the cashier's cage).", "other": "In MISSIONS TEST the guards walk only during C2."}}},
+  {"id": "c3", "no": "C3", "title": "THE UNIFORM", "giver": "del", "start": "marker", "where": "Del on the casino strip; the laundry van's run; inside the Royal Flamingo",
+   "story": "The Royal Flamingo's guards wear black and gold, and the uniforms go out to the laundry every night. Danny runs the laundry van down until its back doors burst, takes a guard's uniform, puts it on and walks the casino floor like one of them - marking the three cameras and the staff door behind the cashier's cage that leads down to the vault.",
+   "chars": ["del", "danny", "cguard"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL ON THE STRIP"},
+     {"word": "CHASE", "show": "STOP THE LAUNDRY VAN - RAM IT"},
+     {"word": "COLLECT", "show": "TAKE A GUARD'S UNIFORM"},
+     {"word": "PUT ON", "show": "PUT ON THE UNIFORM"},
+     {"word": "MARK", "show": "IN THE ROYAL FLAMINGO: MARK THE 3 CAMERAS AND THE STAFF DOOR"},
+     {"word": "TALK TO", "show": "BACK TO DEL OUTSIDE"}],
+   "lines": [
+     {"who": "del", "text": "The guards' uniforms go to the laundry every night - that van, by the back. Black and gold.", "mood": "nervous", "when": "Black and gold, shot 1"},
+     {"who": "danny", "text": "And the laundry man won't miss one?", "mood": "dry", "when": "Black and gold, shot 1"},
+     {"who": "del", "text": "He'll miss his van doors. Get a uniform, wear it inside, and mark me every camera - and the staff door.", "mood": "wry", "when": "Black and gold, shot 2"},
+     {"who": "danny", "text": "Fits. Almost.", "mood": "dry", "when": "LIVE - the uniform on", "live": true},
+     {"who": "cguard", "text": "Evening. Quiet night.", "mood": "bored", "when": "LIVE - a guard nods at you", "live": true},
+     {"who": "danny", "text": "Three cameras and the door behind the cage. Del's going to love this.", "mood": "calm", "when": "LIVE - all marked", "live": true},
+     {"who": "del", "text": "Three cameras... and the door. The stairs are behind it - three floors down, just like the plans.", "mood": "nervous", "when": "The map, shot 1"},
+     {"who": "danny", "text": "Next you'll want a van with walls a foot thick.", "mood": "dry", "when": "The map, shot 1"},
+     {"who": "del", "text": "Funny you should say that. The casino's armoured van - the depot's round the corner.", "mood": "wry", "when": "The map, shot 2"}],
+   "fails": {"away": "THE LAUNDRY VAN GOT AWAY", "delDead": "DEL RAMOS IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 22, "vanSpeed": 85, "vanHp": 0.55, "away": 380, "bagR": 30, "markR": 40, "delR": 50},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "CASINO GUARD UNIFORM (jacket and trousers)", "next": "C4 - Del's marker D on the strip, the next night", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line; the uniform, answer 137) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, the Royal Flamingo's door at night)", "where": "The casino strip; the streets after the laundry van; inside the ROYAL FLAMINGO", "unlocked": "Passing C2", "time": "Night (MISSIONS TEST: 22:00)", "length": "About 5 to 7 minutes", "limit": "None"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos: knows the guards' uniforms go out each night.", "looks": "As in C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "cguard": {"gives": false, "role": "A Royal Flamingo guard who nods at you as at a colleague.", "looks": "A black suit with gold trim, an earpiece.", "bubble": "Steel grey", "mumble": "Low and flat: a square."}},
+    "steps": [
+     ["START MISSION by Del; the cutscene BLACK AND GOLD. The laundry van (white, SUDS & SONS on the roof) pulls away from the strip.", "MISSIONS TEST: you start on the strip at 22:00, a car at the kerb."],
+     ["Chase the van and ram it till its back doors burst (about half its strength): it stops, the driver runs off.", "It gets 380 m away: it's gone."],
+     ["Pick up the bag of uniforms behind the van.", ""],
+     ["PUT ON THE UNIFORM (a button where you stand): the guard's black jacket and trousers.", "STORY: they stay in your wardrobe."],
+     ["Into the Royal Flamingo: walk up to each of the three cameras and to the staff door behind the cashier's cage and MARK them. The guards nod at you - you're one of them.", "Without the uniform the MARK button does not show."],
+     ["Out to Del by the door; the closing cutscene THE MAP.", ""]],
+    "fails": [
+     ["The van gets 380 m away", "THE LAUNDRY VAN GOT AWAY"],
+     ["Del is killed", "DEL RAMOS IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"BLACK AND GOLD\"", "plays": "At START MISSION by Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del watches a white van with a bubble logo at the kerb.", "CLOSE on Del", "5", "1, 2"],
+      ["The strip", "Del", "The van pulls away.", "CLOSE on Del", "5", "3"]]},
+     {"title": "CLOSING - \"THE MAP\"", "plays": "When you are back with Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del marks the plans with a pen as Danny talks.", "CLOSE on Del", "5", "7, 8"],
+      ["The Royal Flamingo's door", "Del", "He nods round the corner. Fade out.", "CLOSE on Del", "5", "9"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "The ROYAL FLAMINGO (top-down): its cameras and the staff door behind the cashier's cage.", "people": "Del; the laundry van's driver; the casino's guards.", "music": "-", "new": "The casino guard's uniform (clothes table, a reward piece; answer 137). The laundry van: the truck with a laundry livery (no new vehicle row).", "other": "In MISSIONS TEST your own clothes come back when the quest ends."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

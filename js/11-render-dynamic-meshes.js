@@ -45,6 +45,36 @@ const GTor = new THREE.TorusGeometry(1, 0.3, 6, 14).rotateX(Math.PI / 2);   // a
 const BAR = { police: [E.redOn, E.redOff, E.blueOn, E.blueOff], ambulance: [E.redOn, E.redOff, mBas(0xffffff), mBas(0x4a4a52)],
   fire: [E.redOn, E.redOff, mBas(0xffb02e), mBas(0x5a3f1f)], trash: [mBas(0xffb02e), mBas(0x5a3f1f), mBas(0xffb02e), mBas(0x5a3f1f)] };
 const PLAYER_SHIRT = mc(0xffd23f);
+/* Liveries painted on a truck's cargo box (a quest's vehicle): the roof, seen from above, and both sides. */
+const DECO = {
+  laundry: { bg: '#f4f6fa', fg: '#2a5fc8', top: 'SUDS & SONS', sub: 'LAUNDRY · 24 H', dots: '#9fd4ee' },
+  flamingo: { bg: '#efe6cc', fg: '#b8860b', top: 'ROYAL FLAMINGO', sub: 'CASINO · CASH IN TRANSIT', bird: '#ff5fa2' }
+};
+const _deco = {};
+function decoTex(kind, side) {
+  const k = kind + side; if (_deco[k]) return _deco[k];
+  const D = DECO[kind], c = document.createElement('canvas'); c.width = 512; c.height = side ? 128 : 320; const g = c.getContext('2d'), H = c.height;
+  g.fillStyle = D.bg; g.fillRect(0, 0, 512, H); g.strokeStyle = D.fg; g.lineWidth = 10; g.strokeRect(8, 8, 496, H - 16);
+  if (D.dots) { g.fillStyle = D.dots; for (let i = 0; i < 14; i++) { g.beginPath(); g.arc(40 + (i * 97) % 440, 30 + (i * 53) % (H - 60), 8 + (i % 4) * 5, 0, TAU); g.fill(); } }
+  if (D.bird) {                                  // a pink flamingo on one leg
+    const bx = side ? 70 : 110, by = side ? 64 : 150, sc = side ? 0.45 : 1; g.fillStyle = D.bird; g.strokeStyle = D.bird; g.lineWidth = 6 * sc;
+    g.beginPath(); g.ellipse(bx, by, 46 * sc, 26 * sc, -0.3, 0, TAU); g.fill();
+    g.beginPath(); g.moveTo(bx + 30 * sc, by - 14 * sc); g.quadraticCurveTo(bx + 70 * sc, by - 60 * sc, bx + 40 * sc, by - 92 * sc); g.stroke();
+    g.beginPath(); g.arc(bx + 40 * sc, by - 98 * sc, 10 * sc, 0, TAU); g.fill();
+    g.beginPath(); g.moveTo(bx, by + 24 * sc); g.lineTo(bx, by + 96 * sc); g.stroke();
+  }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = D.fg;
+  const x0 = D.bird ? 300 : 256, w = D.bird ? 360 : 470, fit = (t, fs) => { g.font = 'bold ' + fs + 'px "Arial Black",Impact,sans-serif'; while (g.measureText(t).width > w && fs > 12) { fs -= 2; g.font = 'bold ' + fs + 'px "Arial Black",Impact,sans-serif'; } };
+  if (side) { fit(D.top, 54); g.fillText(D.top, x0, 66); }
+  else { fit(D.top, 64); g.fillText(D.top, x0, 130); fit(D.sub, 34); g.fillText(D.sub, x0, 210); }
+  return (_deco[k] = finishTex(c));
+}
+function carDeco(kind, tilt, L, Wd) {
+  if (!DECO[kind]) return;
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.6, Wd * 0.94), new THREE.MeshLambertMaterial({ map: decoTex(kind, false) }));
+  roof.rotation.x = -Math.PI / 2; roof.position.set(-L * 0.19, 23.1, 0); tilt.add(roof);
+  for (const s of [-1, 1]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.56, 12), new THREE.MeshLambertMaterial({ map: decoTex(kind, true) })); m.position.set(-L * 0.19, 13, s * (Wd / 2 + 0.08)); if (s < 0) m.rotation.y = Math.PI; tilt.add(m); }
+}
 function buildCar(c) {                       // parts that never move on their own are merged: one mesh per material
   const t = c.t, L = t.len, Wd = t.wid, B = t.body, g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   const body = c.type === 'gold' ? new THREE.MeshPhongMaterial({ color: c.color, specular: 0xfff0c0, shininess: 38 }) : new THREE.MeshLambertMaterial({ color: c.color }),   // the gold car shines (js/08zs)
@@ -248,6 +278,7 @@ function buildCar(c) {                       // parts that never move on their o
     lamps(8, 2.6, 8, 2.6); seat(L * 0.02, 17.9);
   }
   tuneParts(c, m, merged, wheels);                                   // the tuning workshop's roof, stripes, wing, scoop and rims (js/08y)
+  if (c.deco && B === 'truck') carDeco(c.deco, tilt, L, Wd);           // a livery on the cargo box: the laundry van, the casino's armoured van (js/08zzi)
   merged('w', E.tire, wheels);
   { const ug = new THREE.Mesh(GP, glowMat((c.tune && c.tune.glow) || c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
     const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38, true)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool

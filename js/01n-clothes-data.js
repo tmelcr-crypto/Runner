@@ -121,6 +121,8 @@ const CLOTHES_TABLE = /*CLOTHES-JSON*/{
   {"id": "night_visor", "name": "NEON VISOR", "shop": "night", "slot": "glasses", "style": "visor", "c1": "#ff2bd6", "c2": "", "price": 80, "smart": false, "notes": ""},
   {"id": "night_beanie", "name": "BLACK BEANIE", "shop": "night", "slot": "hat", "style": "beanie", "c1": "#14161d", "c2": "#ff2bd6", "price": 35, "smart": false, "notes": ""},
   {"id": "aviator_cap", "name": "AVIATOR CAP", "shop": "reward", "slot": "hat", "style": "aviator", "c1": "#6b4a2b", "c2": "#ffb02e", "price": null, "smart": false, "notes": "A leather flying helmet with goggles: given on your first scenic flight (js/08v), never sold."},
+  {"id": "cas_guard", "name": "CASINO GUARD JACKET", "shop": "reward", "slot": "top", "style": "suit", "c1": "#16161c", "c2": "#ffd23f", "price": null, "smart": true, "notes": "The Royal Flamingo guard's black jacket with gold trim: taken off the laundry van in the Casino quest C3 (STORY: yours after C3, in the wardrobe). Worn in the Royal Flamingo with the trousers, the guards take you for one of them."},
+  {"id": "cas_guard_trousers", "name": "CASINO GUARD TROUSERS", "shop": "reward", "slot": "bottoms", "style": "trousers", "c1": "#16161c", "c2": "", "price": null, "smart": true, "notes": "The uniform's black trousers (C3)."},
   {"id": "night_shades", "name": "CLUB SHADES", "shop": "night", "slot": "glasses", "style": "shades", "c1": "#15161c", "c2": "#3dffa6", "price": 90, "smart": false, "notes": ""}
 ]
 }/*END-CLOTHES-JSON*/;
