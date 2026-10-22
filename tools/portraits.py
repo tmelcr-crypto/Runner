@@ -12,7 +12,7 @@ the character's bubble colour behind it). The head, the reference's own hair and
 top's two colours - and adds its own parts on top: a hair style (drawn in clumps and strands like the reference's), facial hair, a hat,
 glasses, the top and extras (wrinkles, an earring, a chain, a scar, a gold tooth, sweat, tired eyes, a toothpick, hoop earrings,
 lipstick, a tattoo, pearls, a cigarette holder, a pencil behind the ear, a bow tie, grey temples, jowls, gold braid, a jeweller's loupe,
-a cigar, a rag over the shoulder). Women (told by their hair style - pixie, bob, bun, pulled, wave - or lipstick) get a finer face:
+a cigar, a rag over the shoulder, a nose ring). Women (told by their hair style - pixie, bob, bun, pulled, wave - or lipstick) get a finer face:
 thin brows, lashes, rosy lips, a blush and a softer chin. The three faces - calm, angry, smiling - differ in the brows, eyes and mouth.
 Needs Pillow (and python-docx for the Word sheet)."""
 import json, os, re, sys
@@ -33,7 +33,7 @@ GLASSES = ['none', 'reading', 'shades', 'square', 'roundshades']
 TOPS = ['openshirt', 'denim', 'flowershirt', 'jacketvest', 'darkshirt', 'waistcoat', 'suit', 'hivis', 'uniform', 'jumpsuit',
         'cardigan', 'leather', 'blouse', 'blazer', 'tanktop', 'labcoat', 'dress', 'buttoned', 'seersucker', 'checkjacket', 'windbreaker']
 EXTRAS = ['wrinkles', 'earring', 'chain', 'scar', 'goldtooth', 'sweat', 'tired', 'toothpick', 'hoops', 'lipstick', 'tattoo', 'pearls',
-          'holder', 'pencil', 'bowtie', 'temples', 'jowls', 'braid', 'loupe', 'cigar', 'rag']
+          'holder', 'pencil', 'bowtie', 'temples', 'jowls', 'braid', 'loupe', 'cigar', 'rag', 'nosering']
 AGES = ['young', 'mid', 'old']
 BUILDS = ['slim', 'normal', 'broad']
 SMILE_EYES = ['happy', 'open']
@@ -614,6 +614,8 @@ def draw(ch, face):
         for (x, y) in ellipse_px(7.5, 41.5, 2.6, 3.4) - ellipse_px(7.5, 41.5, 1.4, 2.2): pic.put(x, y, (255, 206, 70) if y < 42 else (210, 160, 40))
     if 'sweat' in extras and face != 'smile':
         for x, y, c in ((36, 21, (200, 236, 255)), (36, 22, (150, 205, 245)), (13, 24, (200, 236, 255)), (13, 25, (150, 205, 245))): pic.put(x, y, c)
+    if 'nosering' in extras:                  # a little silver ring through the near nostril
+        pic.put(29, 38, (226, 226, 236)); pic.put(29, 39, (170, 170, 186)); pic.put(30, 39, (226, 226, 236))
     if 'loupe' in extras:
         for (x, y) in ellipse_px(33, 21, 3.2, 3.0): pic.put(x, y, (34, 34, 40))
         for (x, y) in ellipse_px(33, 21, 2.0, 1.8): pic.put(x, y, (170, 205, 230) if x < 33 else (120, 155, 190))

@@ -129,7 +129,19 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "rosaman", "name": "ROSA'S MAN", "letter": "R", "bubble": "#e04a5a", "shirt": "#f2f2f2", "pants": "#2a3a5a", "mumble": {"low": 110, "high": 170, "rate": 11, "wave": "triangle", "gap": 0.07},
    "role": "One of Rosa Ortega's market men - porters and stall-keepers who stand by her (one bubble for all of them).", "look": "Thirties, short black hair, stubble, a red bandana over the shoulder, a white vest, strong arms.",
    "skin": "#b8805a", "hair": "#1a1416", "hairStyle": "short", "facial": "stubble", "facialColour": "#1a1416", "eyes": "#2a1a12", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
-   "top": "tanktop", "topColour": "#f2f2f2", "topColour2": "#e0e0e0", "extras": ["rag"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"}
+   "top": "tanktop", "topColour": "#f2f2f2", "topColour2": "#e0e0e0", "extras": ["rag"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "lenny", "name": "LENNY GOLD", "letter": "G", "bubble": "#d4a017", "shirt": "#6a1a2a", "pants": "#2a1a1e", "mumble": {"low": 90, "high": 150, "rate": 12, "wave": "sawtooth", "gap": 0.04},
+   "role": "The Royal Flamingo's pit boss - Crane's man on the casino floor; his men hunt Del and Fay. Shouts at everyone.", "look": "Forties, heavy, a bad toupee, a burgundy suit, gold chains; shouts at everyone.",
+   "skin": "#e8b894", "hair": "#a8642a", "hairStyle": "combed", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "suit", "topColour": "#6a1a2a", "topColour2": "#f0e6e0", "extras": ["chain", "jowls", "sweat"], "smileEyes": "happy", "calmMouth": "frown", "age": "mid", "build": "broad"},
+  {"id": "fay", "name": "FAY \"FINGERS\"", "letter": "F", "bubble": "#ff3b6b", "shirt": "#1a1a20", "pants": "#2a2a3a", "mumble": {"low": 280, "high": 440, "rate": 17, "wave": "square", "gap": 0.02},
+   "role": "A safecracker with the steadiest hands in Florida; Gold's men hold her in the lunapark's funhouse. The vault's lock is hers.", "look": "Twenties, a dyed red undercut, a black leather jacket, a nose ring; talks fast.",
+   "skin": "#f0c8a8", "hair": "#d0202a", "hairStyle": "pixie", "facial": "none", "facialColour": "", "eyes": "#2a6a3a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "leather", "topColour": "#1a1a20", "topColour2": "#c8202c", "extras": ["nosering", "earring"], "smileEyes": "happy", "calmMouth": "smirk", "age": "young", "build": "slim"},
+  {"id": "cguard", "name": "CASINO GUARD", "letter": "Q", "bubble": "#8a8fa8", "shirt": "#16161c", "pants": "#16161c", "mumble": {"low": 120, "high": 170, "rate": 10, "wave": "square", "gap": 0.06},
+   "role": "The Royal Flamingo's guards (one bubble for all of them).", "look": "Thirties, a crew cut, a black suit with a gold flamingo pin, an earpiece.",
+   "skin": "#c89a76", "hair": "#2a1a14", "hairStyle": "buzz", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "suit", "topColour": "#16161c", "topColour2": "#f0f0f0", "extras": ["earring"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */
