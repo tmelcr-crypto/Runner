@@ -11,6 +11,7 @@ const CASL = {
     const d = CASM.door; let b = null; for (const S of IXS) if (S.kind === 'unit' && !S.rare && (!b || dist(S.cx, S.cy, d[0], d[1]) < dist(b.cx, b.cy, d[0], d[1]))) b = S;
     return b && { S: b, inside: ixWorld(b, 0, 0), door: ixWorld(b, 0, b.hd + 40), del: ixWorld(b, b.hw * 0.5, b.hd - 18) };
   },
+  backDoor() { const H = casHall(), r = STORY1.road((H.x0 + H.x1) / 2, H.y0 - 60); return { x: r.x, y: r.y }; },   // the Royal Flamingo's back door: the street on the block's north side
   delHome() {                              // Del's place: a street door a few blocks south of the strip whose front the camera sees
     const d = CASM.door, s = STORY2.shops(d[0] - 260, d[1] + 1300, 1)[0];
     return s || Object.assign(STORY1.sidewalk(d[0], d[1] + 1300), { fx: 0, fy: 1, wx: d[0], wy: d[1] + 1284, a: Math.PI / 2 });
@@ -287,4 +288,52 @@ MSCRIPT.c5 = (() => {
       { dur: 5, cam: 'CLOSE', at: () => A.del, line: 10, fadeOut: true }]
   };
   return { setup, steps, fail, cuts, cleanup() { FUN.ms = null; } };
+})();
+
+/* ================= C6 - DRY RUN ================= */
+MSCRIPT.c6 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.H = CASL.hideout(); A.H.S.ms = true; A.back = CASL.backDoor();
+    const S = A.H.S, v = A.H.inside; A.van = depotVan(v.x, v.y, S.a - Math.PI / 2); cars.push(A.van); A.list.push(A.van);   // the van in the lock-up, nose to the door
+    const d = A.H.del; A.del = msPed(d.x, d.y, 0, Object.assign(S1.look('del'), { msName: 'del', step: S1.stay, spare: true }));
+    const f = S1.free(A.H.door.x, A.H.door.y, 30); A.fay = msPed(f.x, f.y, 0, Object.assign(S1.look('fay'), { msName: 'fay', step: S1.stay, spare: true }));
+    const q = ixWorld(S, -S.hw * 0.3, S.hd + 22); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.del, P); face(A.fay, P);   // MISSIONS TEST: at the lock-up's door at 3:00
+    const k = kerbBy(A.back.x + 90, A.back.y - 40); A.cop = msCar('police', k.x, k.y, k.ang); A.cop.free = true;   // the patrol car across the street from the back door
+  }
+  const inVan = A => P.car === A.van;
+  const left = A => Math.max(0, N().timeLimit - (gameT - A.t0));
+  const clock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const steps = [
+    { enter(A) { MS.mark = () => A.del; MS.start = { at: () => A.del, label: 'START MISSION', go: () => { face(A.del, P); msCut('THE STOPWATCH', () => { A.go = true; }); } }; },   // TALK TO Del
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.mark = () => A.van; },                                           // GET IN the van
+      tick(A) { return inVan(A); },
+      jump(A) { if (P.car) exitCar(true); P.x = A.van.x; P.y = A.van.y; enterCar(A.van); } },
+    { enter(A) { MS.guide = A.back; MS.mark = () => A.back; },                       // GO TO the back door and stop: the clock starts
+      tick(A) { if (!inVan(A) || dist(A.van.x, A.van.y, A.back.x, A.back.y) > N().backR || S1.kmh(A.van) > N().stopKmh) return false;
+        A.t0 = gameT; msLive([4, 5], { now: true, phone: true }); P.heat = Math.max(P.heat, COP.lv.heat[N().stars] + 1); updateStars(); return true; },
+      info: A => inVan(A) ? Math.round(dist(me().x, me().y, A.back.x, A.back.y) / UNITS_PER_M) + ' M TO THE BACK DOOR' : 'GET BACK IN THE VAN',
+      jump(A) { const v = A.van; if (P.car !== v) { if (P.car) exitCar(true); P.x = v.x; P.y = v.y; enterCar(v); } v.x = A.back.x; v.y = A.back.y; v.vx = v.vy = 0; } },
+    { enter(A) { MS.guide = A.H.door; MS.mark = () => A.H.inside; },                // BACK inside 2 minutes, no stars
+      tick(A) {
+        if (A.home || !inVan(A) || P.stars > 0 || !ixIn(A.H.S, A.van.x, A.van.y, 0) || S1.kmh(A.van) > N().stopKmh) return false;
+        A.home = true; A.time = gameT - A.t0; msCut('THE TIME', () => msNext()); return false; },
+      info: A => clock(left(A)) + ' LEFT · ' + (!inVan(A) ? 'GET BACK IN THE VAN' : P.stars > 0 ? 'LOSE THE POLICE' : Math.round(dist(me().x, me().y, A.H.inside.x, A.H.inside.y) / UNITS_PER_M) + ' M TO THE LOCK-UP'),
+      jump(A) { const v = A.van; if (P.car !== v) { if (P.car) exitCar(true); P.x = v.x; P.y = v.y; enterCar(v); } P.stars = 0; P.heat = 0; resetPolice(); v.x = A.H.inside.x; v.y = A.H.inside.y; v.vx = v.vy = 0; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.van.dead) return F.wrecked;
+    if (MS.k === 3 && !A.home && left(A) <= 0) return F.slow;
+    return '';
+  }
+  const cuts = {
+    'THE STOPWATCH': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [1, 2], enter: () => { face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.van, line: 3 }],
+    'THE TIME': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [6, 7], cap: 'TIME ' + clock(A.time || 0), enter: () => { if (P.car) exitCar(true); face(A.del, P); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: 8, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A.H) A.H.S.ms = false; } };
 })();

@@ -1387,7 +1387,53 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Del's lock-up", "Del", "The plans on the van's bonnet, three heads over them. Fade out.", "CLOSE on Del", "5", "10"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "The FUNHOUSE (permanent, both modes; answer 135): the hall, the mirror maze, the tilted room.", "people": "Del; Fay; six of Gold's men.", "music": "The funhouse's organ.", "new": "Fay joins the crew (C8 opens the vault).", "other": "Lenny Gold himself is not there."}}}
+    "notes": {"places": "The FUNHOUSE (permanent, both modes; answer 135): the hall, the mirror maze, the tilted room.", "people": "Del; Fay; six of Gold's men.", "music": "The funhouse's organ.", "new": "Fay joins the crew (C8 opens the vault).", "other": "Lenny Gold himself is not there."}}},
+  {"id": "c6", "no": "C6", "title": "DRY RUN", "giver": "del", "start": "marker", "where": "Del's lock-up at the storage yard; the Royal Flamingo's back door",
+   "story": "Before the big night they time the getaway. Danny takes the armoured van from the lock-up round to the Royal Flamingo's back door; when he stops there the clock starts - and a patrol car parked across the street sees the van. Back to the lock-up inside two minutes, with nobody on his tail.",
+   "chars": ["del", "danny", "fay"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL AT THE LOCK-UP"},
+     {"word": "GET IN", "show": "GET IN THE ARMOURED VAN"},
+     {"word": "GO TO", "show": "DRIVE ROUND TO THE ROYAL FLAMINGO'S BACK DOOR AND STOP"},
+     {"word": "DELIVER", "show": "BACK TO THE LOCK-UP INSIDE 2 MINUTES - NO POLICE ON YOUR TAIL"}],
+   "lines": [
+     {"who": "del", "text": "Before the big night we time it. From the casino's back door to here - two minutes, no more.", "mood": "nervous", "when": "The stopwatch, shot 1"},
+     {"who": "fay", "text": "And no cops on our tail. A cash van with a siren behind it is a very short story.", "mood": "fast", "when": "The stopwatch, shot 1"},
+     {"who": "danny", "text": "Two minutes. Hold the watch.", "mood": "calm", "when": "The stopwatch, shot 2"},
+     {"who": "del", "text": "Clock's running! Go, go!", "mood": "shouting", "when": "LIVE - at the back door (the phone)", "live": true},
+     {"who": "danny", "text": "A patrol car. Of course.", "mood": "dry", "when": "LIVE - the police see the van", "live": true},
+     {"who": "del", "text": "Under two minutes - and clean! We can do this.", "mood": "amazed", "when": "The time, shot 1"},
+     {"who": "fay", "text": "Told you. Now I want to see the lights go out.", "mood": "cocky", "when": "The time, shot 1"},
+     {"who": "del", "text": "The substation behind the strip. That's next.", "mood": "calm", "when": "The time, shot 2"}],
+   "fails": {"slow": "TOO SLOW - TWO MINUTES ARE UP", "wrecked": "THE VAN IS WRECKED", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 3, "timeLimit": 120, "backR": 70, "stopKmh": 10, "stars": 1},
+   "reward": {"cash": 2000, "vehicle": "", "clothes": "", "next": "C7 - Del's marker D at the lock-up, the next night", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, at his lock-up at night)", "where": "Del's LOCK-UP at the storage yard; the streets to the ROYAL FLAMINGO's back door and back", "unlocked": "Passing C5", "time": "Night (MISSIONS TEST: 3:00)", "length": "About 4 to 6 minutes", "limit": "2 minutes from the back door to the lock-up"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos, with a stopwatch.", "looks": "As in C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You, at the wheel.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "fay": {"gives": false, "role": "Fay \"Fingers\": waits at the lock-up with Del.", "looks": "As in C5.", "bubble": "Hot pink", "mumble": "Fast and high."}},
+    "steps": [
+     ["START MISSION by Del at his lock-up; the cutscene THE STOPWATCH.", "MISSIONS TEST: you start at the lock-up; the van is inside."],
+     ["Get in the armoured van.", ""],
+     ["Drive round to the Royal Flamingo's back door (the north side of the casino block) and stop there: the clock starts, and a patrol car across the street sees the van - 1 star.", ""],
+     ["Back into the lock-up and stop, inside 2 minutes and with no stars: the closing cutscene THE TIME.", "The time left shows with the step."]],
+    "fails": [
+     ["2 minutes are up", "TOO SLOW - TWO MINUTES ARE UP"],
+     ["The van is wrecked", "THE VAN IS WRECKED"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE STOPWATCH\"", "plays": "At START MISSION by Del.", "shots": [
+      ["Del's lock-up", "Del, Fay, Danny", "Del holds up a stopwatch; Fay leans on the van.", "CLOSE on Del", "5", "1, 2"],
+      ["Del's lock-up", "Danny", "Danny climbs into the van.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "CLOSING - \"THE TIME\"", "plays": "When you stop in the lock-up in time.", "shots": [
+      ["Del's lock-up", "Del, Fay", "Del clicks the stopwatch and stares at it.", "CLOSE on Del", "5", "6, 7"],
+      ["Del's lock-up", "Del", "He nods toward the strip's lights. Fade out.", "CLOSE on Del", "5", "8"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at his lock-up at the storage yard, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "Del's LOCK-UP (held open by the quest); the Royal Flamingo's back door on the north side of the casino block.", "people": "Del, Fay; the patrol car at the back door.", "music": "-", "new": "The heist night's getaway route (C8).", "other": "A wrecked van can be replaced: in STORY the depot's spare is gone, so take care."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
