@@ -129,3 +129,13 @@ questions before building it. Each answer is written here as it comes; the story
 114. The bookie who owes Joe (M04): "Lucky" Lou Fontaine - loud and flashy, forties, a pencil moustache, a green visor, a loud check jacket, a cigar.
 115. The fare who runs without paying (M01): a skinny punk kid in a neon windbreaker; no lines, just a shout; he runs through the airport car park and gives up the cash when caught.
 116. M01's morning starts at the Colony's door: Danny walks out of the hotel's front door; Joe's cab waits on the ring drive, Joe leaning on it; START by Joe.
+
+## The portraits' new style (October 2026)
+
+The owner sent a reference picture: a detailed pixel-art head and shoulders (a man with messy black hair, stubble, blue eyes, a denim
+shirt over a white T-shirt), transparent around him. Every portrait is redrawn in its style.
+
+117. Size: tall, about 40 x 64 pixels, head and shoulders like the reference; the dialogue box gets a taller portrait frame.
+118. Background: transparent pictures; the game draws the dark ground and the bubble-colour glow behind them (the owner's own pictures fit the same way).
+119. The reference sets the style only: every character keeps the look from the answers (Danny: thirties, buzz cut, scar, leather jacket).
+120. Three faces each, as before: calm, angry and smiling, picked by each line's mood.

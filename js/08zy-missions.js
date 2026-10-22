@@ -157,16 +157,17 @@ $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey
 /* ---------- dialogue: the portrait, the bubble, the mumble; the game waits ---------- */
 const MS_PICS = {};
 const msFace = mood => { const F = CHARACTER_TABLE.faces, w = String(mood || '').toLowerCase(); return F.angry.includes(w) ? 'angry' : F.smile.includes(w) ? 'smile' : 'calm'; };
-function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
-  const g = cv.getContext('2d'), W = cv.width; g.imageSmoothingEnabled = false;
-  g.fillStyle = '#12101c'; g.fillRect(0, 0, W, W);
+function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, 40 x 64, transparent - tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height; g.imageSmoothingEnabled = false;
+  g.fillStyle = '#12101c'; g.fillRect(0, 0, W, H);                // the night-dark ground and a glow in the speaker's bubble colour behind the picture
+  const gl = g.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, H * 0.6); gl.addColorStop(0, ch.bubble + '80'); gl.addColorStop(1, ch.bubble + '00'); g.fillStyle = gl; g.fillRect(0, 0, W, H);
   const src = ch.pic || (ch.id ? ch.id + '-' + msFace(mood) + '.png' : null);
   const img = src ? (MS_PICS[src] || (MS_PICS[src] = Object.assign(new Image(), { src: 'img/chars/' + src }))) : null;
-  if (img && img.complete && img.naturalWidth) { g.drawImage(img, 0, 0, W, W); return; }
+  if (img && img.complete && img.naturalWidth) { const k = Math.min(W / img.naturalWidth, H / img.naturalHeight), w = img.naturalWidth * k, h = img.naturalHeight * k; g.drawImage(img, (W - w) / 2, H - h, w, h); return; }   // fitted, standing on the frame's bottom
   if (img) img.onload = () => { if (MS.talk && MS.talk.ch === ch) msPortrait(ch, $('msPic'), MS.talk.lines[MS.talk.i].mood); if (MS_LIVE.cur && MS_LIVE.cur.ch === ch) msPortrait(ch, $('msLivePic'), MS_LIVE.cur.L.mood); };
-  g.fillStyle = ch.bubble; g.globalAlpha = 0.35; g.beginPath(); g.arc(W / 2, W * 0.4, W * 0.2, 0, TAU); g.fill();
-  g.beginPath(); g.ellipse(W / 2, W * 1.02, W * 0.42, W * 0.36, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
-  g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.3) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, W * 0.42);
+  g.fillStyle = ch.bubble; g.globalAlpha = 0.35; g.beginPath(); g.arc(W / 2, H * 0.36, W * 0.3, 0, TAU); g.fill();
+  g.beginPath(); g.ellipse(W / 2, H * 1.02, W * 0.48, H * 0.32, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
+  g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.42) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, H * 0.37);
 }
 function msSay(nums, done, o = {}) {       // nums: line numbers (1-based) of this mission; o.phone: a call (the others' names under PHONE)
   const lines = nums.map(n => MS.m.lines[n - 1]).filter(Boolean); if (!lines.length) { done && done(); return; }
