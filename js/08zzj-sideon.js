@@ -16,8 +16,16 @@ function sbCrown() {                       // the Crown as a side-on building: i
   const L = MAP.lm.find(l => l.t === 'crown'); if (!L) return null;
   return { id: 'crown', kind: 'crown', name: 'THE CROWN', floors: 10, home: -1, door: { x: L.x, y: L.y + 112, fx: 0, fy: 1 } };
 }
+function sbLoft() {                        // the Palm Heights loft as a quest's side-on building (M17): Sachs' office on floor 5, the flats locked
+  const L = SAFES.find(s => s.id === 'loft'); if (!L) return null;
+  return { id: 'loftq', kind: 'loft', name: 'PALM HEIGHTS LOFT', floors: 6, home: -1, door: L.door };
+}
 function sbLayout(h) {                    // js/08t svLayout: the halls, the doors with their firms' names, the stairs, the plants
   if (h.kind === 'vault') return vaultLayout(h);
+  if (h.kind === 'loft') return { W: 1400, plants: [380, 680, 960], up: f => f % 2 === 0 ? 1290 : 110, tint: '#2a2230', carpet: '#4a2a2a',
+    doors: [].concat(...Array.from({ length: h.floors }, (_, i) => { const f = i + 1;
+      return f === 5 ? [{ f, x: 300, n: 501, name: 'APT 501', shut: true }, { f, x: 1010, n: 509, name: 'SACHS & PARTNERS', crane: true, sachs: true, wide: true }]
+        : [240, 520, 820, 1110].map((x, k) => ({ f, x, n: f * 100 + k + 1, name: 'APT ' + (f * 100 + k + 1), shut: true })); })) };
   return withSeed(8821, () => {
     const W = 1400, doors = [], names = SB_NAMES.slice();
     const name = () => names.length ? names.splice(randi(0, names.length - 1), 1)[0] : 'SUITE';
@@ -155,14 +163,15 @@ function sbDraw(time) {
     g.fillStyle = '#1d1a2c'; g.fillRect(X(36), Y(96), 48 * s, 96 * s); g.strokeStyle = '#b8a0ff'; g.lineWidth = 2 * s; g.strokeRect(X(36), Y(96), 48 * s, 96 * s);
     if (R.crane) {
       svWindow(g, X(360), Y(140), 500 * s, 56 * s, s, time);
-      g.fillStyle = '#ffd23f'; g.font = 'bold ' + Math.round(12 * s) + 'px "Arial Black",Arial'; g.fillText('CRANE', X(235), Y(118)); g.fillText('DEVELOPMENT', X(235), Y(102));
+      g.fillStyle = '#ffd23f'; g.font = 'bold ' + Math.round(12 * s) + 'px "Arial Black",Arial'; const nm = R.door.sachs ? ['SACHS &', 'PARTNERS'] : ['CRANE', 'DEVELOPMENT']; g.fillText(nm[0], X(235), Y(118)); g.fillText(nm[1], X(235), Y(102));
       g.fillStyle = '#4a2a1a'; g.fillRect(X(160), Y(36), 150 * s, 36 * s); g.fillStyle = '#6a3a22'; g.fillRect(X(156), Y(40), 158 * s, 6 * s);   // the big desk
       g.fillStyle = '#2a1a12'; g.fillRect(X(220), Y(66), 30 * s, 30 * s); g.fillStyle = '#ffe9a8'; g.fillRect(X(290), Y(60), 6 * s, 20 * s); g.fillRect(X(284), Y(64), 18 * s, 6 * s);   // the chair, the lamp
       g.fillStyle = '#d8d4e8'; g.fillRect(X(360), Y(30), 110 * s, 30 * s); for (const [bx, bh] of [[368, 40], [384, 64], [404, 52], [424, 80], [444, 46]]) { g.fillStyle = '#9aa0ab'; g.fillRect(X(bx), Y(30 + bh), 12 * s, bh * s); }   // the scale model of the city
       const it = M && M.item; g.fillStyle = '#5a4a3a'; g.fillRect(X(560), Y(44), 120 * s, 6 * s); g.fillRect(X(570), Y(38), 6 * s, 38 * s); g.fillRect(X(664), Y(38), 6 * s, 38 * s);   // the drafting table
-      if (it && !it.got && R.door.name === it.room) { g.fillStyle = '#cfe6ff'; g.fillRect(X(580), Y(52), 80 * s, 8 * s); g.fillStyle = '#2f6fd8'; for (let k = 0; k < 4; k++) g.fillRect(X(586 + k * 18), Y(51), 10 * s, 1.5 * s);
+      if (it && !it.got && !it.safe && R.door.name === it.room) { g.fillStyle = '#cfe6ff'; g.fillRect(X(580), Y(52), 80 * s, 8 * s); g.fillStyle = '#2f6fd8'; for (let k = 0; k < 4; k++) g.fillRect(X(586 + k * 18), Y(51), 10 * s, 1.5 * s);
         g.strokeStyle = 'rgba(182,255,60,' + (0.5 + 0.5 * Math.sin(time * 5)).toFixed(2) + ')'; g.lineWidth = 3 * s; g.strokeRect(X(574), Y(62), 92 * s, 16 * s); }
       g.fillStyle = '#3a3f4c'; g.fillRect(X(760), Y(60), 56 * s, 60 * s); g.fillStyle = '#9aa0ab'; g.beginPath(); g.arc(X(788), Y(30), 9 * s, 0, TAU); g.fill();   // the safe
+      if (it && it.safe && !it.got && R.door.name === it.room) { g.strokeStyle = 'rgba(182,255,60,' + (0.5 + 0.5 * Math.sin(time * 5)).toFixed(2) + ')'; g.lineWidth = 3 * s; g.strokeRect(X(754), Y(66), 68 * s, 72 * s); }   // a quest's prize in the safe
     } else {
       svWindow(g, X(260), Y(126), 200 * s, 70 * s, s, time);
       for (const dx of [140, 330, 480]) { g.fillStyle = '#8a7a6a'; g.fillRect(X(dx), Y(30), 80 * s, 6 * s); g.fillRect(X(dx + 4), Y(24), 5 * s, 24 * s); g.fillRect(X(dx + 70), Y(24), 5 * s, 24 * s);

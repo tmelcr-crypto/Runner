@@ -297,3 +297,53 @@ MSCRIPT.m16 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { NEWS.ms = null; if (A && A.U) A.U.ms = false; MS_CAST.feud = null; } };
 })();
+
+/* ================= M17 - THE SAFE ================= */
+MSCRIPT.m17 = (() => {
+  const S1 = STORY1, S3 = STORY3, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  function setup(A) {
+    SKY.hour = N().hour; S3.nina(A); const S = NEWS.S;
+    P.x = S.inside.x; P.y = S.inside.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;        // MISSIONS TEST: in the newsroom, a car at the kerb
+    const r0 = S1.road(S.door.x, S.door.y + 80), k0 = kerbBy(r0.x + 60, r0.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
+    A.h = sbLoft(); const d = A.h.door; A.at = at(d.x + d.fx * 12, d.y + d.fy * 12);
+    SB.ms = { for: 'loft', open: true, liftTop: N().liftTop, spotted: false,                // the helper's work: the alarm cut, Sachs' door left open; his bodyguards on 3, 4 and 5
+      guards: [sbGuard(3, 170, 1240, 700, 1), sbGuard(4, 170, 1240, 400, -1), sbGuard(5, 420, 1240, 900, -1)],
+      item: { fl: 5, room: 'SACHS & PARTNERS', x: 788, safe: true, label: 'OPEN THE SAFE', toast: "SACHS' FILES - THE ORIGINALS", got: false } };
+  }
+  const steps = [
+    S3.meet('THE SAFE'),
+    { enter(A) { MS.guide = A.at; MS.mark = () => A.at; },                                     // GO INTO the loft building
+      tick(A) { if (SV.on && SV.h.id === 'loftq') { svToast('THE ALARM IS OFF'); msLive([5], { now: true }); return true; }
+        if (!MS.start && !P.car) MS.start = { at: () => A.at, label: 'PALM HEIGHTS LOFT', go2: 'GO IN', go: () => sbUse(A.h) }; return false; },
+      info: A => SV.on ? 'INSIDE' : Math.round(dist(me().x, me().y, A.at.x, A.at.y) / M) + ' M TO THE LOFT',
+      jump(A) { if (P.car) exitCar(true); P.x = A.at.x; P.y = A.at.y; P.vx = P.vy = 0; MS.start = null; if (!SV.on) sbUse(A.h); } },
+    { enter(A) { MS.guide = null; MS.mark = null; },                                            // OPEN Sachs' safe on floor 5, unseen
+      tick: () => { if (SB.ms.item.got && !SB.ms.said) { SB.ms.said = true; msLive([6], { now: true }); } return SB.ms.item.got; },
+      info: () => SV.on ? (SV.fl === 5 ? "SACHS' OFFICE: THE WIDE DOOR" : 'FLOOR ' + SV.fl + ' - SACHS IS ON 5') : 'GO BACK IN',
+      jump() { SB.ms.item.got = true; } },
+    { enter(A) { MS.mark = null; },                                                             // GET OUT: Sachs, warned, runs for his car
+      tick(A) { if (SV.on || A.out) return !!A.fin; A.out = true;
+        const d = A.h.door, r = S1.road(d.x + d.fx * 80, d.y + d.fy * 80), k = kerbBy(r.x + 40, r.y);
+        A.car = msCar('limo', k.x, k.y, k.ang, '#14161d'); A.sachs = msPed(d.x + d.fx * 20 + 30, d.y + d.fy * 20, 0, Object.assign(S1.look('sachs'), { msName: 'sachs', step: S1.runStep(0.7), spare: true, shield: true }));
+        A.sachs.route = [allyDoor(A.car, A.sachs)]; A.sachs.ri = 0;
+        msCut('HE RUNS', () => { A.fin = true; }); return false; },
+      info: () => SV.on ? 'OUT TO THE STREET' : '',
+      jump(A) { if (SV.on) closeSide(); } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.nina && A.nina.dead) return F.ninaDead;
+    if (SB.ms && SB.ms.spotted) return F.spotted;
+    return '';
+  }
+  const cuts = {
+    'THE SAFE': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.nina, line: [1, 2], enter: () => { face(A.nina, P); P.ang = Math.atan2(A.nina.y - P.y, A.nina.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [3, 4], fadeOut: true }],
+    'HE RUNS': A => [
+      { dur: 4, cam: 'CLOSE', at: () => A.sachs, line: [7], enter: () => { face(A.sachs, A.car); },
+        tick: () => { const p = A.sachs; if (p.ri >= 1 && peds.includes(p)) { peds.splice(peds.indexOf(p), 1); A.car.driver = 'ai'; foeless(A); } } },
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [8], fadeOut: true }]
+  };
+  function foeless(A) { const c = A.car, r = S1.road(c.x + Math.cos(c.ang) * 900, c.y + Math.sin(c.ang) * 900); c.fc = { mode: 'flee', to: [r], speed: 120, crew: 0, gun: -1, group: 'sachs', cool: 9, tgT: 0, out: false, gone: false }; foeCarGo(c); }
+  return { setup, steps, fail, cuts, cleanup() { NEWS.ms = null; SB.ms = null; } };
+})();

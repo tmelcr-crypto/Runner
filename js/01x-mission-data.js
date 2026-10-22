@@ -1740,7 +1740,54 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The storage yard", "Danny (on the phone)", "He calls Nina. Fade out.", "CLOSE on Danny", "6", "10, 11"]]}],
     "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
     "failing": "Nina's marker N again (retry).",
-    "notes": {"places": "The LOCK-UP STORAGE yard: Sachs' unit is on the street side, the furthest from Del's; held open for the quest.", "people": "Sachs' men; Kessler's gang (finished) or Kessler on the phone (spared).", "music": "-", "new": "Two gangs can fight each other (the three-way fight).", "other": "Choice 1 changes the middle: test both with the KESSLER switch on the MISSIONS list."}}}
+    "notes": {"places": "The LOCK-UP STORAGE yard: Sachs' unit is on the street side, the furthest from Del's; held open for the quest.", "people": "Sachs' men; Kessler's gang (finished) or Kessler on the phone (spared).", "music": "-", "new": "Two gangs can fight each other (the three-way fight).", "other": "Choice 1 changes the middle: test both with the KESSLER switch on the MISSIONS list."}}},
+  {"id": "m17", "no": "M17", "title": "THE SAFE", "giver": "nina", "start": "marker", "where": "BAY TV's newsroom; the PALM HEIGHTS LOFT (inside, side-on), floor 5: SACHS & PARTNERS",
+   "story": "The copies were bait: the original files are in Sachs' safe, in his office on floor 5 of the Palm Heights loft. Danny breaks in at night past Sachs' bodyguards - and finds the alarm already cut and Sachs' door standing open: the unseen helper has been there first. With the originals in hand he gets out, just as Sachs, warned, runs for his car.",
+   "chars": ["nina", "danny", "sachs", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO NINA"},
+     {"word": "GO TO", "show": "GO INTO THE PALM HEIGHTS LOFT"},
+     {"word": "OPEN", "show": "OPEN SACHS' SAFE - FLOOR 5 - UNSEEN"},
+     {"word": "GET OUT", "show": "GET OUT TO THE STREET"}],
+   "lines": [
+     {"who": "nina", "text": "The copies were bait. The originals are in Sachs' safe - his office in the Palm Heights loft.", "mood": "quick", "when": "The safe, shot 1"},
+     {"who": "nina", "text": "His bodyguards walk the halls at night. Stay out of their torchlight.", "mood": "hard", "when": "The safe, shot 1"},
+     {"who": "danny", "text": "And the alarm?", "mood": "calm", "when": "The safe, shot 2"},
+     {"who": "nina", "text": "That's the part I can't help with. Good luck.", "mood": "dry", "when": "The safe, shot 2"},
+     {"who": "danny", "text": "The alarm's off... Somebody's been here before me.", "mood": "low", "when": "LIVE - going in", "live": true},
+     {"who": "danny", "text": "The originals. Now out - quietly.", "mood": "low", "when": "LIVE - the safe open", "live": true},
+     {"who": "sachs", "text": "Drive! The airport - now!", "mood": "panicked", "when": "He runs, shot 1"},
+     {"who": "danny", "text": "Run, Sachs. You won't get far.", "mood": "cold", "when": "He runs, shot 2"}],
+   "fails": {"spotted": "SACHS' BODYGUARDS SAW YOU", "ninaDead": "NINA PARK IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 23, "liftTop": 2},
+   "reward": {"cash": 5000, "vehicle": "", "clothes": "", "next": "M18 - Nina calls (the next morning)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 3; the loft side-on with Sachs' bodyguards, answer 145; the stealth, answer 141) - change anything you like.",
+    "glance": {"kind": "story", "given": "NINA PARK - her marker N in BAY TV's newsroom", "where": "The PALM HEIGHTS LOFT tower: inside, the side-on view", "unlocked": "After M16", "time": "Night (MISSIONS TEST: 23:00)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "nina": {"gives": true, "role": "Nina Park.", "looks": "Thirties, a sharp black bob, a mustard blazer with big shoulders, small gold earrings.", "bubble": "Amber", "mumble": "Quick and clear."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sachs": {"gives": false, "role": "Leonard Sachs: warned, he runs for his car.", "looks": "Round and cheerful, a bow tie, a pocket watch.", "bubble": "Sage green", "mumble": "Soft and slow."},
+     "craneman": {"gives": false, "role": "Sachs' three bodyguards on floors 3, 4 and 5, with torches.", "looks": "Charcoal suits.", "bubble": "Silver", "mumble": "Flat and low."}},
+    "steps": [
+     ["Talk to Nina in BAY TV's newsroom (marker N); the opening cutscene THE SAFE.", "MISSIONS TEST: you start in the newsroom, a car at the kerb outside."],
+     ["Go into the Palm Heights loft (GO IN at its door): the side-on view. The alarm is off - the helper's work.", ""],
+     ["Up to floor 5 (the lift goes to floor 2 at night; the stairs from there) past the bodyguards: seen for 2 s, the quest fails. Hide (DOWN) in a doorway or behind a plant. On floor 5 the wide door SACHS & PARTNERS stands open: OPEN THE SAFE.", "The flats' doors are locked."],
+     ["Out to the street (the ground floor's left end); the cutscene HE RUNS: Sachs dives into his limousine.", ""]],
+    "fails": [
+     ["A bodyguard sees you for 2 s", "SACHS' BODYGUARDS SAW YOU"],
+     ["Nina is killed", "NINA PARK IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE SAFE\"", "plays": "When you talk to Nina.", "shots": [
+      ["BAY TV's newsroom, at night", "Nina, Danny", "Nina spreads the copies on her desk.", "CLOSE on Nina", "6", "1, 2"],
+      ["BAY TV's newsroom", "Danny, Nina", "Danny heads out. Fade out.", "CLOSE on Danny", "5", "3, 4"]]},
+     {"title": "CLOSING - \"HE RUNS\"", "plays": "When you come out with the files.", "shots": [
+      ["The loft's door", "Sachs", "Sachs runs to his black limousine.", "CLOSE on Sachs", "4", "7"],
+      ["The loft's door", "Danny", "The limousine roars off; Danny watches it go. Fade out.", "CLOSE on Danny", "5", "8"]]}],
+    "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
+    "failing": "Nina's marker N again (retry).",
+    "notes": {"places": "The PALM HEIGHTS LOFT, side-on for the quest: six floors, Sachs' office on 5. After M18 it is Danny's (STORY).", "people": "Sachs and three bodyguards.", "music": "-", "new": "Helper 2: the alarm cut, Sachs' door left open.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
