@@ -347,3 +347,62 @@ MSCRIPT.m17 = (() => {
   function foeless(A) { const c = A.car, r = S1.road(c.x + Math.cos(c.ang) * 900, c.y + Math.sin(c.ang) * 900); c.fc = { mode: 'flee', to: [r], speed: 120, crew: 0, gun: -1, group: 'sachs', cool: 9, tgT: 0, out: false, gone: false }; foeCarGo(c); }
   return { setup, steps, fail, cuts, cleanup() { NEWS.ms = null; SB.ms = null; } };
 })();
+
+/* ================= M18 - CLOSING ARGUMENT ================= */
+MSCRIPT.m18 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  function jetMesh() {                      // Sachs' private jet on Skyport's apron: white, a gold cheat line, engines at the tail, a T-tail
+    const g = new THREE.Group(), C = c => new THREE.MeshLambertMaterial({ color: c }), white = C('#f4f6fa'), grey = C('#9aa0ab'), gold = C('#d4a020'), dark = C('#1a1d26');
+    const box = (w, h, d, m, x, y, z) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); g.add(b); return b; };
+    box(190, 22, 22, white, 0, 18, 0); box(30, 14, 16, white, 108, 16, 0); box(180, 3, 23, gold, 0, 14, 0); box(150, 5, 23.2, dark, 6, 22, 0);   // the body, the nose, the cheat line, the windows
+    box(40, 3, 170, grey, -10, 12, 0); box(26, 12, 12, grey, -70, 24, 18); box(26, 12, 12, grey, -70, 24, -18);   // the wings, the engines
+    box(24, 36, 4, white, -88, 40, 0); box(20, 3, 60, white, -94, 58, 0);   // the T-tail
+    for (const z of [-40, 40]) box(4, 10, 4, dark, -8, 5, z); box(4, 10, 4, dark, 90, 5, 0);   // the wheels
+    g.traverse(o => { if (o.isMesh) o.userData.own = true; }); return g;
+  }
+  function setup(A) {
+    SKY.hour = N().hour; const ap = MAP.airport.apron;
+    A.jet = at(ap[0] + 220, ap[3] - 160); A.jetA = 0;
+    A.jm = jetMesh(); A.jm.position.set(A.jet.x, groundH(A.jet.x, A.jet.y), A.jet.y); A.jm.rotation.y = -A.jetA; scene.add(A.jm);
+    const st = S1.road(ap[2] + 2300, ap[1] - 200); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: east of Skyport, a car at the kerb
+    const k0 = kerbBy(st.x + 60, st.y); A.mycar = msCar('sports', k0.x, k0.y, k0.ang, '#3d6fa8');
+    const r = S1.road(ap[2] + 700, (ap[1] + ap[3]) / 2), k = kerbBy(r.x, r.y);                  // Sachs' limousine at the terminal's drop-off
+    A.limo = msFoeCar('limo', k.x, k.y, k.ang, { mode: 'park', crew: 1, gun: null, group: 'sachs', speed: N().limoSpeed, color: '#14161d', to: [A.jet] });
+    A.left = N().jetT;
+  }
+  function board(A, dt) { A.left -= dt; msBar('BOARDING', 1 - A.left / N().jetT, '#ffd23f'); }
+  const steps = [
+    msPhone('nina', [1, 2, 3]),                                                                  // the call
+    { enter(A) { MS.guide = () => A.limo; MS.mark = () => A.limo; },                            // GO TO Skyport
+      tick(A, dt) { board(A, dt); return dist(me().x, me().y, A.limo.x, A.limo.y) < N().spotM * M; },
+      info: A => Math.round(dist(me().x, me().y, A.limo.x, A.limo.y) / M) + " M TO SACHS' LIMOUSINE",
+      jump(A) { const c = A.mycar, r = S1.road(A.limo.x + 400, A.limo.y); if (P.car) exitCar(true); c.x = r.x; c.y = r.y; c.ang = r.a; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; enterCar(c); } },
+    { enter(A) { const v = A.limo; if (v.fc.mode === 'park') { v.fc.wait = 0.5; foeCarGo(v, 'flee'); msLive([4]); } },   // CHASE: stop the limousine before the jet leaves
+      tick(A, dt) { board(A, dt); const v = A.limo; if (v.dead || v.hp > v.maxhp * N().bailHp / 100) return false;
+        if (!A.caught) { A.caught = true; v.msDrive = null; v.driver = null; v.thr = 0; v.str = 0; v.hb = true; v.fc.crew = 0; msBarOff();
+          const q = S1.free(v.x, v.y, 30); A.sachs = msPed(q.x, q.y, 0, Object.assign(S1.look('sachs'), { msName: 'sachs', step: S1.stay, spare: true, shield: true }));
+          msCut('CORNERED', () => { A.done = true; }); }
+        return !!A.done; },
+      info: A => Math.round(dist(me().x, me().y, A.limo.x, A.limo.y) / M) + ' M · THE LIMOUSINE ' + Math.round(100 * A.limo.hp / A.limo.maxhp) + '%',
+      jump(A) { const v = A.limo; v.hp = v.maxhp * 0.3; } },
+    { enter(A) { msBarOff(); MS.guide = null; A.pol = serviceDoor('police', P.x, P.y); let b = null; for (const h of SAFES) if (!b || dist(h.door.x, h.door.y, P.x, P.y) < dist(b.door.x, b.door.y, P.x, P.y)) b = h;   // CHOOSE: the police, or your safehouse
+        A.home = at(b.door.x + b.door.fx * 14, b.door.y + b.door.fy * 14); MS.mark = () => Math.floor(gameT / 2) % 2 ? A.pol : A.home; msLive([8], { phone: true }); },
+      tick(A) {
+        if (!A.choice) { const o = me(); if (dist(o.x, o.y, A.pol.x, A.pol.y) < N().doorM * M) { A.choice = 'FILES TO THE POLICE'; msLive([9], { now: true, done: () => { A.fin = true; } }); }
+          else if (dist(o.x, o.y, A.home.x, A.home.y) < N().doorM * M) { A.choice = 'FILES KEPT'; msLive([10], { now: true, done: () => { A.fin = true; } }); } }
+        return !!A.fin; },
+      info: A => A.choice || Math.round(dist(me().x, me().y, A.pol.x, A.pol.y) / M) + ' M TO THE POLICE · ' + Math.round(dist(me().x, me().y, A.home.x, A.home.y) / M) + ' M TO YOUR SAFEHOUSE',
+      jump(A) { if (P.car) exitCar(true); P.x = A.pol.x; P.y = A.pol.y; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (!A.caught && A.limo.dead) return F.sachsDead;
+    if (!A.caught && MS.k >= 1 && A.left <= 0) return F.jet;
+    return '';
+  }
+  const cuts = {
+    'CORNERED': A => [
+      { dur: 7, cam: 'CLOSE', at: () => A.sachs, line: [5, 6], enter: () => { face(A.sachs, P); } },
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [7], enter: () => { const k = S1.free(A.sachs.x + 60, A.sachs.y, 20); A.cop = msCar('police', k.x, k.y, 0, null); }, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A && A.jm) { scene.remove(A.jm); A.jm.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } }); } } };
+})();

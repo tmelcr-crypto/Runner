@@ -1787,7 +1787,52 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The loft's door", "Danny", "The limousine roars off; Danny watches it go. Fade out.", "CLOSE on Danny", "5", "8"]]}],
     "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
     "failing": "Nina's marker N again (retry).",
-    "notes": {"places": "The PALM HEIGHTS LOFT, side-on for the quest: six floors, Sachs' office on 5. After M18 it is Danny's (STORY).", "people": "Sachs and three bodyguards.", "music": "-", "new": "Helper 2: the alarm cut, Sachs' door left open.", "other": "-"}}}
+    "notes": {"places": "The PALM HEIGHTS LOFT, side-on for the quest: six floors, Sachs' office on 5. After M18 it is Danny's (STORY).", "people": "Sachs and three bodyguards.", "music": "-", "new": "Helper 2: the alarm cut, Sachs' door left open.", "other": "-"}}},
+  {"id": "m18", "no": "M18", "title": "CLOSING ARGUMENT", "giver": "nina", "start": "phone", "where": "A call from Nina; Skyport (the terminal's drop-off, the apron); a police station or your safehouse",
+   "story": "Sachs has a seat on a private jet at Skyport. Danny runs his limousine down before the plane leaves; cornered, Sachs blurts it out: Crane's driver has a ledger - every payment, every name - and Crane has been looking for it for a year. The airport police take Sachs. Choice 2: Danny drives Sachs' files to a police station, or hides them at his safehouse.",
+   "chars": ["nina", "danny", "sachs"],
+   "steps": [
+     {"word": "TALK TO", "show": "ANSWER THE PHONE - NINA PARK"},
+     {"word": "GO TO", "show": "GET TO SKYPORT - SACHS' LIMOUSINE"},
+     {"word": "CHASE", "show": "STOP SACHS' LIMOUSINE BEFORE THE JET LEAVES"},
+     {"word": "CHOOSE", "show": "THE FILES: A POLICE STATION - OR YOUR SAFEHOUSE"}],
+   "lines": [
+     {"who": "nina", "text": "Danny! Sachs bought a seat on a private jet - Skyport, this morning.", "mood": "quick", "when": "The call"},
+     {"who": "nina", "text": "If he gets on that plane, those files are all we'll ever have.", "mood": "hard", "when": "The call"},
+     {"who": "danny", "text": "He won't get on it.", "mood": "cold", "when": "The call"},
+     {"who": "sachs", "text": "Faster, you fool! The plane won't wait!", "mood": "panicked", "when": "LIVE - the chase", "live": true},
+     {"who": "sachs", "text": "All right! All right... You want Crane? Crane's driver has a ledger.", "mood": "panicked", "when": "Cornered, shot 1"},
+     {"who": "sachs", "text": "Every payment, every name. Crane's been looking for it for a year.", "mood": "panicked", "when": "Cornered, shot 1"},
+     {"who": "danny", "text": "His driver... Mateo.", "mood": "shaken", "when": "Cornered, shot 2"},
+     {"who": "nina", "text": "The airport police have Sachs. Now the files, Danny: the police - or somewhere safe?", "mood": "quick", "when": "LIVE - after the cutscene (phone)", "live": true},
+     {"who": "nina", "text": "The police, then. Let's hope somebody honest reads them.", "mood": "warm", "when": "LIVE - at the police station", "live": true},
+     {"who": "nina", "text": "Keep them close. Files like that are worth more than money.", "mood": "dry", "when": "LIVE - at your safehouse", "live": true}],
+   "fails": {"jet": "SACHS' JET TOOK OFF", "sachsDead": "SACHS IS DEAD - AND WHAT HE KNEW", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 9, "jetT": 240, "spotM": 220, "bailHp": 45, "doorM": 8, "limoSpeed": 105},
+   "reward": {"cash": 6000, "vehicle": "", "clothes": "", "next": "Chapter 4 - THE WAR (Rosa calls: M19)", "place": "The PALM HEIGHTS LOFT (Sachs' office loft) - Danny's, free", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 3; Choice 2 by where you drive, answer 150; the private jet, answer 157) - change anything you like.",
+    "glance": {"kind": "story", "given": "NINA PARK - a call on the brick phone", "where": "Skyport: the terminal's drop-off and the apron; then a police station or your safehouse", "unlocked": "A game day after M17", "time": "Morning (MISSIONS TEST: 09:00)", "length": "About 5 minutes", "limit": "The jet leaves 4 min after the call (the BOARDING bar)"},
+    "chars": {
+     "nina": {"gives": true, "role": "Nina Park.", "looks": "Thirties, a sharp black bob, a mustard blazer with big shoulders, small gold earrings.", "bubble": "Amber", "mumble": "Quick and clear."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sachs": {"gives": false, "role": "Leonard Sachs: running for his jet; cornered, he talks.", "looks": "Round and cheerful, a bow tie, a pocket watch.", "bubble": "Sage green", "mumble": "Soft and slow."}},
+    "steps": [
+     ["The phone rings (NINA): ANSWER, or E. The BOARDING bar starts.", "MISSIONS TEST: you start east of Skyport, a sports car at the kerb."],
+     ["Get to Skyport: Sachs' black limousine at the terminal's drop-off.", "Within 220 m of it, it races for the private jet on the apron."],
+     ["Ram the limousine till it is badly hurt (under 45%): it stops; the cutscene CORNERED - Sachs talks, the airport police pull up.", "Don't blow it up: Sachs would die with what he knows."],
+     ["Choice 2 - drive the files to a police station's door (TO THE POLICE) or your safehouse's door (KEPT); the marker blinks between the nearest of each. Nina's call; the quest is passed with the choice.", "MISSIONS TEST: the SACHS' FILES switch on the MISSIONS list follows what you did."]],
+    "fails": [
+     ["The BOARDING bar fills before you stop him", "SACHS' JET TOOK OFF"],
+     ["The limousine is destroyed with Sachs in it", "SACHS IS DEAD - AND WHAT HE KNEW"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"CORNERED\"", "plays": "When the limousine stops.", "shots": [
+      ["By the limousine", "Sachs, Danny", "Sachs stumbles out, hands up, and talks.", "CLOSE on Sachs", "7", "5, 6"],
+      ["By the limousine", "Danny; an airport police car", "The airport police pull up. Fade out.", "CLOSE on Danny", "5", "7"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "NINA PARK calls a game day after M17"},
+    "failing": "Nina calls again (retry).",
+    "notes": {"places": "The private jet: a new model on Skyport's apron (for this quest). After M18 the PALM HEIGHTS LOFT is Danny's, free (STORY; FREE ROAM still sells it).", "people": "Sachs; the airport police.", "music": "-", "new": "Mateo's trail, clue 4: the ledger. Choice 2.", "other": "Chapter 3 ends; chapter 4 opens with Rosa's call (M19). The files to the police: Holloway buries them (a star at the start of chapter 4's quests until M23). Kept: Danny blackmails Pratt (M21 without a fight)."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
