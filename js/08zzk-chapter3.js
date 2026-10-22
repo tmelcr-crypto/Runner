@@ -364,7 +364,7 @@ MSCRIPT.m18 = (() => {
     SKY.hour = N().hour; const ap = MAP.airport.apron;
     A.jet = at(ap[0] + 220, ap[3] - 160); A.jetA = 0;
     A.jm = jetMesh(); A.jm.position.set(A.jet.x, groundH(A.jet.x, A.jet.y), A.jet.y); A.jm.rotation.y = -A.jetA; scene.add(A.jm);
-    const st = S1.road(ap[2] + 2300, ap[1] - 200); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: east of Skyport, a car at the kerb
+    const st = S1.road(ap[2] + 4500, ap[1] - 600); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: east of Skyport, a car at the kerb
     const k0 = kerbBy(st.x + 60, st.y); A.mycar = msCar('sports', k0.x, k0.y, k0.ang, '#3d6fa8');
     const r = S1.road(ap[2] + 700, (ap[1] + ap[3]) / 2), k = kerbBy(r.x, r.y);                  // Sachs' limousine at the terminal's drop-off
     A.limo = msFoeCar('limo', k.x, k.y, k.ang, { mode: 'park', crew: 1, gun: null, group: 'sachs', speed: N().limoSpeed, color: '#14161d', to: [A.jet] });
