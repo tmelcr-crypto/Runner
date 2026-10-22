@@ -272,11 +272,13 @@ let casT = 0;
 function gfxCasino(time) {
   const dt = Math.min(0.1, Math.max(0, time - casT)); casT = time; if (!CASM) return;
   const fade = (v, inside, key) => { CX[key] += ((inside ? 0.08 : 1) - CX[key]) * Math.min(1, dt * 6); if (Math.abs(CX[key] - v.op) > 0.003) { v.op = CX[key]; for (const m of v.mats) { m.opacity = CX[key]; m.depthWrite = CX[key] > 0.97; } } };
-  const V = CZ.view; if (V && CZ.lm.mesh) { fade(V, CX.inC, 'roof'); const k = Math.floor(time / 0.6) % 2 === 0; V.legA.visible = k; V.legB.visible = !k; V.neonMat.color.setScalar(stripNight() || SKY.night ? 1 : 0.8); }
+  const V = CZ.view; if (V && CZ.lm.mesh) { fade(V, CX.inC, 'roof'); const k = Math.floor(time / 0.6) % 2 === 0; V.legA.visible = k; V.legB.visible = !k; V.neonMat.color.setScalar(stripDark() ? 0.05 : stripNight() || SKY.night ? 1 : 0.8); }
+  for (const v of [V, CZ.cview]) if (v && v.dark !== stripDark()) { v.dark = stripDark(); for (const m of v.mats) if (m.map) m.color.setScalar(v.dark ? 0.08 : 1); }   // the signs on the roofs go out too
+  const L = CZ.stripLit; if (L && CZ.slm && CZ.slm.mesh && L.dark !== stripDark()) { L.dark = stripDark(); const k = L.dark ? 0.06 : 1; L.glow.color.setScalar(k); for (const m of L.signs) m.color.setScalar(k); }   // the substation blown: the bars' neon off
   const K = CZ.cview; if (!K || !CZ.clm.mesh) return;
   fade(K, CX.inK, 'croof');
-  const open = clubOn() && clubOpen(), beat = Math.floor(time * 124 / 60);
-  K.ecgMat.color.setScalar(open ? 0.35 + 0.65 * Math.pow(Math.max(0, Math.cos((time * 124 / 60 % 1) * Math.PI)), 6) : 0.25);
+  const open = clubOn() && clubOpen() && !stripDark(), beat = Math.floor(time * 124 / 60);
+  K.ecgMat.color.setScalar(stripDark() ? 0.04 : open ? 0.35 + 0.65 * Math.pow(Math.max(0, Math.cos((time * 124 / 60 % 1) * Math.PI)), 6) : 0.25);
   if (beat !== CX.beat) { CX.beat = beat;                                    // the tiles: a new pattern on every beat (dark while the club is shut)
     const col = K.floorGeo.attributes.color, per = col.count / (K.n * K.mz), c = new THREE.Color();
     for (let i = 0; i < K.n; i++) for (let k = 0; k < K.mz; k++) { const t = i * K.mz + k, on = open && ((i + k + beat) % 3 === 0 || (i * 7 + k * 3 + beat) % 5 === 0);

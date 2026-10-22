@@ -105,7 +105,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R) * blastHurt()); }   // fireproof: less (js/08n)
   blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
-  blastTargets(x, y, R, src); if (byP) { baseHurt(x, y); prisonHurt(x, y); casinoHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
+  blastTargets(x, y, R, src); substationHurt(x, y, R); if (byP) { baseHurt(x, y); prisonHurt(x, y); casinoHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }

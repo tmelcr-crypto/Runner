@@ -1433,7 +1433,50 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Del's lock-up", "Del", "He nods toward the strip's lights. Fade out.", "CLOSE on Del", "5", "8"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at his lock-up at the storage yard, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "Del's LOCK-UP (held open by the quest); the Royal Flamingo's back door on the north side of the casino block.", "people": "Del, Fay; the patrol car at the back door.", "music": "-", "new": "The heist night's getaway route (C8).", "other": "A wrecked van can be replaced: in STORY the depot's spare is gone, so take care."}}}
+    "notes": {"places": "Del's LOCK-UP (held open by the quest); the Royal Flamingo's back door on the north side of the casino block.", "people": "Del, Fay; the patrol car at the back door.", "music": "-", "new": "The heist night's getaway route (C8).", "other": "A wrecked van can be replaced: in STORY the depot's spare is gone, so take care."}}},
+  {"id": "c7", "no": "C7", "title": "LIGHTS OUT", "giver": "del", "start": "marker", "where": "Del's lock-up; the strip's substation west of the casino block",
+   "story": "On the heist night the strip has to go dark. Fay gives Danny three charges with a radio trigger; he slips into the substation behind the strip while its two night guards walk their round, sets a charge on every transformer and gets away without being seen. Del calls: tomorrow night they blow.",
+   "chars": ["del", "danny", "fay"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL AT THE LOCK-UP"},
+     {"word": "GO TO", "show": "GO TO THE SUBSTATION WEST OF THE CASINO STRIP"},
+     {"word": "PLANT", "show": "PLANT A CHARGE ON EACH TRANSFORMER - UNSEEN"},
+     {"word": "GET AWAY", "show": "GET AWAY FROM THE SUBSTATION - UNSEEN"}],
+   "lines": [
+     {"who": "fay", "text": "Three charges, one radio trigger. Stick one on each transformer - the strip goes black.", "mood": "fast", "when": "Lights out, shot 1"},
+     {"who": "del", "text": "Two night guards walk round in there. If they see you, they'll find the charges - and we're finished.", "mood": "nervous", "when": "Lights out, shot 1"},
+     {"who": "danny", "text": "They won't see me.", "mood": "calm", "when": "Lights out, shot 2"},
+     {"who": "danny", "text": "Three for three. Time to go.", "mood": "calm", "when": "LIVE - the last charge set", "live": true},
+     {"who": "del", "text": "You did it? Clean?", "mood": "nervous", "when": "Tomorrow, the phone"},
+     {"who": "danny", "text": "Clean. Nobody saw a thing.", "mood": "calm", "when": "Tomorrow, the phone"},
+     {"who": "fay", "text": "Then tomorrow night - boom, dark, and the vault's ours.", "mood": "cocky", "when": "Tomorrow, the phone"}],
+   "fails": {"spotted": "SPOTTED - THE GUARDS WILL FIND THE CHARGES", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 1, "subR": 140, "seeM": 5, "cone": 45, "plantR": 30, "awayM": 60},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "C8 - Del's marker D at the lock-up, the next night: THE VAULT", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line; the substation, answer 140; stealth, answer 141) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, at his lock-up at night)", "where": "Del's LOCK-UP; the SUBSTATION on the green strip west of the casino block", "unlocked": "Passing C6", "time": "Night (MISSIONS TEST: 1:00)", "length": "About 4 to 6 minutes", "limit": "Seen by a guard: 2 seconds to get out of his sight"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos: worried about the guards.", "looks": "As in C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You - alone in the yard.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "fay": {"gives": false, "role": "Fay \"Fingers\": made the charges.", "looks": "As in C5.", "bubble": "Hot pink", "mumble": "Fast and high."}},
+    "steps": [
+     ["START MISSION by Del at his lock-up; the cutscene LIGHTS OUT.", "MISSIONS TEST: you start at the lock-up, a car by the door."],
+     ["Drive to the SUBSTATION (the fenced yard across the road from THE PULSE). Tonight its gate stands open for the guards' round.", ""],
+     ["Plant a charge on each of the three transformers (PLANT, at the tank's side). Two guards walk round the yard with torches: seen, a \"!\" and a rising tone - out of his sight within 2 seconds (behind a transformer, out of his beam) or the quest fails.", "Do not fight them: a guard down raises the alarm and the charges are found."],
+     ["Get 60 m away from the yard, still unseen; the closing call TOMORROW.", ""]],
+    "fails": [
+     ["A guard sees you for 2 seconds, or a guard is hurt", "SPOTTED - THE GUARDS WILL FIND THE CHARGES"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"LIGHTS OUT\"", "plays": "At START MISSION by Del.", "shots": [
+      ["Del's lock-up", "Fay, Del, Danny", "Fay hands Danny three bricks with blinking lights.", "CLOSE on Fay", "5", "1, 2"],
+      ["Del's lock-up", "Danny", "Danny pockets them.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "CLOSING - \"TOMORROW\" (the phone)", "plays": "When you are 60 m away, unseen.", "shots": [
+      ["The substation from afar", "-", "The yard in the dark, three red lights blinking.", "WIDE", "6", "5, 6, 7"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at his lock-up, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "The SUBSTATION (permanent, both modes; answer 140): its gate open for the night guards in this quest.", "people": "Del, Fay; two night guards with torches.", "music": "-", "new": "C8 sets the charges off: the strip goes dark for the heist.", "other": "In FREE ROAM any blast in the yard puts the strip out for a minute or two."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

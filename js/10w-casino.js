@@ -233,7 +233,7 @@ function stripBars() {                    // the beachfront buildings across the
   return CZ.bars;
 }
 function makeStrip() {
-  const g = new THREE.Group(), T = new GeoBuilder(), G = new GeoBuilder(), cx = CZ.slm.cx, cy = CZ.slm.cy, X = x => x - cx, Z = y => y - cy, own = [];
+  const g = new THREE.Group(), T = new GeoBuilder(), G = new GeoBuilder(), cx = CZ.slm.cx, cy = CZ.slm.cy, X = x => x - cx, Z = y => y - cy, own = [], signs = [];
   for (const b of stripBars()) {
     const r = b.r, x = X(r.x), z = Z(r.cy), c = _C(b.col), half = Math.min(r.h / 2 - 6, 40), xa = X(r.x), xb = X(r.x + r.w), za = Z(r.y), zb = Z(r.y + r.h), top = SIDE_H + Math.max(r.H || 40, GFH + Math.max(1, Math.round(((r.H || 40) - GFH) / FLOOR)) * FLOOR) + 1.6;   // the roof as the city draws it (whole floors)
     box5(G, x - 0.8, 15, z - half, x - 0.2, 16.4, z + half, c);                                    // the neon band along the front
@@ -241,9 +241,11 @@ function makeStrip() {
     box5(T, x - 9, 13, z - 10, x, 14.4, z + 10, c);                                                 // an awning over it
     box5(T, x - 34, 30, z + 10, x, 31.4, z + 11, _C('#2a2d38'));                                    // the blade sign's bracket
     for (const [a0, b0, a1, b1] of [[xa, za, xb, za + 2], [xa, zb - 2, xb, zb], [xa, za, xa + 2, zb], [xb - 2, za, xb, zb]]) box5(G, a0, top, b0, a1, top + 1.4, b1, c);   // neon round the roof
-    const s = fasciaSign(b.name, b.col, 56, 15); s.position.set(x - 26, 26, z + 11.2); g.add(s); own.push(s.material);
-    const w = Math.min(r.w - 14, 120), rs = roofSign(b.name, b.col, w, w / 4.2, (xa + xb) / 2, top + 0.6, (za + zb) / 2); g.add(rs); own.push(rs.material);
+    const s = fasciaSign(b.name, b.col, 56, 15); s.position.set(x - 26, 26, z + 11.2); g.add(s); own.push(s.material); signs.push(s.material);
+    const w = Math.min(r.w - 14, 120), rs = roofSign(b.name, b.col, w, w / 4.2, (xa + xb) / 2, top + 0.6, (za + zb) / 2); g.add(rs); own.push(rs.material); signs.push(rs.material);
   }
-  const m = lmMesh(T, G); g.add(m); m.userData.own.push(...own);
+  const m = new THREE.Mesh(T.build(), LM_MAT[0]); m.userData.own = []; g.add(m); m.userData.own.push(...own);
+  const glow = new THREE.MeshBasicMaterial({ vertexColors: true }); g.add(new THREE.Mesh(G.build(), glow)); m.userData.own.push(glow);   // the neon on its own, so the substation can put it out (js/10ze)
+  CZ.stripLit = { glow, signs, dark: false };
   g.userData.own = m.userData.own; return g;
 }

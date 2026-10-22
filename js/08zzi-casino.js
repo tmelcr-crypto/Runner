@@ -337,3 +337,60 @@ MSCRIPT.c6 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A.H) A.H.S.ms = false; } };
 })();
+
+/* ================= C7 - LIGHTS OUT ================= */
+MSCRIPT.c7 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.H = CASL.hideout(); A.Y = SUBST.S; SUBST.ms = { gate: true, blowable: false };   // tonight the gate stands open; nothing blows yet
+    const d = A.H.del; A.del = msPed(d.x, d.y, 0, Object.assign(S1.look('del'), { msName: 'del', step: S1.stay, spare: true }));
+    const f = S1.free(A.H.door.x, A.H.door.y, 30); A.fay = msPed(f.x, f.y, 0, Object.assign(S1.look('fay'), { msName: 'fay', step: S1.stay, spare: true }));
+    const S = A.H.S, q = ixWorld(S, -S.hw * 0.3, S.hd + 22); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.del, P);   // MISSIONS TEST: at the lock-up at 1:00
+    const k = kerbBy(A.H.door.x + 60, A.H.door.y + 40); A.mycar = msCar('estate', k.x, k.y, k.ang, '#3d6fa8');
+    const W = (lx, lz) => subWorld(lx, lz), loop = [W(-32, -27), W(30, -27), W(30, 27), W(-32, 27)];
+    A.guards = [0, 2].map(i => { const w = loop[i], g = msPed(w.x, w.y, 0, { cguard: true, shirt: '#2a3a5c', pants: '#1a2236', spare: true });   // two night guards on their round, opposite sides
+      g.ri = (i + 1) % 4; g.post.step = (p, dt) => { const t = loop[p.ri]; if (walkTo(p, t.x, t.y, WALK * 0.8, dt) < 6) p.ri = (p.ri + 1) % 4; return true; }; g.alertT = 0; return g; });
+    A.spots = A.Y.units.map(u => W(u.lx + 20, u.lz)); A.set = 0;   // at each tank's east side
+  }
+  function sees(g) {                                                               // in his beam: near, ahead of him, nothing between
+    if (P.dead || g.dead) return false; const d = dist(g.x, g.y, P.x, P.y); if (d > N().seeM * UNITS_PER_M) return false;
+    return Math.abs(angDiff(g.ang, Math.atan2(P.y - g.y, P.x - g.x))) < N().cone * Math.PI / 180 && losClear(g.x, g.y, P.x, P.y);
+  }
+  function watch(A, dt) {                                                          // the guards: "!" and a rising tone; 2 seconds in sight and it's over
+    for (const g of A.guards) {
+      if (g.hp < g.hpMax0) { A.spotted = true; return; }
+      if (sees(g)) { g.alertT += dt; g.stop = true; if ((g.toneT = (g.toneT || 0) - dt) <= 0) { g.toneT = 0.25; Snd.tone(500 + 900 * clamp(g.alertT / MSN.warnT, 0, 1), 520 + 900 * clamp(g.alertT / MSN.warnT, 0, 1), 0.12, 0.08, 'square'); popup(g.x, g.y - 18, '!', g.alertT > MSN.warnT * 0.6 ? '#ff3b4a' : '#ffd23f'); }
+        if (g.alertT >= MSN.warnT) A.spotted = true; }
+      else if (g.alertT > 0) { g.alertT = 0; popup(g.x, g.y - 18, '?', '#cfd3dc'); }
+    }
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.del; MS.start = { at: () => A.del, label: 'START MISSION', go: () => { face(A.del, P); msCut('LIGHTS OUT', () => { A.go = true; for (const g of A.guards) g.hpMax0 = g.hp; }); } }; },   // TALK TO Del
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.guide = A.Y.outside; MS.mark = () => A.Y.outside; },              // GO TO the substation
+      tick(A) { return dist(me().x, me().y, A.Y.outside.x, A.Y.outside.y) < N().subR; },
+      info: A => Math.round(dist(me().x, me().y, A.Y.outside.x, A.Y.outside.y) / UNITS_PER_M) + ' M TO THE SUBSTATION',
+      jump(A) { if (P.car) exitCar(true); P.x = A.Y.outside.x + 40; P.y = A.Y.outside.y; } },
+    { enter(A) { MS.guide = null; MS.mark = () => A.spots[A.set]; },                 // PLANT the charges, unseen
+      tick(A, dt) {
+        watch(A, dt); if (A.set >= A.spots.length) return true;
+        const s = A.spots[A.set], k = A.set, near = !P.car && dist(P.x, P.y, s.x, s.y) < N().plantR;
+        if (near && !MS.start) MS.start = { at: () => s, label: 'TRANSFORMER ' + (k + 1) + '/3', go2: 'PLANT', go: () => { A.set++; Snd.tone(1200, 1500, 0.08, 0.06, 'square'); popup(P.x, P.y - 14, 'CHARGE SET', '#ff3b4a'); if (A.set >= A.spots.length) msLive([4], { now: true }); } };
+        if (!near && MS.start) MS.start = null;
+        return false; },
+      info: A => A.set + '/3 SET' + (A.guards.some(g => g.alertT > 0) ? ' · SEEN!' : ''),
+      jump(A) { A.set = A.spots.length; } },
+    { enter(A) { MS.start = null; MS.guide = null; MS.mark = null; },                // GET AWAY, unseen
+      tick(A, dt) { watch(A, dt); if (A.away || dist(me().x, me().y, A.Y.cx, A.Y.cy) < N().awayM * UNITS_PER_M) return false; A.away = true; msCut('TOMORROW', () => msNext()); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.Y.cx, A.Y.cy) / UNITS_PER_M) + ' / ' + N().awayM + ' M AWAY',
+      jump(A) { if (P.car) exitCar(true); P.x = A.Y.cx + (N().awayM + 10) * UNITS_PER_M; P.y = A.Y.cy; } }];
+  function fail(A) { return A.spotted ? MS.m.fails.spotted : ''; }
+  const cuts = {
+    'LIGHTS OUT': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.fay, line: [1, 2], enter: () => { face(A.fay, P); face(A.del, P); P.ang = Math.atan2(A.fay.y - P.y, A.fay.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: 3 }],
+    'TOMORROW': A => [
+      { dur: 6, cam: 'WIDE', at: () => at(A.Y.cx, A.Y.cy), line: [5, 6, 7], phone: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { SUBST.ms = null; } };
+})();
