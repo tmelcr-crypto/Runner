@@ -1690,7 +1690,57 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The press gate", "Danny", "Danny watches. Fade out.", "CLOSE on Danny", "4", "8"]]}],
     "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
     "failing": "Nina's marker N again (retry).",
-    "notes": {"places": "Bayfront Park's band shell: from now on in STORY Crane holds a rally there every game day at noon for two hours (places table, Rally) until the election (chapter 5).", "people": "Crane, Sachs, three guards, the crowd.", "music": "-", "new": "Crane's rallies (modes table: rallies, STORY).", "other": "-"}}}
+    "notes": {"places": "Bayfront Park's band shell: from now on in STORY Crane holds a rally there every game day at noon for two hours (places table, Rally) until the election (chapter 5).", "people": "Crane, Sachs, three guards, the crowd.", "music": "-", "new": "Crane's rallies (modes table: rallies, STORY).", "other": "-"}}},
+  {"id": "m16", "no": "M16", "title": "COLD STORAGE", "giver": "nina", "start": "marker", "where": "BAY TV's newsroom; the LOCK-UP STORAGE yard (Sachs' lock-up)",
+   "story": "The bug pays off: Sachs is moving files out of a lock-up he rents at the LOCK-UP STORAGE yard tonight, and his men are loading a van. Danny raids the yard before the van leaves. If Kessler was finished in M12, his gang storms the yard too - a three-way fight; if he was spared, he calls with the back way in. The box holds only copies: the originals must be in Sachs' safe.",
+   "chars": ["nina", "danny", "kessler", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO NINA"},
+     {"word": "GO TO", "show": "GO TO THE STORAGE YARD"},
+     {"word": "TAKE OUT", "show": "TAKE OUT SACHS' MEN BEFORE THE VAN LEAVES"},
+     {"word": "COLLECT", "show": "TAKE THE BOX OF FILES"}],
+   "lines": [
+     {"who": "nina", "text": "The bug paid off. Sachs is moving files out of a lock-up at the storage yard - tonight.", "mood": "quick", "when": "Cold storage, shot 1"},
+     {"who": "nina", "text": "His men are loading a van. Get there before it leaves.", "mood": "quick", "when": "Cold storage, shot 1"},
+     {"who": "danny", "text": "What's in the files?", "mood": "calm", "when": "Cold storage, shot 2"},
+     {"who": "nina", "text": "Everything Crane ever paid for, if we're lucky.", "mood": "hard", "when": "Cold storage, shot 2"},
+     {"who": "kessler", "text": "Cruz. Sachs' boys are at the storage yard - two at the street side.", "mood": "low", "when": "LIVE - Kessler spared: his call", "live": true},
+     {"who": "kessler", "text": "Go round the back. Nobody watches it.", "mood": "low", "when": "LIVE - Kessler spared: his call", "live": true},
+     {"who": "craneman", "text": "That's enough - load up and go!", "mood": "shouting", "when": "LIVE - the van leaves", "live": true},
+     {"who": "danny", "text": "Kessler's boys again - and they hate Sachs too!", "mood": "angry", "when": "LIVE - Kessler finished: his gang storms the yard", "live": true},
+     {"who": "danny", "text": "Copies. Every page a copy.", "mood": "angry", "when": "Copies, shot 1"},
+     {"who": "danny", "text": "Nina - it's all copies.", "mood": "calm", "when": "Copies, shot 2 (phone)"},
+     {"who": "nina", "text": "Then the originals are somewhere safer. Sachs' safe - in the loft.", "mood": "hard", "when": "Copies, shot 2 (phone)"}],
+   "fails": {"away": "THE VAN GOT AWAY WITH THE FILES", "ninaDead": "NINA PARK IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 22, "loadT": 150, "yardM": 40, "menHp": 70, "vanSpeed": 90, "kessT": 6, "away": 400, "boxR": 30},
+   "reward": {"cash": 4500, "vehicle": "", "clothes": "", "next": "M17 - Nina's marker N in BAY TV's newsroom (the next night)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, chapter 3; the storage yard, answer 149; Choice 1 in MISSIONS TEST, answer 144) - change anything you like.",
+    "glance": {"kind": "story", "given": "NINA PARK - her marker N in BAY TV's newsroom", "where": "The LOCK-UP STORAGE yard - Sachs rents another of its lock-ups (not Del's)", "unlocked": "After M15", "time": "Night (MISSIONS TEST: 22:00)", "length": "About 4 to 6 minutes", "limit": "The van leaves 2 min 30 s after Nina's call (the LOADING bar)"},
+    "chars": {
+     "nina": {"gives": true, "role": "Nina Park: heard it on the bug.", "looks": "Thirties, a sharp black bob, a mustard blazer with big shoulders, small gold earrings.", "bubble": "Amber", "mumble": "Quick and clear."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "kessler": {"gives": false, "role": "Spared: calls with the back way in. Finished: his gang storms the yard.", "looks": "As in chapter 2.", "bubble": "As in the table", "mumble": "As in the table."},
+     "craneman": {"gives": false, "role": "Sachs' men: three loading the van, two lookouts at the street side, the van's driver.", "looks": "Charcoal suits.", "bubble": "Silver", "mumble": "Flat and low."}},
+    "steps": [
+     ["Talk to Nina in BAY TV's newsroom (marker N); the opening cutscene COLD STORAGE.", "MISSIONS TEST: you start in the newsroom, a car at the kerb outside."],
+     ["Get to the storage yard; the LOADING bar fills - when it is full, the van leaves.", "Kessler spared: he calls - the marker is the yard's back, away from the two lookouts."],
+     ["Take out Sachs' men (five on foot, the van's driver). If the van leaves, chase it and stop it (rammed hard, the driver gets out).", "Kessler finished: two of his gang's cars pull up and fight Sachs' men - and you."],
+     ["Take the box of files by the van; the closing cutscene COPIES.", ""]],
+    "fails": [
+     ["The van gets 400 m away (or to the end of its route)", "THE VAN GOT AWAY WITH THE FILES"],
+     ["Nina is killed", "NINA PARK IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"COLD STORAGE\"", "plays": "When you talk to Nina.", "shots": [
+      ["BAY TV's newsroom, at night", "Nina, Danny", "Nina with headphones on, the bug's tape running.", "CLOSE on Nina", "6", "1, 2"],
+      ["BAY TV's newsroom", "Danny, Nina", "Danny heads for the door. Fade out.", "CLOSE on Danny", "5", "3, 4"]]},
+     {"title": "CLOSING - \"COPIES\"", "plays": "When you take the box.", "shots": [
+      ["The storage yard", "Danny", "Danny flips through the files - photocopies.", "CLOSE on Danny", "5", "9"],
+      ["The storage yard", "Danny (on the phone)", "He calls Nina. Fade out.", "CLOSE on Danny", "6", "10, 11"]]}],
+    "start": {"how": "marker", "marker": "N - in BAY TV's newsroom", "phone": "-"},
+    "failing": "Nina's marker N again (retry).",
+    "notes": {"places": "The LOCK-UP STORAGE yard: Sachs' unit is on the street side, the furthest from Del's; held open for the quest.", "people": "Sachs' men; Kessler's gang (finished) or Kessler on the phone (spared).", "music": "-", "new": "Two gangs can fight each other (the three-way fight).", "other": "Choice 1 changes the middle: test both with the KESSLER switch on the MISSIONS list."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

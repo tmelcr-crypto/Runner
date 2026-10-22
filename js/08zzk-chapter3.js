@@ -233,3 +233,67 @@ MSCRIPT.m15 = (() => {
     if (A && A.old && msTest()) Object.assign(P.outfit, A.old);
   } };
 })();
+
+/* ================= M16 - COLD STORAGE ================= */
+MSCRIPT.m16 = (() => {
+  const S1 = STORY1, S3 = STORY3, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  const look = { shirt: '#3a3f4c', pants: '#2a2d36' };
+  function setup(A) {
+    SKY.hour = N().hour; S3.nina(A); const S = NEWS.S;
+    P.x = S.inside.x; P.y = S.inside.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;        // MISSIONS TEST: in the newsroom, a car at the kerb
+    const r0 = S1.road(S.door.x, S.door.y + 80), k0 = kerbBy(r0.x + 60, r0.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
+    const Y = A.Y = IXS.yard, rd = S1.road(Y.cx, Y.cy), fx = rd.x - Y.cx, fy = rd.y - Y.cy, fl = Math.hypot(fx, fy) || 1;
+    A.front = at(Y.cx + fx / fl * (Math.min(Y.w, Y.h) / 2 + 10), Y.cy + fy / fl * (Math.min(Y.w, Y.h) / 2 + 10));
+    A.back = S1.free(Y.cx - fx / fl * (Math.min(Y.w, Y.h) / 2 + 30), Y.cy - fy / fl * (Math.min(Y.w, Y.h) / 2 + 30), 10);
+    const del = CASL.hideout(); let U = null;                                                   // Sachs' lock-up: the unit on the street side, furthest from Del's
+    for (const u of Y.units) { const d = ixWorld(u, 0, u.hd + 40); if (dist(d.x, d.y, rd.x, rd.y) > dist(Y.cx, Y.cy, rd.x, rd.y) + 20) continue; if (!U || dist(u.cx, u.cy, del.S.cx, del.S.cy) > dist(U.cx, U.cy, del.S.cx, del.S.cy)) U = u; }
+    U = A.U = U || Y.units[0]; U.ms = true;
+    const vp = ixWorld(U, 0, U.hd + 34), va = Math.atan2(vp.y - U.cy, vp.x - U.cx) + Math.PI / 2;
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, vp.x, vp.y) < 120) cars.splice(i, 1);
+    A.van = msFoeCar('truck', vp.x, vp.y, va, { mode: 'park', crew: 1, gun: 'pistol', group: 'sachs', speed: N().vanSpeed, color: '#2a2a32', crewHp: N().menHp, shirt: look.shirt, pants: look.pants });
+    A.men = [[-24, 20], [22, 22], [0, 52]].map(([x, z]) => { const q = ixWorld(U, x, U.hd + z); return msFoe(q.x, q.y, Object.assign({ gun: 'pistol', group: 'sachs', hp: N().menHp, name: 'craneman' }, look)); });
+    for (const s of [-1, 1]) { const q = S1.free(A.front.x + s * 30, A.front.y, 6); A.men.push(msFoe(q.x, q.y, Object.assign({ gun: 'smg', group: 'sachs', hp: N().menHp, name: 'craneman', a: Math.atan2(fy, fx) }, look))); }   // the lookouts at the street side
+    A.route = [S1.road(Y.cx + fx / fl * 2400, Y.cy + fy / fl * 2400), S1.road(Y.cx + fx / fl * 2400 + 2000, Y.cy + fy / fl * 2400 + 1200)];
+  }
+  const steps = [
+    S3.meet('COLD STORAGE'),
+    { enter(A) { A.left = N().loadT; const sp = S3.kessler() === 'spared'; A.to = sp ? A.back : A.front; MS.guide = A.to; MS.mark = () => A.to;   // GO TO the storage yard (spared: Kessler's back gate)
+        if (sp) msLive([5, 6], { phone: true }); },
+      tick(A, dt) { A.left -= dt; msBar('LOADING', 1 - A.left / N().loadT, '#ffd23f'); return dist(me().x, me().y, A.to.x, A.to.y) < N().yardM * M || A.men.some(p => p.alert) || A.left <= 0; },
+      info: A => Math.round(dist(me().x, me().y, A.to.x, A.to.y) / M) + ' M TO THE STORAGE YARD',
+      jump(A) { if (P.car) exitCar(true); P.x = A.to.x; P.y = A.to.y; } },
+    { enter(A) { MS.guide = null; MS.mark = () => A.van.fc.out || A.van.dead ? peds.find(p => p.foe && !p.dead && p.group === 'sachs') : A.van;   // TAKE OUT Sachs' men before the van leaves
+        if (S3.kessler() === 'finished') A.kessT = N().kessT; },
+      tick(A, dt) {
+        const v = A.van;
+        if (!A.gone && !v.fc.out && !v.dead) { A.left -= dt; msBar('LOADING', 1 - A.left / N().loadT, '#ffd23f'); if (A.left <= 0) { A.gone = true; msBarOff(); foeCarGo(v, 'flee'); v.fc.to = A.route; msLive([7], { now: true }); } }
+        if (A.gone && !v.fc.out && !v.dead && v.hp < v.maxhp * 0.45) foeBail(v);
+        if (A.kessT > 0 && (A.kessT -= dt) <= 0) {                                               // Kessler finished: his gang storms the yard too - a three-way fight
+          MS_CAST.feud = ['sachs', 'kess'];
+          A.kess = [-1, 1].map(s => { const r = S1.road(A.front.x + s * 500, A.front.y + s * 300); return msFoeCar('muscle', r.x, r.y, r.a, { mode: 'flee', to: [S1.free(A.front.x + s * 40, A.front.y, 8)], crew: 2, gun: 'pistol', group: 'kess', speed: 90, shirt: '#f0f0ea', pants: '#3a4a6a' }); });
+          msLive([8], { now: true });
+        }
+        if (A.kess) for (const c of A.kess) if (!c.fc.out && !c.dead && (c.fc.gone || c.hp < c.maxhp * 0.45)) { for (const q of foeBail(c)) q.alert = true; }   // they pull up at the gate and pile out
+        return msFoesLeft('sachs') === 0;
+      },
+      info: A => msFoesLeft('sachs') + " OF SACHS' MEN LEFT" + (A.kess ? ' · ' + msFoesLeft('kess') + " OF KESSLER'S" : '') + (A.gone ? ' · THE VAN IS LEAVING!' : ''),
+      jump() { for (const p of peds) if (p.foe && !p.dead && p.group === 'sachs') killPed(p, 'gun', false); for (const c of MS_CAST.cars) if (c.fc.group === 'sachs' && !c.fc.out) foeBail(c); } },
+    { enter(A) { msBarOff(); const v = A.van; if (!A.box) A.box = S1.dryNear(v.x - Math.cos(v.ang) * 34, v.y - Math.sin(v.ang) * 34); MS.mark = () => A.box && at(A.box.x, A.box.y); },   // COLLECT the box of files
+      tick(A) { if (A.got) return !!A.fin; if (P.car || dist(P.x, P.y, A.box.x, A.box.y) > N().boxR) return false; A.got = true; Snd.pickup(); msCut('COPIES', () => { A.fin = true; }); return false; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.box.x + 10; P.y = A.box.y; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.nina && A.nina.dead) return F.ninaDead;
+    if (A.gone && !A.van.fc.out && !A.van.dead && (A.van.fc.gone || dist(me().x, me().y, A.van.x, A.van.y) > N().away * M)) return F.away;
+    return '';
+  }
+  const cuts = {
+    'COLD STORAGE': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.nina, line: [1, 2], enter: () => { face(A.nina, P); P.ang = Math.atan2(A.nina.y - P.y, A.nina.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [3, 4], fadeOut: true }],
+    'COPIES': A => [
+      { dur: 5, cam: 'CLOSE', at: () => P, line: [9] },
+      { dur: 6, cam: 'CLOSE', at: () => P, line: [10, 11], phone: true, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { NEWS.ms = null; if (A && A.U) A.U.ms = false; MS_CAST.feud = null; } };
+})();
