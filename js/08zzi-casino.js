@@ -7,6 +7,10 @@ const CASL = {
   uniform: () => P.outfit && P.outfit.top === 'cas_guard' && P.outfit.bottoms === 'cas_guard_trousers',   // the guard's uniform on (C3)
   wear(A) { A.oldOutfit = Object.assign({}, P.outfit); for (const id of ['cas_guard', 'cas_guard_trousers']) if (!P.wardrobe.includes(id)) P.wardrobe.push(id); P.outfit.top = 'cas_guard'; P.outfit.bottoms = 'cas_guard_trousers'; P.outfit.hat = null; },
   unwear(A) { if (A && A.oldOutfit && msTest()) Object.assign(P.outfit, A.oldOutfit); },   // MISSIONS TEST: your own clothes back
+  hideout() {                              // Del's lock-up: the storage yard's unit nearest the strip (C4, C6, C8)
+    const d = CASM.door; let b = null; for (const S of IXS) if (S.kind === 'unit' && !S.rare && (!b || dist(S.cx, S.cy, d[0], d[1]) < dist(b.cx, b.cy, d[0], d[1]))) b = S;
+    return b && { S: b, inside: ixWorld(b, 0, 0), door: ixWorld(b, 0, b.hd + 40), del: ixWorld(b, b.hw * 0.5, b.hd - 18) };
+  },
   delHome() {                              // Del's place: a street door a few blocks south of the strip whose front the camera sees
     const d = CASM.door, s = STORY2.shops(d[0] - 260, d[1] + 1300, 1)[0];
     return s || Object.assign(STORY1.sidewalk(d[0], d[1] + 1300), { fx: 0, fy: 1, wx: d[0], wy: d[1] + 1284, a: Math.PI / 2 });
@@ -177,4 +181,56 @@ MSCRIPT.c3 = (() => {
       { dur: 5, cam: 'CLOSE', at: () => A.del, line: 9, fadeOut: true }]
   };
   return { setup, steps, fail, cuts, cleanup(A) { CASL.unwear(A); } };
+})();
+
+/* ================= C4 - THE CASH VAN ================= */
+MSCRIPT.c4 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
+  function setup(A) {
+    SKY.hour = N().hour; A.door = CASL.door(); A.D = DEPOT.S; A.H = CASL.hideout();
+    A.del = msPed(A.door.x + 8, A.door.y - 16, 0, Object.assign(S1.look('del'), { msName: 'del', step: S1.stay, spare: true }));
+    const q = S1.free(A.del.x, A.del.y, 46); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.del, P);   // MISSIONS TEST: on the strip at 2:00
+    A.H.S.ms = true;                                                                // Del's lock-up: its door up tonight
+    DEPOT.ms = { gate: true, stars: N().stars, opened: () => { A.opened = true; for (const g of A.guards) foeAlert(g); msLive([4], { now: true }); } };
+    const D = A.D, W = (lx, lz) => depotWorld(lx, lz);
+    A.guards = [W(D.hut.x + 22, D.hd - 26), W(-D.hw * 0.7, -D.hd * 0.1), W(D.hw * 0.75, 0)].map((w, i) => msFoe(w.x, w.y, { gun: i ? 'smg' : 'pistol', hp: N().guardHp, group: 'depot', a: D.vanAng, shirt: '#16161c', pants: '#16161c' }));
+    for (const v of DEPOT.vans) { if (v.car && cars.includes(v.car) && P.car !== v.car) cars.splice(cars.indexOf(v.car), 1); const w = W(v.lx, v.lz); v.car = depotVan(w.x, w.y, D.vanAng); v.takenAt = null; cars.push(v.car); MS.A.list.push(v.car); }
+  }
+  const myVan = () => P.car && P.car.depot ? P.car : null;
+  const steps = [
+    { enter(A) { MS.mark = () => A.del; MS.start = { at: () => A.del, label: 'START MISSION', go: () => { face(A.del, P); msCut('TWO VANS', () => { A.go = true; const d = A.H.del; A.del.x = d.x; A.del.y = d.y; A.del.post.x = d.x; A.del.post.y = d.y; }); } }; },   // TALK TO Del (then he goes ahead to the lock-up)
+      tick(A) { return !!A.go; } },
+    { enter(A) { MS.guide = A.D.window; MS.mark = () => A.D.window; },              // GO TO the depot
+      tick(A) { return dist(me().x, me().y, A.D.window.x, A.D.window.y) < N().depotR; },
+      info: A => Math.round(dist(me().x, me().y, A.D.window.x, A.D.window.y) / UNITS_PER_M) + ' M TO THE DEPOT',
+      jump(A) { if (P.car) exitCar(true); P.x = A.D.window.x; P.y = A.D.window.y; } },
+    { enter(A) { MS.mark = () => A.D.window; MS.guide = null; },                     // OPEN the gate: the alarm
+      tick(A) { return !!A.opened; },
+      info: () => P.car ? 'ON FOOT, AT THE HUT\'S WINDOW' : 'THE BUTTON AT THE HUT\'S WINDOW',
+      jump(A) { if (P.car) exitCar(true); P.x = A.D.window.x; P.y = A.D.window.y; depotUse(); } },
+    { enter(A) { MS.mark = () => DEPOT.vans.map(v => v.car).find(c => c && !c.dead); MS.guide = null; },   // GET IN a van
+      tick(A) { if (!myVan()) return false; msLive([5], { now: true }); return true; },
+      jump(A) { const c = DEPOT.vans[0].car; if (P.car) exitCar(true); P.x = c.x; P.y = c.y; enterCar(c); DEPOT.open = 1; DEPOT.want = 1; DEPOT.gate.off = true; } },
+    { enter(A) { MS.guide = A.H.door; MS.mark = () => A.H.inside; },                // HIDE it in the lock-up, no police
+      tick(A) {
+        const v = myVan(); if (A.home || !v || P.stars > 0 || !ixIn(A.H.S, v.x, v.y, 0) || S1.kmh(v) > N().stopKmh) return false;
+        A.home = true; A.van = v; msCut('THE LOCK-UP', () => msNext()); return false; },
+      info: A => !myVan() ? 'GET BACK IN THE VAN' : P.stars > 0 ? 'LOSE THE POLICE FIRST' : Math.round(dist(me().x, me().y, A.H.inside.x, A.H.inside.y) / UNITS_PER_M) + " M TO DEL'S LOCK-UP",
+      jump(A) { let v = myVan(); if (!v) { v = DEPOT.vans.map(q => q.car).find(c => c && !c.dead); if (P.car) exitCar(true); P.x = v.x; P.y = v.y; enterCar(v); }
+        P.stars = 0; P.heat = 0; resetPolice(); v.x = A.H.inside.x; v.y = A.H.inside.y; v.ang = A.H.S.a - Math.PI / 2; v.vx = v.vy = 0; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.del.dead) return F.delDead;
+    if (MS.k >= 3 && DEPOT.vans.every(v => !v.car || v.car.dead)) return F.wrecked;
+    return '';
+  }
+  const cuts = {
+    'TWO VANS': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [1, 2], enter: () => { face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: 3 }],
+    'THE LOCK-UP': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.del, line: [6, 7], enter: () => { if (P.car) exitCar(true); const q = S1.free(A.del.x, A.del.y, 26); P.x = q.x; P.y = q.y; face(A.del, P); P.ang = Math.atan2(A.del.y - P.y, A.del.x - P.x); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.van || A.del, line: 8, fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { DEPOT.ms = null; if (A.H) A.H.S.ms = false; } };
 })();

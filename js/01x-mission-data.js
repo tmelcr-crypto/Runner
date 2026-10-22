@@ -1287,7 +1287,54 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The Royal Flamingo's door", "Del", "He nods round the corner. Fade out.", "CLOSE on Del", "5", "9"]]}],
     "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
     "failing": "Retry from Del's marker.",
-    "notes": {"places": "The ROYAL FLAMINGO (top-down): its cameras and the staff door behind the cashier's cage.", "people": "Del; the laundry van's driver; the casino's guards.", "music": "-", "new": "The casino guard's uniform (clothes table, a reward piece; answer 137). The laundry van: the truck with a laundry livery (no new vehicle row).", "other": "In MISSIONS TEST your own clothes come back when the quest ends."}}}
+    "notes": {"places": "The ROYAL FLAMINGO (top-down): its cameras and the staff door behind the cashier's cage.", "people": "Del; the laundry van's driver; the casino's guards.", "music": "-", "new": "The casino guard's uniform (clothes table, a reward piece; answer 137). The laundry van: the truck with a laundry livery (no new vehicle row).", "other": "In MISSIONS TEST your own clothes come back when the quest ends."}}},
+  {"id": "c4", "no": "C4", "title": "THE CASH VAN", "giver": "del", "start": "marker", "where": "Del on the casino strip; the armoured-car depot round the corner; Del's lock-up at the storage yard",
+   "story": "The Royal Flamingo moves its cash in two armoured vans that sleep in a fenced depot round the corner. Danny opens the gate at the guard hut - the alarm goes - takes one of the vans past the guards, loses the police and hides it in the lock-up Del has rented at the storage yard: the getaway for the big night.",
+   "chars": ["del", "danny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO DEL ON THE STRIP"},
+     {"word": "GO TO", "show": "GO TO THE CASH DEPOT ROUND THE CORNER"},
+     {"word": "OPEN", "show": "OPEN THE GATE AT THE GUARD HUT"},
+     {"word": "GET IN", "show": "GET IN AN ARMOURED VAN"},
+     {"word": "HIDE", "show": "HIDE THE VAN IN DEL'S LOCK-UP - NO POLICE ON YOUR TAIL"}],
+   "lines": [
+     {"who": "del", "text": "The casino moves its cash in two vans. They sleep round the corner - behind a fence and one tired guard.", "mood": "nervous", "when": "Two vans, shot 1"},
+     {"who": "danny", "text": "And you want one for the big night.", "mood": "dry", "when": "Two vans, shot 1"},
+     {"who": "del", "text": "I rented a lock-up at the storage yard. Bring it there - and bring it clean. No police on your tail.", "mood": "nervous", "when": "Two vans, shot 2"},
+     {"who": "danny", "text": "There goes the alarm. Make it quick.", "mood": "calm", "when": "LIVE - the gate opens", "live": true},
+     {"who": "danny", "text": "Heavy as a tank. Now lose the cops.", "mood": "calm", "when": "LIVE - in the van", "live": true},
+     {"who": "del", "text": "Look at her. Walls a foot thick - and the flamingo on the side.", "mood": "amused", "when": "The lock-up, shot 1"},
+     {"who": "danny", "text": "Nobody looks twice at a cash van outside a casino.", "mood": "dry", "when": "The lock-up, shot 1"},
+     {"who": "del", "text": "That's the idea. Now the vault needs fingers - Fay. And Gold's men have her.", "mood": "worried", "when": "The lock-up, shot 2"}],
+   "fails": {"wrecked": "THE VAN IS WRECKED", "delDead": "DEL RAMOS IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 2, "depotR": 140, "stars": 2, "guardHp": 80, "stopKmh": 10},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "C5 - Del's marker D on the strip, the next night", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the story plan, the Casino line; the armoured van, answer 138; the depot, answer 139) - change anything you like.",
+    "glance": {"kind": "side", "given": "DEL RAMOS (D on the map, the Royal Flamingo's door at night)", "where": "The casino strip; the CASH DEPOT round the corner; Del's LOCK-UP at the storage yard", "unlocked": "Passing C3", "time": "Night (MISSIONS TEST: 2:00)", "length": "About 5 to 8 minutes", "limit": "None"},
+    "chars": {
+     "del": {"gives": true, "role": "Del Ramos: has rented a lock-up for the getaway van.", "looks": "As in C1.", "bubble": "Lilac", "mumble": "Fast and high: a square."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."}},
+    "steps": [
+     ["START MISSION by Del; the cutscene TWO VANS.", "MISSIONS TEST: you start on the strip at 2:00."],
+     ["Walk or drive round the corner to the CASH DEPOT (the fenced lot north of the casino).", "Three guards tonight: one by the hut, two in the yard."],
+     ["At the guard hut's window: OPEN THE GATE. The alarm: 2 stars, and the guards come for you.", "Killing the guards is no crime."],
+     ["Get into one of the two armoured vans.", "Slow and very tough."],
+     ["Lose the police, then drive the van into Del's lock-up at the storage yard (its door is up) and stop; the closing cutscene THE LOCK-UP.", "With stars on you, the lock-up stays out of bounds: lose them first."]],
+    "fails": [
+     ["The van is wrecked", "THE VAN IS WRECKED"],
+     ["Del is killed", "DEL RAMOS IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"TWO VANS\"", "plays": "At START MISSION by Del.", "shots": [
+      ["The Royal Flamingo's door", "Del, Danny", "Del, collar up, nods round the corner.", "CLOSE on Del", "5", "1, 2"],
+      ["The strip", "Del", "He presses a lock-up key into Danny's hand.", "CLOSE on Del", "5", "3"]]},
+     {"title": "CLOSING - \"THE LOCK-UP\"", "plays": "When you stop the van in the lock-up with no stars.", "shots": [
+      ["Del's lock-up", "Del, Danny", "Del walks round the van, a hand on the flamingo.", "CLOSE on Del", "5", "6, 7"],
+      ["Del's lock-up", "Del", "The roller door comes down. Fade out.", "CLOSE on Del", "5", "8"]]}],
+    "start": {"how": "marker", "marker": "D - Del Ramos at the Royal Flamingo's door, at night", "phone": "-"},
+    "failing": "Retry from Del's marker.",
+    "notes": {"places": "The CASH DEPOT (permanent, both modes, answer 139); Del's LOCK-UP: a unit at the storage yard, its door held open by the quest.", "people": "Del; three depot guards.", "music": "-", "new": "The van in the casino's colours (answer 138): STORY keeps it in the lock-up for C6 and C8, and in your garage after C8.", "other": "In FREE ROAM the depot's gate gives 2 stars any night - the vans are there to take."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

@@ -98,7 +98,10 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "wakeWidth", "group": "In the water", "name": "The wake opens", "unit": "%", "min": 20, "max": 300, "v": 100, "note": "How fast the V spreads (100%: like a real boat's, about 20 degrees to each side)."},
   {"id": "sprayFrom", "group": "In the water", "name": "Spray flies at the bow from", "unit": "km/h", "min": 0, "max": 150, "v": 30, "note": "Faster than this the water is thrown up and aside at the bow; more as you go faster and turn harder."},
   {"id": "spray", "group": "In the water", "name": "Spray amount", "unit": "%", "min": 0, "max": 300, "v": 100, "note": "0: no spray."},
-  {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."}
+  {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."},
+  {"id": "depotStars", "group": "Armoured-car depot", "name": "Opening the gate gives", "unit": "stars", "min": 0, "max": 5, "v": 2, "note": "A break-in at the cash depot by the casino strip: the alarm calls the police."},
+  {"id": "depotGate", "group": "Armoured-car depot", "name": "The gate stays open for", "unit": "s", "min": 5, "max": 300, "v": 25, "note": "Then it slides shut again (not while something stands in the gateway)."},
+  {"id": "depotVanBack", "group": "Armoured-car depot", "name": "A taken van is back after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after it was driven off - if it was lost or left (one kept in a garage stays yours)."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */
