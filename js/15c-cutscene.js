@@ -11,7 +11,7 @@
 const CUT = { on: false, sc: null, i: -1, t: 0, T: 0, fade: 0, fadeV: 0, view: null, fog: null, xray: true, ending: false, endT: 0, hideP: false };
 function cutPlay(sc) {                   // sc: { skip: 'LAND', music: 'scenic', start(), end(), shots: [{ dur, bars, cap, win, fadeIn, fadeOut, enter(), tick(dt, t, u), leave() }] }
   Object.assign(CUT, { on: true, sc, i: -1, ending: false, endT: 0, view: null, fog: null, xray: true, hideP: false, fade: 1, fadeV: 0 });
-  state = 'cut'; toggleBigMap(false); toggleWheel(false); hush(); closeMenus();
+  state = 'cut'; toggleBigMap(false); toggleWheel(false); hush(); closeMenus(); inputRelease(); cutBrake();
   document.documentElement.classList.add('cut'); $('cut').hidden = false;
   $('cutSkip').textContent = sc.skip || 'SKIP'; $('cutSkip').hidden = sc.skip === null;
   if (sc.start) sc.start();
@@ -28,9 +28,10 @@ function cutNext() {                     // the next shot (or the end)
   if (s.fadeIn !== false) { CUT.fade = 1; CUT.fadeV = -1 / (s.fadeIn || 0.7); }
 }
 function cutCaption(txt) { const c = $('cutCap'); if (txt) { c.textContent = txt; c.classList.add('on'); } else c.classList.remove('on'); }
+function cutBrake() { const c = P.car; if (c && c.driver === 'player') { c.thr = 0; c.str = 0; c.hb = true; } }   // your car stops where it is (nobody drives it while the scene plays)
 function cutFrame(dt) {                  // js/15 frame(): the world goes on, the shot moves its actors and the camera
   const sc = CUT.sc, s = sc.shots[CUT.i];
-  update(dt, true);                                               // traffic, people, planes, the clock and the weather (no player, no police)
+  cutBrake(); update(dt, true);                                               // traffic, people, planes, the clock and the weather (no player, no police)
   if (!CUT.on) return;
   CUT.t += dt;
   if (s && s.tick) s.tick(dt, CUT.t, Math.min(1, CUT.t / CUT.T));
