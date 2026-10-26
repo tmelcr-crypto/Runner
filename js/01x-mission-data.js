@@ -1938,7 +1938,63 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["By Sharkey's car", "Danny", "Danny folds the IOU into his pocket. Fade out.", "CLOSE on Danny", "4", "10"]]}],
     "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there)", "phone": "-"},
     "failing": "Sal's marker S again (retry).",
-    "notes": {"places": "SHARKEY'S PAWN & LOAN: a Mercado shop front under his sign for the quest.", "people": "Dunn, Sharkey, two heavies.", "music": "-", "new": "Sharkey Lomax in the character table.", "other": "From now on Dunn helps from inside (P5, P8)."}}}
+    "notes": {"places": "SHARKEY'S PAWN & LOAN: a Mercado shop front under his sign for the quest.", "people": "Dunn, Sharkey, two heavies.", "music": "-", "new": "Sharkey Lomax in the character table.", "other": "From now on Dunn helps from inside (P5, P8)."}}},
+  {"id": "p3", "no": "P3", "title": "PAPERS", "giver": "guard", "start": "marker", "where": "The Iron Key ferry's kiosk (marker S); OTTO'S PRINTING in Mercado",
+   "story": "Dunn brings Sal's photo out of the visitors' room. Old Otto in Mercado, who printed Sal's wedding invitations in '68, makes him new papers - while Crane's men, who watch the street, raid the shop. Danny holds them off until the press is done, then takes the new passport back to Dunn: Sal Moretti is now Salvatore Bianchi.",
+   "chars": ["guard", "danny", "otto"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO OFFICER DUNN"},
+     {"word": "GO TO", "show": "GO TO OTTO'S PRINTING"},
+     {"word": "TALK TO", "show": "TALK TO OTTO"},
+     {"word": "TAKE OUT", "show": "TAKE OUT CRANE'S MEN WHILE OTTO PRINTS"},
+     {"word": "COLLECT", "show": "TAKE SAL'S NEW PAPERS"},
+     {"word": "DELIVER", "show": "TAKE THE PAPERS TO DUNN"}],
+   "lines": [
+     {"who": "guard", "text": "Sal gave me this for you - a picture from the visitors' room.", "mood": "quiet", "when": "Sal's picture, shot 1"},
+     {"who": "guard", "text": "He says Otto in Mercado makes the best papers in Florida. A new name, a new life.", "mood": "quiet", "when": "Sal's picture, shot 1"},
+     {"who": "danny", "text": "Then let's give Sal a new name.", "mood": "calm", "when": "Sal's picture, shot 2"},
+     {"who": "otto", "text": "Moretti? I printed his wedding invitations in '68. Of course I'll help.", "mood": "warm", "when": "The forger, shot 1"},
+     {"who": "otto", "text": "Not long - but keep the door, would you? Crane's people watch this street.", "mood": "worried", "when": "The forger, shot 1"},
+     {"who": "danny", "text": "Take your time, Otto. I'll be right here.", "mood": "calm", "when": "The forger, shot 2"},
+     {"who": "danny", "text": "Crane's men - they're raiding the place!", "mood": "shouting", "when": "LIVE - the raid", "live": true},
+     {"who": "otto", "text": "Keep them off the press! Nearly there!", "mood": "worried", "when": "LIVE - the raid", "live": true},
+     {"who": "otto", "text": "Ink's still wet - mind the edges. Sal Moretti is now Salvatore Bianchi.", "mood": "proud", "when": "LIVE - the papers", "live": true},
+     {"who": "guard", "text": "Salvatore Bianchi... A real passport. I'll get it to him in the laundry.", "mood": "quiet", "when": "New man, shot 1"},
+     {"who": "danny", "text": "When he walks out, he'll need it.", "mood": "calm", "when": "New man, shot 2"}],
+   "fails": {"dunnDead": "OFFICER DUNN IS DEAD", "ottoDead": "OTTO IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 16, "talkM": 6, "printT": 45, "menHp": 70, "raidSpeed": 95},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "P4 - Sal's marker S by the Iron Key ferry (the next day)", "place": "", "contact": "Otto (OTTO'S PRINTING, Mercado)"},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) and your answer 155 (Otto and OTTO'S PRINTING) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN at Sal's marker S by the Iron Key ferry", "where": "OTTO'S PRINTING in Mercado", "unlocked": "A game day after P2", "time": "Afternoon (MISSIONS TEST: 16:00)", "length": "About 4 to 6 minutes", "limit": "None (the press takes 45 s)"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn: brings Sal's photo out and takes the papers in.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "otto": {"gives": false, "role": "Old Otto, the printer of OTTO'S PRINTING - a forger for friends.", "looks": "Seventies, thick glasses, an ink-stained apron over a cardigan.", "bubble": "Parchment", "mumble": "Slow and soft."}},
+    "steps": [
+     ["Talk to Officer Dunn by the ferry kiosk; the cutscene SAL'S PICTURE.", "MISSIONS TEST: you start by the kiosk, a car at the kerb."],
+     ["Go to OTTO'S PRINTING in Mercado (its sign stays over the door in both modes).", ""],
+     ["Talk to Otto at his door; the cutscene THE FORGER.", ""],
+     ["Crane's men raid the shop: two cars of two and two more on foot. Take them all out while the PRINTING bar fills (45 s).", "Otto must live."],
+     ["Take Sal's new papers from Otto (TAKE THEM).", ""],
+     ["Take the papers to Dunn by the ferry kiosk; the closing cutscene NEW MAN.", ""]],
+    "fails": [
+     ["Officer Dunn is killed", "OFFICER DUNN IS DEAD"],
+     ["Otto is killed", "OTTO IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"SAL'S PICTURE\"", "plays": "When you talk to Dunn.", "shots": [
+      ["The ferry kiosk", "Dunn, Danny", "Dunn slips Danny a small photo.", "CLOSE on Dunn", "6", "1, 2"],
+      ["The ferry kiosk", "Danny", "Danny pockets it. Fade out.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "\"THE FORGER\"", "plays": "When you talk to Otto.", "shots": [
+      ["OTTO'S PRINTING", "Otto, Danny", "Otto peers at the photo through his thick glasses.", "CLOSE on Otto", "6", "4, 5"],
+      ["OTTO'S PRINTING", "Danny", "Danny turns to watch the street.", "CLOSE on Danny", "4", "6"]]},
+     {"title": "CLOSING - \"NEW MAN\"", "plays": "When you bring Dunn the papers.", "shots": [
+      ["The ferry kiosk", "Dunn", "Dunn leafs through the new passport.", "CLOSE on Dunn", "5", "10"],
+      ["The ferry kiosk", "Danny", "Fade out.", "CLOSE on Danny", "4", "11"]]}],
+    "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there)", "phone": "-"},
+    "failing": "Sal's marker S again (retry).",
+    "notes": {"places": "OTTO'S PRINTING (modes table: ottoShop - both modes): its sign over a Mercado shop front for good; nothing to do inside.", "people": "Dunn, Otto, six of Crane's men.", "music": "-", "new": "Otto in the character table.", "other": "Sal's new name: Salvatore Bianchi."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

@@ -1120,7 +1120,7 @@ const STORY1 = {                           // shared by chapter 1's quests: plac
     let best = null, bd = 1e9;
     for (const r of BLD) { if (!r.fill || !r.shop || r.uniq || r.special || r.safe || r.ix || r.own) continue; const d = dist(r.cx, r.cy, x, y); if (d < bd && d < 1200) { const f = adFront(r); if (f && f.fy > 0.3) { bd = d; best = { r, f }; } } }
     if (!best) return null; const f = best.f;
-    return { x: f.x + f.fx * 16, y: f.y + f.fy * 16, wx: f.x, wy: f.y, fx: f.fx, fy: f.fy, a: Math.atan2(f.fy, f.fx) };
+    return { x: f.x + f.fx * 16, y: f.y + f.fy * 16, wx: f.x, wy: f.y, fx: f.fx, fy: f.fy, a: Math.atan2(f.fy, f.fx), r: best.r };
   },
   sign(text, col, at) {                    // a name over a door for as long as the quest needs it (cleanup takes it down)
     const w = fasciaFit(text, 9, 60), m = fasciaSign(text, col, w, 9); m.position.set(at.wx + at.fx * 0.9, groundH(at.wx, at.wy) + GFH + 4, at.wy + at.fy * 0.9); m.rotation.y = Math.atan2(at.fx, at.fy); scene.add(m); return m;

@@ -135,7 +135,7 @@ function update(dt, idle) {
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
   placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt);
-  if (!idle) { updatePolice(dt); updateHeli(dt); rbTick(dt); statTick(dt); prisonTick(dt); siteTick(dt); casinoTick(dt); marinaTick(dt); stuntTick(dt); ixTick(dt); gymTick(dt); depotTick(dt); funTick(dt); substTick(dt); newsTick(); rallyTick(dt); msTick(dt); }   // roadblocks ahead of you (js/08zr); distance, 100% and the gold car (js/08zs)                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
+  if (!idle) { updatePolice(dt); updateHeli(dt); rbTick(dt); statTick(dt); prisonTick(dt); siteTick(dt); casinoTick(dt); marinaTick(dt); stuntTick(dt); ixTick(dt); gymTick(dt); depotTick(dt); funTick(dt); substTick(dt); newsTick(); rallyTick(dt); ottoTick(); msTick(dt); }   // roadblocks ahead of you (js/08zr); distance, 100% and the gold car (js/08zs)                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }

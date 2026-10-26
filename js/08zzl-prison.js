@@ -18,6 +18,17 @@ const PRISONL = {
   }
 };
 
+/* ---------- OTTO'S PRINTING: old Otto's print shop in Mercado, its sign over a shop front for good (both modes; mode ottoShop) ----------
+   Nothing to do inside; P3's forger works there. The building is kept from other quests' picks (r.own). */
+const OTTO = { at: null, sign: null };
+function ottoShop() {                      // the shop's front (the same one every game)
+  if (OTTO.at === null) { const s = STORY1.shopFront(4400, 9400); OTTO.at = s || false; if (s && s.r) s.r.own = true; }
+  return OTTO.at || null;
+}
+function ottoTick() {                      // js/15 update: the sign goes up once the city is there
+  if (OTTO.sign || !feat('ottoShop')) return; const s = ottoShop(); if (s) OTTO.sign = STORY1.sign("OTTO'S PRINTING", '#f2e6c8', s);
+}
+
 /* ================= P1 - VISITING HOURS ================= */
 MSCRIPT.p1 = (() => {
   const S1 = STORY1, L = PRISONL, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face;
@@ -126,4 +137,62 @@ MSCRIPT.p2 = (() => {
       { dur: 4, cam: 'CLOSE', at: () => P, line: [10], fadeOut: true }]
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A && A.sign) { scene.remove(A.sign); A.sign.material.dispose(); } } };
+})();
+
+/* ================= P3 - PAPERS ================= */
+MSCRIPT.p3 = (() => {
+  const S1 = STORY1, L = PRISONL, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  const crane = { shirt: '#3a3f4c', pants: '#2a2d36' };
+  function setup(A) {
+    prisonReset(); SKY.hour = N().hour;
+    const st = A.kiosk = L.kiosk(); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: by the ferry kiosk (marker S)
+    const dq = S1.free(st.x + 40, st.y, 6); A.dunn = msPed(dq.x, dq.y, 0, Object.assign(S1.look('guard'), { msName: 'guard', step: S1.stay, spare: true, shield: true })); face(A.dunn, P);
+    const r0 = S1.road(st.x, st.y + 120), k0 = kerbBy(r0.x, r0.y); A.mycar = msCar('sedan', k0.x, k0.y, k0.ang, '#3d6fa8');
+    const sf = A.shop = ottoShop(); A.otto = msPed(sf.x, sf.y, sf.a, Object.assign(S1.look('otto'), { msName: 'otto', step: S1.stay, spare: true, shield: true }));
+  }
+  function raid(A) {                        // Crane's men: two cars up the street, two more on foot round the corner
+    if (A.raid) return; A.raid = true; const sf = A.shop;
+    A.cars = [-1, 1].map(s => { const r = S1.road(sf.x + sf.fy * s * 700, sf.y - sf.fx * s * 700); return msFoeCar('sedan', r.x, r.y, r.a, Object.assign({ crew: 2, gun: 'pistol', group: 'raid', speed: N().raidSpeed, crewHp: N().menHp }, crane, { color: '#1c1c26' })); });
+    A.foot = [-1, 1].map(s => { const q = S1.free(sf.x - sf.fy * s * 260 + sf.fx * 40, sf.y + sf.fx * s * 260 + sf.fy * 40, 10); return msFoe(q.x, q.y, Object.assign({ gun: 'smg', group: 'raid', hp: N().menHp, alert: true }, crane)); });
+    msLive([7, 8], { now: true });
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.dunn; MS.start = { at: () => A.dunn, label: 'START MISSION', go: () => { face(A.dunn, P); msCut("SAL'S PICTURE", () => { A.go = true; }); } }; },   // TALK TO Dunn: Sal's photo
+      tick: A => !!A.go },
+    { enter(A) { MS.guide = A.shop; MS.mark = () => A.otto; },                                 // GO TO OTTO'S PRINTING
+      tick(A) { return !P.car && dist(P.x, P.y, A.otto.x, A.otto.y) < N().talkM * M; },
+      info: A => Math.round(dist(me().x, me().y, A.otto.x, A.otto.y) / M) + " M TO OTTO'S PRINTING",
+      jump(A) { if (P.car) exitCar(true); const s = A.shop; P.x = s.x + s.fx * 40; P.y = s.y + s.fy * 40; } },
+    { enter(A) { MS.guide = null; MS.start = { at: () => A.otto, label: msWho('otto').name, go: () => { face(A.otto, P); msCut('THE FORGER', () => { A.told = true; }); } }; },   // TALK TO Otto
+      tick: A => !!A.told,
+      jump(A) { MS.start = null; A.told = true; } },
+    { enter(A) { raid(A); A.left = N().printT; MS.mark = () => peds.find(p => p.foe && !p.dead && p.group === 'raid') || A.cars.find(c => !c.dead && !c.fc.out); },   // TAKE OUT Crane's men while Otto prints
+      tick(A, dt) { if (A.left > 0) A.left -= dt; msBar('PRINTING', 1 - Math.max(0, A.left) / N().printT, '#f2e6c8'); return msFoesLeft('raid') === 0 && A.left <= 0; },
+      info: A => msFoesLeft('raid') + " OF CRANE'S MEN LEFT" + (A.left > 0 ? ' · THE PAPERS IN ' + Math.ceil(A.left) + ' S' : ' · THE PAPERS ARE READY'),
+      jump(A) { A.left = 0; for (const p of peds) if (p.foe && !p.dead && p.group === 'raid') killPed(p, 'gun', false); for (const c of MS_CAST.cars) if (c.fc.group === 'raid' && !c.fc.out) { c.fc.crew = 0; c.driver = null; c.msDrive = null; } } },
+    { enter(A) { msBarOff(); MS.mark = () => A.otto; MS.start = { at: () => A.otto, label: "SAL'S NEW PAPERS", go2: 'TAKE THEM', go: () => { Snd.pickup(); popup(P.x, P.y - 14, "SAL'S NEW PAPERS", '#b6ff3c'); msLive([9], { now: true }); A.got = true; } }; },   // COLLECT the papers
+      tick(A) { if (!A.got && !MS.start && !P.car) MS.start = { at: () => A.otto, label: "SAL'S NEW PAPERS", go2: 'TAKE THEM', go: () => { Snd.pickup(); A.got = true; } }; return !!A.got; },
+      jump(A) { MS.start = null; A.got = true; } },
+    { enter(A) { MS.guide = A.kiosk; MS.mark = () => A.dunn; },                                 // DELIVER the papers to Dunn
+      tick(A) { if (A.fin) return true; if (A.home || P.car || dist(P.x, P.y, A.dunn.x, A.dunn.y) > N().talkM * M) return false; A.home = true; msCut('NEW MAN', () => { A.fin = true; }); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.dunn.x, A.dunn.y) / M) + ' M TO DUNN',
+      jump(A) { if (P.car) exitCar(true); P.x = A.dunn.x - 24; P.y = A.dunn.y; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.dunn.dead) return F.dunnDead;
+    if (A.otto.dead) return F.ottoDead;
+    return '';
+  }
+  const cuts = {
+    "SAL'S PICTURE": A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.dunn, line: [1, 2], enter: () => { face(A.dunn, P); P.ang = Math.atan2(A.dunn.y - P.y, A.dunn.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [3], fadeOut: true }],
+    'THE FORGER': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.otto, line: [4, 5], enter: () => { face(A.otto, P); P.ang = Math.atan2(A.otto.y - P.y, A.otto.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [6] }],
+    'NEW MAN': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.dunn, line: [10], enter: () => { face(A.dunn, P); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [11], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts };
 })();
