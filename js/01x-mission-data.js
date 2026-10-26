@@ -1881,7 +1881,64 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The yard", "Danny", "Danny moves a pawn. Fade out.", "CLOSE on Danny", "4", "6"]]}],
     "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk", "phone": "-"},
     "failing": "Sal's marker S again (retry).",
-    "notes": {"places": "Iron Key: the visit as in Quest 05.", "people": "Sal; three of Holloway's men.", "music": "-", "new": "The Prison storyline opens.", "other": "-"}}}
+    "notes": {"places": "Iron Key: the visit as in Quest 05.", "people": "Sal; three of Holloway's men.", "music": "-", "new": "The Prison storyline opens.", "other": "-"}}},
+  {"id": "p2", "no": "P2", "title": "DUNN'S DEBT", "giver": "guard", "start": "marker", "where": "The Iron Key ferry's kiosk (marker S); SHARKEY'S PAWN & LOAN in Mercado; the streets",
+   "story": "Officer Dunn, who works the gate on Iron Key, owes the loan shark \"Sharkey\" Vince Lomax four grand - and Sharkey holds his IOU with his badge number on it. Danny pays Sharkey a visit: the two heavies at the door go down, Sharkey runs for his car, and once it is rammed to a stop he hands over the paper. Now Dunn owes Danny.",
+   "chars": ["guard", "danny", "sharkey"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO OFFICER DUNN"},
+     {"word": "GO TO", "show": "GO TO SHARKEY'S PAWN & LOAN"},
+     {"word": "TALK TO", "show": "TALK TO SHARKEY LOMAX"},
+     {"word": "TAKE OUT", "show": "TAKE OUT SHARKEY'S HEAVIES"},
+     {"word": "CHASE", "show": "STOP SHARKEY'S CAR"},
+     {"word": "TALK TO", "show": "CALL DUNN"}],
+   "lines": [
+     {"who": "guard", "text": "Sal says you're the man who gets things done. I'm Dunn - I work the gate on Iron Key.", "mood": "nervous", "when": "The guard, shot 1"},
+     {"who": "guard", "text": "I owe Sharkey Lomax four grand. He's got my IOU - with my badge number on it.", "mood": "nervous", "when": "The guard, shot 1"},
+     {"who": "danny", "text": "And if that paper comes back to you?", "mood": "calm", "when": "The guard, shot 2"},
+     {"who": "guard", "text": "Then I owe you. Whatever Sal needs, inside.", "mood": "quiet", "when": "The guard, shot 2"},
+     {"who": "sharkey", "text": "Dunn's paper? It ain't for sale, pal. It's an investment.", "mood": "smug", "when": "The paper"},
+     {"who": "sharkey", "text": "Boys - show our friend the street.", "mood": "smug", "when": "The paper"},
+     {"who": "sharkey", "text": "You'll never catch me in this beauty!", "mood": "shouting", "when": "LIVE - he drives off", "live": true},
+     {"who": "sharkey", "text": "All right, all right! Take the paper - it's in the glovebox!", "mood": "scared", "when": "The IOU, shot 1"},
+     {"who": "sharkey", "text": "Dunn's debt is paid. We square?", "mood": "scared", "when": "The IOU, shot 1"},
+     {"who": "danny", "text": "We're square. Stay out of my way, Sharkey.", "mood": "cold", "when": "The IOU, shot 2"},
+     {"who": "danny", "text": "Dunn? I've got your IOU. Your debt to Sharkey is paid.", "mood": "calm", "when": "LIVE - the call (phone)", "live": true},
+     {"who": "guard", "text": "...And now I owe you. Understood.", "mood": "quiet", "when": "LIVE - the call (phone)", "live": true}],
+   "fails": {"dunnDead": "OFFICER DUNN IS DEAD", "burnt": "SHARKEY'S CAR BURNED - WITH THE IOU", "away": "SHARKEY GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 14, "shopX": 5100, "shopY": 10300, "talkM": 6, "menHp": 80, "carSpeed": 100, "stopHp": 45, "away": 450},
+   "reward": {"cash": 2500, "vehicle": "", "clothes": "", "next": "P3 - Sal's marker S by the Iron Key ferry (the next day)", "place": "", "contact": "Officer Dunn (owes Danny)"},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) and your answer 154 (Sharkey Lomax) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN (off duty) at Sal's marker S by the Iron Key ferry", "where": "SHARKEY'S PAWN & LOAN in Mercado; the streets", "unlocked": "A game day after P1", "time": "Afternoon (MISSIONS TEST: 14:00)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn, the Iron Key gate guard who owes the loan shark.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sharkey": {"gives": false, "role": "\"Sharkey\" Vince Lomax, the loan shark (pawn-and-loan in Mercado, two heavies).", "looks": "Fifties, slicked-back hair, a pinstripe suit, a cigar, a gold tooth.", "bubble": "Teal", "mumble": "Low and rough."}},
+    "steps": [
+     ["Talk to Officer Dunn by the ferry kiosk; the cutscene THE GUARD.", "MISSIONS TEST: you start by the kiosk, a car at the kerb."],
+     ["Go to SHARKEY'S PAWN & LOAN in Mercado (its sign over the door).", ""],
+     ["Talk to Sharkey at his door: the cutscene THE PAPER.", "Hit a heavy first and the fight starts at once."],
+     ["Take out the two heavies (a bat and a pistol); Sharkey runs for his car.", ""],
+     ["Chase his car and ram it till it stops (under 45%); the cutscene THE IOU.", "Don't blow it up - the IOU is in the glovebox."],
+     ["Danny calls Dunn; the quest is passed.", ""]],
+    "fails": [
+     ["Officer Dunn is killed", "OFFICER DUNN IS DEAD"],
+     ["Sharkey's car is destroyed", "SHARKEY'S CAR BURNED - WITH THE IOU"],
+     ["Sharkey gets 450 m away", "SHARKEY GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"THE GUARD\"", "plays": "When you talk to Dunn.", "shots": [
+      ["The ferry kiosk", "Dunn, Danny", "Dunn in a windbreaker over his uniform shirt, looking over his shoulder.", "CLOSE on Dunn", "6", "1, 2"],
+      ["The ferry kiosk", "Danny, Dunn", "Danny nods. Fade out.", "CLOSE on Danny", "5", "3, 4"]]},
+     {"title": "\"THE PAPER\"", "plays": "When you talk to Sharkey.", "shots": [
+      ["SHARKEY'S PAWN & LOAN", "Sharkey, his heavies", "Sharkey puffs his cigar; the heavies step forward.", "CLOSE on Sharkey", "5", "5, 6"]]},
+     {"title": "CLOSING - \"THE IOU\"", "plays": "When his car stops.", "shots": [
+      ["By Sharkey's car", "Sharkey, Danny", "Sharkey stumbles out, hands up.", "CLOSE on Sharkey", "6", "8, 9"],
+      ["By Sharkey's car", "Danny", "Danny folds the IOU into his pocket. Fade out.", "CLOSE on Danny", "4", "10"]]}],
+    "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there)", "phone": "-"},
+    "failing": "Sal's marker S again (retry).",
+    "notes": {"places": "SHARKEY'S PAWN & LOAN: a Mercado shop front under his sign for the quest.", "people": "Dunn, Sharkey, two heavies.", "music": "-", "new": "Sharkey Lomax in the character table.", "other": "From now on Dunn helps from inside (P5, P8)."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
