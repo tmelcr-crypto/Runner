@@ -2179,7 +2179,60 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The ferry kiosk", "Danny, Dunn", "Danny takes off his jacket. Fade out.", "CLOSE on Danny", "4", "3, 4"]]}],
     "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there), at night", "phone": "-"},
     "failing": "Sal's marker S again (retry).",
-    "notes": {"places": "Iron Key's east shore: a fence for the quest; the north-east tower's power box (the searchlights are in both modes).", "people": "Dunn.", "music": "-", "new": "-", "other": "-"}}}
+    "notes": {"places": "Iron Key's east shore: a fence for the quest; the north-east tower's power box (the searchlights are in both modes).", "people": "Dunn.", "music": "-", "new": "-", "other": "-"}}},
+  {"id": "p8", "no": "P8", "title": "THE BREAKOUT", "giver": "guard", "start": "phone", "where": "A call from Dunn; the quiet jetty (Crane's speedboat from P4); Iron Key's east shore; the bay; the Colony",
+   "story": "Dunn opens the laundry door by the east wall and starts a riot in Block B for cover. Danny brings Crane's speedboat in to the east shore, Sal runs through the hole in the fence (P7) and aboard, and they race across the bay with the police boats and the helicopter behind. Sal lies low at the Colony, where Esther gives him a room - as Salvatore Bianchi - and he promises Danny the rest of 1975.",
+   "chars": ["guard", "danny", "sal", "esther"],
+   "steps": [
+     {"word": "TALK TO", "show": "ANSWER THE PHONE - OFFICER DUNN"},
+     {"word": "GET IN", "show": "GET IN CRANE'S SPEEDBOAT"},
+     {"word": "GO TO", "show": "GO TO IRON KEY'S EAST SHORE"},
+     {"word": "PICK UP", "show": "PICK UP SAL AT THE FENCE"},
+     {"word": "LOSE THE POLICE", "show": "LOSE THE POLICE BOATS AND THE HELICOPTER"},
+     {"word": "DELIVER", "show": "TAKE SAL TO THE COLONY"}],
+   "lines": [
+     {"who": "guard", "text": "It's Dunn. The laundry door by the east wall is open - in five minutes it won't be.", "mood": "worried", "when": "The call"},
+     {"who": "guard", "text": "I'm starting a riot in Block B for cover. Get the boat to the east shore.", "mood": "worried", "when": "The call"},
+     {"who": "danny", "text": "On my way. Tell Sal to run for the fence.", "mood": "calm", "when": "The call"},
+     {"who": "danny", "text": "There's the riot - and there's Sal!", "mood": "shouting", "when": "LIVE - at the shore", "live": true},
+     {"who": "sal", "text": "Twenty years, son - and I'm still faster than the guards!", "mood": "excited", "when": "LIVE - through the fence", "live": true},
+     {"who": "sal", "text": "Go, go! They'll have every boat in the bay on us!", "mood": "shouting", "when": "LIVE - aboard", "live": true},
+     {"who": "danny", "text": "Hold on to something.", "mood": "calm", "when": "LIVE - aboard", "live": true},
+     {"who": "danny", "text": "Somewhere they'd never look for you - the Colony.", "mood": "calm", "when": "LIVE - the police lost", "live": true},
+     {"who": "esther", "text": "So this is the famous Sal Moretti. Room twelve - the one with the sea view.", "mood": "warm", "when": "Free man, shot 1"},
+     {"who": "esther", "text": "Nobody asks questions at the Colony, Mr. Bianchi.", "mood": "warm", "when": "Free man, shot 1"},
+     {"who": "sal", "text": "Bianchi... I like it. Danny, I owe you the rest of the story.", "mood": "warm", "when": "Free man, shot 2"},
+     {"who": "sal", "text": "1975 wasn't an accident. Victor planned every minute of it.", "mood": "hard", "when": "Free man, shot 2"},
+     {"who": "danny", "text": "Then we'll make him pay for every minute.", "mood": "cold", "when": "Free man, shot 3"}],
+   "fails": {"salDead": "SAL MORETTI IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 23, "landM": 40, "boardM": 12, "salHp": 400, "stars": 3, "colonyM": 10},
+   "reward": {"cash": 10000, "vehicle": "", "clothes": "", "next": "The finale's links: Sal's marker S at the Colony", "place": "", "contact": "Sal Moretti - Salvatore Bianchi (the Colony)"},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) and your answer 156 (Sal lies low at the Colony) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN - a call on the brick phone", "where": "The quiet jetty; Iron Key's east shore; the bay; the Colony", "unlocked": "The night after P7", "time": "Night (MISSIONS TEST: 23:00)", "length": "About 6 to 8 minutes", "limit": "None"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn: opens the door, starts the riot.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sal": {"gives": false, "role": "Sal Moretti, breaking out.", "looks": "As in the table.", "bubble": "As in the table", "mumble": "As in the table."},
+     "esther": {"gives": false, "role": "Esther Bloom: gives Sal a room at the Colony.", "looks": "As in the table.", "bubble": "Pink", "mumble": "As in the table."}},
+    "steps": [
+     ["The phone rings (DUNN): ANSWER, or E.", "MISSIONS TEST: you start on the quiet jetty at night, Crane's speedboat (P4) beside it."],
+     ["Get in the speedboat.", ""],
+     ["Take it to Iron Key's east shore, off the hole in the fence (P7).", "The north-east tower is dark (P7)."],
+     ["A riot breaks out; Sal runs through the fence to the shore - bring the boat in close and he jumps aboard.", "Sal must live."],
+     ["3 stars: lose the police boats and the helicopter.", ""],
+     ["Take Sal to the Colony's door (ashore by any jetty or beach; he follows you); the closing cutscene FREE MAN.", ""]],
+    "fails": [
+     ["Sal is killed", "SAL MORETTI IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "CLOSING - \"FREE MAN\"", "plays": "At the Colony's door.", "shots": [
+      ["The Colony's door", "Esther, Sal", "Esther hands Sal a key on a big brass tag.", "CLOSE on Esther", "6", "9, 10"],
+      ["The Colony's door", "Sal, Danny", "Sal turns the key over in his fingers.", "CLOSE on Sal", "6", "11, 12"],
+      ["The Colony's door", "Danny", "Fade out.", "CLOSE on Danny", "4", "13"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "OFFICER DUNN calls the night after P7"},
+    "failing": "Dunn calls again (retry).",
+    "notes": {"places": "The Colony: Sal's room; his marker S moves there for the finale's links (answer 156).", "people": "Dunn, Sal, Esther.", "music": "-", "new": "-", "other": "The Prison storyline's gift to the finale: Sal's story of 1975 (and Dunn on the inside)."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

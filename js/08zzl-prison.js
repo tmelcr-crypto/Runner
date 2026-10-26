@@ -406,3 +406,58 @@ MSCRIPT.p7 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A) shoreFenceGone(A.F); prisonReset(); } };
 })();
+
+/* ================= P8 - THE BREAKOUT ================= */
+MSCRIPT.p8 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  function setup(A) {
+    prisonReset(); SKY.hour = N().hour; const d = MARINA.door;
+    const J = JETTIES.reduce((best, j) => !best || dist(j.x, j.y, d[0], d[1]) > dist(best.x, best.y, d[0], d[1]) ? j : best, null), ja = J.a * Math.PI / 180;   // the quiet jetty of P4
+    const dock = at(J.x + Math.cos(ja) * (J.len + 40), J.y + Math.sin(ja) * (J.len + 40));
+    A.boat = msCar('speedboat', dock.x, dock.y, ja, '#f4f6fa');                                   // Crane's racer, hidden there since P4
+    const st = at(J.x - Math.cos(ja) * 30, J.y - Math.sin(ja) * 30); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: on the jetty, at night
+    A.F = shoreFence(true); A.landing = at(A.F.cutAt.x + 70, A.F.cutAt.y);                       // the fence's hole (cut in P7); the boat waits off the shore
+    prisonBoxes()[1].cut = true;                                                                  // the north-east tower is dark (P7)
+    const c = S1.colony(); A.colony = c.door;
+  }
+  function salOut(A) {                       // Dunn's door: Sal slips out by the wall and runs for the hole in the fence
+    if (A.sal) return; const F = A.F, q = S1.free(F.inside.x - 30, F.inside.y - 60, 6);
+    A.sal = msPed(q.x, q.y, 0, Object.assign(S1.look('sal'), { msName: 'sal', step: S1.runStep(0.75), spare: true }));
+    A.sal.route = [F.inside, F.gap, F.cutAt]; A.sal.ri = 0;
+    Snd.tone(760, 540, 0.9, 0.05, 'sawtooth'); toast('A RIOT ON IRON KEY!', true); msLive([4, 5], { now: true });
+  }
+  const steps = [
+    msPhone('guard', [1, 2, 3]),                                                                   // Dunn: the door is open
+    { enter(A) { MS.guide = () => A.boat; MS.mark = () => A.boat; },                              // GET IN the boat
+      tick: A => P.car === A.boat,
+      jump(A) { if (P.car) exitCar(true); P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } },
+    { enter(A) { MS.guide = () => P.car === A.boat ? A.landing : A.boat; MS.mark = () => P.car === A.boat ? A.landing : A.boat; },   // GO TO Iron Key's east shore
+      tick(A) { return P.car === A.boat && dist(A.boat.x, A.boat.y, A.landing.x, A.landing.y) < N().landM * M; },
+      info: A => Math.round(dist(me().x, me().y, A.landing.x, A.landing.y) / M) + " M TO IRON KEY'S EAST SHORE",
+      jump(A) { const b = A.boat; if (P.car !== b) { if (P.car) exitCar(true); P.x = b.x; P.y = b.y; enterCar(b); } b.x = A.landing.x; b.y = A.landing.y; b.vx = b.vy = 0; } },
+    { enter(A) { salOut(A); MS.mark = () => A.sal; MS.guide = null; },                            // WAIT for Sal: through the fence, into the boat
+      tick(A, dt) { const s = A.sal; if (s.dead) return false;
+        if (!A.ally && s.ri >= 3) { A.ally = true; msAllyFrom(s, { who: 'sal', calm: true, near: true, hp: N().salHp, fail: MS.m.fails.salDead }); }
+        if (A.ally && !s.aboard && P.car === A.boat && dist(s.x, s.y, A.boat.x, A.boat.y) < N().boardM * M) allyBoard(s, A.boat);
+        return !!s.aboard; },
+      info: A => A.sal && A.sal.aboard ? '' : 'BRING THE BOAT IN CLOSE - SAL IS COMING THROUGH THE FENCE',
+      jump(A) { salOut(A); const s = A.sal; if (!A.ally) { A.ally = true; msAllyFrom(s, { who: 'sal', calm: true, near: true, hp: N().salHp, fail: MS.m.fails.salDead }); } if (P.car !== A.boat) { if (P.car) exitCar(true); P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } allyBoard(s, A.boat); } },
+    { enter(A) { forceWanted(N().stars); msLive([6, 7], { now: true }); MS.mark = null; MS.guide = null; },   // LOSE THE POLICE: the police boats, the helicopter
+      tick: () => P.stars <= 0,
+      info: () => P.stars > 0 ? 'THE POLICE BOATS AND THE HELICOPTER ARE AFTER YOU' : '',
+      jump() { P.heat = 0; P.stars = 0; } },
+    { enter(A) { MS.guide = A.colony; MS.mark = () => A.colony; msLive([8], { now: true }); },   // DELIVER Sal to the Colony
+      tick(A) { if (A.fin) return true; const s = A.sal; if (A.home || P.car || s.aboard || dist(P.x, P.y, A.colony.x, A.colony.y) > N().colonyM * M || dist(s.x, s.y, P.x, P.y) > 120) return false;
+        A.home = true; const q = S1.free(A.colony.x + 30, A.colony.y, 6); A.esther = msPed(q.x, q.y, 0, Object.assign(S1.look('esther'), { msName: 'esther', step: S1.stay, spare: true, shield: true }));
+        msCut('FREE MAN', () => { A.fin = true; }); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.colony.x, A.colony.y) / M) + ' M TO THE COLONY' + (A.sal.aboard && !P.car ? '' : ''),
+      jump(A) { if (P.car) exitCar(true); P.x = A.colony.x; P.y = A.colony.y; P.swim = false; const s = A.sal; if (s.aboard) allyAlight(s); s.x = P.x + 20; s.y = P.y; } }];
+  function fail(A) { const F = MS.m.fails; if (A.sal && A.sal.dead) return F.salDead; return ''; }
+  const cuts = {
+    'FREE MAN': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [9, 10], enter: () => { face(A.esther, A.sal); face(A.sal, A.esther); } },
+      { dur: 6, cam: 'CLOSE', at: () => A.sal, line: [11, 12], enter: () => { face(A.sal, P); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [13], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A) shoreFenceGone(A.F); prisonReset(); } };
+})();
