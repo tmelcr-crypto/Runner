@@ -240,3 +240,70 @@ MSCRIPT.p4 = (() => {
   }
   return { setup, steps, fail, cuts: {} };
 })();
+
+/* ================= P5 - LAUNDRY DAY ================= */
+MSCRIPT.p5 = (() => {
+  const S1 = STORY1, L = PRISONL, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  const wearing = () => P.outfit && P.outfit.top === 'pri_guard' && P.outfit.bottoms === 'pri_guard_trousers';
+  function wear(A) { A.old = A.old || Object.assign({}, P.outfit); for (const id of ['pri_guard', 'pri_guard_trousers']) if (!P.wardrobe.includes(id)) P.wardrobe.push(id); P.outfit.top = 'pri_guard'; P.outfit.bottoms = 'pri_guard_trousers'; P.outfit.hat = null; }
+  function setup(A) {
+    prisonReset(); PRX.visit = false; SKY.hour = N().hour;
+    const st = A.kiosk = L.kiosk(); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: by the ferry kiosk (marker S)
+    const dq = S1.free(st.x + 40, st.y, 6); A.dunn = msPed(dq.x, dq.y, 0, Object.assign(S1.look('guard'), { msName: 'guard', step: S1.stay, spare: true, shield: true })); face(A.dunn, P);
+    const r0 = S1.road(st.x - 200, st.y + 150), k0 = kerbBy(r0.x, r0.y);                    // the prison's laundry truck at the kerb (Suds & Sons do Iron Key's washing)
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, k0.x, k0.y) < 90) cars.splice(i, 1);
+    A.truck = msCar('truck', k0.x, k0.y, k0.ang, '#f4f6fa'); A.truck.deco = 'laundry';
+    const [mx0, my0, , my1] = PRZ.mpier; A.pier = at(mx0 - 10, (my0 + my1) / 2);                 // the mainland ferry pier's land end
+    const pa = PRZ.path; A.isle = { x: pa[2][0], y: pa[2][1] - 20, a: Math.atan2(pa[1][1] - pa[2][1], pa[1][0] - pa[2][0]) };   // on the island's path above its pier
+    const [gx, gy] = PRZ.gate; A.gate = at(gx, gy + 40); A.drop = S1.free(PRZ.release[0] - 20, PRZ.release[1] - 20, 10);
+    const sq = S1.free(A.drop.x - 40, A.drop.y - 30, 6); A.sal = msPed(sq.x, sq.y, 0, Object.assign(S1.look('sal'), { msName: 'sal', step: S1.stay, spare: true, shield: true }));
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.dunn; MS.start = { at: () => A.dunn, label: 'START MISSION', go: () => { face(A.dunn, P); msCut('LAUNDRY DAY', () => { A.go = true; }); } }; },   // TALK TO Dunn
+      tick: A => !!A.go },
+    { enter(A) { MS.mark = null; if (wearing()) A.worn = true; },                                   // PUT ON Dunn's spare uniform
+      tick(A) { if (!A.worn && !MS.start && !P.car) MS.start = { at: () => P, label: "DUNN'S SPARE UNIFORM", go2: 'PUT IT ON', go: () => { wear(A); Snd.pickup(); A.worn = true; } }; return !!A.worn; },
+      jump(A) { MS.start = null; wear(A); A.worn = true; } },
+    { enter(A) { MS.guide = () => A.truck; MS.mark = () => A.truck; },                              // GET IN the laundry truck
+      tick: A => P.car === A.truck,
+      jump(A) { if (P.car) exitCar(true); P.x = A.truck.x; P.y = A.truck.y; enterCar(A.truck); } },
+    { enter(A) { MS.guide = () => P.car === A.truck ? A.pier : A.truck; MS.mark = () => P.car === A.truck ? A.pier : A.truck; },   // GO TO the ferry: the crossing
+      tick(A) { if (A.crossed) return true; if (A.onFerry || P.car !== A.truck || dist(A.truck.x, A.truck.y, A.pier.x, A.pier.y) > N().pierM * M) return false;
+        A.onFerry = true; msCut('THE CROSSING', () => { A.crossed = true; }); return false; },
+      info: A => P.car === A.truck ? Math.round(dist(A.truck.x, A.truck.y, A.pier.x, A.pier.y) / M) + ' M TO THE FERRY' : 'GET BACK IN THE TRUCK',
+      jump(A) { const c = A.truck; if (P.car !== c) { if (P.car) exitCar(true); P.x = c.x; P.y = c.y; enterCar(c); } c.x = A.pier.x; c.y = A.pier.y; c.vx = c.vy = 0; } },
+    { enter(A) { MS.guide = A.gate; MS.mark = () => A.gate; },                                      // GO TO the gate - slowly
+      tick(A) { if (P.car !== A.truck) return false; const d = dist(A.truck.x, A.truck.y, A.gate.x, A.gate.y) / M;
+        if (d < N().slowZone && carSpeed(A.truck) / KMH > N().slowKmh) A.rushed = true;
+        if (d > N().gateM) return false; PRX.gateOpen = true; msLive([6], { now: true }); return true; },
+      info: A => Math.round(dist(me().x, me().y, A.gate.x, A.gate.y) / M) + ' M TO THE GATE · SLOW (UNDER ' + N().slowKmh + ' KM/H)',
+      jump(A) { const c = A.truck; c.x = A.gate.x; c.y = A.gate.y; c.vx = c.vy = 0; PRX.gateOpen = true; } },
+    { enter(A) { PRX.gateOpen = true; MS.guide = A.drop; MS.mark = () => A.drop; },                 // DELIVER the baskets to the laundry door
+      tick(A) { if (A.fin) return true; PRX.gateOpen = true;
+        if (A.home || P.car !== A.truck || dist(A.truck.x, A.truck.y, A.drop.x, A.drop.y) > N().dropM * M || carSpeed(A.truck) / KMH > 6) return false;
+        A.home = true; msCut('THE BASKETS', () => { A.fin = true; }); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.drop.x, A.drop.y) / M) + ' M TO THE LAUNDRY DOOR · STOP THERE',
+      jump(A) { const c = A.truck; c.x = A.drop.x; c.y = A.drop.y; c.vx = c.vy = 0; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.dunn.dead) return F.dunnDead;
+    if (A.sal.dead) return F.salDead;
+    if (A.truck.dead) return F.truck;
+    if (A.rushed) return F.rushed;
+    if (MS.k >= 4 && !wearing()) return F.uniform;
+    return '';
+  }
+  const cuts = {
+    'LAUNDRY DAY': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.dunn, line: [1, 2], enter: () => { face(A.dunn, P); P.ang = Math.atan2(A.dunn.y - P.y, A.dunn.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [3], fadeOut: true }],
+    'THE CROSSING': A => [
+      { dur: 4, cam: 'WIDE', at: () => A.pier, cap: 'THE IRON KEY FERRY', line: [4] },
+      { dur: 6, cam: 'PAN', at: () => A.pier, to: () => A.isle, line: [5],
+        enter: () => { const c = A.truck, i = A.isle; c.x = i.x; c.y = i.y; c.ang = i.a; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; }, fadeOut: true }],
+    'THE BASKETS': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.sal, line: [7, 8], enter: () => { face(A.sal, A.truck); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [9], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { prisonReset(); if (A && A.old && msTest()) Object.assign(P.outfit, A.old); } };
+})();

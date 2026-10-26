@@ -2033,7 +2033,63 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
 ],
     "start": {"how": "phone", "marker": "-", "phone": "OFFICER DUNN calls a game day after P3"},
     "failing": "Dunn calls again (retry).",
-    "notes": {"places": "Sunset Harbor's last berth: Crane's (for this quest); the quiet jetty: the furthest of the eight from Sunset Harbor - Sal's boat waits there for P8.", "people": "Two of Crane's men.", "music": "-", "new": "-", "other": "The boat stays at the jetty for the breakout (P8)."}}}
+    "notes": {"places": "Sunset Harbor's last berth: Crane's (for this quest); the quiet jetty: the furthest of the eight from Sunset Harbor - Sal's boat waits there for P8.", "people": "Two of Crane's men.", "music": "-", "new": "-", "other": "The boat stays at the jetty for the breakout (P8)."}}},
+  {"id": "p5", "no": "P5", "title": "LAUNDRY DAY", "giver": "guard", "start": "marker", "where": "The Iron Key ferry's kiosk (marker S); the ferry (a cutscene crossing); Iron Key prison's gate and laundry door",
+   "story": "Tuesday is laundry day on Iron Key. In Dunn's spare uniform Danny drives Suds & Sons' laundry truck onto the ferry - the tools for Sal hidden in the third basket - across the bay and slowly through the gate, where the guards never look twice at the laundry man. Sal collects the basket at the laundry door.",
+   "chars": ["guard", "danny", "sal"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO OFFICER DUNN"},
+     {"word": "PUT ON", "show": "PUT ON DUNN'S SPARE UNIFORM"},
+     {"word": "GET IN", "show": "GET IN THE LAUNDRY TRUCK"},
+     {"word": "GO TO", "show": "DRIVE ONTO THE FERRY"},
+     {"word": "GO TO", "show": "DRIVE TO THE PRISON GATE - SLOWLY"},
+     {"word": "DELIVER", "show": "STOP AT THE LAUNDRY DOOR"}],
+   "lines": [
+     {"who": "guard", "text": "Tuesday is laundry day. Suds & Sons' truck goes over on the ferry - and today you're driving it.", "mood": "quiet", "when": "Laundry day, shot 1"},
+     {"who": "guard", "text": "My spare uniform. Sal's tools are in the third basket. Nobody looks at the laundry man.", "mood": "quiet", "when": "Laundry day, shot 1"},
+     {"who": "danny", "text": "As long as I don't look at them either.", "mood": "dry", "when": "Laundry day, shot 2"},
+     {"who": "danny", "text": "Easy does it - nice and slow onto the ferry.", "mood": "calm", "when": "The crossing, shot 1"},
+     {"who": "danny", "text": "Just another Tuesday.", "mood": "calm", "when": "The crossing, shot 2"},
+     {"who": "danny", "text": "Laundry. Same as every Tuesday.", "mood": "calm", "when": "LIVE - at the gate", "live": true},
+     {"who": "sal", "text": "Third basket from the top. Bless you, son.", "mood": "quiet", "when": "The baskets, shot 1"},
+     {"who": "sal", "text": "Now I can work on more than a crossword.", "mood": "dry", "when": "The baskets, shot 1"},
+     {"who": "danny", "text": "Next time I see you, Sal, it'll be on the outside.", "mood": "warm", "when": "The baskets, shot 2"}],
+   "fails": {"dunnDead": "OFFICER DUNN IS DEAD", "salDead": "SAL MORETTI IS DEAD", "truck": "THE LAUNDRY TRUCK IS WRECKED", "rushed": "YOU RUSHED THE GATE - THE GUARDS GOT SUSPICIOUS", "uniform": "YOU TOOK OFF THE UNIFORM", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 10, "pierM": 12, "slowZone": 25, "slowKmh": 20, "gateM": 10, "dropM": 10},
+   "reward": {"cash": 3500, "vehicle": "", "clothes": "Dunn's spare uniform: the prison guard's shirt and trousers (STORY wardrobe)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) and your answers 151 (the ferry crossing in a cutscene) and 153 (Dunn's spare uniform) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN at Sal's marker S by the Iron Key ferry", "where": "The ferry; Iron Key prison", "unlocked": "A game day after P4", "time": "Morning (MISSIONS TEST: 10:00)", "length": "About 4 minutes", "limit": "None - but slowly at the gate"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn: his spare uniform and the laundry run.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You - the laundry man for the day.", "looks": "In Dunn's spare uniform: a blue-grey shirt, navy trousers.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sal": {"gives": false, "role": "Sal Moretti: collects the basket at the laundry door.", "looks": "As in the table.", "bubble": "As in the table", "mumble": "As in the table."}},
+    "steps": [
+     ["Talk to Officer Dunn by the ferry kiosk; the cutscene LAUNDRY DAY.", "MISSIONS TEST: you start by the kiosk."],
+     ["Put on Dunn's spare uniform (PUT IT ON).", "STORY: the shirt and trousers stay in your wardrobe after P5; worn on Iron Key, the guards take you for one of them."],
+     ["Get in Suds & Sons' laundry truck at the kerb.", ""],
+     ["Drive onto the ferry pier: the cutscene THE CROSSING takes the truck over to Iron Key.", "The ferry carries a vehicle only in this quest."],
+     ["Drive up to the prison gate under 20 km/h for the last 25 m; the gate opens for you.", "Faster: the guards get suspicious and the quest fails. Take the uniform off: the same."],
+     ["Stop the truck at the laundry door inside the gate; the closing cutscene THE BASKETS.", ""]],
+    "fails": [
+     ["Faster than 20 km/h near the gate", "YOU RUSHED THE GATE - THE GUARDS GOT SUSPICIOUS"],
+     ["The uniform comes off on the island", "YOU TOOK OFF THE UNIFORM"],
+     ["The truck is wrecked", "THE LAUNDRY TRUCK IS WRECKED"],
+     ["Dunn or Sal is killed", "OFFICER DUNN IS DEAD / SAL MORETTI IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"LAUNDRY DAY\"", "plays": "When you talk to Dunn.", "shots": [
+      ["The ferry kiosk", "Dunn, Danny", "Dunn hands over a folded uniform.", "CLOSE on Dunn", "6", "1, 2"],
+      ["The ferry kiosk", "Danny", "Fade out.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "\"THE CROSSING\"", "plays": "When the truck reaches the ferry pier.", "shots": [
+      ["The mainland pier", "The truck", "The truck rolls onto the ferry; caption THE IRON KEY FERRY.", "WIDE", "4", "4"],
+      ["The bay", "The ferry", "The camera pans across the water to Iron Key's pier. Fade out.", "PAN", "6", "5"]]},
+     {"title": "CLOSING - \"THE BASKETS\"", "plays": "When the truck stops at the laundry door.", "shots": [
+      ["The laundry door", "Sal", "Sal lifts the third basket.", "CLOSE on Sal", "6", "7, 8"],
+      ["The laundry door", "Danny", "Fade out.", "CLOSE on Danny", "4", "9"]]}],
+    "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there)", "phone": "-"},
+    "failing": "Sal's marker S again (retry).",
+    "notes": {"places": "Iron Key: the gate and the laundry door inside it.", "people": "Dunn, Sal.", "music": "-", "new": "Dunn's spare uniform (clothes table: pri_guard, pri_guard_trousers; modes table: prisonUniform - STORY and MISSIONS TEST).", "other": "The laundry truck is the truck with Suds & Sons' livery (as in C3)."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

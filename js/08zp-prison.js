@@ -10,6 +10,7 @@ const PRX = { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, area: null,
 const FERRY = { s: 0, end: 0, state: 'dock', t: 0, v: 0, x: 0, y: 0, ang: 0, hold: false, rider: false, lx: 0, ly: 0, offT: 0, mesh: null };
 const prisonOn = () => !!PRZ && feat('prison');
 const inPrison = (x, y) => { const [x0, y0, x1, y1] = PRZ.walls, h = PRZ.wt / 2; return x > x0 + h && x < x1 - h && y > y0 + h && y < y1 - h; };
+const prisonDisguise = () => feat('prisonUniform') && !!P.outfit && P.outfit.top === 'pri_guard' && P.outfit.bottoms === 'pri_guard_trousers';   // Dunn's uniform on (P5): the guards take you for one of them
 const onIsland = (x, y) => !!PRZ && districtAt(x, y) === 'IRON KEY' && shoreDist(x, y) > -40;
 
 /* ---------- the shared warning banner (the military base uses it too, js/08j) ---------- */
@@ -75,7 +76,7 @@ function prisonTick(dt) {                 // js/15 update
   if (!PRZ) return;
   const on = prisonOn(), me = P.car || P, inside = on && !P.dead && state === 'play' && inPrison(me.x, me.y), since = gameT - PRX.freeT;
   if (since < 30) { if (state === 'play' && !P.dead && !inside) PRX.left = true; } else PRX.left = false;
-  const free = (since < 30 && !PRX.left) || PRX.visit;             // let out: no warning until you have left the walls (or for half a minute); a visitor: none
+  const free = (since < 30 && !PRX.left) || PRX.visit || prisonDisguise();   // let out: no warning until you have left the walls (or for half a minute); a visitor, or one of the guards (the uniform): none
   if (inside && !free && !RAMP.on) {
     PRX.outT = 0;
     if (!PRX.alarm) { PRX.warnT += dt; warnSet('prison', 'RESTRICTED AREA<br><small>LEAVE NOW ' + Math.max(0, Math.ceil(PLC.prisonWarn - PRX.warnT)) + '</small>'); if (PRX.warnT >= PLC.prisonWarn) prisonAlarm(); }
