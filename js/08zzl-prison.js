@@ -353,3 +353,56 @@ MSCRIPT.p6 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { if (A) PRISONL.kitBack(A); PRX.lock = false; prisonReset(); } };
 })();
+
+/* ---------- the shore fence on Iron Key's east side (P7 cuts a hole in it; Sal goes through it in P8): a quest's prop ---------- */
+function shoreFence(cut) {                 // { mesh, gap (the hole's middle), cutAt (where you cut it, outside) }
+  const x = 9046, y0 = 3470, y1 = 3880, yh = 3690, g = new THREE.Group(), post = new THREE.MeshLambertMaterial({ color: 0xb8bcc8 }), wire = new THREE.MeshLambertMaterial({ color: 0xd8dce4 });
+  const box = (w, h, d, m, px, py, pz) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(px, py, pz); g.add(b); return b; };
+  const hole = new THREE.Group();
+  for (let y = y0; y <= y1; y += 18) box(2.6, 24, 2.6, post, x, 12, y);
+  for (const h of [4, 9, 14, 19]) for (let y = y0; y < y1; y += 18) { const b = box(1, 1.2, 18, wire, x, h, y + 9); if (Math.abs(y + 9 - yh) < 16) { g.remove(b); hole.add(b); } }
+  g.add(hole); hole.visible = !cut; g.position.y = groundH(x, yh) || 0; scene.add(g);
+  return { mesh: g, hole, gap: { x, y: yh }, cutAt: { x: x + 16, y: yh }, inside: { x: x - 20, y: yh } };
+}
+function shoreFenceGone(F) { if (!F) return; scene.remove(F.mesh); F.mesh.traverse(o => { if (o.isMesh) { o.geometry.dispose(); } }); }
+
+/* ================= P7 - NIGHT SWIM ================= */
+MSCRIPT.p7 = (() => {
+  const S1 = STORY1, L = PRISONL, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  function setup(A) {
+    prisonReset(); SKY.hour = N().hour;
+    const st = A.kiosk = L.kiosk(); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: by the ferry kiosk (marker S), at night
+    const dq = S1.free(st.x + 40, st.y, 6); A.dunn = msPed(dq.x, dq.y, 0, Object.assign(S1.look('guard'), { msName: 'guard', step: S1.stay, spare: true, shield: true })); face(A.dunn, P);
+    A.F = shoreFence(false); A.shore = at(A.F.cutAt.x + 8, A.F.cutAt.y); A.box = prisonBoxes()[1];   // the north-east tower's box
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => A.dunn; MS.start = { at: () => A.dunn, label: 'START MISSION', go: () => { face(A.dunn, P); msCut('NIGHT SWIM', () => { A.go = true; }); } }; },   // TALK TO Dunn
+      tick: A => !!A.go },
+    { enter(A) { MS.guide = A.shore; MS.mark = () => A.shore; },                                   // SWIM to Iron Key's east shore
+      tick(A) { return !P.car && !P.swim && dist(P.x, P.y, A.shore.x, A.shore.y) < N().shoreM * M; },
+      info: A => Math.round(dist(me().x, me().y, A.shore.x, A.shore.y) / M) + " M TO IRON KEY'S EAST SHORE · KEEP OUT OF THE BEAMS",
+      jump(A) { if (P.car) exitCar(true); P.x = A.shore.x; P.y = A.shore.y; P.swim = false; } },
+    { enter(A) { MS.guide = null; MS.mark = () => A.F.cutAt; },                                    // CUT the shore fence
+      tick(A) { if (!A.cut && !MS.start && !P.car) MS.start = { at: () => A.F.cutAt, label: 'THE SHORE FENCE', go2: 'CUT IT', go: () => { A.cut = true; A.F.hole.visible = false; Snd.tone(1400, 900, 0.25, 0.06, 'square'); popup(P.x, P.y - 14, 'A HOLE IN THE FENCE', '#b6ff3c'); } }; return !!A.cut; },
+      jump(A) { MS.start = null; A.cut = true; A.F.hole.visible = false; } },
+    { enter(A) { MS.mark = () => A.box; MS.guide = A.box; msLive([5], { now: true }); },          // CUT the tower's power
+      tick: A => A.box.cut,
+      info: () => "THE TOWER'S POWER BOX - E: CUT IT",
+      jump(A) { A.box.cut = true; } },
+    { enter(A) { MS.mark = () => A.kiosk; MS.guide = null; },                                      // SWIM back to the promenade
+      tick(A) { if (A.fin) return true; if (A.call || onIsland(me().x, me().y) || P.swim) return false; A.call = true; msLive([6, 7], { phone: true, done: () => { A.fin = true; } }); return false; },
+      info: () => P.swim ? 'SWIM BACK TO THE PROMENADE' : '',
+      jump(A) { const k = A.kiosk; if (P.car) exitCar(true); P.x = k.x; P.y = k.y; P.swim = false; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.dunn.dead) return F.dunnDead;
+    if (PRX.alarm) return F.seen;
+    return '';
+  }
+  const cuts = {
+    'NIGHT SWIM': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.dunn, line: [1, 2], enter: () => { face(A.dunn, P); P.ang = Math.atan2(A.dunn.y - P.y, A.dunn.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [3, 4], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A) shoreFenceGone(A.F); prisonReset(); } };
+})();

@@ -2136,7 +2136,50 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The yard", "Crane's man", "A big lifer pulls a shiv by the fence.", "CLOSE on him", "4", "4"]]}],
     "start": {"how": "phone", "marker": "-", "phone": "OFFICER DUNN calls a game day after P5"},
     "failing": "Dunn calls again (retry).",
-    "notes": {"places": "Iron Key's yard (as in Quest 05).", "people": "Sal; Crane's man inside and four friends.", "music": "-", "new": "-", "other": "-"}}}
+    "notes": {"places": "Iron Key's yard (as in Quest 05).", "people": "Sal; Crane's man inside and four friends.", "music": "-", "new": "-", "other": "-"}}},
+  {"id": "p7", "no": "P7", "title": "NIGHT SWIM", "giver": "guard", "start": "marker", "where": "The Iron Key ferry's kiosk (marker S); the bay; Iron Key's east shore and its north-east tower",
+   "story": "The night before the breakout Danny swims across the bay to Iron Key, cuts a hole in the shore fence on the east side and kills the north-east tower's searchlight at its power box - all without stepping into a beam. Then he swims back. The way out is ready.",
+   "chars": ["guard", "danny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO OFFICER DUNN"},
+     {"word": "GO TO", "show": "SWIM TO IRON KEY'S EAST SHORE"},
+     {"word": "CUT", "show": "CUT A HOLE IN THE SHORE FENCE"},
+     {"word": "CUT", "show": "CUT THE NORTH-EAST TOWER'S POWER"},
+     {"word": "GO TO", "show": "SWIM BACK"}],
+   "lines": [
+     {"who": "guard", "text": "Tomorrow night Sal goes. Tonight you open the way - the east shore, where the fence meets the water.", "mood": "quiet", "when": "Night swim, shot 1"},
+     {"who": "guard", "text": "Cut a hole in it, then kill the north-east tower's light: there's a power box at its foot.", "mood": "quiet", "when": "Night swim, shot 1"},
+     {"who": "danny", "text": "And the beams?", "mood": "calm", "when": "Night swim, shot 2"},
+     {"who": "guard", "text": "Stay out of them. One second in the light and the whole island wakes up.", "mood": "worried", "when": "Night swim, shot 2"},
+     {"who": "danny", "text": "Fence is open. Now the tower's light.", "mood": "low", "when": "LIVE - the fence cut", "live": true},
+     {"who": "danny", "text": "Dunn - the north-east tower's dark.", "mood": "low", "when": "LIVE - back ashore (phone)", "live": true},
+     {"who": "guard", "text": "Then tomorrow night, Sal walks. Get some sleep.", "mood": "quiet", "when": "LIVE - back ashore (phone)", "live": true}],
+   "fails": {"dunnDead": "OFFICER DUNN IS DEAD", "seen": "THE TOWER SAW YOU - THE ALARM", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 23, "shoreM": 10},
+   "reward": {"cash": 3500, "vehicle": "", "clothes": "", "next": "P8 - Sal's marker S by the Iron Key ferry (the next night)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) and your answer 152 (the searchlights and their power boxes) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN at Sal's marker S by the Iron Key ferry", "where": "The bay; Iron Key's east shore", "unlocked": "A game day after P6", "time": "Night (MISSIONS TEST: 23:00)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn: the plan for the way out.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You - swimming.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."}},
+    "steps": [
+     ["Talk to Officer Dunn by the ferry kiosk; the cutscene NIGHT SWIM.", "MISSIONS TEST: you start by the kiosk at night."],
+     ["Swim across the bay to Iron Key's east shore (the marker by the fence).", "The towers' searchlights sweep the island: step into a beam and the alarm goes - the quest fails."],
+     ["Cut a hole in the shore fence (CUT IT).", "The fence is the quest's; Sal goes through the hole in P8."],
+     ["Cut the north-east tower's power box at its foot (E): its light goes dark till morning.", ""],
+     ["Swim back to the promenade; Dunn's call; the quest is passed.", ""]],
+    "fails": [
+     ["Caught in a searchlight (or seen inside the walls)", "THE TOWER SAW YOU - THE ALARM"],
+     ["Dunn is killed", "OFFICER DUNN IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "OPENING - \"NIGHT SWIM\"", "plays": "When you talk to Dunn.", "shots": [
+      ["The ferry kiosk at night", "Dunn, Danny", "Dunn points out across the dark water.", "CLOSE on Dunn", "6", "1, 2"],
+      ["The ferry kiosk", "Danny, Dunn", "Danny takes off his jacket. Fade out.", "CLOSE on Danny", "4", "3, 4"]]}],
+    "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there), at night", "phone": "-"},
+    "failing": "Sal's marker S again (retry).",
+    "notes": {"places": "Iron Key's east shore: a fence for the quest; the north-east tower's power box (the searchlights are in both modes).", "people": "Dunn.", "music": "-", "new": "-", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
