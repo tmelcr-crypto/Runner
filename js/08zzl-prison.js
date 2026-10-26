@@ -207,7 +207,7 @@ MSCRIPT.p4 = (() => {
     for (let i = cars.length - 1; i >= 0; i--) if (cars[i].t.boat && dist(cars[i].x, cars[i].y, b[0], b[1]) < 60) cars.splice(i, 1);
     A.boat = msCar('speedboat', b[0], b[1], 0, '#f4f6fa');                                      // his racer: white, gold stripes
     A.men = [[50, 30], [70, -30]].map(([dx, dy]) => { const q = S1.free(A.door.x + dx, A.door.y + dy, 8); return msFoe(q.x, q.y, Object.assign({ gun: 'pistol', group: 'berth', hp: N().menHp }, crane)); });   // two of Crane's men on the quay
-    const st = S1.road(d[0] + 500, d[1] + 300); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: a few blocks off, a car at the kerb
+    const st = S1.road(d[0] + 1500, d[1] + 600); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: a few blocks off, a car at the kerb
     const k0 = kerbBy(st.x + 50, st.y); A.mycar = msCar('sedan', k0.x, k0.y, k0.ang, '#3d6fa8');
     const J = JETTIES.reduce((best, j) => !best || dist(j.x, j.y, d[0], d[1]) > dist(best.x, best.y, d[0], d[1]) ? j : best, null), ja = J.a * Math.PI / 180;   // a quiet jetty: the furthest from Sunset Harbor
     A.dock = at(J.x + Math.cos(ja) * (J.len + 40), J.y + Math.sin(ja) * (J.len + 40));
