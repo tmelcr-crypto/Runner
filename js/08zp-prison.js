@@ -60,6 +60,33 @@ function prisonYard() {                   // the prisoners: walking about the ya
   const p = makePed(q[0], q[1]); Object.assign(p, { stroll: true, area: A, prisoner: true, shirt: PRI_ORANGE, pants: PRI_ORANGE, umb: false, arm: -1 }); strollTarget(p); peds.push(p);
 }
 
+/* ---------- the searchlights (both modes; mode searchlights): caught in a beam at night, the alarm; a tower's power box cut, its light is out till morning ---------- */
+const PBOX = [];                           // { x, y, i (its tower), cut }
+const searchOn = () => prisonOn() && feat('searchlights');
+function prisonBoxes() {                   // one at each tower's foot, outside the walls
+  if (PBOX.length || !PRZ) return PBOX; const [x0, y0, x1, y1] = PRZ.walls;
+  PRZ.towers.forEach(([tx, ty], i) => PBOX.push({ x: tx + (tx < (x0 + x1) / 2 ? -1 : 1) * 30, y: ty + (ty < (y0 + y1) / 2 ? -1 : 1) * 30, i, cut: false }));
+  return PBOX;
+}
+function prisonBoxKey() {                  // E by an uncut power box (on foot)
+  if (!searchOn() || P.car || P.dead || P.act || state !== 'play') return null;
+  let best = null; for (const b of prisonBoxes()) if (!b.cut && dist(b.x, b.y, P.x, P.y) < 22 && (!best || dist(b.x, b.y, P.x, P.y) < dist(best.x, best.y, P.x, P.y))) best = b;
+  return best;
+}
+function prisonBoxUse(b) {
+  b.cut = true; Snd.tone(220, 60, 0.5, 0.12, 'sawtooth'); popup(P.x, P.y - 14, 'POWER CUT', '#ffd23f');
+  for (let k = 0; k < 16; k++) { const a = rand(0, TAU), v = rand(30, 110); addP({ x: b.x, y: b.y, z: rand(6, 10), vz: rand(20, 80), grav: 260, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(0.3, 0.7), max: 0.7, s0: 1.8, s1: 0.4, col: pick(['#ffd23f', '#cfe6ff', '#ffffff']), drag: 1, hold: true }); }
+}
+function searchTick(dt) {                  // prisonTick: who the beams catch; the boxes back on in the morning
+  const boxes = prisonBoxes(); if (SKY.hour >= 6 && SKY.hour < 20) for (const b of boxes) b.cut = false;
+  const Pp = PRI.parts, me = P.car || P;
+  if (!searchOn() || !Pp || SKY.night <= 0.3 || P.dead || state !== 'play' || PRX.alarm || PRX.visit || prisonDisguise() || !onIsland(me.x, me.y)) { PRX.litT = 0; return; }
+  const lit = Pp.lights.some((L, k) => !boxes[k].cut && L.cx !== undefined && ((me.x - L.cx) / 34) ** 2 + ((me.y - L.cy) / 22) ** 2 < 1);
+  PRX.litT = lit ? (PRX.litT || 0) + dt : 0;
+  if (PRX.litT > PLC.searchCatch) { toast('CAUGHT IN THE SEARCHLIGHT', true); prisonAlarm(); }
+  if (!PRX.boxHint && prisonBoxKey()) { PRX.boxHint = true; toast("THE TOWER'S POWER BOX - E: CUT IT"); } else if (!prisonBoxKey()) PRX.boxHint = false;
+}
+
 /* ---------- the restricted area and the alarm ---------- */
 function prisonAlarm() {
   if (!prisonOn() || PRX.alarm || RAMP.on) return;
@@ -90,6 +117,7 @@ function prisonTick(dt) {                 // js/15 update
   PRX.gate = clamp(PRX.gate + (want || (PRX.gate > 0 && near) ? dt : -dt) * 0.7, 0, 1);
   if (PRI.gateRc) PRI.gateRc.off = PRX.gate > 0.6;
   if (on) prisonYard();
+  searchTick(dt);
   ferryTick(dt, on);
 }
 
@@ -153,6 +181,7 @@ function ferrySkip() {                    // SKIP (or E): straight across, and o
 }
 $('ferrySkip').addEventListener('click', ferrySkip);
 function prisonReset() {                  // js/15 resetGame: the ferry at the Palm Heights pier, no alarm
+  for (const b of PBOX) b.cut = false; PRX.litT = 0;                  // the power boxes back on
   Object.assign(PRX, { warnT: 0, alarm: false, outT: 0, freeT: -1e9, gate: 0, left: false, visit: false, gateOpen: false, lock: false }); warnOff('prison');
   Object.assign(FERRY, { s: 0, end: 0, state: 'dock', t: PLC.ferryWait, v: 0, hold: false, rider: false, lx: 0, ly: 0 }); P.ferry = null;
   if (PRI.route) { ferryAt(0, _fq); FERRY.x = _fq.x; FERRY.y = _fq.y; FERRY.ang = _fq.ang; }
@@ -167,9 +196,10 @@ function gfxPrison(time) {
   if (Pp && PRI.lm && PRI.lm.mesh) {
     const [gx, , gw] = PRZ.gate; Pp.gate.position.x = gx - PRI.lm.cx - PRX.gate * (gw - 4);
     const night = SKY.night > 0.3 && on, me = P.car || P, hunt = on && (PRX.alarm || PRX.warnT > 0) && onIsland(me.x, me.y);
-    for (const L of Pp.lights) {
-      L.beam.visible = L.pool.visible = night || hunt; L.head.material.color.setHex(night || hunt ? 0xfff8e0 : 0x8a8f9c);
-      if (!L.beam.visible) continue;
+    Pp.lights.forEach((L, k) => {
+      const lit = (night || hunt) && !(searchOn() && prisonBoxes()[k].cut);   // its power box cut: dark till morning
+      L.beam.visible = L.pool.visible = lit; L.head.material.color.setHex(lit ? 0xfff8e0 : 0x8a8f9c);
+      if (!L.beam.visible) return;
       let px, py;
       if (hunt && dist(me.x, me.y, L.tx, L.ty) < 420) { px = me.x; py = me.y; }
       else { const a = time * 0.32 + L.ph, r = 120 + 70 * Math.sin(time * 0.19 + L.ph * 2); px = L.tx + Math.cos(a) * r; py = L.ty + Math.sin(a) * r; }
@@ -178,7 +208,7 @@ function gfxPrison(time) {
       L.pool.position.set(gx2, 1.6, gz2);
       _prv.set(hx - gx2, hy - 1.6, hz - gz2); const len = _prv.length(); _prv.normalize();
       L.beam.position.set((hx + gx2) / 2, (hy + 1.6) / 2, (hz + gz2) / 2); L.beam.scale.set(1, len, 1); L.beam.quaternion.setFromUnitVectors(_pru, _prv);
-    }
+    });
   }
   const F = FERRY, near = on && dist(F.x, F.y, cam.x, cam.y) < 2600;
   if (near && !F.mesh) F.mesh = ferryMesh();
