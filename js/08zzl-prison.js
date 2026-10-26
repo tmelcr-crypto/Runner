@@ -196,3 +196,47 @@ MSCRIPT.p3 = (() => {
   };
   return { setup, steps, fail, cuts };
 })();
+
+/* ================= P4 - THE BOAT ================= */
+MSCRIPT.p4 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  const crane = { shirt: '#3a3f4c', pants: '#2a2d36' };
+  function setup(A) {
+    SKY.hour = N().hour; const MR = MARINA, d = MR.door; A.door = at(d[0] + 22, d[1] + 4);
+    const b = MR.berths[MR.berths.length - 1]; A.berth = at(b[0], b[1]);                        // Crane's own berth: the last one on the last pier
+    for (let i = cars.length - 1; i >= 0; i--) if (cars[i].t.boat && dist(cars[i].x, cars[i].y, b[0], b[1]) < 60) cars.splice(i, 1);
+    A.boat = msCar('speedboat', b[0], b[1], 0, '#f4f6fa');                                      // his racer: white, gold stripes
+    A.men = [[50, 30], [70, -30]].map(([dx, dy]) => { const q = S1.free(A.door.x + dx, A.door.y + dy, 8); return msFoe(q.x, q.y, Object.assign({ gun: 'pistol', group: 'berth', hp: N().menHp }, crane)); });   // two of Crane's men on the quay
+    const st = S1.road(d[0] + 500, d[1] + 300); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: a few blocks off, a car at the kerb
+    const k0 = kerbBy(st.x + 50, st.y); A.mycar = msCar('sedan', k0.x, k0.y, k0.ang, '#3d6fa8');
+    const J = JETTIES.reduce((best, j) => !best || dist(j.x, j.y, d[0], d[1]) > dist(best.x, best.y, d[0], d[1]) ? j : best, null), ja = J.a * Math.PI / 180;   // a quiet jetty: the furthest from Sunset Harbor
+    A.dock = at(J.x + Math.cos(ja) * (J.len + 40), J.y + Math.sin(ja) * (J.len + 40));
+  }
+  const steps = [
+    msPhone('guard', [1, 2, 3]),                                                                  // Dunn calls
+    { enter(A) { MS.guide = A.door; MS.mark = () => A.door; },                                   // GO TO Sunset Harbor
+      tick(A) { return dist(me().x, me().y, A.door.x, A.door.y) < N().harborM * M; },
+      info: A => Math.round(dist(me().x, me().y, A.door.x, A.door.y) / M) + ' M TO SUNSET HARBOR',
+      jump(A) { if (P.car) exitCar(true); P.x = A.door.x; P.y = A.door.y; } },
+    { enter(A) { MS.guide = () => A.boat; MS.mark = () => A.boat; },                            // GET IN Crane's racer: the alarm
+      tick(A) { if (P.car !== A.boat) return false;
+        for (const m of A.men) if (!m.dead) foeAlert(m);
+        const need = COP.lv.heat[N().stars]; if (P.heat < need && OPT.police > 0) addHeat((need - P.heat) / OPT.police);
+        msLive([4], { now: true }); return true; },
+      jump(A) { if (P.car) exitCar(true); P.x = A.boat.x; P.y = A.boat.y; enterCar(A.boat); } },
+    { enter(A) { MS.mark = null; MS.guide = null; if (P.stars <= 0) $('msObj').hidden = true; },    // LOSE THE POLICE (the police boat behind)
+      tick() { return P.stars <= 0; },
+      info: () => P.stars > 0 ? 'THE POLICE BOAT IS BEHIND YOU' : '',
+      jump() { P.heat = 0; P.stars = 0; } },
+    { enter(A) { MS.guide = () => P.car === A.boat ? A.dock : A.boat; MS.mark = () => P.car === A.boat ? A.dock : A.boat; },   // DELIVER the boat to the quiet jetty
+      tick(A) { if (A.fin) return true; if (A.home || P.car !== A.boat || dist(A.boat.x, A.boat.y, A.dock.x, A.dock.y) > N().dockM * M) return false;
+        A.home = true; msLive([5, 6], { phone: true, done: () => { A.fin = true; } }); return false; },
+      info: A => P.car === A.boat ? Math.round(dist(A.boat.x, A.boat.y, A.dock.x, A.dock.y) / M) + ' M TO THE JETTY' : 'GET BACK IN THE BOAT',
+      jump(A) { const b = A.boat; if (P.car !== b) { if (P.car) exitCar(true); P.x = b.x; P.y = b.y; enterCar(b); } b.x = A.dock.x; b.y = A.dock.y; b.vx = b.vy = 0; } }];
+  function fail(A) {
+    const F = MS.m.fails;
+    if (A.boat.dead || A.boat.sunk) return F.sunk;
+    return '';
+  }
+  return { setup, steps, fail, cuts: {} };
+})();

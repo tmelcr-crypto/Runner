@@ -1994,7 +1994,46 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The ferry kiosk", "Danny", "Fade out.", "CLOSE on Danny", "4", "11"]]}],
     "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there)", "phone": "-"},
     "failing": "Sal's marker S again (retry).",
-    "notes": {"places": "OTTO'S PRINTING (modes table: ottoShop - both modes): its sign over a Mercado shop front for good; nothing to do inside.", "people": "Dunn, Otto, six of Crane's men.", "music": "-", "new": "Otto in the character table.", "other": "Sal's new name: Salvatore Bianchi."}}}
+    "notes": {"places": "OTTO'S PRINTING (modes table: ottoShop - both modes): its sign over a Mercado shop front for good; nothing to do inside.", "people": "Dunn, Otto, six of Crane's men.", "music": "-", "new": "Otto in the character table.", "other": "Sal's new name: Salvatore Bianchi."}}},
+  {"id": "p4", "no": "P4", "title": "THE BOAT", "giver": "guard", "start": "phone", "where": "A call from Officer Dunn; Sunset Harbor (Crane's berth); a quiet jetty across the city",
+   "story": "Sal's way off Iron Key will be by water. Dunn calls: Crane keeps a racing speedboat at his own berth in Sunset Harbor. Danny steals it from under his men's noses, loses the police boat that comes after him and hides it at the quietest jetty on the coast.",
+   "chars": ["guard", "danny"],
+   "steps": [
+     {"word": "TALK TO", "show": "ANSWER THE PHONE - OFFICER DUNN"},
+     {"word": "GO TO", "show": "GO TO SUNSET HARBOR"},
+     {"word": "STEAL", "show": "STEAL CRANE'S SPEEDBOAT"},
+     {"word": "LOSE THE POLICE", "show": "LOSE THE POLICE BOAT"},
+     {"word": "DELIVER", "show": "HIDE THE BOAT AT THE QUIET JETTY"}],
+   "lines": [
+     {"who": "guard", "text": "It's Dunn. Sal says when he goes, he goes by water - and fast.", "mood": "quiet", "when": "The call"},
+     {"who": "guard", "text": "Crane keeps a racer at Sunset Harbor, the last berth. Nothing on the bay can catch it.", "mood": "quiet", "when": "The call"},
+     {"who": "danny", "text": "Then Crane's about to lend it to us.", "mood": "dry", "when": "The call"},
+     {"who": "danny", "text": "Here comes the alarm - and the harbour police.", "mood": "calm", "when": "LIVE - in the boat", "live": true},
+     {"who": "danny", "text": "Dunn - the boat's at the old jetty. Nobody comes here.", "mood": "calm", "when": "LIVE - at the jetty (phone)", "live": true},
+     {"who": "guard", "text": "Good. I'll tell Sal. Now all he needs is the tools.", "mood": "quiet", "when": "LIVE - at the jetty (phone)", "live": true}],
+   "fails": {"sunk": "CRANE'S SPEEDBOAT SANK", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 11, "harborM": 40, "menHp": 70, "stars": 2, "dockM": 30},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "P5 - Sal's marker S by the Iron Key ferry (the next day)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN - a call on the brick phone", "where": "Sunset Harbor's marina; the bay; a quiet jetty", "unlocked": "A game day after P3", "time": "Late morning (MISSIONS TEST: 11:00)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn: knows where Crane keeps his boat.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."}},
+    "steps": [
+     ["The phone rings (DUNN): ANSWER, or E.", "MISSIONS TEST: you start a few blocks from Sunset Harbor, a car at the kerb."],
+     ["Go to Sunset Harbor's marina.", "Two of Crane's men stand on the quay."],
+     ["Get into Crane's white speedboat at the last berth: 2 stars, and his men open fire.", ""],
+     ["Lose the police - the police boat comes after you on the water.", ""],
+     ["Take the boat to the quiet jetty (the one furthest from Sunset Harbor); Dunn's call; the quest is passed.", ""]],
+    "fails": [
+     ["The speedboat sinks", "CRANE'S SPEEDBOAT SANK"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+],
+    "start": {"how": "phone", "marker": "-", "phone": "OFFICER DUNN calls a game day after P3"},
+    "failing": "Dunn calls again (retry).",
+    "notes": {"places": "Sunset Harbor's last berth: Crane's (for this quest); the quiet jetty: the furthest of the eight from Sunset Harbor - Sal's boat waits there for P8.", "people": "Two of Crane's men.", "music": "-", "new": "-", "other": "The boat stays at the jetty for the breakout (P8)."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
