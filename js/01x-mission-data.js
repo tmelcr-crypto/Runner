@@ -2089,7 +2089,54 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The laundry door", "Danny", "Fade out.", "CLOSE on Danny", "4", "9"]]}],
     "start": {"how": "marker", "marker": "S - by the Iron Key ferry's kiosk (Dunn waits there)", "phone": "-"},
     "failing": "Sal's marker S again (retry).",
-    "notes": {"places": "Iron Key: the gate and the laundry door inside it.", "people": "Dunn, Sal.", "music": "-", "new": "Dunn's spare uniform (clothes table: pri_guard, pri_guard_trousers; modes table: prisonUniform - STORY and MISSIONS TEST).", "other": "The laundry truck is the truck with Suds & Sons' livery (as in C3)."}}}
+    "notes": {"places": "Iron Key: the gate and the laundry door inside it.", "people": "Dunn, Sal.", "music": "-", "new": "Dunn's spare uniform (clothes table: pri_guard, pri_guard_trousers; modes table: prisonUniform - STORY and MISSIONS TEST).", "other": "The laundry truck is the truck with Suds & Sons' livery (as in C3)."}}},
+  {"id": "p6", "no": "P6", "title": "THE YARD", "giver": "guard", "start": "phone", "where": "A call from Dunn; the Iron Key ferry; the prison's gate and yard",
+   "story": "Dunn hears that Crane has paid a lifer to cut Sal in the yard during visiting hours. Danny visits - searched at the gate, his weapons left behind as always - and when Crane's man and his friends go for Sal, a riot breaks out. Danny fights them off with his fists and whatever he finds, and keeps the old man alive.",
+   "chars": ["guard", "danny", "sal", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "ANSWER THE PHONE - OFFICER DUNN"},
+     {"word": "GO TO", "show": "TAKE THE FERRY TO IRON KEY"},
+     {"word": "GO TO", "show": "GO TO THE PRISON GATE"},
+     {"word": "TALK TO", "show": "TALK TO SAL IN THE YARD"},
+     {"word": "TAKE OUT", "show": "TAKE OUT CRANE'S MAN AND HIS FRIENDS - KEEP SAL ALIVE"},
+     {"word": "GO TO", "show": "BACK OUT THROUGH THE GATE"}],
+   "lines": [
+     {"who": "guard", "text": "Dunn. Word inside is Crane paid a lifer to cut Sal - in the yard, during visits.", "mood": "worried", "when": "The call"},
+     {"who": "danny", "text": "Then I'll be there for visiting hours.", "mood": "cold", "when": "The call"},
+     {"who": "sal", "text": "You came. Don't turn around - the big one by the fence works for Victor.", "mood": "quiet", "when": "The hit, shot 1"},
+     {"who": "craneman", "text": "Moretti! Victor sends his regards!", "mood": "shouting", "when": "The hit, shot 2"},
+     {"who": "danny", "text": "Stay behind me, Sal!", "mood": "shouting", "when": "LIVE - the riot", "live": true},
+     {"who": "sal", "text": "I'm sixty-two, son - I'm not going anywhere fast!", "mood": "scared", "when": "LIVE - the riot", "live": true},
+     {"who": "sal", "text": "Twenty years and nobody tried that. Victor's scared.", "mood": "quiet", "when": "LIVE - after the riot", "live": true},
+     {"who": "danny", "text": "Good. Scared men make mistakes.", "mood": "cold", "when": "LIVE - after the riot", "live": true}],
+   "fails": {"salDead": "SAL MORETTI IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 14, "gateR": 40, "menHp": 70, "bossHp": 160, "salHp": 500},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "P7 - Sal's marker S by the Iron Key ferry (that night)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Prison storyline; the riot as in Quest 05) - change anything you like.",
+    "glance": {"kind": "story", "given": "OFFICER DUNN - a call on the brick phone", "where": "Iron Key: the gate and the yard", "unlocked": "A game day after P5", "time": "Visiting hours (MISSIONS TEST: 14:00)", "length": "About 4 to 6 minutes", "limit": "None"},
+    "chars": {
+     "guard": {"gives": true, "role": "Officer Dunn: the warning.", "looks": "As in the table.", "bubble": "Light blue", "mumble": "As in the table."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "sal": {"gives": false, "role": "Sal Moretti: the target; he sticks close to you in the riot.", "looks": "As in the table.", "bubble": "As in the table", "mumble": "As in the table."},
+     "craneman": {"gives": false, "role": "Crane's man inside: a big lifer with a knife (and four friends).", "looks": "Prison orange.", "bubble": "Silver", "mumble": "Flat and low."}},
+    "steps": [
+     ["The phone rings (DUNN): ANSWER, or E.", "MISSIONS TEST: you start by the ferry kiosk."],
+     ["Take the ferry to Iron Key (or any boat).", ""],
+     ["Go to the prison gate: searched, your weapons wait at the gate.", ""],
+     ["Talk to Sal in the yard: the cutscene THE HIT.", "Hit one of them first and the riot starts at once."],
+     ["The riot: Crane's man (a knife, tough) goes for Sal, four more for you. Sal follows you; take them all out and keep him alive.", "The lockdown siren wails."],
+     ["Back out through the gate: your weapons back; the quest is passed.", ""]],
+    "fails": [
+     ["Sal is killed", "SAL MORETTI IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE HIT\"", "plays": "When you talk to Sal.", "shots": [
+      ["The yard", "Sal, Danny", "Sal speaks without moving his lips.", "CLOSE on Sal", "6", "3"],
+      ["The yard", "Crane's man", "A big lifer pulls a shiv by the fence.", "CLOSE on him", "4", "4"]]}],
+    "start": {"how": "phone", "marker": "-", "phone": "OFFICER DUNN calls a game day after P5"},
+    "failing": "Dunn calls again (retry).",
+    "notes": {"places": "Iron Key's yard (as in Quest 05).", "people": "Sal; Crane's man inside and four friends.", "music": "-", "new": "-", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

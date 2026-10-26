@@ -307,3 +307,49 @@ MSCRIPT.p5 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { prisonReset(); if (A && A.old && msTest()) Object.assign(P.outfit, A.old); } };
 })();
+
+/* ================= P6 - THE YARD ================= */
+MSCRIPT.p6 = (() => {
+  const S1 = STORY1, L = PRISONL, N = () => MS.m.numbers, me = () => P.car || P, at = S1.at, face = S1.face, M = UNITS_PER_M;
+  function setup(A) {
+    prisonReset(); PRX.visit = false; SKY.hour = N().hour; const orange = { shirt: PRI_ORANGE, pants: PRI_ORANGE };   // (js/10u loads after this file)
+    const [gx, gy] = PRZ.gate; A.gateOut = at(gx, gy + 46); A.gateIn = at(gx, gy - 46);
+    A.sal = msPed(8870, 3742, -Math.PI / 2, Object.assign(S1.look('sal'), { msName: 'sal', step: S1.stay, spare: true }));   // Sal in the yard
+    A.cut = msFoe(8955, 3600, Object.assign({ gun: 'knife', group: 'yard', hp: N().bossHp, boss: true, name: 'craneman', a: Math.PI }, orange)); A.cut.calm = true;   // Crane's man inside
+    A.men = [[8790, 3600, 'bat'], [8955, 3775, 'knife'], [8800, 3760, 'bat'], [8930, 3570, 'knife']].map(([x, y, g]) => Object.assign(msFoe(x, y, Object.assign({ gun: g, group: 'yard', hp: N().menHp, a: Math.atan2(3742 - y, 8870 - x) }, orange)), { calm: true }));
+    A.ferryPier = at((PRZ.mhead[0] + PRZ.mhead[2]) / 2, (PRZ.mhead[1] + PRZ.mhead[3]) / 2);
+    const st = A.kiosk = L.kiosk(); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: by the ferry kiosk
+  }
+  function riot(A) {                        // Crane's man goes for Sal; his friends for you; the siren
+    if (A.riot) return; A.riot = true; PRX.lock = true;
+    msAllyFrom(A.sal, { who: 'sal', calm: true, hp: N().salHp, fail: MS.m.fails.salDead });
+    for (const m of [A.cut, ...A.men]) { m.calm = false; foeAlert(m); }
+    A.cut.pref = 0.2;                       // he wants Sal more than you
+    msLive([5, 6], { now: true }); toast('LOCKDOWN!', true);
+  }
+  const steps = [
+    msPhone('guard', [1, 2]),                                                                     // Dunn calls: a hit on Sal
+    { enter(A) { MS.mark = () => A.ferryPier; MS.guide = A.ferryPier; },                          // GO TO Iron Key
+      tick: () => !P.ferry && onIsland(me().x, me().y),
+      jump(A) { if (P.car) exitCar(true); P.x = PRZ.path[2][0]; P.y = PRZ.path[2][1]; P.swim = false; } },
+    { enter(A) { MS.mark = () => A.gateOut; MS.guide = A.gateOut; },                              // GO TO the gate: the search
+      tick(A) { if (A.kit) return true; if (P.car || dist(P.x, P.y, A.gateOut.x, A.gateOut.y) > N().gateR) return false; L.holdKit(A); PRX.visit = PRX.gateOpen = true; popup(P.x, P.y - 14, 'WEAPONS LEFT AT THE GATE', '#ffd23f'); return true; },
+      jump(A) { if (P.car) exitCar(true); L.holdKit(A); PRX.visit = PRX.gateOpen = true; P.x = A.gateIn.x; P.y = A.gateIn.y; } },
+    { enter(A) { MS.mark = () => A.sal; MS.guide = () => A.sal; MS.start = { at: () => A.sal, label: msWho('sal').name, go: () => { face(A.sal, P); msCut('THE HIT', () => { A.told = true; }); } }; },   // TALK TO Sal
+      tick(A) { if ([A.cut, ...A.men].some(m => m.alert)) A.told = true; return !!A.told; },
+      jump(A) { MS.start = null; A.told = true; } },
+    { enter(A) { riot(A); MS.mark = () => !A.cut.dead ? A.cut : A.men.find(m => !m.dead); MS.guide = null; A.sirT = 0; },   // TAKE OUT Crane's man and his friends; keep Sal alive
+      tick(A, dt) { if ((A.sirT -= dt) <= 0) { A.sirT = 1.2; Snd.tone(760, 540, 0.9, 0.05, 'sawtooth'); } return msFoesLeft('yard') === 0; },
+      info: A => msFoesLeft('yard') + ' LEFT · SAL ' + Math.max(0, Math.round(100 * A.sal.hp / A.sal.hpMax)) + '%',
+      jump(A) { riot(A); for (const m of [A.cut, ...A.men]) if (!m.dead) killPed(m, 'gun', false); } },
+    { enter(A) { msLive([7, 8], { now: true }); MS.mark = () => A.gateOut; MS.guide = A.gateOut; PRX.lock = false; },   // GO TO the gate: your weapons back
+      tick(A) { if (inPrison(me().x, me().y) || dist(me().x, me().y, A.gateOut.x, A.gateOut.y) > 160) return false; L.kitBack(A); Snd.pickup(); popup(P.x, P.y - 14, 'YOUR WEAPONS', '#b6ff3c'); return true; },
+      jump(A) { L.kitBack(A); P.x = A.gateOut.x; P.y = A.gateOut.y; } }];
+  function fail(A) { const F = MS.m.fails; if (A.sal.dead) return F.salDead; return ''; }
+  const cuts = {
+    'THE HIT': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.sal, line: [3], enter: () => { face(A.sal, P); P.ang = Math.atan2(A.sal.y - P.y, A.sal.x - P.x); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.cut, line: [4] }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { if (A) PRISONL.kitBack(A); PRX.lock = false; prisonReset(); } };
+})();
