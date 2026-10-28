@@ -291,3 +291,148 @@ MSCRIPT.s5 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { msBarOff(); SPACE.ms = null; } };
 })();
+
+/* ================= S6 - TRACKING DISH ================= */
+MSCRIPT.s6 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  function setup(A) {
+    SKY.hour = N().hour; KAHN.iris(A); KAHN.start(A); KAHN.hold({ doors: true });
+    const q = S1.free(2950, 9400, 20); A.truck = msCar('truck', q.x, q.y, Math.PI, '#5f6b3a'); A.truck.dish = true; A.truck.hp = A.truck.maxhp = A.truck.maxhp * N().truckTough;   // the spare dish on an army truck by the motor pool's shed
+    const g = BASEM.gate; A.bgate = { x: g.x, y: g.y }; A.start = { x: q.x, y: q.y };
+    const L = SPACEM.lcc; A.site = S1.free(L[0] - 140, L[1] + L[3] / 2 + 70, 10);   // where the dish goes: beside launch control
+  }
+  const suit = () => P.outfit && P.outfit.top === 'flight_suit';
+  const steps = [
+    KAHN.meet('TRACKING DISH'),
+    { enter(A) { A.lk = SPACE.vab.spots.lockers; MS.mark = () => A.lk; MS.guide = A.lk; },             // PUT ON the flight suit from the lockers in the clean room
+      tick(A) { if (suit()) return true; if (!MS.start && !P.car && dist(P.x, P.y, A.lk.x, A.lk.y) < 4 * M) MS.start = { at: () => A.lk, label: 'THE LOCKERS', go2: 'PUT ON THE FLIGHT SUIT', go: () => { for (const id of ['flight_suit', 'flight_trousers']) if (!P.wardrobe.includes(id)) P.wardrobe.push(id); P.outfit.top = 'flight_suit'; P.outfit.bottoms = 'flight_trousers'; P.outfit.hat = null; Snd.tone(523, 784, 0.2, 0.1, 'triangle'); toast('THE FLIGHT SUIT'); } }; return false; },
+      info: A => suit() ? 'WEARING THE FLIGHT SUIT' : Math.round(dist(me4().x, me4().y, A.lk.x, A.lk.y) / M) + ' M TO THE LOCKERS (THE CLEAN ROOM)',
+      jump(A) { MS.start = null; for (const id of ['flight_suit', 'flight_trousers']) if (!P.wardrobe.includes(id)) P.wardrobe.push(id); P.outfit.top = 'flight_suit'; P.outfit.bottoms = 'flight_trousers'; } },
+    { enter(A) { MS.mark = () => A.truck; MS.guide = () => A.truck; msLive([6]); },                    // GET IN the dish truck at the air base - the suit gets you past the guards
+      tick(A) { return P.car === A.truck; },
+      info: A => Math.round(dist(me4().x, me4().y, A.truck.x, A.truck.y) / M) + ' M TO THE DISH TRUCK (THE AIR BASE)',
+      jump(A) { if (P.car) exitCar(true); P.x = A.truck.x; P.y = A.truck.y; enterCar(A.truck); } },
+    { enter(A) { MS.mark = () => A.site; MS.guide = A.site; },                                          // DRIVE it out and to the space center; halfway out, the alarm
+      tick(A) {
+        const t = A.truck;
+        if (!A.alarm && dist(t.x, t.y, A.bgate.x, A.bgate.y) < dist(A.start.x, A.start.y, A.bgate.x, A.bgate.y) * N().alarmAt / 100) {
+          A.alarm = true; raiseAlarm(); msLive([7, 8], { now: true });
+          for (let k = 0; k < N().jeeps; k++) { const q = S1.free(2240 + k * 90, 8980, 20);
+            msFoeCar('pickup', q.x, q.y, Math.PI / 2, { mode: 'chase', crew: 2, gun: 'smg', group: 'army', speed: N().jeepSpeed, color: '#4f5a36', crewHp: N().menHp, shirt: '#4a5a32', pants: '#3a4228' }).fc.wait = k; }
+        }
+        if (A.end) return A.end === 2;
+        if (P.car !== t || dist(t.x, t.y, A.site.x, A.site.y) > N().parkM * M || carSpeed(t) > 12 * KMH) return false;
+        A.end = 1; msLive([9, 10], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => Math.round(dist(A.truck.x, A.truck.y, A.site.x, A.site.y) / M) + ' M TO LAUNCH CONTROL' + (A.alarm ? ' · THE BASE IS AFTER YOU' : ''),
+      jump(A) { const t = A.truck; if (P.car !== t) { if (P.car) exitCar(true); enterCar(t); } if (!A.alarm) { t.x = lerp(A.start.x, A.bgate.x, 0.6); t.y = lerp(A.start.y, A.bgate.y, 0.6); } else { t.x = A.site.x + 30; t.y = A.site.y; } t.vx = t.vy = 0; P.x = t.x; P.y = t.y; } }];
+  function fail(A) { if (A.truck.dead) return F().dish; return ''; }
+  const cuts = {
+    'TRACKING DISH': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [1, 2], enter: () => { face(A.iris, P); } },
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [3, 4] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [5], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { msBarOff(); SPACE.ms = null; } };
+})();
+
+/* ================= S7 - COUNTDOWN ================= */
+MSCRIPT.s7 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  function setup(A) {
+    SKY.hour = N().hour; KAHN.iris(A); KAHN.start(A); KAHN.hold();
+    const [px, py] = SPACEM.pad; A.pad = { x: px, y: py };
+    A.charges = [0.35, 1.6, 2.7, 3.75, 5.2].map(a => { const q = S1.free(px + Math.cos(a) * 125, py + Math.sin(a) * 125, 10);
+      const m = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 7), new THREE.MeshBasicMaterial({ color: 0xff2030 })); m.position.set(q.x, groundH(q.x, q.y) + 3, q.y); scene.add(m); return { x: q.x, y: q.y, m, done: false, k: 0 }; });
+    A.men = [[160, -40, 'smg'], [-150, 60, 'pistol'], [40, 170, 'pistol'], [-60, -170, 'smg']].map(([dx, dy, gun]) => { const q = S1.free(px + dx, py + dy, 10); return msFoe(q.x, q.y, Object.assign({ gun, hp: N().menHp, group: 'pad' }, CH4.men)); });
+    A.fuse = N().fuse;
+  }
+  const left = A => A.charges.filter(c => !c.done).length;
+  const clock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const steps = [
+    KAHN.meet('COUNTDOWN'),
+    { enter(A) { MS.mark = () => A.charges.find(c => !c.done); MS.guide = () => A.charges.find(c => !c.done); A.on = true; },   // PULL all five charges before the timer runs out
+      tick(A, dt) {
+        A.fuse -= dt; let pulling = null;
+        for (const c of A.charges) {
+          if (c.done) continue; c.m.material.color.setHex(Math.sin(gameT * 8) > 0 ? 0xff2030 : 0x401010);
+          if (!P.car && dist(P.x, P.y, c.x, c.y) < N().pullM * M) { pulling = c; c.k += dt; if (c.k >= N().pullT) { c.done = true; c.m.visible = false; Snd.tone(660, 330, 0.2, 0.1, 'square'); toast(left(A) ? 'CHARGE PULLED - ' + left(A) + ' LEFT' : 'THE LAST CHARGE!'); } }
+          else c.k = Math.max(0, c.k - dt);
+        }
+        if (pulling && !pulling.done) msBar('PULLING THE CHARGE', pulling.k / N().pullT, '#3dff7a'); else msBar('THE TIMER ' + clock(Math.max(0, A.fuse)), Math.max(0, A.fuse) / N().fuse, '#ff3b4a');
+        if (A.end) return A.end === 2; if (left(A) > 0) return false;
+        A.end = 1; msBarOff(); msLive([6, 7], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => left(A) + ' CHARGES · ' + clock(Math.max(0, A.fuse)) + ' · ' + msFoesLeft('pad') + " OF CRANE'S MEN",
+      jump(A) { for (const c of A.charges) { c.done = true; c.m.visible = false; } } }];
+  function fail(A) {
+    if (A.on && !A.end && A.fuse <= 0 && left(A) > 0) { if (!A.boom) { A.boom = true; for (const c of A.charges) if (!c.done) explosion(c.x, c.y, 160, null); } return F().boom; }
+    return '';
+  }
+  const cuts = {
+    'COUNTDOWN': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [1, 2], enter: () => { face(A.iris, P); } },
+      { dur: 4, cam: 'WIDE', at: () => A.pad, line: [3] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [4] },
+      { dur: 3, cam: 'CLOSE', at: () => A.iris, line: [5], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { msBarOff(); SPACE.ms = null; if (A && A.charges) for (const c of A.charges) { scene.remove(c.m); c.m.geometry.dispose(); c.m.material.dispose(); } } };
+})();
+
+/* ================= S8 - LIFT-OFF ================= */
+MSCRIPT.s8 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  const at = (x, y) => ({ x, y });
+  function setup(A) {
+    SKY.hour = N().hour; KAHN.iris(A); KAHN.start(A); KAHN.hold({ doors: true });
+    const [px, py] = SPACEM.pad; A.pad = { x: px, y: py }; A.T = 600; A.wave = 0; A.sab = 0;
+  }
+  const clock = s => 'T-' + Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  const foes = () => msFoesLeft('lift');
+  function wave(A, k) {                     // 0: cars at the gate; 1: men at launch control; 2: a boat lands by the pad; 3: cars and men together
+    const g = SPACE.gate.g, L = SPACE.lcc;
+    const cars2 = n => { SPACE.ms.gate = true; A.gateT = gameT + 12; for (let i = 0; i < n; i++) { const r = S1.road(g.x + 900 + i * 200, g.y), q = kerbBy(r.x, r.y);
+      msFoeCar('sedan', q.x, q.y, q.ang, Object.assign({ mode: 'chase', crew: 2, gun: 'smg', group: 'lift', speed: N().carSpeed, color: '#14161d', crewHp: N().menHp }, CH4.men)).fc.wait = i; } };
+    const men = n => { for (let i = 0; i < n; i++) { const q = S1.free(L.door.x + 40 + i * 14, L.door.y + (i % 2 ? 30 : -30), 6); msFoe(q.x, q.y, Object.assign({ gun: i % 2 ? 'smg' : 'pistol', hp: N().menHp, group: 'lift', alert: true }, CH4.men)); } };
+    if (k === 0) { cars2(2); msLive([5]); }
+    else if (k === 1) { men(4); msLive([6]); }
+    else if (k === 2) {                      // a speedboat beached west of the pad; three men through the fence, for the pad
+      A.boat = msCar('speedboat', A.pad.x - 470, A.pad.y, 0, '#14161d');
+      for (let i = 0; i < 3; i++) { const q = S1.free(A.pad.x - N().landM * M, A.pad.y - 40 + i * 40, 6); const p = msFoe(q.x, q.y, Object.assign({ gun: 'pistol', hp: N().menHp, group: 'lift' }, CH4.men)); p.post.step = KAHN.walker([at(A.pad.x - 20 + i * 20, A.pad.y + 60)], 2.2, false); p.wi = 0; p.sapper = true; }
+      msLive([7]);
+    } else { cars2(2); men(3); msLive([8]); }
+  }
+  const steps = [
+    KAHN.meet('GO FOR LAUNCH'),
+    { enter(A) { const L = SPACE.lcc, s = L.spots.iris; Object.assign(A.iris, { x: s.x, y: s.y }); A.iris.post.x = s.x; A.iris.post.y = s.y; face(A.iris, L.spots.screen);   // HOLD launch control and the pad till T-0
+        msAllyFrom(A.iris, { who: 'iris', calm: true, stay: true, near: true, hp: N().irisHp, fail: F().iris }); A.iris.shield = false; A.iris.post.step = S1.stay;
+        MS.mark = () => peds.find(p => p.foe && !p.dead && p.group === 'lift') || null; MS.guide = null; msObjective('HOLD LAUNCH CONTROL AND THE PAD - ' + clock(A.T)); },
+      tick(A, dt) {
+        if (A.launch) return !!A.done;
+        if (A.gateT && gameT > A.gateT) { SPACE.ms.gate = false; A.gateT = 0; }
+        const th = [540, 390, 240, 120]; while (A.wave < 4 && A.T <= th[A.wave]) wave(A, A.wave++);
+        const near = peds.filter(p => p.sapper && !p.dead && dist(p.x, p.y, A.pad.x, A.pad.y) < N().padM * M).length;
+        A.sab = near ? A.sab + dt : Math.max(0, A.sab - dt);
+        if (A.T > 10 || foes() === 0) A.T = Math.max(0, A.T - dt * N().speed);          // at T-0:10 the clock holds till the center is clear
+        msBar(A.T > 10 || foes() === 0 ? clock(A.T) : clock(A.T) + ' - HOLD: CLEAR THE CENTER', 1 - A.T / 600, near ? '#ff3b4a' : '#2bf3ff');
+        if (A.T > 0) return false;
+        A.launch = true; msBarOff(); msCut('LIFT-OFF', () => { A.done = true; }); return false; },
+      info: A => clock(A.T) + ' · ' + foes() + ' ATTACKERS',
+      jump(A) { for (const p of peds) if (p.foe && !p.dead && p.group === 'lift') killPed(p, 'gun', false); for (const c of MS_CAST.cars) if (c.fc.group === 'lift' && !c.fc.out) { c.fc.crew = 0; c.fc.out = true; } A.T = Math.min(A.T, [540, 390, 240, 120, 0][A.wave] + 0.01); } }];
+  function fail(A) {
+    const f = msCastFail(); if (f) return f;
+    if (A.sab >= N().sabT) { if (!A.boom) { A.boom = true; explosion(A.pad.x, A.pad.y, 200, null); } return F().pad; }
+    return '';
+  }
+  const cuts = {
+    'GO FOR LAUNCH': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [1, 2], enter: () => { face(A.iris, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [3] },
+      { dur: 4, cam: 'CLOSE', at: () => A.iris, line: [4], fadeOut: true }],
+    'LIFT-OFF': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.iris, line: [9], enter: () => { face(A.iris, SPACE.lcc.spots.screen); } },
+      { dur: 7, cam: 'WIDE', at: () => A.pad, line: [10], enter: () => { SPACE.launch = { t: 0, h: 0 }; } },
+      { dur: 6, cam: 'WIDE', at: () => ({ x: A.pad.x, y: A.pad.y - Math.min(600, (SPACE.launch ? SPACE.launch.h : 0) * 0.6) }), line: [11] },
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [12, 13], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts,
+    cleanup() { msBarOff(); SPACE.ms = null; SPACE.launch = null; } };
+})();

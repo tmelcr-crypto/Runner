@@ -3158,7 +3158,140 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The gate", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "4"]]}],
     "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
     "failing": "Marker K again (retry).",
-    "notes": {"places": "The space center's offices and gate; Gravel Flats.", "people": "Dana Voss.", "music": "-", "new": "-", "other": "-"}}}
+    "notes": {"places": "The space center's offices and gate; Gravel Flats.", "people": "Dana Voss.", "music": "-", "new": "-", "other": "-"}}},
+  {"id": "s6", "no": "S6", "title": "TRACKING DISH", "giver": "iris", "start": "marker", "where": "The space center (marker K); the clean room's lockers; the air base's motor pool; back to launch control",
+   "story": "Someone smashed the space center's tracking dish; the only spare sits on a truck at the air base. In a flight suit from the clean room's lockers Danny walks past the base's guards, takes the truck and drives out - and halfway to the gate the alarm goes. Army trucks chase him all the way to launch control.",
+   "chars": ["iris", "danny"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "PUT ON", "show": "PUT ON THE FLIGHT SUIT FROM THE CLEAN ROOM'S LOCKERS"},
+     {"word": "GET IN", "show": "GET IN THE DISH TRUCK AT THE AIR BASE'S MOTOR POOL"},
+     {"word": "DRIVE", "show": "DRIVE THE DISH TO LAUNCH CONTROL"}],
+   "lines": [
+     {"who": "iris", "text": "Somebody took a sledgehammer to our tracking dish last night. No dish, no way to talk to the satellite once it's up.", "mood": "furious", "when": "Tracking Dish, shot 1"},
+     {"who": "iris", "text": "The only spare in the state sits at the air base, on a truck by the motor pool.", "mood": "grim", "when": "Tracking Dish, shot 1"},
+     {"who": "iris", "text": "The base takes pilots at their word. There's a flight suit in the clean room's lockers.", "mood": "sly", "when": "Tracking Dish, shot 2"},
+     {"who": "iris", "text": "Walk in like you own the place. Drive out like you're late for lunch.", "mood": "dry", "when": "Tracking Dish, shot 2"},
+     {"who": "danny", "text": "And if they ask for my papers?", "mood": "dry", "when": "Tracking Dish, shot 3"},
+     {"who": "iris", "text": "Suit's on? Good. The truck's by the long shed in the motor pool.", "mood": "brisk", "when": "LIVE - suited up", "live": true},
+     {"who": "iris", "text": "Danny, the base just went to alarm - somebody tipped them off!", "mood": "urgent", "when": "LIVE - the alarm", "live": true},
+     {"who": "danny", "text": "Of course they did.", "mood": "dry", "when": "LIVE - the alarm", "live": true},
+     {"who": "iris", "text": "Our dish! Danny, you beautiful lunatic.", "mood": "delighted", "when": "LIVE - at launch control", "live": true},
+     {"who": "danny", "text": "Keep the suit warm. I'll want it again.", "mood": "warm", "when": "LIVE - at launch control", "live": true}],
+   "fails": {"dish": "THE DISH TRUCK WAS WRECKED", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 13, "alarmAt": 50, "jeeps": 2, "jeepSpeed": 110, "menHp": 80, "parkM": 25, "truckTough": 3},
+   "reward": {"cash": 5000, "vehicle": "", "clothes": "FLIGHT SUIT", "next": "S7 - COUNTDOWN (marker K)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Space line; the base, answer 182) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "The clean room's lockers; the air base's motor pool; back to launch control", "unlocked": "After S5", "time": "Afternoon (MISSIONS TEST: 13:00)", "length": "About 7 minutes", "limit": "-"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene TRACKING DISH.", "MISSIONS TEST: you start by Iris, a car on the road outside the gate."],
+     ["In the clean room (the assembly building) the lockers stand left of the door: PUT ON THE FLIGHT SUIT.", ""],
+     ["Drive to the air base. In the flight suit the guards take you for a pilot - no RESTRICTED AREA (modes table: flightSuitBase). The olive dish truck (three times as tough as a truck) stands south of the long shed by the motor pool: get in.", ""],
+     ["Drive it out. Halfway to the base's gate the alarm goes (Crane's tip-off): the base's wanted level and two army trucks after you. Drive the dish to launch control (beside it, west); stop. Iris' lines; the quest is passed; the flight suit is yours.", "The truck wrecked: the quest fails."]],
+    "fails": [
+     ["The dish truck is wrecked", "THE DISH TRUCK WAS WRECKED"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"TRACKING DISH\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris, furious.", "CLOSE on Iris", "6", "1, 2"],
+      ["The gate", "Iris", "Iris, sly.", "CLOSE on Iris", "6", "3, 4"],
+      ["The gate", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "5"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "The clean room's lockers; the air base (motor pool, gate).", "people": "The base's soldiers; two army trucks.", "music": "-", "new": "The FLIGHT SUIT (clothes table) and the base taking it (modes: flightSuitBase); a truck carrying the tracking dish.", "other": "-"}}},
+  {"id": "s7", "no": "S7", "title": "COUNTDOWN", "giver": "iris", "start": "marker", "where": "The space center (marker K); the launch pad",
+   "story": "Crane's men planted five charges round the launch pad and a timer, and stayed to guard them. Three minutes, five charges: Danny pulls them one by one under fire.",
+   "chars": ["iris", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "PULL", "show": "PULL THE FIVE CHARGES ROUND THE PAD BEFORE THE TIMER RUNS OUT"}],
+   "lines": [
+     {"who": "iris", "text": "Security found wires on the pad - five charges round the launcher, and a timer.", "mood": "frightened", "when": "Countdown, shot 1"},
+     {"who": "iris", "text": "The bomb squad is an hour out. We have three minutes.", "mood": "urgent", "when": "Countdown, shot 1"},
+     {"who": "iris", "text": "And Crane left men to make sure nobody touches them.", "mood": "grim", "when": "Countdown, shot 2"},
+     {"who": "danny", "text": "Then I'll touch them first.", "mood": "cold", "when": "Countdown, shot 3"},
+     {"who": "iris", "text": "The blinking red ones, Danny. Pull the red ones.", "mood": "urgent", "when": "Countdown, shot 4"},
+     {"who": "iris", "text": "That's the last one! The pad's clean - oh, thank God.", "mood": "relieved", "when": "LIVE - the last charge", "live": true},
+     {"who": "danny", "text": "Tell the bomb squad they can take the hour off.", "mood": "dry", "when": "LIVE - the last charge", "live": true}],
+   "fails": {"boom": "THE PAD BLEW UP", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 20, "fuse": 180, "pullM": 3, "pullT": 2.5, "menHp": 80},
+   "reward": {"cash": 5500, "vehicle": "", "clothes": "", "next": "S8 - LIFT-OFF (marker K)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Space line, S7) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "The launch pad (inside the space center)", "unlocked": "After S6", "time": "Evening (MISSIONS TEST: 20:00)", "length": "About 4 minutes", "limit": "THE TIMER: 3:00"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Four of Crane's men guarding the charges.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene COUNTDOWN.", "MISSIONS TEST: you start by Iris, a car on the road outside the gate."],
+     ["Five charges blink red round the pad; THE TIMER bar runs from 3:00. Stand by one on foot (within 3 m) for 2.5 s to pull it (the PULLING bar; step away and it slips back). Four of Crane's men guard the pad. All five pulled: Iris' lines; the quest is passed.", "The timer runs out: the charges blow - the quest fails."]],
+    "fails": [
+     ["The timer runs out", "THE PAD BLEW UP"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"COUNTDOWN\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris, frightened.", "CLOSE on Iris", "6", "1, 2"],
+      ["The pad", "-", "The pad at dusk, red lights blinking at its foot, men in grey suits.", "WIDE on the pad", "4", "3"],
+      ["The gate", "Danny", "Danny.", "CLOSE on Danny", "3", "4"],
+      ["The gate", "Iris", "Iris. Fade out.", "CLOSE on Iris", "3", "5"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "The launch pad.", "people": "Four of Crane's men.", "music": "-", "new": "Charges pulled by standing at them (a PULLING bar).", "other": "-"}}},
+  {"id": "s8", "no": "S8", "title": "LIFT-OFF", "giver": "iris", "start": "marker", "where": "The space center (marker K): launch control and the pad",
+   "story": "The last launch of the Bay Space Center. Through the last ten minutes of the countdown Crane throws everything he has left at it - cars at the gate, gunmen at launch control, a boat landing by the pad. Danny holds them off; at T-0 the rocket lifts off with its satellite - an eye in the sky for the finale.",
+   "chars": ["iris", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "HOLD", "show": "HOLD LAUNCH CONTROL AND THE PAD TO T-0"}],
+   "lines": [
+     {"who": "iris", "text": "Tonight we launch. Ten minutes of countdown - and Crane knows it.", "mood": "determined", "when": "Go for Launch, shot 1"},
+     {"who": "iris", "text": "I'll be at my console in launch control. Keep them off me - and off the pad.", "mood": "firm", "when": "Go for Launch, shot 1"},
+     {"who": "danny", "text": "Count it down. I'll do the rest.", "mood": "calm", "when": "Go for Launch, shot 2"},
+     {"who": "iris", "text": "See you on the other side of T-zero.", "mood": "warm", "when": "Go for Launch, shot 3"},
+     {"who": "iris", "text": "Cars at the gate - they're coming through!", "mood": "urgent", "when": "LIVE - wave 1 (T-9:00)", "live": true},
+     {"who": "iris", "text": "Men at launch control's door - Danny, they're coming for me!", "mood": "frightened", "when": "LIVE - wave 2 (T-6:30)", "live": true},
+     {"who": "iris", "text": "A boat on the beach by the pad - they're going for the rocket!", "mood": "urgent", "when": "LIVE - wave 3 (T-4:00)", "live": true},
+     {"who": "iris", "text": "Everything Crane has left - two minutes, Danny, hold on!", "mood": "urgent", "when": "LIVE - wave 4 (T-2:00)", "live": true},
+     {"who": "iris", "text": "...three, two, one... ignition!", "mood": "breathless", "when": "Lift-off, shot 1"},
+     {"who": "iris", "text": "And lift-off! The last launch of the Bay Space Center has cleared the tower!", "mood": "ecstatic", "when": "Lift-off, shot 2"},
+     {"who": "danny", "text": "Look at her go.", "mood": "awed", "when": "Lift-off, shot 3"},
+     {"who": "iris", "text": "She's in orbit, Danny. And from up there she sees everything - every one of Crane's men.", "mood": "triumphant", "when": "Lift-off, shot 4"},
+     {"who": "danny", "text": "Then let's go find them.", "mood": "cold", "when": "Lift-off, shot 4"}],
+   "fails": {"iris": "IRIS IS DEAD", "pad": "THE PAD WAS BLOWN UP", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 18, "speed": 2.5, "irisHp": 150, "carSpeed": 120, "menHp": 80, "landM": 24, "padM": 10, "sabT": 10},
+   "reward": {"cash": 15000, "vehicle": "", "clothes": "", "next": "The Space line is done (chapter 5 next)", "place": "", "contact": "", "unlock": "launched"},
+   "page": {
+    "sub": "Written from your answers (the Space line; the launch, answers 179 and 183) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "Launch control (inside, top-down), the pad, the gate", "unlocked": "After S7", "time": "Evening (MISSIONS TEST: 18:00)", "length": "About 5 minutes", "limit": "The countdown: T-10:00 shown, about 4 minutes played"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Crane's last men: two cars at the gate, four at launch control, three from a boat, then more of each.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene GO FOR LAUNCH; she goes to her console in launch control.", "MISSIONS TEST: you start by Iris, a car on the road outside the gate."],
+     ["The countdown runs from T-10:00, two and a half times faster than real time. T-9:00: two cars come through the gate. T-6:30: four men at launch control's door, for Iris (she is your friend here: her bar shows her health). T-4:00: a boat beaches west of the pad; three men come ashore 24 m from it and make for it - one at the pad (10 m) for 10 s and they blow it. T-2:00: two cars and three men. At T-0:10 the clock holds until the center is clear. At T-0 the cutscene LIFT-OFF; the quest is passed. In STORY the pad is empty from now on (modes table: launchEmpty).", "Iris killed, or the pad blown: the quest fails."]],
+    "fails": [
+     ["Iris is killed", "IRIS IS DEAD"],
+     ["Crane's men stay 10 s at the pad", "THE PAD WAS BLOWN UP"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"GO FOR LAUNCH\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris, determined.", "CLOSE on Iris", "6", "1, 2"],
+      ["The gate", "Danny", "Danny.", "CLOSE on Danny", "3", "3"],
+      ["The gate", "Iris", "Iris. Fade out.", "CLOSE on Iris", "4", "4"]]},
+     {"title": "\"LIFT-OFF\"", "plays": "At T-0.", "shots": [
+      ["Launch control", "Iris", "Iris at her console.", "CLOSE on Iris", "5", "9"],
+      ["The pad", "-", "Ignition: flame and smoke at the pad, the rocket held down, then rising.", "WIDE on the pad", "7", "10"],
+      ["Over the pad", "-", "The rocket climbing away on its flame.", "WIDE, rising", "6", "11"],
+      ["Launch control", "Iris", "Iris. Fade out.", "CLOSE on Iris", "6", "12, 13"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "Launch control, the pad, the gate.", "people": "Crane's men in four waves.", "music": "-", "new": "The launch (the rocket a piece of its own, flame and smoke); the pad empty afterwards in STORY.", "other": "The Space line's gift to the finale: the eye in the sky - every one of Crane's men on the map."}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
