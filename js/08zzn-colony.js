@@ -414,3 +414,76 @@ MSCRIPT.h4 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup(A) { msBarOff(); if (A && A.rival) { A.rival.race = null; A.rival.driver = null; } } };
 })();
+
+/* ================= H5 - THE DEED ================= */
+MSCRIPT.h5 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  function setup(A) {
+    SKY.hour = N().hour; HOTEL.esther(A); HOTEL.start(A); BANK.ms = { quest: 'h5' };
+    const S = A.S = BANK.S, hw = S.hw, z1 = S.z1, cz = S.counter.z, w = (lx, lz) => bankWorld(lx, lz), fa = a => S.a + a;
+    A.hostages = [];
+    const lie = (lx, lz, a, shirt, pants) => { const q = w(lx, lz); const p = msPed(q.x, q.y, fa(a), { shirt, pants, step: S1.stay, spare: true, shield: true, floor: true }); A.hostages.push(p); return p; };
+    for (const t of S.tellers) lie(t.x, t.z, 0.3, '#e8e8ee', '#2a2d3a');                 // the tellers, down behind the counter
+    lie(-hw * 0.6, cz + 26, 2.6, '#ff9ad0', '#3a3a44'); lie(-hw * 0.2, cz + 30, 0.4, '#7fd4a8', '#d8c8a0'); lie(hw * 0.05, z1 - 30, 1.2, '#d8b060', '#4a3a2a');   // customers on the marble
+    lie(hw - 30, z1 - 26, 2.0, '#1a1a20', '#1a1a20'); lie(BANK_DW / 2 + 14, z1 - 16, -0.4, '#4a5a6a', '#2a2d36');   // the manager; the guard
+    const men = [[-hw * 0.4, cz + 40, 'smg'], [hw * 0.12, cz + 48, 'shotgun'], [-BANK_DW / 2 - 16, z1 - 22, 'pistol']];
+    A.men = men.map(([lx, lz, gun]) => { const q = w(lx, lz); return msFoe(q.x, q.y, Object.assign({ gun, hp: N().menHp, group: 'rob', a: fa(Math.PI / 2) }, CH4.men)); });
+    const v = S.vault; A.boxman = msFoe(v.x, v.y, Object.assign({ gun: 'pistol', hp: N().boxHp, group: 'box', a: fa(-Math.PI / 2) }, CH4.men)); A.boxman.calm = true; A.carry = A.boxman;
+    const k = kerbBy(S.door.x + S.ca * 90, S.door.y + S.sa * 90);                      // the getaway car at the kerb out front, its driver waiting
+    const r1 = S1.road(S.door.x + 1800, S.door.y + 2400), r2 = S1.road(S.door.x - 1200, S.door.y + 4200), r3 = S1.road(S.door.x + 600, S.door.y + 6400);
+    A.car = msFoeCar('sedan', k.x, k.y, k.ang, Object.assign({ mode: 'park', crew: 1, gun: 'smg', group: 'getaway', speed: N().carSpeed, to: [r1, r2, r3], color: '#14161d', crewHp: N().menHp }, CH4.men));
+  }
+  const hallLeft = A => A.men.filter(p => !p.dead).length;
+  function runFor(A) {                       // the man with the box: out of the vault, through the hall, out of the doors, to the car
+    const S = A.S, p = A.boxman; p.calm = false; p.alert = true; p.arm = -1;
+    p.way = [S.vaultDoor, S.hall, S.inside, S.door, allyDoor(A.car, p)]; p.wi = 0;
+    p.post.step = (q, dt) => { if (q.state === 'flee') q.state = 'post'; const t = q.way[q.wi]; if (!t) return true; if (walkTo(q, t.x, t.y, NPC_RUN * N().boxRun, dt) < 12) q.wi++; return true; };
+  }
+  function dropBox(A, p) { A.carry = null; A.bag = S1.dryNear(p.x, p.y); }
+  const steps = [
+    HOTEL.meet('THE DEED'),
+    { enter(A) { MS.mark = () => A.S.door; MS.guide = A.S.door; },                                 // GO TO the bank
+      tick(A) { if (dist(me4().x, me4().y, A.S.door.x, A.S.door.y) > N().nearM * M) return false; msLive([4]); return true; },
+      info: A => Math.round(dist(me4().x, me4().y, A.S.door.x, A.S.door.y) / M) + ' M TO FIRST CORAL BANK',
+      jump(A) { if (P.car) exitCar(true); P.x = A.S.door.x; P.y = A.S.door.y; P.vx = P.vy = 0; } },
+    { enter(A) { MS.guide = null; MS.mark = () => A.men.find(p => !p.dead); },                    // TAKE OUT the robbers in the hall
+      tick(A) { if (hallLeft(A)) return false; runFor(A); msLive([5, 6], { now: true }); return true; },
+      info: A => hallLeft(A) + ' LEFT IN THE HALL',
+      jump(A) { for (const p of A.men) if (!p.dead) killPed(p, 'gun', false); } },
+    { enter(A) { MS.mark = () => A.boxman.dead ? null : A.boxman; for (const h of A.hostages) if (!h.dead) h.floor = false; },   // STOP the man with the box (or he is off in the car)
+      tick(A) {
+        const p = A.boxman;
+        if (p.dead) { if (!A.bag && A.carry === p) dropBox(A, p); return true; }
+        if (p.wi >= p.way.length) { const i = peds.indexOf(p); if (i >= 0) peds.splice(i, 1); A.carry = null; A.boxIn = true; A.car.fc.crew++; A.car.fc.wait = 0.4; foeCarGo(A.car, 'flee'); return true; }
+        return false; },
+      info: A => A.boxman.dead ? '' : Math.round(dist(P.x, P.y, A.boxman.x, A.boxman.y) / M) + ' M TO THE MAN WITH THE BOX',
+      jump(A) { const p = A.boxman; p.x = A.car.x + 20; p.y = A.car.y + 20; p.wi = p.way.length; } },
+    { enter(A) { MS.mark = () => A.carry || A.bag || (A.car.fc.out ? null : A.car); MS.guide = () => A.carry || A.bag || A.car; },   // CHASE the getaway car, ram it, take them out (skipped if the box is down already)
+      tick(A) {
+        if (!A.boxIn) return true;
+        const v = A.car;
+        if (!v.fc.out && !v.dead && v.hp < v.maxhp * N().bailAt / 100) { const men = foeBail(v); A.carry = men[men.length - 1]; }
+        if (A.carry && A.carry.dead) dropBox(A, A.carry);
+        return !!A.bag && msFoesLeft('getaway') === 0; },
+      info: A => A.car.fc.out ? msFoesLeft('getaway') + ' LEFT' : Math.round(dist(me4().x, me4().y, A.car.x, A.car.y) / M) + ' M TO THE GETAWAY CAR · ' + Math.round(100 * A.car.hp / A.car.maxhp) + '%',
+      jump(A) { const v = A.car; if (!v.fc.out) { if (P.car) exitCar(true); P.x = v.x + 60; P.y = v.y + 40; const men = foeBail(v); A.carry = men[men.length - 1]; } else for (const p of peds) if (p.foe && !p.dead && p.group === 'getaway') killPed(p, 'gun', false); } },
+    { enter(A) { MS.mark = () => A.bag; MS.guide = () => A.bag; },                                  // PICK UP the deed box
+      tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > N().pickM * M) return false; A.bag = null; Snd.tone(660, 990, 0.2, 0.1, 'triangle'); toast('THE DEED BOX'); msLive([7], { now: true }); return true; },
+      info: A => A.bag ? Math.round(dist(me4().x, me4().y, A.bag.x, A.bag.y) / M) + ' M TO THE BOX' : '',
+      jump(A) { if (P.car) exitCar(true); P.x = A.bag.x; P.y = A.bag.y; } },
+    HOTEL.back(null, [8, 9])];
+  function fail(A) {
+    const f = F();
+    if (A.hostages.some(h => h.dead)) return f.hostage;
+    if (A.boxIn && !A.bag && A.car.dead && !A.car.fc.out) return f.burnt;
+    if (MS.k === 4 && A.boxIn && !A.car.fc.out && !A.car.dead && (A.car.fc.gone || dist(me4().x, me4().y, A.car.x, A.car.y) > N().away * M)) return f.away;
+    return '';
+  }
+  const cuts = {
+    'THE DEED': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [1], enter: () => { face(A.esther, P); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.esther, line: [2] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [3], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { BANK.ms = null; msBarOff(); } };
+})();

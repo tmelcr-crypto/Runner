@@ -495,8 +495,8 @@ function syncPerson(p, kind, time, dt) {
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
   if (kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || p.boxer || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
-  if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
-    o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
+  if (p.dead || p.stunT > 0 || p.floor) {                          // dead, knocked down for a while by a melee hit (js/06b), or face down with the hands on the head (a hostage, js/08zzn)
+    o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = p.floor && !p.dead ? -2.9 : 0;
     g.scale.setScalar(p.dead ? clamp((bodyTime(p) + 1 - p.deadT) / 6, 0.01, 1) : 1);   // a body shrinks away at the end (later while an ambulance is coming)
   } else {
     const live = feat('liveWalk'), run = live ? clamp((sp - 30) / 45, 0, 1) : 0, k = Math.sin(p.bob * 3) * Math.min(1, sp / 60) * 0.8, ak = live ? 1.05 : 0.8;

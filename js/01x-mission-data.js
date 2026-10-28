@@ -2739,7 +2739,59 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["THE PULSE's door", "Danny", "Danny. Fade out: they come at him.", "CLOSE on Danny", "3", "10"]]}],
     "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
     "failing": "Marker E again (retry).",
-    "notes": {"places": "The speedway's paddock and oval (the race from the east straight); THE PULSE's door (closed till 22:00); the sea off the Colony's beach.", "people": "Four new characters: Vinnie Rapp, Sammy Sticks, Lola Diamond, Teddy Bell (the character table).", "music": "-", "new": "A two-lap race on the oval against one rival; a jet ski that dodges you; three markers in any order.", "other": "-"}}}
+    "notes": {"places": "The speedway's paddock and oval (the race from the east straight); THE PULSE's door (closed till 22:00); the sea off the Colony's beach.", "people": "Four new characters: Vinnie Rapp, Sammy Sticks, Lola Diamond, Teddy Bell (the character table).", "music": "-", "new": "A two-lap race on the oval against one rival; a jet ski that dodges you; three markers in any order.", "other": "-"}}},
+  {"id": "h5", "no": "H5", "title": "THE DEED", "giver": "esther", "start": "marker", "where": "The Colony (marker E); FIRST CORAL BANK in Palm Heights (inside, top-down); after the getaway car",
+   "story": "Esther's real deed to the Colony lies in her deposit box at FIRST CORAL BANK - and Crane's men are robbing the bank to take it. Danny walks into a hold-up: staff and customers face down on the marble, three gunmen in the hall, a fourth at the vault with the box. The last one runs for the getaway car; Danny runs it down and brings the deed home.",
+   "chars": ["esther", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "GO TO", "show": "GO TO FIRST CORAL BANK IN PALM HEIGHTS"},
+     {"word": "TAKE OUT", "show": "STOP THE ROBBERY - TAKE OUT CRANE'S MEN IN THE HALL"},
+     {"word": "STOP", "show": "STOP THE MAN WITH THE BOX"},
+     {"word": "CHASE", "show": "CHASE THE GETAWAY CAR - RAM IT, TAKE THEM OUT"},
+     {"word": "PICK UP", "show": "PICK UP THE DEED BOX"},
+     {"word": "TALK TO", "show": "BRING THE DEED TO ESTHER"}],
+   "lines": [
+     {"who": "esther", "text": "Finch's paper says Crane owns the Colony. But the real deed - Harold's, from 1952 - is in my box at FIRST CORAL BANK.", "mood": "grim", "when": "The Deed, shot 1"},
+     {"who": "esther", "text": "And the bank just called me: men with guns walked in asking for box two-oh-seven. Danny, that's mine!", "mood": "frightened", "when": "The Deed, shot 2"},
+     {"who": "danny", "text": "Then they're about to have a bad morning.", "mood": "cold", "when": "The Deed, shot 3"},
+     {"who": "craneman", "text": "Everybody on the floor! Nobody plays hero!", "mood": "shouting", "when": "LIVE - at the bank's doors", "live": true},
+     {"who": "craneman", "text": "They're down - all of them! The box, go, go!", "mood": "panicked", "when": "LIVE - the hall cleared", "live": true},
+     {"who": "danny", "text": "Not with that box, you don't.", "mood": "hard", "when": "LIVE - the hall cleared", "live": true},
+     {"who": "danny", "text": "Box two-oh-seven. Safe.", "mood": "calm", "when": "LIVE - the box picked up", "live": true},
+     {"who": "esther", "text": "Harold's signature, the city seal... let Crane wave Finch's forgery all he likes now.", "mood": "moved", "when": "LIVE - the end", "live": true},
+     {"who": "danny", "text": "Now we need the man who forged it.", "mood": "thoughtful", "when": "LIVE - the end", "live": true}],
+   "fails": {"hostage": "A HOSTAGE WAS KILLED", "burnt": "THE DEED BURNED WITH THE CAR", "away": "THE GETAWAY CAR GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 11, "nearM": 25, "menHp": 80, "boxHp": 60, "boxRun": 0.9, "carSpeed": 105, "bailAt": 50, "away": 420, "pickM": 3},
+   "reward": {"cash": 6000, "vehicle": "", "clothes": "", "next": "H6 - POOL PARTY (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; the bank inside, answers 170-172) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "FIRST CORAL BANK, Palm Heights - inside (top-down, the roof see-through); the streets after the getaway car", "unlocked": "After H4", "time": "Late morning (MISSIONS TEST: 11:00)", "length": "About 7 minutes", "limit": "-"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "The four robbers and the getaway driver - Crane's men.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene THE DEED.", "MISSIONS TEST: you start by the door, a car on the ring drive."],
+     ["Drive to FIRST CORAL BANK (Palm Heights). At its doors a robber shouts; the doors stand open.", ""],
+     ["Inside (the roof turns see-through): the tellers, the customers, the manager and the guard face down on the floor; three gunmen in the hall (an SMG, a shotgun, a pistol) - take them out. Your shots pass the hostages by; a grenade does not.", "A hostage killed: the quest fails."],
+     ["The fourth, at the vault with the box, runs: out through the hall and the doors to the black getaway car at the kerb. Shoot him before he gets in and he drops the box (the next step is skipped).", ""],
+     ["He made the car: it flees into town. Ram it till it is badly hurt (under 50%): the two bail out; take them out - the box falls where its carrier does.", "420 m behind: it gets away. The car burned with the box inside: the deed is gone."],
+     ["Pick up the deed box.", ""],
+     ["Back to Esther at the Colony's door; her lines; the quest is passed.", ""]],
+    "fails": [
+     ["A hostage is killed (a blast, a car)", "A HOSTAGE WAS KILLED"],
+     ["The getaway car is wrecked with the box still inside", "THE DEED BURNED WITH THE CAR"],
+     ["420 m behind the getaway car", "THE GETAWAY CAR GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE DEED\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther, grim.", "CLOSE on Esther", "6", "1"],
+      ["The Colony's door", "Esther", "Esther, frightened.", "CLOSE on Esther", "5", "2"],
+      ["The Colony's door", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "3"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "FIRST CORAL BANK (Palm Heights) - its hall, counter and vault (js/10zi); the streets south of it.", "people": "Six hostages (three tellers, customers, the manager, the guard), four robbers, a getaway driver.", "music": "-", "new": "Hostages face down on the floor (a new pose); the bank held by a quest (its own staff away, the doors open).", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
