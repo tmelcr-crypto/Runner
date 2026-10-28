@@ -429,8 +429,8 @@ MSCRIPT.s8 = (() => {
       { dur: 4, cam: 'CLOSE', at: () => A.iris, line: [4], fadeOut: true }],
     'LIFT-OFF': A => [
       { dur: 5, cam: 'CLOSE', at: () => A.iris, line: [9], enter: () => { face(A.iris, SPACE.lcc.spots.screen); } },
-      { dur: 7, cam: 'WIDE', at: () => A.pad, line: [10], enter: () => { SPACE.launch = { t: 0, h: 0 }; } },
-      { dur: 6, cam: 'WIDE', at: () => ({ x: A.pad.x, y: A.pad.y - Math.min(600, (SPACE.launch ? SPACE.launch.h : 0) * 0.6) }), line: [11] },
+      { dur: 7, cam: 'WIDE', at: () => A.pad, line: [10], enter: () => { SPACE.launch = { t: 0, h: 0 }; }, wait: () => SPACE.launch && SPACE.launch.t > 6, max: 8 },   // ignition, the hold-down, the first metres
+      { dur: 6, cam: 'WIDE', at: () => A.pad, line: [11], wait: () => SPACE.launch && SPACE.launch.t > 10, max: 8 },   // up and away: it climbs out of the picture, the smoke stays
       { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [12, 13], fadeOut: true }]
   };
   return { setup, steps, fail, cuts,
