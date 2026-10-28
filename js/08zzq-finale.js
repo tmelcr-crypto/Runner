@@ -31,10 +31,10 @@ MSCRIPT.m25 = (() => {
   const steps = [
     msPhone('crane', [1, 2]),                                                                     // Crane himself calls
     { enter(A) { MS.guide = ESTATE.gate.out; MS.mark = () => ESTATE.gate.out; },                 // GO TO the estate's gate, on foot to it: the weapons wait in the booth
-      tick(A) { if (P.car || dist(P.x, P.y, ESTATE.gate.out.x, ESTATE.gate.out.y) > N().gateR * M) return false;
-        PRISONL.holdKit(A); ESTATE.ms.gate = true; popup(P.x, P.y - 14, 'WEAPONS LEFT AT THE GATE', '#ffd23f'); return true; },
+      tick(A) { if (A.atGate) return true; if (P.car || dist(P.x, P.y, ESTATE.gate.out.x, ESTATE.gate.out.y) > N().gateR * M) return false;
+        PRISONL.holdKit(A); ESTATE.ms.gate = A.atGate = true; popup(P.x, P.y - 14, 'WEAPONS LEFT AT THE GATE', '#ffd23f'); return true; },
       info: A => Math.round(dist(me().x, me().y, ESTATE.gate.out.x, ESTATE.gate.out.y) / M) + " M TO CRANE'S GATE (ON FOOT TO IT)",
-      jump(A) { if (P.car) exitCar(true); PRISONL.holdKit(A); ESTATE.ms.gate = true; P.x = ESTATE.gate.in.x; P.y = ESTATE.gate.in.y; } },
+      jump(A) { if (P.car) exitCar(true); PRISONL.holdKit(A); ESTATE.ms.gate = A.atGate = true; P.x = ESTATE.gate.in.x; P.y = ESTATE.gate.in.y; } },
     { enter(A) { MS.guide = null; MS.mark = () => A.crane; },                                     // WALK to Crane in the garden: THE OFFER
       tick(A) { if (A.talked) return true; if (!MS.start && !P.car && dist(P.x, P.y, A.crane.x, A.crane.y) < 4 * M)
         MS.start = { at: () => A.crane, label: 'TALK TO CRANE', go: () => { face(A.crane, P); msCut('THE OFFER', () => { A.talked = true; }); } }; return false; },
@@ -56,7 +56,7 @@ MSCRIPT.m25 = (() => {
         A.loseT = near || !off ? 0 : A.loseT + dt; if (A.end) return A.end === 2;
         if (A.loseT < 2.5) return false; A.end = 1; msLive([11], { now: true, done: () => { A.end = 2; } }); return false; },
       info: A => A.chase.filter(c => !c.dead && !c.fc.out).length + " OF CRANE'S CARS AFTER YOU",
-      jump(A) { for (const c of A.chase) { c.fc.crew = 0; c.fc.out = true; c.x += 3000; } const c = P.car || A.mycar; c.x = ESTATE.L.x - 1600; c.y = ESTATE.L.y - 430; c.vx = c.vy = 0; } }];
+      jump(A) { for (const c of A.chase) { c.fc.crew = 0; c.fc.out = true; c.x += 3000; } const c = P.car || A.mycar; c.x = ESTATE.L.x - 2600; c.y = ESTATE.L.y - 430; c.vx = c.vy = 0; } }];
   const cuts = {
     'THE OFFER': A => [
       { dur: 6, cam: 'CLOSE', at: () => A.crane, line: [3, 4], enter: () => { face(A.crane, P); } },
