@@ -2791,7 +2791,54 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The Colony's door", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "3"]]}],
     "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
     "failing": "Marker E again (retry).",
-    "notes": {"places": "FIRST CORAL BANK (Palm Heights) - its hall, counter and vault (js/10zi); the streets south of it.", "people": "Six hostages (three tellers, customers, the manager, the guard), four robbers, a getaway driver.", "music": "-", "new": "Hostages face down on the floor (a new pose); the bank held by a quest (its own staff away, the doors open).", "other": "-"}}}
+    "notes": {"places": "FIRST CORAL BANK (Palm Heights) - its hall, counter and vault (js/10zi); the streets south of it.", "people": "Six hostages (three tellers, customers, the manager, the guard), four robbers, a getaway driver.", "music": "-", "new": "Hostages face down on the floor (a new pose); the bank held by a quest (its own staff away, the doors open).", "other": "-"}}},
+  {"id": "h6", "no": "H6", "title": "POOL PARTY", "giver": "esther", "start": "marker", "where": "The Colony (marker E); up on its roof terrace",
+   "story": "Esther throws the party of the year on the Colony's roof - the papers, the band, half of Ocean Beach round the pool. Crane sends three waves of his crew to wreck it: they come up the ring drive in black cars, in at the doors and up the stairs. Danny holds the roof till the last of them is down and the party is still going.",
+   "chars": ["esther", "danny", "lola", "craneman", "sticks", "teddy"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "GO UP", "show": "GO UP TO THE ROOF - THE COLONY'S DOOR"},
+     {"word": "HOLD", "show": "HOLD THE ROOF - KEEP CRANE'S CREW OFF THE PARTY"}],
+   "lines": [
+     {"who": "esther", "text": "Tonight the Colony throws the party of the year, darling - the papers, the band, half of Ocean Beach on my roof.", "mood": "excited", "when": "Pool Party, shot 1"},
+     {"who": "esther", "text": "Crane will send his boys to spoil it. He always does. Keep them off my roof.", "mood": "grim", "when": "Pool Party, shot 2"},
+     {"who": "danny", "text": "Go and greet your guests.", "mood": "calm", "when": "Pool Party, shot 3"},
+     {"who": "esther", "text": "Here they come - black cars on the ring drive!", "mood": "alarmed", "when": "LIVE - wave 1", "live": true},
+     {"who": "lola", "text": "Keep dancing, everybody! The man's got it!", "mood": "bold", "when": "LIVE - the first one out of the stairs", "live": true},
+     {"who": "esther", "text": "More of them! Danny, the stairs!", "mood": "alarmed", "when": "LIVE - wave 2", "live": true},
+     {"who": "esther", "text": "That's the last car, I swear it - give them hell!", "mood": "fierce", "when": "LIVE - wave 3", "live": true},
+     {"who": "esther", "text": "Ladies and gentlemen... the Colony is open for business!", "mood": "triumphant", "when": "LIVE - the end", "live": true},
+     {"who": "danny", "text": "Somebody get me a drink.", "mood": "tired", "when": "LIVE - the end", "live": true}],
+   "fails": {"ruined": "THE PARTY IS RUINED", "esther": "ESTHER IS DEAD", "band": "THE BAND IS HIT", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 22, "firstT": 6, "gapT": 6, "wave1": 3, "wave2": 4, "wave3": 6, "fromM": 130, "carSpeed": 90, "climbT": 6, "menHp": 80, "partyDrop": 0.012, "partyBack": 0.01},
+   "reward": {"cash": 6000, "vehicle": "", "clothes": "", "next": "H7 - WRECKING CREW (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; the roof terrace, answer 168) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The Colony's roof terrace (the pool, the bar, the dance floor, the stair hut)", "unlocked": "After H5", "time": "Night (MISSIONS TEST: 22:00)", "length": "About 6 minutes", "limit": "THE PARTY bar (it drains while Crane's men are on the roof)"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "lola": {"gives": false, "role": "Lola Diamond, singing with the band at the dance floor's end.", "looks": "Forties, big copper curls, a red sequin dress.", "bubble": "Rose", "mumble": "Warm and sung."},
+     "craneman": {"gives": false, "role": "Crane's crew, three waves.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."},
+     "sticks": {"gives": false, "role": "Sammy Sticks on the drums (no lines).", "looks": "A blond mullet, a white tee.", "bubble": "Pink-violet", "mumble": "-"},
+     "teddy": {"gives": false, "role": "Teddy Bell on the trumpet (no lines).", "looks": "A teal flower shirt, a captain's cap.", "bubble": "Gold", "mumble": "-"}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene POOL PARTY; Esther goes up ahead.", "MISSIONS TEST: you start by the door, a car on the ring drive."],
+     ["At the Colony's door UP TO THE ROOF: up the stairs and out of the stair hut onto the terrace - the guests dancing, the band at the dance floor's end, Esther at the bar.", ""],
+     ["Three waves (3, then 4, then 6 men): black cars come in from town and up the ring drive; the men get out, go in at the door and, a few seconds later, come out of the stair hut onto the roof. Take them out up there (from the roof you cannot hit people down on the ground). While any are on the roof THE PARTY bar drains; with none it slowly fills again. The next wave comes 6 s after the last man is down. Fall or climb down: UP TO THE ROOF at the door again.", "THE PARTY bar empty: the quest fails; Esther or the band killed: it fails."]],
+    "fails": [
+     ["THE PARTY bar runs out", "THE PARTY IS RUINED"],
+     ["Esther is killed (a blast)", "ESTHER IS DEAD"],
+     ["One of the band is killed", "THE BAND IS HIT"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"POOL PARTY\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther in a gold evening dress.", "CLOSE on Esther", "6", "1"],
+      ["The Colony's door", "Esther", "Esther, grim.", "CLOSE on Esther", "5", "2"],
+      ["The Colony's door", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "3"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "The Colony's roof terrace (js/10b colonyTerrace; modes: colonyRoof).", "people": "Eight dancing guests, the band (Sammy, Lola, Teddy), thirteen of Crane's men in three waves.", "music": "-", "new": "A quest on a roof: people up there stay up there; the way up is the door (UP TO THE ROOF).", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

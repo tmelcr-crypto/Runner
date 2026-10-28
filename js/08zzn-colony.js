@@ -487,3 +487,91 @@ MSCRIPT.h5 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { BANK.ms = null; msBarOff(); } };
 })();
+
+/* ================= H6 - POOL PARTY ================= */
+MSCRIPT.h6 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  const H = () => COLONY.H, hut = () => HOTEL.wx(-56, 170);
+  const onRoof = o => zOf(o) > H() - 2;
+  const local = o => { const c = COLONY, dx = o.x - c.cx, dy = o.y - c.cy; return { x: dx * c.ca + dy * c.sa, z: -dx * c.sa + dy * c.ca }; };
+  const up = (p, lx, lz) => { const w = HOTEL.wx(lx, lz); p.x = w.x; p.y = w.y; p.z = H(); p.roof = COLONY.solid; if (p.post) { p.post.x = w.x; p.post.y = w.y; } return p; };   // someone put up on the roof
+  const roofPed = (lx, lz, a, o) => up(msPed(0, 0, a, Object.assign({ step: S1.stay, spare: true, shield: true }, o)), lx, lz);
+  function toRoof(A) {                      // you, up the stairs and out of the hut onto the terrace
+    if (P.car) exitCar(true); const w = hut(); P.x = w.x; P.y = w.y; P.vx = P.vy = 0; P.z = H(); P.roof = COLONY.solid; cam.x = P.x; cam.y = P.y; A.upT = gameT;
+  }
+  function setup(A) {
+    SKY.hour = N().hour; HOTEL.esther(A); HOTEL.start(A); A.wave = 0; A.party = 1; A.queue = []; A.cars = [];
+    const rd = openRoad(A.C.door.x, A.C.door.y, 3000), q = rd ? edgeAt(rd.e, rd.s, {}) : HOTEL.inland(A, 300, 0);
+    A.drop = { x: q.x, y: q.y };             // they pull up on the open street nearest the door (the ring drive is a driveway, off the roads)
+    A.guests = [];                           // dancers on the dance floor, the band at its end
+    const cols = [['#ff2bd6', '#1a1a20'], ['#2bf3ff', '#f2f2ee'], ['#ffe14a', '#3a3a44'], ['#3dffa6', '#2a2d3a'], ['#ff7a3d', '#1a1a20'], ['#a259ff', '#e8e0c8'], ['#f4f6fa', '#1d2f4a'], ['#ff9ad0', '#3a2a1a']];
+    cols.forEach(([shirt, pants], i) => { const p = roofPed(-58 + (i % 4) * 14, -10 + Math.floor(i / 4) * 24, rand(0, TAU), { shirt, pants, dance: true }); A.guests.push(p); });
+    A.band = [['sticks', -28], ['lola', -42], ['teddy', -56]].map(([id, lx]) => roofPed(lx, 58, 0, Object.assign(S1.look(id), { msName: id, dance: id !== 'sticks' })));
+  }
+  function wave(A) {                        // the next wave: its cars come in from town and up the ring drive to the door
+    const n = [N().wave1, N().wave2, N().wave3][A.wave]; A.wave++; let left = n, k = 0;
+    while (left > 0) {
+      const crew = Math.min(3, left); left -= crew;
+      const r = HOTEL.inland(A, N().fromM * M + k * 160, (k % 2 ? 1 : -1) * 500), q = kerbBy(r.x, r.y);
+      const c = msFoeCar('sedan', q.x, q.y, q.ang, Object.assign({ mode: 'flee', crew, gun: 'pistol', group: 'crew', speed: N().carSpeed, to: [A.drop], color: '#14161d', crewHp: N().menHp }, CH4.men));
+      c.fc.wait = k * 1.2; A.cars.push(c); k++;
+    }
+    msLive([[4, 6, 7][A.wave - 1]], { now: true });
+  }
+  function arrive(A) {                      // a car at the door: out they get, in at the door, up the stairs (a while), out of the hut
+    for (const c of A.cars) {
+      if (c.dead || c.fc.out || !c.fc.gone) continue;
+      const R = COLONY.ring, k = (R.ri + R.ro) / 2, inQ = q => { const i = peds.indexOf(q); if (i >= 0) peds.splice(i, 1); A.queue.push({ t: gameT + N().climbT * rand(0.8, 1.3), hp: q.hp }); };
+      for (const p of foeBail(c)) {                                 // up the ring drive by the nearer lane, to the door (held up long behind something: in anyway)
+        const sd = Math.sign((p.x - R.x) * R.vx + (p.y - R.y) * R.vy) || 1;
+        p.way = [{ x: R.x + R.vx * k * sd, y: R.y + R.vy * k * sd }, A.C.door]; p.wi = 0; p.held = 0; p.from = { x: p.x, y: p.y };
+        p.post.step = (q, dt) => { if (q.state === 'flee') q.state = 'post'; const t = q.way[q.wi];
+          if (castWalk(q, t.x, t.y, NPC_RUN, dt) < 16) { if (q.wi < q.way.length - 1) q.wi++; else inQ(q); return true; }
+          if ((q.held += dt) > 3) { if (dist(q.x, q.y, q.from.x, q.from.y) < 40) { inQ(q); return true; } q.held = 0; q.from = { x: q.x, y: q.y }; }
+          return true; };
+      }
+    }
+    for (let i = A.queue.length - 1; i >= 0; i--) {
+      const e = A.queue[i]; if (gameT < e.t) continue; A.queue.splice(i, 1);
+      const w = hut(), p = msFoe(w.x, w.y, Object.assign({ gun: Math.random() < 0.3 ? 'smg' : 'pistol', hp: e.hp, group: 'crew', alert: true, a: Math.PI }, CH4.men)); p.z = H(); p.roof = COLONY.solid;   // up there (js/10k cpLift leaves someone on a roof be)
+      if (!A.said5) { A.said5 = true; msLive([5]); }
+    }
+  }
+  const roofFoes = () => peds.filter(p => p.foe && !p.dead && p.group === 'crew' && onRoof(p));
+  const crewLeft = A => msFoesLeft('crew') + A.queue.length;
+  function keep(A) {                        // on the roof they stay on the roof (no one walks off the edge); the guests dance on
+    const c = COLONY, mx = c.lw / 2 - 6, mz = c.lh / 2 - 6;
+    for (const p of roofFoes()) { const q = local(p); if (Math.abs(q.x) > mx || Math.abs(q.z) > mz) { const w = HOTEL.wx(clamp(q.x, -mx, mx), clamp(q.z, -mz, mz)); p.x = w.x; p.y = w.y; } }
+    for (const p of A.guests.concat(A.band, [A.esther])) if (!p.dead) { p.z = H(); p.vx = p.vy = 0; }
+  }
+  const startUp = A => { if (!onRoof(P) && !SV.on && !MS.start && !P.car && dist(P.x, P.y, A.C.door.x, A.C.door.y) < 14 * M) MS.start = { at: () => A.C.door, label: 'COLONY HOTEL', go2: 'UP TO THE ROOF', go: () => toRoof(A) }; };
+  const steps = [
+    HOTEL.meet('POOL PARTY'),
+    { enter(A) { up(A.esther, -76, 4); face(A.esther, HOTEL.wx(-30, 4)); MS.guide = A.C.door; MS.mark = () => A.C.door; },   // GO UP to the roof (Esther went up ahead)
+      tick(A) { if (onRoof(P)) return true; startUp(A); return false; },
+      info: A => onRoof(P) ? 'ON THE ROOF' : Math.round(dist(me4().x, me4().y, A.C.door.x, A.C.door.y) / M) + ' M TO THE DOOR',
+      jump(A) { MS.start = null; toRoof(A); } },
+    { enter(A) { MS.guide = null; MS.mark = () => roofFoes()[0] || null; A.nextT = gameT + N().firstT; },   // HOLD the roof: three waves up the ring drive and the stairs
+      tick(A, dt) {
+        if (A.end) return A.end === 2;
+        keep(A); arrive(A); startUp(A);
+        const on = roofFoes().length; A.party = clamp(A.party - on * N().partyDrop * dt + (on ? 0 : N().partyBack * dt), 0, 1); msBar('THE PARTY', A.party, A.party > 0.5 ? '#3dff7a' : A.party > 0.25 ? '#ffd23f' : '#ff3b4a');
+        if (crewLeft(A) > 0) { A.nextT = gameT + N().gapT; return false; }
+        if (A.wave < 3) { if (gameT >= A.nextT) wave(A); return false; }
+        A.end = 1; msBarOff(); for (const g of A.guests) g.dance = true; msLive([8, 9], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => 'WAVE ' + Math.max(1, A.wave) + '/3 · ' + crewLeft(A) + ' COMING · ' + roofFoes().length + ' ON THE ROOF',
+      jump(A) { A.nextT = 0; for (const c of A.cars) if (!c.fc.out) { c.fc.crew = 0; c.fc.out = true; } A.queue.length = 0; for (const p of peds) if (p.foe && !p.dead && p.group === 'crew') killPed(p, 'gun', false); if (!onRoof(P)) toRoof(A); } }];
+  function fail(A) {
+    if (A.esther.dead) return F().esther;
+    if (A.band.some(p => p.dead)) return F().band;
+    if (MS.k === 2 && A.party <= 0) return F().ruined;
+    return '';
+  }
+  const cuts = {
+    'POOL PARTY': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [1], enter: () => { face(A.esther, P); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.esther, line: [2] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [3], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { msBarOff(); } };
+})();
