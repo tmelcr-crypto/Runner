@@ -110,6 +110,8 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "newsClose", "group": "Newsroom", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 20, "note": "Then the door is locked till morning (a quest can hold it open)."},
   {"id": "golfOpen", "group": "Clubhouse", "name": "The golf clubhouse opens at", "unit": "h", "min": 0, "max": 23, "v": 7, "note": "Its door unlocks; the barman and the golfers come in."},
   {"id": "golfClose", "group": "Clubhouse", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 21, "note": "Then the door is locked till morning (a quest can hold it open)."},
+  {"id": "bankOpen", "group": "Bank", "name": "FIRST CORAL BANK opens at", "unit": "h", "min": 0, "max": 23, "v": 9, "note": "Its doors unlock; the tellers, the manager, the guard and customers come in."},
+  {"id": "bankClose", "group": "Bank", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 17, "note": "Then the doors are locked till morning (a quest can hold them open)."},
   {"id": "rallyHour", "group": "Rally", "name": "Crane's rally starts at", "unit": "h", "min": 0, "max": 23, "v": 12, "note": "Every game day (STORY, after M15): the crowd gathers at Bayfront Park's band shell."},
   {"id": "rallyLen", "group": "Rally", "name": "And lasts", "unit": "h", "min": 1, "max": 6, "v": 2, "note": "Then the crowd goes home."},
   {"id": "rallyCrowd", "group": "Rally", "name": "People in the crowd", "unit": "", "min": 6, "max": 60, "v": 26, "note": "Standing before the stage, facing Crane; they cheer now and then."}

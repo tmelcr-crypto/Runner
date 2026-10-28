@@ -267,6 +267,7 @@ function makeColonyBig() {
   box5(T, x0 + 14, H, z0 + 30, x0 + 104, H + 2, z0 + 150, _C('#d8d2c4')); box5(G, x0 + 22, H + 2, z0 + 38, x0 + 96, H + 2.6, z0 + 142, _C('#3fd0ff'));   // the rooftop pool
   for (let k = 0; k < 6; k++) box5(T, x0 + 22 + k * 13, H + 2, z0 + 156, x0 + 30 + k * 13, H + 4, z0 + 172, _C(k % 2 ? '#ff7ab6' : '#ffe14a'));   // loungers
   for (const [ax, az] of [[x0 + 30, 60], [x0 + 30, 120], [x0 + 70, 160]]) box5(T, ax, H, az, ax + 22, H + 10, az + 22, _C('#9aa0ab'));
+  box5(T, x0 + 4, H, 150, x0 + 30, H + 22, 190, white); box5(T, x0 + 4, H + 22, 148, x0 + 32, H + 24, 192, turq); face(T, [[x0 + 30.3, H, 162], [x0 + 30.3, H, 178], [x0 + 30.3, H + 17, 178], [x0 + 30.3, H + 17, 162]], [1, 0, 0], _C('#2a3550'));   // the stair hut, its door to the terrace
   const F = x1 + COLONY_BIG_SIGN;
   box5(T, x1 + 6, 32, -140, F, 52, 140, white);                                                        // the bar of the T, over the door
   for (const [a, b] of [[32, 33.6], [50.4, 52]]) box5(G, F - 0.6, a, -140, F + 0.6, b, 140, blue);
@@ -277,7 +278,23 @@ function makeColonyBig() {
   put(neonSign('COLONY', true, 42, 150), F + 0.8, 120, 0, Math.PI / 2);                                // down the face of the pylon
   for (const sz of [-1, 1]) put(neonSign('COLONY', true, 34, 150), (x1 - 4 + F) / 2, 120, sz * 26.8, sz > 0 ? 0 : Math.PI);
   put(neonSign('HOTEL', false, 220, 15), F + 0.8, 42, 0, Math.PI / 2);
+  const roof = colonyTerrace(x0, H); m.add(roof); COLONY.roofMesh = roof; roof.visible = feat('colonyRoof');   // the roof terrace (modes: colonyRoof; js/08zzn gfxColonyRoof)
   return m;
+}
+function colonyTerrace(x0, H) {          // the roof terrace round the pool: a teak deck, umbrellas, a little bar, a dance floor, potted palms, strings of lanterns
+  const T = new GeoBuilder(), G = new GeoBuilder(), teak = _C('#b07a48'), white = _C('#f2efe6'), pot = _C('#c86a3a'), leaf = _C('#2f9a5a');
+  box5(T, x0 + 6, H, -204, x0 + 100, H + 0.8, -26, teak);                                              // the deck (the pool sits in it)
+  for (const [ux, c] of [[x0 + 20, '#ff7ab6'], [x0 + 52, '#3fd0ff'], [x0 + 84, '#ffe14a']]) {          // umbrellas at the pool's end
+    T.prism(ux, -194, 0.8, H, H + 14, white, 6); T.prism(ux, -194, 13, H + 12, H + 16, _C(c), 8, 1, true); }
+  box5(T, x0 + 6, H, -18, x0 + 18, H + 9, 46, _C('#5a3a2a')); box5(T, x0 + 4, H + 9, -20, x0 + 20, H + 10.5, 48, _C('#c8a040'));   // the bar
+  for (let k = 0; k < 8; k++) box5(G, x0 + 8, H + 10.5, -12 + k * 7, x0 + 11, H + 14, -9 + k * 7, _C(['#3dff7a', '#ffd23f', '#2bf3ff', '#ff2bd6'][k % 4]));   // bottles
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 5; j++) box5(G, x0 + 36 + i * 14, H + 0.9, -16 + j * 12, x0 + 49 + i * 14, H + 1.3, -5 + j * 12, _C((i + j) % 2 ? '#ff2bd6' : '#2bf3ff'));   // the dance floor
+  for (const [px, pz] of [[x0 + 8, -120], [x0 + 8, -150], [x0 + 96, -30], [x0 + 8, 100], [x0 + 60, 196]]) { T.prism(px, pz, 4, H, H + 6, pot, 8, 3, true); T.prism(px, pz, 7, H + 6, H + 15, leaf, 7, 2, true); }
+  const poles = [[x0 + 6, -204], [x0 + 100, -204], [x0 + 6, 50], [x0 + 100, 50]];                     // the lantern strings, pole to pole
+  for (const [px, pz] of poles) T.prism(px, pz, 0.8, H, H + 18, _C('#4a4a54'), 6);
+  for (const [a, b] of [[0, 1], [2, 3], [0, 2], [1, 3]]) { const [ax, az] = poles[a], [bx, bz] = poles[b], n = Math.round(Math.hypot(bx - ax, bz - az) / 10);
+    for (let k = 1; k < n; k++) { const t = k / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t, y = H + 17 - Math.sin(t * Math.PI) * 4; box5(G, x - 1, y - 1, z - 1, x + 1, y + 1, z + 1, _C(['#ffd98a', '#ff9ad0', '#9fd4ff'][k % 3])); } }
+  return lmMesh(T, G);
 }
 function makeColonyPark(L) {             // its park: lawns (map grass), paths (map yards), the fountain, palms, flower beds, benches, lamps
   const T = new GeoBuilder(), G = new GeoBuilder(), [px0, py0, px1, py1] = L.park, cx = (px0 + px1) / 2, cy = (py0 + py1) / 2, [fx0, fy0, fr] = L.fountain, fx = fx0 - cx, fz = fy0 - cy;
@@ -658,7 +675,7 @@ function genLandmarks() {
     } else if (L.t === 'tower') { makeSolid(L.x, L.y, 50, 50, 0, {}); add(L.x, L.y, 0, 60, makeTower); }
     else if (L.t === 'colony' && COLONY && COLONY.big) {                                              // the Colony on the beach, its park and fountain
       const c = COLONY, [fx, fy, fr] = L.fountain, [px0, py0, px1, py1] = L.park, [dx0, dy0, dx1, dy1] = L.drive;
-      makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, {}); solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_BIG_SIGN / 2, 0, COLONY_BIG_SIGN + 4, 54, true);   // the hotel and its sign pylon
+      c.solid = makeSolid(c.cx, c.cy, c.lw, c.lh, c.a, { deck: true, H: c.H }); solid(c.cx, c.cy, c.a, c.lw / 2 + COLONY_BIG_SIGN / 2, 0, COLONY_BIG_SIGN + 4, 54, true);   // the hotel (its roof one can stand on: deck) and its sign pylon
       for (let k = 0; k < 3; k++) makeSolid(fx, fy, fr * 1.7, fr * 1.7, k * Math.PI / 6, {});        // the fountain's basin (three turned squares: near enough round)
       add(c.cx, c.cy, c.a, Math.hypot(c.lw, c.lh) / 2 + 60, makeColonyBig, c.lw / 2 + 50, c.lh / 2 + 10);
       genColonyRing(L);                                                                              // the ring drive in front of the doors

@@ -49,7 +49,7 @@ function landHard(c) {                    // js/07 stepCar: back on the ground f
 const _rfb = [];
 function roofUnder(x, y, h) {             // the highest building roof under (x, y) no higher than h (null: the ground)
   let best = null; bHash.query(x - 2, y - 2, x + 2, y + 2, _rfb);
-  for (const s of _rfb) if (s.bld && !s.off && s.H && s.H <= h + 0.5 && (!best || s.H > best.H) && inSolid(x, y, s, 0)) best = s;
+  for (const s of _rfb) if ((s.bld || s.deck) && !s.off && s.H && s.H <= h + 0.5 && (!best || s.H > best.H) && inSolid(x, y, s, 0)) best = s;
   return best;
 }
 function roofTick(o) {                    // js/06, js/07: a car high in the air, or a car or you up on a roof - its base follows the roof under it
@@ -98,7 +98,7 @@ function siteYard() {                     // workers walking the yard by day (as
 /* ---------- the machines: the mixer, the digger, the dump truck - by day at work, at night parked; take them ---------- */
 function siteMachines(dt) {
   const near = dist(P.x, P.y, (SITE.area[0] + SITE.area[2]) / 2, (SITE.area[1] + SITE.area[3]) / 2) < 1900, day = !siteNight();
-  const want = { mixer: [SITE.mixer[0], SITE.mixer[1], SITE.mixer[2]], digger: [SITE.digger[0], SITE.digger[1], SITE.digger[2]], dumper: [SITE.dumper[0][0], SITE.dumper[0][1], 0] };
+  const want = { mixer: [SITE.mixer[0], SITE.mixer[1], SITE.mixer[2]], digger: [SITE.digger[0], SITE.digger[1], SITE.digger[2]], dumper: [SITE.dumper[0][0], SITE.dumper[0][1], 0], wrecker: [SITE.area[0] + 140, SITE.area[1] + 100, 0] };   // the wrecking crane stands by the north fence
   for (const type in want) {
     const M = SKX.mach[type] = SKX.mach[type] || { car: null, gone: -1e9 };
     if (M.car) {                                                     // taken (driven off, wrecked, moved away) - or only cleared away while you were far off (back as soon as you return)

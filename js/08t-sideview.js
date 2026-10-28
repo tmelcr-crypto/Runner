@@ -109,7 +109,7 @@ function sideFrame(dt, time) {               // UP and DOWN keys: js/15 handleKe
   if (SV.lift) {                          // riding: the cab moves, then the doors open on the new floor
     const L = SV.lift; L.t += dt; if (L.t >= L.T) { SV.fl = L.to; SV.lift = null; SV.x = SV_LIFT; Snd.tone(880, 880, 0.12, 0.08, 'sine'); }
   } else if ($('svLift').hidden) {
-    const dir = (right ? 1 : 0) - (left ? 1 : 0), Wd = SV.room ? SV.room.W : SV.B.W;
+    const dir = SB.ms && SB.ms.scuffle ? 0 : (right ? 1 : 0) - (left ? 1 : 0), Wd = SV.room ? SV.room.W : SV.B.W;   // held in a scuffle (js/08zzn)
     if (dir) { SV.face = dir; SV.x = clamp(SV.x + dir * 150 * dt, 30, Wd - 30); SV.walk += dt * 9; SV.hide = false; } else SV.walk = 0;
   }
   for (const n of SV.npcs) {              // the neighbours: along the hall, now and then in at a door and out again later

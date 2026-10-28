@@ -272,6 +272,23 @@ function buildCar(c) {                       // parts that never move on their o
     merged('d', mc(0x5a4a38), [[GB, L * 0.6, 0.6, Wd - 3, -L * 0.17, 22.2, 0]]);              // the load of dirt in it
     for (const x of [L * 0.32, -L * 0.12, -L * 0.33]) axle(x, 6);
     lamps(8, 3, 9, 3, 5);
+  } else if (B === 'wrecker') {              // a wrecking crane: a yellow cab, the long chassis, the turning house, a lattice boom raised forward, the iron ball swinging on its cable (js/08zzn)
+    merged('c', body, [[GB, L * 0.16, 14, Wd, L * 0.42, 11, 0]]);
+    m.cabin = merged('g', E.glass, [[GB, 0.6, 6, Wd - 4, L / 2 + 0.05, 14, 0], [GB, L * 0.1, 5, Wd + 0.2, L * 0.42, 14, 0]]);
+    merged('k', E.black, [[GB, L * 0.84, 4, Wd - 5, -L * 0.06, 5, 0]]);
+    merged('h', body, [[GB, L * 0.34, 10, Wd - 2, -L * 0.18, 13, 0], [GB, L * 0.14, 6, Wd - 6, -L * 0.36, 21, 0]]);   // the house and its counterweight
+    merged('w', mc(0x2a2d38), [[GB, L * 0.12, 8, Wd * 0.4, -L * 0.02, 22, -Wd * 0.2]]);                      // the operator's cab on the house
+    for (const s of [-1, 1]) merged('st' + s, mc(0xff3b4a), [[GB, L * 0.8, 0.5, 0.6, -L * 0.04, 8.5, s * (Wd / 2 + 0.1)]]);   // red stripes
+    const boom = new THREE.Group(); boom.position.set(-L * 0.12, 20, 0); boom.rotation.z = 0.62; tilt.add(boom);
+    const BL = L * 1.05, lat = mc(0xffd23f);
+    for (const s of [-1, 1]) { part(boom, GB, lat, BL, 1.2, 1.2, BL / 2, 1.6, s * 2.6); part(boom, GB, lat, BL, 1.2, 1.2, BL / 2, -1.6, s * 2.6); }   // the four chords
+    for (let k = 1; k < 12; k++) { const x = k * BL / 12, d = part(boom, GB, lat, 0.6, 4.2, 0.6, x, 0, (k % 2 ? 2.6 : -2.6)); d.rotation.x = 0; part(boom, GB, lat, 0.6, 0.6, 5.8, x, k % 2 ? 1.6 : -1.6, 0); }   // the lacing
+    const tip = new THREE.Group(); tip.position.set(BL, 0, 0); boom.add(tip);
+    const swing = new THREE.Group(); tip.add(swing); swing.rotation.z = -0.62; m.swing = swing;   // hangs straight down whatever the boom's angle
+    part(swing, GB, mc(0x2a2a30), 0.4, 26, 0.4, 0, -13, 0);                                        // the cable
+    part(swing, GSph, mc(0x3a3d44), 6, 6, 6, 0, -30, 0);                                           // the iron ball
+    for (const x of [L * 0.34, L * 0.14, -L * 0.2, -L * 0.36]) axle(x, 6);
+    lamps(8, 3, 8, 3, 5);
   } else if (B === 'digger') {               // a tracked excavator: tracks, the turning house with its cab, the boom, the stick and the bucket (move: js/08zt)
     merged('k', E.tire, [[GB, L * 0.82, 8, 9, -L * 0.04, 5, Wd / 2 - 4.5], [GB, L * 0.82, 8, 9, -L * 0.04, 5, -(Wd / 2 - 4.5)]]);
     merged('b', body, [[GB, L * 0.62, 11, Wd - 4, -L * 0.1, 14.5, 0], [GB, L * 0.22, 4, Wd - 8, -L * 0.3, 21.5, 0]]);

@@ -41,6 +41,7 @@ function placeUniques() {                 // js/04 genWorld, after the safehouse
     for (const row of rows) {
       const F = UQ_FIT[row.kind] || UQ_FIT.shop;
       if (row.id === 'sea_breeze') { const c = cand.find(o => o.r.sign === 'SEA BREEZE'); if (c && !c.taken) { take(row, c); continue; } }
+      if (row.id === 'first_coral_bank') { const c = cand.find(o => (o.dname === 'MERCADO' || o.dname === 'PALM HEIGHTS') && o.W >= 130 && o.W <= 230 && o.D >= 100 && ok(o)); if (c) { take(row, c); continue; } }   // a lot big enough for its banking hall and vault (js/10zi)
       if (UQ_SITE[row.kind]) { const c = UQ_SITE[row.kind](row, used); if (c) take(row, c); continue; }
       const fits = c => c.W >= F.w[0] && c.W <= F.w[1] && c.D >= F.d && ok(c);
       const isHotel = hotels.includes(row), wantBeach = isHotel ? hotelN++ < nBeach : F.beach;
