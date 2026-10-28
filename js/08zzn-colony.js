@@ -224,3 +224,193 @@ MSCRIPT.h3 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { WATER_FIRES.length = 0; msBarOff(); } };
 })();
+
+/* ================= H4 - THE BAND ================= */
+MSCRIPT.h4 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  const goIn = (A, p) => {                  // a musician home: out of the car, in at the door, gone
+    if (p.aboard) allyAlight(p); MS_CAST.allies = MS_CAST.allies.filter(q => q !== p); Object.assign(p, { ally: false, calm: true, arm: -1, shield: true });
+    const d = A.C.door; p.post.step = (q, dt) => { if (q.state === 'flee') q.state = 'post'; if (walkTo(q, d.x, d.y, RUN, dt) < 10) { const i = peds.indexOf(q); if (i >= 0) peds.splice(i, 1); } return true; };
+    A.home++; Snd.tone(523, 784, 0.25, 0.1, 'triangle'); toast(A.home < 3 ? A.home + ' OF THE BAND HOME' : 'THE WHOLE BAND IS HOME');
+  };
+  const atDoor = (A, o) => dist(o.x, o.y, A.C.door.x, A.C.door.y) < N().homeM * M;
+  function setup(A) {
+    SKY.hour = N().hour; HOTEL.esther(A); HOTEL.start(A, 'convertible'); A.home = 0; const C = A.C;
+    // THE DRUMMER: Vinnie and Sammy in the speedway's paddock; the race on the oval from the east straight
+    const pit = SPW_PIT || { x: SPW.booth[0], y: SPW.booth[1] - 200 }, v = S1.free(pit.x - 70, pit.y + 20, 8), s = S1.free(pit.x - 110, pit.y + 30, 8);
+    A.vin = msPed(v.x, v.y, 0, Object.assign(S1.look('vinnie'), { msName: 'vinnie', step: S1.stay, spare: true, shield: true }));
+    A.sam = msPed(s.x, s.y, 0, Object.assign(S1.look('sticks'), { msName: 'sticks', step: S1.stay, spare: true, shield: true }));
+    const u0 = OV.t2 + 80, k = Math.max(8, OV.w / 2 - 25);
+    A.D = { ph: 'go', u0, k, end: u0 + N().laps * OV.L, cp: 0, n: Math.round(N().laps * 4) };
+    // THE SINGER: Lola at THE PULSE's door, three doormen Crane pays to keep her there
+    const [kx, ky] = CASM.cdoor; A.S = { ph: 'go', at: S1.at(kx, ky + 60) };
+    A.lola = msPed(kx + 34, ky + 44, Math.PI / 2, Object.assign(S1.look('lola'), { msName: 'lola', step: S1.stay, spare: true, shield: true }));
+    A.door = [[0, 40, 'bat', N().bouncerHp], [-46, 58, 'fists', N().doorHp], [74, 54, 'fists', N().doorHp]].map(([dx, dy, gun, hp]) => {
+      const p = msFoe(kx + dx, ky + dy, { gun, hp, group: 'door', a: Math.PI / 2, shirt: '#141418', pants: '#26262e' }); p.calm = true; return p; });
+    // THE TRUMPET: Teddy on a jet ski off the Colony's beach; a speedboat at the water's edge behind the hotel
+    const d = C.door; let w = null;
+    for (let r = 0; r < 4000 && !w; r += 20) { const x = d.x - d.fx * r, y = d.y - d.fy * r; if (boatDist(x, y) < -60) w = S1.at(x, y); }
+    w = w || S1.at(d.x - d.fx * 1900, d.y - d.fy * 1900);
+    const out = Math.atan2(-d.fy, -d.fx);
+    A.boat = msCar('speedboat', w.x - d.fx * 30, w.y - d.fy * 30, out, '#f4f6fa');
+    A.land = S1.at(w.x + d.fy * 160, w.y - d.fx * 160);
+    const R0 = N().skiR * M; let cx = w.x - d.fx * (R0 + 500), cy = w.y - d.fy * (R0 + 500), way = [];
+    for (let tries = 0; tries < 6 && way.length < 5; tries++) {
+      way = []; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU, x = cx + Math.cos(a) * R0, y = cy + Math.sin(a) * R0; if (boatDist(x, y) < -80) way.push(S1.at(x, y)); }
+      cx -= d.fx * 300; cy -= d.fy * 300;
+    }
+    A.T = { ph: 'go', way, wi: 0, k: 0 };
+    const w0 = way[0] || S1.at(cx, cy); A.ski = msCar('jetski', w0.x, w0.y, 0, '#ffd23f'); A.ski.noEnter = true; A.ski.hp = A.ski.maxhp = A.ski.maxhp * N().skiTough;
+    A.ski.driver = 'ai'; A.ski.msDrive = (c, dt) => skiDrive(A, c, dt);
+  }
+  function skiDrive(A, c, dt) {             // Teddy on his jet ski: round and round off the beach, away from a boat that comes close; caught, in to the beach
+    const T = A.T; if (c.dead || c.sunk || T.ph === 'done') { c.thr = 0; c.str = 0; return; }
+    if (T.ph === 'home') { if (dist(c.x, c.y, A.land.x, A.land.y) < 70) { c.thr = 0; c.str = 0; c.hb = true; return; } steerToward(c, A.land.x, A.land.y, 30 * KMH); return; }
+    let t = T.way[T.wi % T.way.length]; if (!t) { c.thr = 0; return; }
+    if (dist(c.x, c.y, t.x, t.y) < 110) { T.wi++; t = T.way[T.wi % T.way.length]; }
+    const me = P.car || P, dP = dist(c.x, c.y, me.x, me.y);
+    if (P.car && P.car.t.boat && dP < N().dodgeM * M) {     // a boat on him: away from it, while the water allows
+      const a = Math.atan2(c.y - me.y, c.x - me.x) + Math.sin(gameT * 1.7) * 0.6, x = c.x + Math.cos(a) * 300, y = c.y + Math.sin(a) * 300;
+      if (boatDist(x, y) < -60) t = S1.at(x, y);
+    }
+    steerToward(c, t.x, t.y, N().skiSpeed * KMH);
+  }
+  // ---- the drummer: the race ----
+  function raceSet(A) {                     // the track cleared; Vinnie's BRUISER and his spare on the grid
+    const D = A.D, q = {}, pts = [], d0 = D.u0 - 400;
+    for (let u = d0; u <= D.end + 300; u += RDS) { ovalAt(u, 0, q); pts.push([q.x, q.y]); }
+    const R = D.R = makeRoute(pts, [-D.k, 0, D.k], d0);
+    cars = cars.filter(c => c.keep || c.hook || c === P.car || !spwIn(c.x, c.y) || Math.abs(ovalU(c.x, c.y).off) > OV.w / 2 + 14);
+    ovalAt(D.u0 - 34, D.k, q); D.slot = { x: q.x, y: q.y, ang: q.ang };
+    A.spare = msCar('muscle', q.x, q.y, q.ang, '#f4f6fa');
+    const r = A.rival = addRival(R, 'muscle', D.u0 - 34, -D.k, N().vPace / 100, 0.75, '#ff8a2a'); MS.A.list.push(r);
+    const i = peds.indexOf(A.vin); if (i >= 0) peds.splice(i, 1);   // Vinnie at his wheel
+  }
+  const cpAt = (A, j) => ovalAt(A.D.u0 + (j + 1) * OV.L / 4, 0, {});
+  function raceTick(A, dt) {
+    const D = A.D, c = A.spare;
+    if (D.ph === 'car') { if (P.car === c) { D.ph = 'count'; D.t = N().count; D.beep = Math.ceil(D.t) + 1; msObjective('WIN THE RACE - ' + N().laps + ' LAPS'); } return; }
+    if (D.ph === 'count') {
+      Object.assign(c, { x: D.slot.x, y: D.slot.y, ang: D.slot.ang, vx: 0, vy: 0, av: 0 });
+      D.t -= dt; const n = Math.ceil(D.t);
+      if (n < D.beep && n > 0) { D.beep = n; bigCount(String(n)); Snd.tone(440, 440, 0.15, 0.1, 'square'); }
+      if (D.t <= 0) { D.ph = 'race'; A.rival.race.go = true; bigCount('GO', true); Snd.tone(880, 880, 0.35, 0.12, 'square'); }
+      return;
+    }
+    if (D.ph !== 'race') return;
+    const p = cpAt(A, D.cp);
+    if (dist(c.x, c.y, p.x, p.y) < OV.w / 2 + 40) { D.cp++; Snd.tone(660, 990, 0.12, 0.08, 'triangle'); }
+    if (D.cp < D.n) return;
+    D.ph = 'won'; A.rival.race.hold = true; msLive([7, 8], { now: true });
+    msAllyFrom(A.sam, { who: 'sticks', calm: true, fail: F().sticks }); A.sam.shield = false;
+    D.ph = 'bring';
+  }
+  const rivalD = A => { const K = A.rival && A.rival.race; return K ? K.d : 0; };
+  // ---- which of the three is on now, and where to go for it ----
+  function active(A) {
+    const on = [['D', A.D], ['S', A.S], ['T', A.T]].filter(([, s]) => s.ph !== 'go' && s.ph !== 'done');
+    if (on.length) return on[on.length - 1][0];
+    const me = P.car || P, left = [['D', A.vin], ['S', A.lola], ['T', A.ski]].filter(([k]) => A[k].ph === 'go');
+    if (!left.length) return null;
+    left.sort((a, b) => dist(me.x, me.y, a[1].x, a[1].y) - dist(me.x, me.y, b[1].x, b[1].y)); return left[0][0];
+  }
+  function target(A, k) {
+    if (k === 'D') { const D = A.D; return D.ph === 'go' || D.ph === 'cut' ? A.vin : D.ph === 'car' ? A.spare : D.ph === 'count' ? D.slot : D.ph === 'race' ? cpAt(A, D.cp) : A.C.door; }
+    if (k === 'S') return A.S.ph === 'go' || A.S.ph === 'cut' ? A.lola : A.S.ph === 'fight' ? A.door.find(p => !p.dead) || A.lola : A.C.door;
+    if (k === 'T') return A.T.ph === 'go' ? (P.car && P.car.t.boat ? A.ski : A.boat) : A.T.ph === 'catch' ? A.ski : A.land;
+    return A.esther;
+  }
+  const OBJ = { D: { go: 'THE DRUMMER: SAMMY AT THE SPEEDWAY', car: "GET IN VINNIE'S SPARE ON THE TRACK", bring: 'BRING SAMMY BACK TO THE COLONY' },
+    S: { go: 'THE SINGER: LOLA AT THE PULSE', fight: 'TAKE OUT THE DOORMEN', bring: 'BRING LOLA BACK TO THE COLONY' },
+    T: { go: 'THE TRUMPET: TEDDY ON A JET SKI OFF THE BEACH - GET A BOAT', catch: "CATCH TEDDY - STAY ON HIS JET SKI'S TAIL", home: 'TEDDY RIDES IN TO THE BEACH' } };
+  function band(A, dt) {                    // every frame of the step: the three at once, any order
+    const me = P.car || P, D = A.D, S = A.S, T = A.T;
+    // the drummer
+    if (D.ph === 'go' && !CUT.on && dist(me.x, me.y, A.vin.x, A.vin.y) < N().nearM * M) { D.ph = 'cut'; msCut('DOUBLE OR NOTHING', () => { raceSet(A); D.ph = 'car'; }); }
+    raceTick(A, dt);
+    if (D.ph === 'bring' && !A.sam.dead && atDoor(A, A.sam.aboard || A.sam)) { goIn(A, A.sam); D.ph = 'done'; }
+    // the singer
+    if (S.ph === 'go' && !CUT.on && dist(me.x, me.y, A.lola.x, A.lola.y) < N().nearM * M) { S.ph = 'cut'; msCut('THE DOOR', () => { S.ph = 'fight'; for (const p of A.door) if (!p.dead) { p.calm = false; foeAlert(p); } }); }
+    if (S.ph === 'go' && A.door.some(p => p.dead || p.alert)) { S.ph = 'fight'; for (const p of A.door) if (!p.dead) { p.calm = false; foeAlert(p); } }   // started it yourself
+    if (S.ph === 'fight' && A.door.every(p => p.dead)) { S.ph = 'bring'; msLive([11], { now: true }); msAllyFrom(A.lola, { who: 'lola', calm: true, fail: F().lola }); A.lola.shield = false; }
+    if (S.ph === 'bring' && !A.lola.dead && atDoor(A, A.lola.aboard || A.lola)) { goIn(A, A.lola); S.ph = 'done'; }
+    // the trumpet
+    const ski = A.ski;
+    if (T.ph === 'go' && P.car && P.car.t.boat) T.ph = 'catch';
+    if (T.ph === 'catch') {
+      const close = P.car && P.car.t.boat && dist(P.car.x, P.car.y, ski.x, ski.y) < N().catchM * M;
+      if (!T.said && P.car && P.car.t.boat && dist(P.car.x, P.car.y, ski.x, ski.y) < 60 * M) { T.said = true; msLive([12]); }
+      T.k = clamp(T.k + (close ? dt : -dt * 0.5) / N().catchT, 0, 1); msBar('CATCHING TEDDY', T.k, '#ffc83a');
+      if (T.k >= 1 || T.caught) { T.ph = 'home'; msBarOff(); msLive([13], { now: true }); }
+    } else if (T.ph === 'home' && dist(ski.x, ski.y, A.land.x, A.land.y) < 90) {   // on the beach: he walks up to the hotel
+      T.ph = 'done'; ski.driver = null; ski.msDrive = null; ski.vx = ski.vy = 0;
+      const q = S1.dryNear(ski.x + A.C.door.fx * 60, ski.y + A.C.door.fy * 60), t = A.ted = msPed(q.x, q.y, 0, Object.assign(S1.look('teddy'), { msName: 'teddy', spare: true, shield: true }));
+      A.home++; const d = A.C.door; t.post.step = (o, dt) => { if (o.state === 'flee') o.state = 'post'; if (walkTo(o, d.x, d.y, WALK * 1.6, dt) < 10) { const i = peds.indexOf(o); if (i >= 0) peds.splice(i, 1); } return true; };
+      Snd.tone(523, 784, 0.25, 0.1, 'triangle'); toast(A.home < 3 ? A.home + ' OF THE BAND HOME' : 'THE WHOLE BAND IS HOME');
+    }
+    // the marker, the line on the streets, the words
+    const k = active(A); A.act = k;
+    MS.mark = () => A.act ? target(A, A.act) : null; MS.guide = () => A.act ? target(A, A.act) : null;
+    const ph = k && A[k].ph, key = k + ph;
+    if (k && OBJ[k][ph] && A.objKey !== key) { A.objKey = key; msObjective(OBJ[k][ph]); }
+    return A.home >= 3;
+  }
+  const info = A => {
+    const tag = (k, n) => n + (A[k].ph === 'done' ? ' HOME' : A[k].ph === 'go' ? '' : ' ...');
+    let s = [tag('D', 'DRUMS'), tag('S', 'VOICE'), tag('T', 'TRUMPET')].join(' · ');
+    const D = A.D;
+    if (A.act === 'D' && D.ph === 'race') { const lap = Math.min(N().laps, Math.floor(D.cp / 4) + 1), mine = D.u0 + D.cp * OV.L / 4; s = 'LAP ' + lap + '/' + N().laps + ' · ' + (mine >= rivalD(A) ? '1ST' : '2ND'); }
+    if (A.act === 'D' && D.ph === 'count') s = 'GET READY';
+    return s;
+  };
+  function jump(A) {                        // one push further for the one on now (MISSIONS TEST and the test bot)
+    const k = A.act || active(A); if (!k) return; const s = A[k];
+    const put = (x, y) => { if (P.car) exitCar(true); P.x = x; P.y = y; P.vx = P.vy = 0; };
+    const ride = (x, y) => { if (P.car) { P.car.x = x; P.car.y = y; P.car.vx = P.car.vy = 0; P.x = x; P.y = y; } else put(x, y); };
+    const home = p => { const d = A.C.door; if (p.aboard) ride(d.x + 30, d.y + 20); else { put(d.x + 30, d.y + 20); p.x = d.x + 20; p.y = d.y + 40; } };
+    if (k === 'D') {
+      if (s.ph === 'go') put(A.vin.x + 40, A.vin.y + 30);
+      else if (s.ph === 'car') { put(A.spare.x, A.spare.y); enterCar(A.spare); }
+      else if (s.ph === 'count') s.t = 0;
+      else if (s.ph === 'race') { s.cp = s.n; }
+      else if (s.ph === 'bring') home(A.sam);
+    } else if (k === 'S') {
+      if (s.ph === 'go') put(A.lola.x - 30, A.lola.y + 120);
+      else if (s.ph === 'fight') { for (const p of A.door) if (!p.dead) killPed(p, 'fists', false); }
+      else if (s.ph === 'bring') home(A.lola);
+    } else if (k === 'T') {
+      if (s.ph === 'go') { put(A.boat.x, A.boat.y); enterCar(A.boat); }
+      else if (s.ph === 'catch') s.caught = true;
+      else if (s.ph === 'home') { A.ski.x = A.land.x + 20; A.ski.y = A.land.y; }
+    }
+  }
+  const steps = [
+    HOTEL.meet('THE BAND'),
+    { enter(A) { MS.mark = () => A.vin; },
+      tick: (A, dt) => band(A, dt), info, jump },
+    HOTEL.back(null, [14, 15])];
+  function fail(A) {
+    const f = msCastFail(); if (f) return f;
+    const D = A.D;
+    if ((D.ph === 'count' || D.ph === 'race') && P.car !== A.spare) return F().quit;
+    if (D.ph === 'race' && rivalD(A) >= D.end) return F().lost;
+    if (A.T.ph !== 'done' && (A.ski.dead || A.ski.sunk)) return F().sank;
+    if (A.S.ph !== 'done' && A.lola.dead) return F().lola;
+    if (A.D.ph !== 'done' && A.sam.dead) return F().sticks;
+    return '';
+  }
+  const cuts = {
+    'THE BAND': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [1], enter: () => { face(A.esther, P); } },
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [2] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [3], fadeOut: true }],
+    'DOUBLE OR NOTHING': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.vin, line: [4], enter: () => { face(A.vin, P); face(A.sam, P); P.ang = Math.atan2(A.vin.y - P.y, A.vin.x - P.x); } },
+      { dur: 3, cam: 'CLOSE', at: () => A.sam, line: [5] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [6], fadeOut: true }],
+    'THE DOOR': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.lola, line: [9], enter: () => { face(A.lola, P); for (const p of A.door) face(p, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [10], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { msBarOff(); if (A && A.rival) { A.rival.race = null; A.rival.driver = null; } } };
+})();

@@ -2678,7 +2678,68 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The hotel's back", "-", "Flames out of the kitchen windows, black smoke. Fade out.", "WIDE on the fires", "5", "2, 3"]]}],
     "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
     "failing": "Marker E again (retry).",
-    "notes": {"places": "The Colony's back (the park side); the avenue.", "people": "Two arsonists (Crane's men).", "music": "-", "new": "Fires the water cannon puts out (a quest's fires).", "other": "-"}}}
+    "notes": {"places": "The Colony's back (the park side); the avenue.", "people": "Two arsonists (Crane's men).", "music": "-", "new": "Fires the water cannon puts out (a quest's fires).", "other": "-"}}},
+  {"id": "h4", "no": "H4", "title": "THE BAND", "giver": "esther", "start": "marker", "where": "The Colony (marker E); the speedway's paddock and oval; THE PULSE's door; the sea off the Colony's beach",
+   "story": "The Colony's big Saturday night needs its house band, and Crane has scattered it. Danny brings the three home in any order: he races Vinnie Rapp two laps of the speedway to clear the drummer's debt, fights the doormen Crane pays to keep the singer at THE PULSE, and runs the old trumpet player down on the water in a speedboat.",
+   "chars": ["esther", "danny", "vinnie", "sticks", "lola", "teddy"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "BRING BACK", "show": "BRING THE BAND HOME - SAMMY (SPEEDWAY), LOLA (THE PULSE), TEDDY (OFF THE BEACH)"},
+     {"word": "TALK TO", "show": "BACK TO ESTHER AT THE DOOR"}],
+   "lines": [
+     {"who": "esther", "text": "Danny, Saturday is the Colony's big night - and Crane has scattered my band. No band, no guests.", "mood": "worried", "when": "The Band, shot 1"},
+     {"who": "esther", "text": "Sammy owes money at the speedway, Lola is stuck at THE PULSE, and Teddy... Teddy is out on the sea on one of those jet skis.", "mood": "exasperated", "when": "The Band, shot 2"},
+     {"who": "danny", "text": "I'll bring them home. All three.", "mood": "calm", "when": "The Band, shot 3"},
+     {"who": "vinnie", "text": "The drummer owes me two grand, friend. You want him? Race me - two laps of the oval, you drive my spare.", "mood": "smug", "when": "Double or Nothing, shot 1"},
+     {"who": "sticks", "text": "Don't let him squeeze you in the turns, man!", "mood": "nervous", "when": "Double or Nothing, shot 2"},
+     {"who": "danny", "text": "Start the clock.", "mood": "cold", "when": "Double or Nothing, shot 3"},
+     {"who": "vinnie", "text": "...Fine. The kid's debt is square. Get him out of my sight.", "mood": "sour", "when": "LIVE - you win the race", "live": true},
+     {"who": "sticks", "text": "Man, you drive like I drum! Take me home.", "mood": "excited", "when": "LIVE - you win the race", "live": true},
+     {"who": "lola", "text": "Danny Cruz! These gorillas say I sing for nobody till Mister Crane says so.", "mood": "furious", "when": "The Door, shot 1"},
+     {"who": "danny", "text": "Crane doesn't run this door tonight.", "mood": "hard", "when": "The Door, shot 2"},
+     {"who": "lola", "text": "My hero. Mind the dress on the way, honey.", "mood": "warm", "when": "LIVE - the doormen down", "live": true},
+     {"who": "teddy", "text": "Sixty years I played that horn! Let an old man ride the waves!", "mood": "gleeful", "when": "LIVE - a boat comes near him", "live": true},
+     {"who": "teddy", "text": "Alright, alright, you caught me! I'll ride her in to the beach.", "mood": "laughing", "when": "LIVE - caught", "live": true},
+     {"who": "esther", "text": "Sammy! Lola! Teddy! The Colony Band, together again - on Saturday we dance till the sun comes up.", "mood": "delighted", "when": "LIVE - the end", "live": true},
+     {"who": "danny", "text": "Save me a table.", "mood": "warm", "when": "LIVE - the end", "live": true}],
+   "fails": {"lost": "VINNIE WON THE RACE", "quit": "YOU LEFT THE RACE", "sank": "TEDDY'S JET SKI SANK", "sticks": "SAMMY STICKS IS DEAD", "lola": "LOLA DIAMOND IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 19, "nearM": 18, "homeM": 22, "laps": 2, "count": 3, "vPace": 82, "bouncerHp": 220, "doorHp": 90, "skiSpeed": 58, "skiR": 45, "skiTough": 4, "dodgeM": 25, "catchM": 10, "catchT": 2.5},
+   "reward": {"cash": 5000, "vehicle": "", "clothes": "", "next": "H5 - THE DEED (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; three markers in any order, answer 169) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The speedway (paddock and oval), THE PULSE's door, the sea off the Colony's beach", "unlocked": "After H3", "time": "Evening (MISSIONS TEST: 19:00)", "length": "About 12 minutes", "limit": "-"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "vinnie": {"gives": false, "role": "Vinnie Rapp, a loan shark who races (new).", "looks": "Forties, slicked-back black hair, a black leather racing jacket with an orange stripe, aviator shades, a gold chain.", "bubble": "Orange", "mumble": "Low and rough."},
+     "sticks": {"gives": false, "role": "Sammy Sticks, the band's drummer (new).", "looks": "Twenties, a blond mullet, a sleeveless white tee, a drumstick behind the ear.", "bubble": "Pink-violet", "mumble": "Fast and high."},
+     "lola": {"gives": false, "role": "Lola Diamond, the band's singer (new).", "looks": "Forties, big copper curls, a red sequin dress, gold hoops.", "bubble": "Rose", "mumble": "Warm and sung."},
+     "teddy": {"gives": false, "role": "Teddy Bell, the band's trumpet player (new).", "looks": "Sixties, a pencil moustache, a teal flower shirt, a captain's cap.", "bubble": "Gold", "mumble": "Low and merry."}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene THE BAND.", "MISSIONS TEST: you start by the door, a SUNDANCER on the ring drive."],
+     ["Three markers, any order (the marker and the line show the nearest, or the one you are on). THE DRUMMER: in the speedway's paddock Vinnie (cutscene DOUBLE OR NOTHING); get in his spare BRUISER on the grid; 3-2-1-GO; two laps against him through the checkpoints; win and Sammy rides home with you. THE SINGER: at THE PULSE's door (cutscene THE DOOR) a bouncer with a bat and two doormen; take them out and Lola rides home with you. THE TRUMPET: get in the speedboat at the water's edge behind the hotel (or any boat); keep within 10 m of Teddy's jet ski for 2.5 s (CATCHING TEDDY bar) - he dodges a boat that comes close; caught, he rides in to the beach and walks up to the hotel. Bring each to the Colony's door: he or she goes in.", "Vinnie over the line first: the quest fails; out of the car during the race: it fails; Sammy or Lola killed, or Teddy's jet ski sunk: it fails."],
+     ["All three home: back to Esther at the door; her lines; the quest is passed.", ""]],
+    "fails": [
+     ["Vinnie crosses the line first", "VINNIE WON THE RACE"],
+     ["You get out of the car on the grid or in the race", "YOU LEFT THE RACE"],
+     ["Teddy's jet ski is sunk (it takes four times a jet ski's hits)", "TEDDY'S JET SKI SANK"],
+     ["Sammy or Lola is killed", "SAMMY STICKS IS DEAD / LOLA DIAMOND IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE BAND\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther, worried.", "CLOSE on Esther", "6", "1"],
+      ["The Colony's door", "Esther", "She counts the three on her fingers.", "CLOSE on Esther", "6", "2"],
+      ["The Colony's door", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "3"]]},
+     {"title": "\"DOUBLE OR NOTHING\"", "plays": "Near Vinnie in the speedway's paddock.", "shots": [
+      ["The paddock", "Vinnie, Sammy", "Vinnie turns, smiling.", "CLOSE on Vinnie", "6", "4"],
+      ["The paddock", "Sammy", "Sammy, nervous.", "CLOSE on Sammy", "3", "5"],
+      ["The paddock", "Danny", "Danny. Fade out: the track cleared, the two BRUISERs on the grid.", "CLOSE on Danny", "3", "6"]]},
+     {"title": "\"THE DOOR\"", "plays": "Near Lola at THE PULSE's door.", "shots": [
+      ["THE PULSE's door", "Lola, the doormen", "Lola between the doormen.", "CLOSE on Lola", "5", "9"],
+      ["THE PULSE's door", "Danny", "Danny. Fade out: they come at him.", "CLOSE on Danny", "3", "10"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "The speedway's paddock and oval (the race from the east straight); THE PULSE's door (closed till 22:00); the sea off the Colony's beach.", "people": "Four new characters: Vinnie Rapp, Sammy Sticks, Lola Diamond, Teddy Bell (the character table).", "music": "-", "new": "A two-lap race on the oval against one rival; a jet ski that dodges you; three markers in any order.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

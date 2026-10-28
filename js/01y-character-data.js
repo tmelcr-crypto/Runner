@@ -161,7 +161,23 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "otto", "name": "OTTO", "letter": "T", "bubble": "#b89a6a", "shirt": "#7a6a50", "pants": "#3a3430", "mumble": {"low": 120, "high": 170, "rate": 8, "wave": "triangle", "gap": 0.14},
    "role": "The old printer of OTTO'S PRINTING in Mercado - and a forger, for friends (P3).", "look": "Seventies, thick glasses, an ink-stained apron over a cardigan.",
    "skin": "#ecc8a8", "hair": "#d8d8d8", "hairStyle": "sides", "facial": "none", "facialColour": "", "eyes": "#4a4a5a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "square", "glassesColour": "#2a2a2a",
-   "top": "cardigan", "topColour": "#7a6a50", "topColour2": "#3a3a4a", "extras": ["wrinkles", "pencil"], "smileEyes": "happy", "calmMouth": "line", "age": "old", "build": "slim"}
+   "top": "cardigan", "topColour": "#7a6a50", "topColour2": "#3a3a4a", "extras": ["wrinkles", "pencil"], "smileEyes": "happy", "calmMouth": "line", "age": "old", "build": "slim"},
+  {"id": "sticks", "name": "SAMMY STICKS", "letter": "S", "bubble": "#ff6ad5", "shirt": "#f2f2ee", "pants": "#2a3a6a", "mumble": {"low": 180, "high": 300, "rate": 16, "wave": "square", "gap": 0.03},
+   "role": "The Colony band's drummer: fast hands, faster mouth, always owes somebody; lost a race bet to Vinnie Rapp (H4).", "look": "Twenties, a blond mullet, a sleeveless white tee, a sweatband on each wrist, a drumstick behind the ear.",
+   "skin": "#f0c8a0", "hair": "#e8c860", "hairStyle": "spiky", "facial": "stubble", "facialColour": "#c8a850", "eyes": "#4a7aa8", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "tanktop", "topColour": "#f2f2ee", "topColour2": "#2a3a6a", "extras": ["earring", "pencil"], "smileEyes": "happy", "calmMouth": "smirk", "age": "young", "build": "slim"},
+  {"id": "lola", "name": "LOLA DIAMOND", "letter": "L", "bubble": "#ff4a8a", "shirt": "#c81e5a", "pants": "#c81e5a", "mumble": {"low": 260, "high": 420, "rate": 13, "wave": "sine", "gap": 0.05},
+   "role": "The Colony band's singer, a big voice from the 70s lounges; Crane's money had THE PULSE's door keep her from the hotel (H4).", "look": "Forties, big copper curls, a red sequin dress, gold hoop earrings, red lipstick.",
+   "skin": "#c8946a", "hair": "#b0502a", "hairStyle": "wave", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "dress", "topColour": "#c81e5a", "topColour2": "#ffd23f", "extras": ["hoops", "lipstick"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "normal"},
+  {"id": "teddy", "name": "TEDDY BELL", "letter": "T", "bubble": "#ffc83a", "shirt": "#2ab0a0", "pants": "#e8e0c8", "mumble": {"low": 120, "high": 200, "rate": 11, "wave": "triangle", "gap": 0.08},
+   "role": "The Colony band's trumpet player, sixty and in love with the sea; ran off on a jet ski rather than play for an empty hall (H4).", "look": "Sixties, a pencil moustache, a teal flower shirt, a captain's cap pushed back, a gold tooth.",
+   "skin": "#8a5a3a", "hair": "#d0d0d0", "hairStyle": "short", "facial": "pencil", "facialColour": "#d0d0d0", "eyes": "#2a1a10", "hat": "captain", "hatColour": "#f4f4f0", "hatColour2": "#1a2a4a", "glasses": "none", "glassesColour": "",
+   "top": "flowershirt", "topColour": "#2ab0a0", "topColour2": "#ffd23f", "extras": ["goldtooth", "wrinkles"], "smileEyes": "happy", "calmMouth": "smirk", "age": "old", "build": "normal"},
+  {"id": "vinnie", "name": "VINNIE RAPP", "letter": "V", "bubble": "#ff8a2a", "shirt": "#1a1a1a", "pants": "#1a1a1a", "mumble": {"low": 110, "high": 170, "rate": 12, "wave": "sawtooth", "gap": 0.05},
+   "role": "A loan shark who races at the speedway and takes bets on himself; holds Sammy Sticks until his debt is paid - or raced off (H4).", "look": "Forties, slicked-back black hair, a black leather racing jacket with an orange stripe, aviator shades, a gold chain.",
+   "skin": "#d8a880", "hair": "#141014", "hairStyle": "slick", "facial": "stubble", "facialColour": "#3a3030", "eyes": "#2a1a14", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "shades", "glassesColour": "#1a1a1a",
+   "top": "leather", "topColour": "#1a1a1a", "topColour2": "#ff8a2a", "extras": ["chain", "toothpick"], "smileEyes": "open", "calmMouth": "smirk", "age": "mid", "build": "normal"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */
