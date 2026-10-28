@@ -2546,7 +2546,139 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The newsroom", "Danny", "Danny. Fade out.", "CLOSE on Danny", "4", "3"]]}],
     "start": {"how": "marker", "marker": "N - Nina at her desk in BAY TV's newsroom", "phone": "-"},
     "failing": "Marker N again (retry).",
-    "notes": {"places": "The PENTHOUSE tower (Palm Heights) as the side-on view: the lift to 16, the stairs, floor 20's penthouse with the party (guests dancing, a bar, a disco ball, the city through the glass).", "people": "Pratt; his three bodyguards; the party guests.", "music": "-", "new": "The confession: on camera, the penthouse signed over.", "other": "Chapter 4 ends; chapter 5 - THE FALL."}}}
+    "notes": {"places": "The PENTHOUSE tower (Palm Heights) as the side-on view: the lift to 16, the stairs, floor 20's penthouse with the party (guests dancing, a bar, a disco ball, the city through the glass).", "people": "Pratt; his three bodyguards; the party guests.", "music": "-", "new": "The confession: on camera, the penthouse signed over.", "other": "Chapter 4 ends; chapter 5 - THE FALL."}}},
+  {"id": "h1", "no": "H1", "title": "NO VACANCY", "giver": "esther", "start": "marker", "where": "The Colony: Esther at the front door (marker E); the hotel's halls (the side-on view)",
+   "story": "Crane wants the Colony torn down for a tower, and his first move is ugly: seven of his thugs have checked in, paid cash, and bang on the guests' doors at night. Esther asks Danny to throw them out - floor by floor, by hand.",
+   "chars": ["esther", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "GO IN", "show": "GO INTO THE HOTEL"},
+     {"word": "THROW OUT", "show": "THROW CRANE'S MEN OUT - WALK INTO ONE AND TAP UP FAST"},
+     {"word": "TALK TO", "show": "BACK OUT TO ESTHER"}],
+   "lines": [
+     {"who": "esther", "text": "Danny, darling. Crane's thugs booked every floor this morning - cash, no luggage, no manners.", "mood": "dry", "when": "No vacancy, shot 1"},
+     {"who": "esther", "text": "They bang on doors all night. Two families left already. Throw them out - all of them.", "mood": "hard", "when": "No vacancy, shot 1"},
+     {"who": "danny", "text": "With pleasure.", "mood": "cold", "when": "No vacancy, shot 2"},
+     {"who": "esther", "text": "Seven of them, on every floor but the first. Mind the carpets.", "mood": "dry", "when": "LIVE - in the lobby", "live": true},
+     {"who": "esther", "text": "Out on their ears! The guests came down to watch - best show we've had since 1962.", "mood": "laughing", "when": "LIVE - back at the door", "live": true},
+     {"who": "esther", "text": "Mr. Crane can keep his money. The Colony is not for sale.", "mood": "proud", "when": "LIVE - back at the door", "live": true}],
+   "fails": {"wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 10, "tapK": 0.1, "pushK": 0.22, "hurt": 8},
+   "reward": {"cash": 3000, "vehicle": "", "clothes": "", "next": "H2 - THE INSPECTOR (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; the side-on scuffle, answer 166; marker E at the door, answer 175) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The Colony hotel's halls (the side-on view)", "unlocked": "At the start of chapter 4", "time": "Morning (MISSIONS TEST: 10:00)", "length": "About 4 minutes", "limit": "-"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom, the Colony's owner since the 50s.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress, a cigarette holder.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Seven of Crane's thugs walking the halls, floors 2 to 6.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Esther at the door: the cutscene NO VACANCY.", "MISSIONS TEST: you start on the ring drive, a car by the door."],
+     ["GO IN at the hotel's door: the side-on view - the lobby, the lift, the stairs.", ""],
+     ["Crane's men walk the halls of floors 2-6 (one or two a floor). Walk into one and tap UP (or E) fast: the bar fills as you push and he pushes back; full, he goes flying down the stairs. Empty, he shoves you off and it hurts - try again.", "THROWN OUT! and how many are left."],
+     ["Out to the street and back to Esther: her lines; the quest is passed.", ""]],
+    "fails": [
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"NO VACANCY\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther, her cigarette holder pointing at the windows.", "CLOSE on Esther", "7", "1, 2"],
+      ["The Colony's door", "Danny", "Danny cracks his knuckles. Fade out.", "CLOSE on Danny", "4", "3"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "The Colony's halls (the side-on view, held by the quest: no guests about).", "people": "Esther; seven of Crane's men.", "music": "-", "new": "The side-on scuffle: tap UP fast.", "other": "The Colony line opens at the start of chapter 4."}}},
+  {"id": "h2", "no": "H2", "title": "THE INSPECTOR", "giver": "esther", "start": "marker", "where": "The Colony (marker E); across town after the inspector's car; a street where he meets Crane's man",
+   "story": "A health inspector closed the Colony's kitchen this morning - for no reason Esther can find. Danny tails the inspector's white car across town to a quiet street where one of Crane's men hands him an envelope, watches it change hands from close enough to swear to it, and is seen; Crane's men fight, the inspector runs.",
+   "chars": ["esther", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "TAIL", "show": "TAIL THE INSPECTOR - DON'T LET HIM SEE YOU"},
+     {"word": "WATCH", "show": "GET CLOSE ENOUGH TO SEE THE ENVELOPE CHANGE HANDS"},
+     {"word": "TAKE OUT", "show": "TAKE OUT CRANE'S MEN"}],
+   "lines": [
+     {"who": "esther", "text": "An inspector shut my kitchen this morning. Forty years without a single complaint, Danny.", "mood": "hard", "when": "The inspector, shot 1"},
+     {"who": "esther", "text": "That's him getting into the white car. Follow him - I want to know who pays his rent.", "mood": "dry", "when": "The inspector, shot 1"},
+     {"who": "danny", "text": "He won't see me.", "mood": "cold", "when": "The inspector, shot 2"},
+     {"who": "craneman", "text": "Mr. Crane appreciates your thoroughness, inspector.", "mood": "flat", "when": "The envelope, shot 1"},
+     {"who": "craneman", "text": "Same again when the hotel's condemned.", "mood": "flat", "when": "The envelope, shot 2"},
+     {"who": "craneman", "text": "Wait - that's Cruz!", "mood": "shouting", "when": "The envelope, shot 3"},
+     {"who": "esther", "text": "I saw it all through my binoculars... no, I didn't. But you did. Thank you, darling.", "mood": "amused", "when": "LIVE - the end (phone)", "live": true},
+     {"who": "esther", "text": "My lawyer will have his licence by Friday. The kitchen reopens tonight.", "mood": "proud", "when": "LIVE - the end (phone)", "live": true}],
+   "fails": {"spotted": "THE INSPECTOR SPOTTED YOUR TAIL", "lost": "YOU LOST THE INSPECTOR", "wrecked": "THE INSPECTOR'S CAR IS WRECKED", "seen": "TOO CLOSE - THEY SAW YOU COMING", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 11, "carSpeed": 60, "menHp": 70, "lostM": 200, "closeM": 22, "closeRate": 0.16, "coolRate": 0.08, "seeM": 28, "tooM": 7, "watchT": 4},
+   "reward": {"cash": 3500, "vehicle": "", "clothes": "", "next": "H3 - KITCHEN FIRE (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; tailing, answer 76) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "Across town after a white car; a quiet street", "unlocked": "After H1", "time": "Late morning (MISSIONS TEST: 11:00)", "length": "About 6 minutes", "limit": "-"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Crane's man with the envelope, and one more waiting by.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene THE INSPECTOR.", "MISSIONS TEST: you start by the door, a car on the ring drive. The inspector (a beige suit) walks to his white car on the avenue."],
+     ["Tail his car across town (the SUSPICION bar: too close for long and he spots you; 200 m behind and he is lost). He parks and walks to Crane's man.", "Don't wreck his car."],
+     ["Get within 28 m of the two and stay there (the WATCHING bar, 4 s) - but not within 7 m, or they see you coming: the cutscene THE ENVELOPE - and Crane's man spots you.", ""],
+     ["Crane's two men fight; the inspector runs (let him). Take them out; Esther's call; the quest is passed.", ""]],
+    "fails": [
+     ["The SUSPICION bar fills", "THE INSPECTOR SPOTTED YOUR TAIL"],
+     ["200 m behind his car", "YOU LOST THE INSPECTOR"],
+     ["His car is wrecked", "THE INSPECTOR'S CAR IS WRECKED"],
+     ["Within 7 m before the envelope", "TOO CLOSE - THEY SAW YOU COMING"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE INSPECTOR\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther points her holder down the avenue.", "CLOSE on Esther", "7", "1, 2"],
+      ["The avenue", "The inspector", "A man in a beige suit, a clipboard, walking to a white car. Fade out.", "CLOSE on the inspector", "4", "3"]]},
+     {"title": "\"THE ENVELOPE\"", "plays": "When the WATCHING bar is full.", "shots": [
+      ["A quiet street", "Crane's man", "He holds out a fat envelope.", "CLOSE on Crane's man", "5", "4"],
+      ["A quiet street", "The inspector", "The inspector takes it.", "CLOSE on the inspector", "5", "5"],
+      ["A quiet street", "Crane's man", "He looks up - straight at Danny. Fade out.", "CLOSE on Crane's man", "3", "6"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "A quiet street a long drive from the Colony.", "people": "The bought inspector (no lines); two of Crane's men.", "music": "-", "new": "-", "other": "-"}}},
+  {"id": "h3", "no": "H3", "title": "KITCHEN FIRE", "giver": "esther", "start": "marker", "where": "The Colony (marker E); the kitchen at the hotel's back; after the arsonists' car into town",
+   "story": "Crane's men set the Colony's kitchen on fire. Danny takes a fire engine from the avenue and puts out the flames at the hotel's back with its water cannon before the kitchen is lost, then runs down the black car the arsonists sat in to watch it burn.",
+   "chars": ["esther", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "GET IN", "show": "GET IN THE FIRE ENGINE ON THE AVENUE"},
+     {"word": "PUT OUT", "show": "PUT OUT THE FIRES AT THE HOTEL'S BACK - THE WATER CANNON (FIRE)"},
+     {"word": "CHASE", "show": "CATCH THE ARSONISTS' BLACK CAR"},
+     {"word": "TAKE OUT", "show": "TAKE OUT THE ARSONISTS"}],
+   "lines": [
+     {"who": "esther", "text": "Danny! The kitchen - it's on fire! Somebody threw bottles through the back windows!", "mood": "urgent", "when": "Fire!, shot 1"},
+     {"who": "esther", "text": "The fire brigade won't come - somebody called them off. There's an engine on the avenue!", "mood": "breathless", "when": "Fire!, shot 2"},
+     {"who": "danny", "text": "Keep everyone out front.", "mood": "hard", "when": "Fire!, shot 2"},
+     {"who": "esther", "text": "Round the back, darling - all four windows, before the gas goes!", "mood": "urgent", "when": "LIVE - in the fire engine", "live": true},
+     {"who": "esther", "text": "That's the last of it! And look - that black car. They sat there and watched!", "mood": "furious", "when": "LIVE - the fires out", "live": true},
+     {"who": "danny", "text": "Not for long.", "mood": "cold", "when": "LIVE - the fires out", "live": true},
+     {"who": "esther", "text": "The kitchen will live. Chef says he's cooking you a steak the size of a hubcap.", "mood": "warm", "when": "LIVE - the end (phone)", "live": true}],
+   "fails": {"burnt": "THE KITCHEN BURNED DOWN", "away": "THE ARSONISTS GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 13, "sprayT": 2.5, "burnRate": 0.0045, "carSpeed": 95, "menHp": 70, "spotM": 140, "away": 420},
+   "reward": {"cash": 4000, "vehicle": "", "clothes": "", "next": "H4 - THE BAND (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; the fire outside at the back, answer 167) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The Colony's back (its park side); then into town", "unlocked": "After H2", "time": "Afternoon (MISSIONS TEST: 13:00)", "length": "About 5 minutes", "limit": "THE KITCHEN BURNS bar (about a minute with all four fires lit)"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "The two arsonists in a black car.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene FIRE! - flames out of four windows at the hotel's back.", "MISSIONS TEST: you start by the door, a car on the ring drive."],
+     ["Get in the fire engine parked on the avenue. THE KITCHEN BURNS bar fills while fires are lit.", ""],
+     ["Drive round the back and put out the four fires with the water cannon (FIRE): each needs about 2.5 s in the jet (OUT!).", "The bar full: the kitchen burned down - the quest fails."],
+     ["A black car up the avenue: the arsonists. Within 140 m they run - ram the car till it is badly hurt (under 50%): they bail out.", "420 m behind: they get away."],
+     ["Take out the two arsonists; Esther's call; the quest is passed.", ""]],
+    "fails": [
+     ["THE KITCHEN BURNS bar fills", "THE KITCHEN BURNED DOWN"],
+     ["420 m behind the black car", "THE ARSONISTS GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"FIRE!\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther, frantic.", "CLOSE on Esther", "4", "1"],
+      ["The hotel's back", "-", "Flames out of the kitchen windows, black smoke. Fade out.", "WIDE on the fires", "5", "2, 3"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "The Colony's back (the park side); the avenue.", "people": "Two arsonists (Crane's men).", "music": "-", "new": "Fires the water cannon puts out (a quest's fires).", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
