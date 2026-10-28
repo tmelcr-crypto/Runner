@@ -7,7 +7,7 @@
    smart: worn, it gets you past the bouncers of the ROYAL FLAMINGO and THE PULSE (one smart piece is enough; js/08zu).
      hat      cap beanie bucket fedora cowboy hardhat beret bandana headband aviator
      glasses  shades aviators round visor
-     top      tee tank hawaii shirt check hoodie jacket suit leather hivis jersey camo
+     top      tee tank hawaii shirt check hoodie jacket suit leather hivis jersey camo labcoat flight
      bottoms  jeans trousers shorts track cargo
      shoes    sneakers boots sandals loafers cowboy
    tools/clothes_sheet.py exports it to Apple Numbers or Excel and reads an edited copy back (prices are also in tools/economy_sheet.py):
@@ -125,11 +125,15 @@ const CLOTHES_TABLE = /*CLOTHES-JSON*/{
   {"id": "cas_guard_trousers", "name": "CASINO GUARD TROUSERS", "shop": "reward", "slot": "bottoms", "style": "trousers", "c1": "#16161c", "c2": "", "price": null, "smart": true, "notes": "The uniform's black trousers (C3)."},
   {"id": "pri_guard", "name": "PRISON GUARD SHIRT", "shop": "reward", "slot": "top", "style": "shirt", "c1": "#5a6a8a", "c2": "#2a3a5a", "price": null, "smart": false, "notes": "Officer Dunn's spare Iron Key uniform shirt: given in the Prison quest P5 (STORY: yours after P5). Worn on Iron Key, the guards take you for one of them."},
   {"id": "pri_guard_trousers", "name": "PRISON GUARD TROUSERS", "shop": "reward", "slot": "bottoms", "style": "trousers", "c1": "#1a2230", "c2": "", "price": null, "smart": false, "notes": "The uniform's dark navy trousers (P5)."},
+  {"id": "lab_coat", "name": "LAB COAT", "shop": "hard", "slot": "top", "style": "labcoat", "c1": "#f4f6f8", "c2": "#7fb8e6", "price": 450, "smart": false, "notes": "A long white lab coat over a light blue shirt, pens in the pocket. Worn, it opens the space center's gate (modes table: spaceEntry). Sold in FREE ROAM only (spaceWearShop); in STORY it is S2's reward."},
+  {"id": "flight_suit", "name": "FLIGHT SUIT", "shop": "army", "slot": "top", "style": "flight", "c1": "#5f6b3a", "c2": "#ff7a1a", "price": 900, "smart": false, "notes": "An olive pilot's flight suit with a zip, patches and an orange collar. Worn, it opens the space center's gate, and in STORY the military base takes you for a pilot (flightSuitBase). Sold in FREE ROAM only; in STORY it is S6's reward."},
+  {"id": "flight_trousers", "name": "FLIGHT SUIT TROUSERS", "shop": "army", "slot": "bottoms", "style": "cargo", "c1": "#5f6b3a", "c2": "#4a5430", "price": 300, "smart": false, "notes": "The flight suit's legs, pockets on the thighs."},
   {"id": "night_shades", "name": "CLUB SHADES", "shop": "night", "slot": "glasses", "style": "shades", "c1": "#15161c", "c2": "#3dffa6", "price": 90, "smart": false, "notes": ""}
 ]
 }/*END-CLOTHES-JSON*/;
 const CL_SLOTS = ['hat', 'glasses', 'top', 'bottoms', 'shoes'];
 const CLOTH = Object.fromEntries(CLOTHES_TABLE.items.map(i => [i.id, i]));
+const SPACE_WEAR = ['lab_coat', 'flight_suit', 'flight_trousers'];   // sold in FREE ROAM only (modes table: spaceWearShop); STORY: the Space line's rewards
 const CL_SHOPS = CLOTHES_TABLE.shops;
 const CL = Object.fromEntries(CLOTHES_TABLE.settings.map(r => [r.id, r.v]));
 const CL_START = () => { const o = { hat: null, glasses: null, top: null, bottoms: null, shoes: null }; for (const i of CLOTHES_TABLE.items) if (!i.shop && !o[i.slot]) o[i.slot] = i.id; return o; };   // what you wear in a new game

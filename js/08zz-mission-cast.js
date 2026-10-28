@@ -90,8 +90,10 @@ function allyTargets() {                     // the foes on foot, and the foes' 
 }
 
 /* ---------- the way in or out of a top-down place (js/10z): through an open door (the roller door, or the side door by day) when one is inside and the other is not; Skyline One's gate likewise ---------- */
+const CAST_IX = [];                         // the sites castWay knows: the interiors (js/10z) and the space center's two buildings (js/10zj)
 function castWay(p, x, y) {
-  for (const S of IXS) {
+  CAST_IX.length = 0; for (const S of IXS) CAST_IX.push(S); if (SPACE.vab) CAST_IX.push(SPACE.vab, SPACE.lcc);
+  for (const S of CAST_IX) {
     if (S.kind === 'unit' || dist(p.x, p.y, S.cx, S.cy) > S.hw + S.hd + 300) continue;
     const a = ixIn(S, p.x, p.y, -8); if (a === ixIn(S, x, y, -8)) continue;
     const doors = []; if (S.open > 0.85) doors.push([0, S.dw / 2 - 8]); if (S.px !== null && S.pOpen > 0.5) doors.push([S.px, IX_PD / 2 - 3]);   // [its x, half its lane]

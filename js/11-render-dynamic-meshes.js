@@ -289,6 +289,18 @@ function buildCar(c) {                       // parts that never move on their o
     part(swing, GSph, mc(0x3a3d44), 6, 6, 6, 0, -30, 0);                                           // the iron ball
     for (const x of [L * 0.34, L * 0.14, -L * 0.2, -L * 0.36]) axle(x, 6);
     lamps(8, 3, 8, 3, 5);
+  } else if (B === 'fueltruck') {            // the space center's tanker: a white cab, the long polished tank with a blue stripe, hazard diamonds, a catwalk on top (js/10zj)
+    merged('c', body, [[GB, L * 0.2, 12, Wd, L * 0.39, 10, 0]]);
+    m.cabin = merged('g', E.glass, [[GB, 0.6, 5.5, Wd - 4, L * 0.49 + 0.05, 12.5, 0], [GB, L * 0.12, 4.6, Wd + 0.2, L * 0.4, 12.5, 0]]);
+    merged('k', E.black, [[GB, L * 0.92, 3, Wd - 5, -L * 0.04, 4, 0]]);
+    merged('t', mc(0xe8ecf0), [[GB, L * 0.66, 10, Wd - 0.6, -L * 0.13, 12, 0], [GB, L * 0.64, 2.4, Wd - 3.4, -L * 0.13, 18, 0], [GB, L * 0.02, 8, Wd - 3, -L * 0.47, 12, 0], [GB, L * 0.02, 8, Wd - 3, L * 0.21, 12, 0]]);   // the tank, rounded by its top and its end caps
+    for (const s of [-1, 1]) merged('st' + s, mc(0x2a5ad6), [[GB, L * 0.66, 1.6, 0.4, -L * 0.13, 12.5, s * (Wd / 2 - 0.1)]]);   // the blue stripe
+    merged('hz', mc(0xff7a1a), [[GB, 0.4, 2.6, 2.6, -L * 0.47 - 0.3, 13, 0], [GB, 2.6, 2.6, 0.4, -L * 0.3, 14.5, Wd / 2 - 0.1], [GB, 2.6, 2.6, 0.4, -L * 0.3, 14.5, -(Wd / 2 - 0.1)]]);   // hazard diamonds
+    merged('cw', mc(0x9aa0ab), [[GB, L * 0.5, 0.5, 2.4, -L * 0.13, 19.5, 0], [GB, 0.6, 9, 0.6, -L * 0.45, 14, Wd / 2 - 0.6]]);   // the catwalk and its ladder
+    merged('tp', mc(0x2a5ad6), [[GB, L * 0.62, 0.3, 1.4, -L * 0.13, 19.3, Wd * 0.3], [GB, L * 0.62, 0.3, 1.4, -L * 0.13, 19.3, -Wd * 0.3]]);   // the blue stripes over the top
+    merged('hc', mc(0x3a3d47), [[GB, 3, 0.5, 3, -L * 0.3, 19.6, 0], [GB, 3, 0.5, 3, L * 0.02, 19.6, 0]]); merged('hd', mc(0xff7a1a), [[GB, 3.2, 0.5, 3.2, -L * 0.42, 19.4, 0]]);   // the hatches, a hazard diamond on top
+    for (const x of [L * 0.36, -L * 0.1, -L * 0.24, -L * 0.38]) axle(x, 5);
+    lamps(8, 3, 8, 3, 4.5);
   } else if (B === 'digger') {               // a tracked excavator: tracks, the turning house with its cab, the boom, the stick and the bucket (move: js/08zt)
     merged('k', E.tire, [[GB, L * 0.82, 8, 9, -L * 0.04, 5, Wd / 2 - 4.5], [GB, L * 0.82, 8, 9, -L * 0.04, 5, -(Wd / 2 - 4.5)]]);
     merged('b', body, [[GB, L * 0.62, 11, Wd - 4, -L * 0.1, 14.5, 0], [GB, L * 0.22, 4, Wd - 8, -L * 0.3, 21.5, 0]]);

@@ -113,7 +113,7 @@ function explodeCar(c) {
   c.burn = 0; c.dead = true; c.deadT = 0; c.hp = 0;
   const wasPlayer = P.car === c;
   if (wasPlayer) exitCar(true);
-  explosion(c.x, c.y, 130, c);
+  explosion(c.x, c.y, c.t.body === 'fueltruck' ? PLC.fuelBlast : 130, c);   // the space center's tanker: a huge blast (places table)
   if (wasPlayer && blastHurt() >= 1) damagePlayer(45);            // fireproof: not at all (js/08n)
   if (c.byPlayer && c.t.cop) { addScore(ECO.copCarBoom, c.x, c.y, 'COP ' + c.t.name); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
   else if (c.byPlayer) addScore(ECO.carBoom, c.x, c.y, 'BOOM');

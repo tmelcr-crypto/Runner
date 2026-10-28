@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); JS = os.path.join(HERE, '..',
 A, B = '/*CLOTHES-JSON*/', '/*END-CLOTHES-JSON*/'
 STYLES = {'hat': ['cap', 'beanie', 'bucket', 'fedora', 'cowboy', 'hardhat', 'beret', 'bandana', 'headband', 'aviator'],
           'glasses': ['shades', 'aviators', 'round', 'visor'],
-          'top': ['tee', 'tank', 'hawaii', 'shirt', 'check', 'hoodie', 'jacket', 'suit', 'leather', 'hivis', 'jersey', 'camo'],
+          'top': ['tee', 'tank', 'hawaii', 'shirt', 'check', 'hoodie', 'jacket', 'suit', 'leather', 'hivis', 'jersey', 'camo', 'labcoat', 'flight'],
           'bottoms': ['jeans', 'trousers', 'shorts', 'track', 'cargo'],
           'shoes': ['sneakers', 'boots', 'sandals', 'loafers', 'cowboy']}
 SLOTS = list(STYLES)

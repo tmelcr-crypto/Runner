@@ -100,16 +100,6 @@ function makeHeli() {                                             // a military 
 }
 
 /* ---------- the space center ---------- */
-function makeVAB(w, d) {                                          // the assembly hall: a huge box, tall doors, a flag and the sign
-  const T = new GeoBuilder(), G = new GeoBuilder(), H = 210, hw = w / 2, hd = d / 2;
-  box5(T, -hw, 0, -hd, hw, H, hd, _C('#e4e6ea')); box5(T, -hw - 2, H, -hd - 2, hw + 2, H + 4, hd + 2, _C('#b8bcc6'));
-  for (const z of [-hd * 0.45, hd * 0.45]) face(G, [[-hw - 0.4, 0, z - 34], [-hw - 0.4, 0, z + 34], [-hw - 0.4, H * 0.9, z + 34], [-hw - 0.4, H * 0.9, z - 34]], [-1, 0, 0], _C('#5a6070'));   // the doors facing the pad
-  for (let x = -hw + 20; x < hw - 20; x += 14) face(G, [[x, 4, hd + 0.3], [x + 3, 4, hd + 0.3], [x + 3, H - 10, hd + 0.3], [x, H - 10, hd + 0.3]], [0, 0, 1], _C('#c4c8d0'));   // panel lines
-  const fx = -hw + 30, fw = 120, fh = 70, fy = H - 100;           // a flag: stripes and a star field
-  for (let k = 0; k < 7; k++) face(G, [[fx, fy + k * 10, hd + 0.6], [fx + fw, fy + k * 10, hd + 0.6], [fx + fw, fy + k * 10 + 5, hd + 0.6], [fx, fy + k * 10 + 5, hd + 0.6]], [0, 0, 1], _C(LCOL.red));
-  face(G, [[fx, fy + 35, hd + 0.8], [fx + 50, fy + 35, hd + 0.8], [fx + 50, fy + 70, hd + 0.8], [fx, fy + 70, hd + 0.8]], [0, 0, 1], _C('#2a4aa8'));
-  return withSign(lmMesh(T, G), 'BAY SPACE CENTER', '#2bf3ff', 230, 46, 40, H - 40, hd + 2);
-}
 function makeLaunchPad(r) {                                       // the pad, the tower and the rocket on its launcher
   const T = new GeoBuilder(), G = new GeoBuilder(), conc = _C('#9a968c'), red = _C('#d0402a'), white = _C('#f4f4f4'), dk = _C('#1c1c22');
   T.prism(0, 0, r, 0, 4, conc, 8, r, true); box5(T, -r * 0.9, 0.5, -16, r * 0.9, 4.5, 16, dk);   // the hardstand, the flame trench
@@ -119,11 +109,17 @@ function makeLaunchPad(r) {                                       // the pad, th
   for (let y = 30; y < 300; y += 30) { box5(T, -15, y, tz - 15, 15, y + 3, tz + 15, y % 60 ? red : white); }
   for (const y of [150, 220, 262]) box5(T, -4, y, tz + 14, 4, y + 5, -18, _C('#6a6a74'));
   box5(G, -3, 300, tz - 3, 3, 312, tz + 3, _C('#ff3b5c'));
-  T.prism(0, 0, 17, 24, 230, white, 16, 17); for (const y of [70, 150, 200]) T.prism(0, 0, 17.4, y, y + 6, dk, 16, 17.4);   // the rocket
-  T.prism(0, 0, 17, 230, 262, white, 16, 6); T.prism(0, 0, 6, 262, 286, white, 12, 0.5);
-  for (const s of [-1, 1]) { T.prism(s * 26, 0, 8, 24, 150, white, 10, 8); T.prism(s * 26, 0, 8, 150, 168, white, 10, 1); }   // two boosters
-  box5(G, -2, 236, 16.8, 2, 252, 17.6, _C('#2a4aa8'));
-  return lmMesh(T, G);
+  const R = new GeoBuilder(), RG = new GeoBuilder();             // the rocket and its boosters: a piece of their own (hidden after the launch, lifted by it - js/10zj)
+  R.prism(0, 0, 17, 24, 230, white, 16, 17); for (const y of [70, 150, 200]) R.prism(0, 0, 17.4, y, y + 6, dk, 16, 17.4);
+  R.prism(0, 0, 17, 230, 262, white, 16, 6); R.prism(0, 0, 6, 262, 286, white, 12, 0.5);
+  for (const s of [-1, 1]) { R.prism(s * 26, 0, 8, 24, 150, white, 10, 8); R.prism(s * 26, 0, 8, 150, 168, white, 10, 1); }   // two boosters
+  box5(RG, -2, 236, 16.8, 2, 252, 17.6, _C('#2a4aa8'));
+  const m = lmMesh(T, G), rocket = lmMesh(R, RG); m.add(rocket);
+  const F = new GeoBuilder(); F.prism(0, 0, 13, 4, 24, _C('#fff3a0'), 12, 17); for (const s of [-1, 1]) F.prism(s * 26, 0, 6, 0, 24, _C('#ffb030'), 10, 8);   // the flame under it (lit at ignition)
+  F.prism(0, 0, 20, -60, 4, _C('#ff7a1a'), 12, 6); const flame = new THREE.Mesh(mergeBuilders([F]), new THREE.MeshBasicMaterial({ vertexColors: true })); flame.visible = false; rocket.add(flame); m.userData.own.push(flame.material);
+  const scorch = new THREE.Mesh(new THREE.CircleGeometry(r * 0.75, 24), new THREE.MeshBasicMaterial({ color: 0x1a1612, transparent: true, opacity: 0.7 })); scorch.rotation.x = -Math.PI / 2; scorch.position.y = 4.3; scorch.visible = false; m.add(scorch); m.userData.own.push(scorch.material);
+  SPACE.rocket = { mesh: rocket, flame, scorch };
+  return m;
 }
 function makeSpaceBits(kind) {
   const T = new GeoBuilder(), G = new GeoBuilder();
@@ -152,15 +148,6 @@ function makeSpaceBits(kind) {
   }
   return lmMesh(T, G);
 }
-function makeSpaceGate() {                                        // a sliding steel gate between two pillars, shut, with a booth
-  const T = new GeoBuilder(), G = new GeoBuilder();
-  for (const s of [-1, 1]) box5(T, -6, 0, s * 70 - 6, 6, 40, s * 70 + 6, _C('#c8ccd4'));
-  box5(T, -2, 2, -64, 2, 34, 64, _C('#7a808c')); for (let z = -60; z <= 60; z += 12) box5(T, -2.5, 2, z - 1, 2.5, 34, z + 1, _C('#5a606a'));
-  box5(G, -8, 40, -72, 8, 43, -68, _C('#ff3b5c')); box5(G, -8, 40, 68, 8, 43, 72, _C('#ff3b5c'));
-  box5(T, -3, 34, -64, 3, 44, 64, _C('#c8ccd4'));                                                     // a crossbar over the gate, the warning on it
-  return withBand(lmMesh(T, G), 'AUTHORIZED PERSONNEL ONLY', '#ff3b5c', 120, 8, 3.3, 39, 0, Math.PI / 2);
-}
-
 /* ---------- the port ---------- */
 const BOXC = ['#c0392b', '#2f6fd6', '#2fbf71', '#e0912f', '#22a6b3', '#8e5bd6', '#cfcfcf', '#d6c94a', '#4a4e5c'];
 function makeStack(s) {                                           // a block of 20 ft containers, one to four high
@@ -284,10 +271,12 @@ function genPlaces() {                                            // js/04 genWo
   }
   if (SPACEM) {
     const S = SPACEM; addFence(S.fence, 'space');
-    const g = S.gate; solid(g.x, g.y, 14, g.w); add(g.x, g.y, 30, g.w / 2, makeSpaceGate);   // shut: nobody gets in until the story says so
+    const g = S.gate; genSpaceGate(g);                              // the gate slides open for those who may go in (js/10zj)
     for (let k = 0; k < PLC.spaceGuards; k++) addPost({ x: g.x + 40, y: g.y + (k % 2 ? 50 : -50), a: 0, kind: 'cop', need: () => feat('spaceGuards') });
-    const [vx, vy, vw, vh] = S.vab; solid(vx, vy, vw, vh); add(vx, vy, vw / 2, vh / 2, () => makeVAB(vw, vh));
-    for (const k of ['lcc', 'office']) { const [x, y, w, h] = S[k]; solid(x, y, w, h); add(x, y, w / 2, h / 2, () => makeSpaceBits(k)); }
+    const [vx, vy, vw, vh] = S.vab; spaceSite('vab', vx, vy, vw, vh);   // the assembly building: the clean room inside (js/10zj)
+    { const [x, y, w, h] = S.lcc; spaceSite('lcc', x, y, w, h); }   // launch control: its consoles inside
+    { const [x, y, w, h] = S.office; solid(x, y, w, h); add(x, y, w / 2, h / 2, () => makeSpaceBits('office')); }
+    SPACE.fuelAt = [S.road[2][0] + 70, (S.road[1][1] + S.road[2][1]) / 2 + 60];   // the FUEL TRUCK's spot, beside launch control's road
     const [px, py, pr] = S.pad; solid(px, py, 92, 92); solid(px, py - 110, 34, 34); add(px, py, pr, pr, () => makeLaunchPad(pr));
     for (const [x, y, r] of S.tanks) { solid(x, y, r * 1.6, r * 1.6, 0, { soft: true }); add(x, y, r, r, () => { const m = makeSpaceBits('tank'); m.scale.setScalar(r / 40); return m; }); }
     { const [x, y] = S.water; solid(x, y, 34, 34, 0, { soft: true }); add(x, y, 26, 26, () => makeSpaceBits('water')); }

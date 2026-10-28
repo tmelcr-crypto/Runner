@@ -12,7 +12,7 @@ const MSCRIPT = {};                        // each mission's script: { setup(A),
 const msTest = () => gameMode === 'test';
 const MS_CHOICE = { kessler: 'finished', files: 'police', tip: 'trusted' };   // the story's choices as MISSIONS TEST plays them (STORY: what you chose)
 MS_CHOICE.from = { m12: 'kessler', m18: 'files', m22: 'tip' };   // playing the choosing quest sets the switch too
-const MS_UNLOCK = { warRoom: false, copEase: false, colonyWar: false };   // what passed quests open: the crew's war room (M19; at the Colony after H8), the easier police (M23) - MISSIONS TEST until the game is left (STORY: from the saved story)
+const MS_UNLOCK = { warRoom: false, copEase: false, colonyWar: false, spacePass: false, launched: false };   // what passed quests open: the crew's war room (M19; at the Colony after H8), the easier police (M23), Iris' pass to the space center (S1), the rocket gone from the pad (S8) - MISSIONS TEST until the game is left (STORY: from the saved story)
 function msUnlock(k) { MS_UNLOCK[k] = true; if (k === 'warRoom') { const L = SAFES.find(h => h.id === 'loft'); if (L) L.own = true; } }   // the war room is on the loft's top floor: the loft is the crew's
 const msUnlockReset = () => { for (const k in MS_UNLOCK) MS_UNLOCK[k] = false; };
 const MS_CHOICES = [['kessler', 'KESSLER', ['finished', 'spared']], ['files', "SACHS' FILES", ['police', 'kept']], ['tip', "HELPER'S TIP", ['trusted', 'own way']]];

@@ -30,6 +30,14 @@ function dressPerson(o, outfit) {          // o: a figure from buildPerson; outf
   else if (st === 'suit') { fb('#f4efe6', 2.8, 10.4, 14.8, 0); add(T, c2 || '#14161d', 0.36, 7.4, 1.1, 2.64, 15.6, 0); add(T, c1, 5.4, 1.1, 9.2, 0, 20.1, 0); }
   else if (st === 'leather') { add(T, c2 || '#c0c0c8', 0.34, 10.6, 0.5, 2.62, 14.5, 0.9); add(T, c1, 5.6, 1.5, 9.8, 0, 20.2, 0); add(T, '#14141a', 5.3, 1, 9.7, 0, 9.6, 0); }
   else if (st === 'hivis') { for (const y of [12.4, 16.6]) add(T, c2 || '#d8dde6', 5.3, 1, 9.7, 0, y, 0); }
+  else if (st === 'labcoat') {                                       // open over a shirt, the collar up, pens in the pocket, the skirt down over the hips
+    fb(c2 || '#7fb8e6', 2.4, 10.4, 14.6, 0); for (const z of [-1.5, 1.5]) fb(shade(c1, -18), 0.5, 6, 16.4, z); add(T, c1, 5.4, 1.2, 9.2, 0, 20.1, 0);
+    add(T, c1, 5.6, 5.4, 9.9, 0, 6.6, 0); add(T, shade(c1, -18), 0.3, 5.4, 0.6, 2.82, 6.6, 0); add(T, '#2a4aa8', 0.4, 1.8, 0.35, 2.65, 17.4, -2.6); add(T, '#e0364f', 0.4, 1.6, 0.35, 2.65, 17.3, -3.1);
+  }
+  else if (st === 'flight') {                                        // a zip down the front, a name tag and a patch, the collar in the second colour, a belt
+    fb('#c8ccd4', 0.4, 10.6, 14.6, 0); add(T, c2 || '#ff7a1a', 5.4, 1.2, 9.2, 0, 20.1, 0); fb('#2a4aa8', 1.8, 1.1, 17.6, -2.5); fb(c2 || '#ff7a1a', 1.5, 1.5, 17.4, 2.6);
+    add(T, shade(c1, -35), 5.25, 0.9, 9.65, 0, 9.8, 0); for (const z of [-2.4, 2.4]) fb(shade(c1, -20), 1.8, 1.4, 12.6, z);
+  }
   else if (st === 'jersey') { add(T, c2 || '#ffffff', 0.3, 4.2, 3.4, -2.6, 15.4, 0); for (const z of [-4.55, 4.55]) add(T, c2 || '#ffffff', 5.05, 11, 0.4, 0, 14.5, z); fb(c2 || '#ffffff', 4.2, 0.8, 19.6, 0); }
   else if (st === 'camo') for (const [x, y, z, w, h] of [[2.6, 12, -2, 3, 2], [2.6, 17, 2.2, 2.4, 2.6], [-2.6, 13, 1.5, 3.4, 2.2], [-2.6, 18, -2, 2.6, 1.8], [2.6, 15, 0.5, 1.6, 1.4], [0, 10.6, 4.75, 2.4, 2], [0, 16, -4.75, 2, 2.6]])
     add(T, c2 || '#2a2e1a', x ? 0.3 : 2.4, h, x ? w : 0.3, x, y, z);
