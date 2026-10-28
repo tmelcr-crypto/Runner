@@ -11,7 +11,7 @@ What it does (once - a file already remodelled is left alone; MAP.remodel says w
     The south shore road that ran through the airfield now runs along the avenue.
   - MALL PARK: the mall's peninsula becomes one park - lawns, paths, a pond (water) - with a paved ring round the mall; the loose
     buildings there go.
-  - Later versions (2 to 18): see the comment above each remodelN below.
+  - Later versions (2 to 19): see the comment above each remodelN below.
 Needs shapely 2."""
 import json, math, sys
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point, box
@@ -863,7 +863,28 @@ def remodel18(M):
     return M
 
 
-STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15, remodel16, remodel17, remodel18]
+# version 19: Crane's estate on Pearl Key's south peninsula fitted to its land (the old walls ran into the bay), with the places chapter 5
+# needs: the gate on the causeway road (north), the mansion (its door to the north), the fountain court, the pool terrace, the helipad
+# (east), the garden and its folly (west; where Sal's tunnel comes up), the dock gate in the south wall and the jetty into the bay, and
+# the old boathouse on the shore outside the west wall (the tunnel's other end).
+def remodel19(M):
+    LAND = unary_union([poly(p) for p in M['land']])
+    L = next(l for l in M['lm'] if l['t'] == 'estate')
+    x0, x1, y0, y1 = 7700, 8800, 10000, 10660
+    for x, y in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)): assert LAND.contains(Point(x, y)), 'estate corner %d,%d is not on land' % (x, y)
+    cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
+    L.update({'x': cx, 'y': cy, 'w': x1 - x0, 'h': y1 - y0, 'house': [cx, 10340, 520, 340], 'gate': 'n', 'gw': 110,
+              'fountain': [cx, 10092, 22], 'pool': [cx, 10590, 220, 70], 'heli': [8660, 10250, 70], 'folly': [7790, 10560],
+              'dock': {'x': 8420, 'y0': y1, 'y1': 10900, 'w': 36, 'gw': 40}, 'boathouse': [7628, 10592, 56, 64]})
+    bx, by, bw, bd = L['boathouse']; assert LAND.contains(Point(bx + bw / 2 - 4, by)), 'the boathouse door is not on land'
+    assert not LAND.contains(Point(L['dock']['x'], L['dock']['y1'])), "the jetty's end is not in the water"
+    keep = rect(cx, cy, x1 - x0 + 40, y1 - y0 + 40, 0).union(box(bx - bw / 2 - 10, by - bd / 2 - 10, bx + bw / 2 + 10, by + bd / 2 + 10))
+    M['yards'] = [q for q in M['yards'] if not poly(q).intersects(keep)]
+    M['remodel'] = 19
+    return M
+
+
+STEPS = [remodel, remodel2, remodel3, remodel4, remodel5, remodel6, remodel7, remodel8, remodel9, remodel10, remodel11, remodel12, remodel13, remodel14, remodel15, remodel16, remodel17, remodel18, remodel19]
 
 
 if __name__ == '__main__':
@@ -928,5 +949,8 @@ if __name__ == '__main__':
     head = head.replace("   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht). */",
                         "   jetties round the coast by the streets (jetties: x, y, a, len, w, head) and the moored yacht's spot (marina.yacht); version 18:\n"
                         "   the stunt ramps (stunts: x, y, a, len, w, h, kind street or water). */")
+    head = head.replace("   the stunt ramps (stunts: x, y, a, len, w, h, kind street or water). */",
+                        "   the stunt ramps (stunts: x, y, a, len, w, h, kind street or water); version 19: Crane's estate fitted to its peninsula (lm estate:\n"
+                        "   house, gate, gw, fountain, pool, heli, folly, dock, boathouse). */")
     open(SRC, 'w', encoding='utf-8').write(head + json.dumps(M, separators=(',', ':')) + tail)
     print('remodelled:', SRC, 'to version', M['remodel'], '- nodes', len(M['nodes']), 'edges', len(M['edges']), 'buildings', len(M['bld']), 'lots', len(M['lots']))

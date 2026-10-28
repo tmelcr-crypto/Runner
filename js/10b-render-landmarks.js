@@ -74,26 +74,6 @@ function makeStadium(L) {                                        // a bowl of st
   return m;
 }
 const stadiumGap = a => Math.abs(angDiff(a, Math.PI / 2)) < 0.2;
-function makeEstate(L) {                                         // walled mansion: gate to the road in the north, pool terrace to the south
-  const T = new GeoBuilder(), G = new GeoBuilder(), w = L.w, h = L.h, x0 = -w / 2, x1 = w / 2, z0 = -h / 2, z1 = h / 2, t = 9, gate = 110;
-  const cream = _C('#efe2c8'), white = _C('#f6f2ea'), pink = _C('#ff6fae');
-  flat(T, x0, z0, x1, z1, 0.6, _C('#2f8f4e'));
-  box5(T, x0, 0, z0, -gate / 2, 16, z0 + t, cream); box5(T, gate / 2, 0, z0, x1, 16, z0 + t, cream);
-  box5(T, x0, 0, z1 - t, x1, 16, z1, cream); box5(T, x0, 0, z0, x0 + t, 16, z1, cream); box5(T, x1 - t, 0, z0, x1, 16, z1, cream);
-  for (const [a0, a1, b0, b1] of [[x0, -gate / 2, z0, z0 + t], [gate / 2, x1, z0, z0 + t], [x0, x1, z1 - t, z1], [x0, x0 + t, z0, z1], [x1 - t, x1, z0, z1]]) flat(G, a0, b0, a1, b1, 16.3, pink);
-  for (const sx of [-1, 1]) { box5(T, sx * gate / 2 - 9, 0, z0 - 4, sx * gate / 2 + 9, 28, z0 + t + 4, white); box5(G, sx * gate / 2 - 5, 28, z0, sx * gate / 2 + 5, 33, z0 + t, _C('#fff3b0')); }
-  const [hx, hz, hw, hd] = [L.house[0] - L.x, L.house[1] - L.y, L.house[2], L.house[3]], ha = hx - hw / 2, hb = hx + hw / 2, hc = hz - hd / 2, he = hz + hd / 2;
-  box5(T, ha, 0, hc, hb, 30, he, white); box5(T, ha + 40, 30, hc + 26, hb - 40, 50, he - 26, white);
-  const terra = _C('#c8664a'); box5(T, ha - 3, 30, hc - 3, hb + 3, 33, he + 3, terra); box5(T, ha + 37, 50, hc + 23, hb - 37, 53, he - 23, terra);   // tiled roofs
-  for (let x = ha + hw * 0.25; x <= hb - hw * 0.25 + 1; x += hw * 0.1) T.prism(x, hc - 16, 3.4, 0, 30, white, 8);
-  box5(T, ha + hw * 0.22, 30, hc - 22, hb - hw * 0.22, 34, hc, white);
-  for (const y of [9, 21]) { face(G, [[ha + 8, y, he + 0.3], [hb - 8, y, he + 0.3], [hb - 8, y + 5, he + 0.3], [ha + 8, y + 5, he + 0.3]], [0, 0, 1], _C('#ffd98a')); }
-  face(G, [[ha + 46, 38, he - 26 + 0.3], [hb - 46, 38, he - 26 + 0.3], [hb - 46, 44, he - 26 + 0.3], [ha + 46, 44, he - 26 + 0.3]], [0, 0, 1], _C('#ffd98a'));
-  const pz = he + 18; flat(T, hx - 120, pz, hx + 120, pz + 100, 0.9, _C('#e9e2d4')); flat(G, hx - 100, pz + 12, hx + 100, pz + 88, 1.1, _C('#3fe8ff'));
-  const fz = (z0 + t + hc) / 2; T.prism(0, fz, 24, 0, 3, white, 16, 24, true); disc(G, 0, fz, 19, 3.2, _C('#3fe8ff'), 16); T.prism(0, fz, 2, 3, 12, white, 6);
-  for (let x = x0 + 40; x < x1 - 30; x += 110) { palm(T, x, z0 + 30, 26); palm(T, x + 50, z1 - 30, 24); }
-  return lmMesh(T, G);
-}
 function makeMall(L) {                                           // H-shaped two-storey mall around a glass atrium, car parks in the courtyards
   const T = new GeoBuilder(), G = new GeoBuilder(), w = L.w, h = L.h, ww = w * 0.3, ch = h * 0.13, wall = _C('#d9d2ea'), glass = _C('#3fe0ff'), line = _C('#f1ead2');
   const blocks = [[-w / 2, -h / 2, -w / 2 + ww, h / 2, 38], [w / 2 - ww, -h / 2, w / 2, h / 2, 38], [-w / 2 + ww, -ch, w / 2 - ww, ch, 44]];
@@ -657,13 +637,8 @@ function genLandmarks() {
       for (let k = 0; k < seg; k++) { const am = (k + 0.5) / seg * TAU; if (stadiumGap(am)) continue; solid(L.x + Math.cos(am) * (R - 31), L.y + Math.sin(am) * (R - 31), am + Math.PI / 2, 0, 0, TAU * R / seg * 1.08, 62); }
       for (const sx of [-1, 1]) solid(L.x, L.y, 0, sx * 100, R - 9, 18, 14);                          // the gateway's pylons
       add(L.x, L.y, 0, R + 20, () => makeStadium(L));
-    } else if (L.t === 'estate') {
-      const x0 = L.x - L.w / 2, x1 = L.x + L.w / 2, y0 = L.y - L.h / 2, y1 = L.y + L.h / 2, t = 9, g = 110, sw = (L.w - g) / 2;
-      makeSolid(x0 + sw / 2, y0 + t / 2, sw, t, 0, {}); makeSolid(x1 - sw / 2, y0 + t / 2, sw, t, 0, {}); makeSolid(L.x, y1 - t / 2, L.w, t, 0, {});
-      makeSolid(x0 + t / 2, L.y, t, L.h, 0, {}); makeSolid(x1 - t / 2, L.y, t, L.h, 0, {});
-      makeSolid(L.house[0], L.house[1], L.house[2], L.house[3], 0, {});
-      add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeEstate(L), L.w / 2, L.h / 2);
-    } else if (L.t === 'mall') {
+    } else if (L.t === 'estate') genEstate(L);                                                   // Crane's estate (js/10zk)
+    else if (L.t === 'mall') {
       const ww = L.w * 0.3, ch = L.h * 0.13;
       makeSolid(L.x - L.w / 2 + ww / 2, L.y, ww, L.h, 0, {}); makeSolid(L.x + L.w / 2 - ww / 2, L.y, ww, L.h, 0, {}); makeSolid(L.x, L.y, L.w - 2 * ww, 2 * ch, 0, {});
       add(L.x, L.y, 0, Math.hypot(L.w, L.h) / 2, () => makeMall(L), L.w / 2, L.h / 2);

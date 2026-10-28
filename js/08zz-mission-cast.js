@@ -92,7 +92,16 @@ function allyTargets() {                     // the foes on foot, and the foes' 
 /* ---------- the way in or out of a top-down place (js/10z): through an open door (the roller door, or the side door by day) when one is inside and the other is not; Skyline One's gate likewise ---------- */
 const CAST_IX = [];                         // the sites castWay knows: the interiors (js/10z) and the space center's two buildings (js/10zj)
 function castWay(p, x, y) {
-  CAST_IX.length = 0; for (const S of IXS) CAST_IX.push(S); if (SPACE.vab) CAST_IX.push(SPACE.vab, SPACE.lcc);
+  if (ESTATE.L && dist(p.x, p.y, ESTATE.L.x, ESTATE.L.y) < ESTATE.L.w + 400) {   // Crane's walls: in or out by the gate (north) or the dock gate (south), whichever is open and nearer
+    const E = ESTATE, a = estIn(p.x, p.y, -6);
+    if (a !== estIn(x, y, -6)) {
+      const gs = [E.gate, E.dock].filter(g => g.open > 0.8); if (!gs.length) return null;
+      const g = gs.reduce((b, o) => dist(p.x, p.y, o.x, o.y) + dist(x, y, o.x, o.y) < dist(p.x, p.y, b.x, b.y) + dist(x, y, b.x, b.y) ? o : b), lane = Math.abs(p.x - g.x) < g.w / 2 - 8, near = Math.abs(p.y - g.y) < 56;
+      if (a) return lane && near ? g.out : g.in;
+      return lane && near ? g.in : g.out;
+    }
+  }
+  CAST_IX.length = 0; for (const S of IXS) CAST_IX.push(S); if (SPACE.vab) CAST_IX.push(SPACE.vab, SPACE.lcc); if (ESTATE.house) CAST_IX.push(ESTATE.house);
   for (const S of CAST_IX) {
     if (S.kind === 'unit' || dist(p.x, p.y, S.cx, S.cy) > S.hw + S.hd + 300) continue;
     const a = ixIn(S, p.x, p.y, -8); if (a === ixIn(S, x, y, -8)) continue;

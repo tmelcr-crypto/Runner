@@ -120,6 +120,7 @@ function buildShoreField() {
   const gv = MAP.lunapark && MAP.lunapark.grove; if (gv) for (const b of [gv.pier, gv.head]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the grove's pier: walked on like land (js/10m)
   const pz = MAP.prison; if (pz) for (const b of [pz.pier, pz.head, pz.mpier, pz.mhead]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Iron Key's piers (js/10u)
   if (MAP.marina) for (const b of MAP.marina.piers) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Sunset Harbor's piers and fuel dock (js/08zv)
+  const est = MAP.lm.find(l => l.t === 'estate'), ed = est && est.dock; if (ed) g.fillRect(ed.x - ed.w / 2, ed.y0 - 10, ed.w, ed.y1 - ed.y0 + 10);   // Crane's jetty (js/10zk)
   for (const j of MAP.jetties || []) {                            // the small jetties round the coast (js/10x): the walkway and its T
     g.save(); g.translate(j.x, j.y); g.rotate(j.a * Math.PI / 180); g.fillRect(-24, -j.w / 2, j.len + 24, j.w); g.fillRect(j.len - j.head[1], -j.head[0] / 2, j.head[1], j.head[0]); g.restore();
   }
@@ -324,7 +325,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genMarina(); genStunts(); genInteriors(); ixSetup(); genGym(); genDepot(); genFunhouse(); genSubstation(); genNewsroom(); genGolfClub(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genBank(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); if (ESTATE.L) estatePosts(ESTATE.L); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genMarina(); genStunts(); genInteriors(); ixSetup(); genGym(); genDepot(); genFunhouse(); genSubstation(); genNewsroom(); genGolfClub(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genBank(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill && !b.uniq && !b.ix).concat(LMS, fillChunks());   // fill buildings stream as merged chunks; a unique building is its own drawable (js/10n)
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

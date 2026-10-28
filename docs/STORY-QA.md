@@ -217,3 +217,20 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 181. S4 Picket Line: a crowd with placards at the gate, not to be hurt (run one over and the cameras catch it - the quest fails); four of Crane's men in grey suits among them keep the crowd there - take them out and the rest disperse; then lead the convoy in.
 182. S6 Tracking Dish: in the flight suit the base guards wave you through; take the dish's flatbed truck from a hangar and drive out calmly; halfway the alarm goes (Crane's tip-off) and army jeeps chase you to the space center's gate (3 stars, the base's own).
 183. S8 Lift-off: about 4 minutes of play while the countdown shows T-minus 10:00 running faster; waves - cars at the gate, men at launch control (inside, the roof see-through), a boat landing by the pad; Iris at her console must live; at T-0 the launch cutscene.
+
+## Building chapter 5 (October 2026)
+
+184. Crane's estate on Pearl Key stands in both modes: walled, with its gate shut and guarded like the military base (RESTRICTED AREA, then the alarm) in FREE ROAM; in STORY it opens for the quests (M25, M29, M30).
+185. The mansion's inside is the top-down kind with a see-through roof: one big ground floor - the hall, the study with his safe, the ballroom, the terrace out to the helipad.
+186. The FBI's office (Choice 4, M28): a grey federal building downtown with FBI and the seal on its front and a marker at its door, nothing inside; scenery in both modes.
+187. MISSIONS TEST picks the finale's variants with switches on the MISSIONS list (like SACHS' FILES): one per side line (Varga, Casino, Prison, Colony, Space - DONE or NOT) and THE PROOF (BAY TV or FBI).
+188. M25's chase: Danny's weapons back at the gate, into his car; two carloads of Crane's men chase him over the bridge off Pearl Key - lose them by getting far enough away.
+189. M26's locker 47: a bank of numbered left-luggage lockers beside the lunapark's entrance gate (scenery in both modes); after the tape Crane's men pour in and Danny fights his way out of the lunapark.
+190. M27: a timer while the junkyard's crane swings the car with Papa Joe in it to the crusher; Crane's men guard the yard; reach the crane's cab and press E on the red stop button in time; Joe climbs out and rides home with Danny.
+191. M28's helicopter: a black helicopter follows with a gunner firing at the car; it can be shot down (an AA launcher or a lot of bullets) or outlasted; cars of Crane's men ram as well.
+192. M29's allies: each finished side line sends help that fights beside Danny - Marco at the dock (Varga), Sal through the tunnel (Prison), FBI agents at the gate (the FBI proof) - plus Rosa's two men always; up to about four; they can fall without failing the quest.
+193. M30: Crane drives for his jet at Skyport; ram his car until it stops before it reaches the jet (a distance bar to the jet, like M21's white car); then the cutscene - Crane in handcuffs.
+194. The credits roll over a slow flyover of the city at dawn to the game's synth track - the characters met, each with their portrait; SKIP works; then free play, and the sunburnt tourist at the Colony's desk.
+195. The daily income after the finale (STORY only) is paid straight into Danny's cash at midnight each game day, wherever he is, with a message; the amounts per business in the economy table.
+196. The mansion is locked in FREE ROAM: you can break onto the estate's grounds (the alarm, the guards fight back) but its doors stay shut; only the quests open them (STORY, MISSIONS TEST).
+197. After the finale in STORY Crane's billboards stay up, sprayed over with LOSER and handcuffs; the estate stays guarded. FREE ROAM keeps them clean.
