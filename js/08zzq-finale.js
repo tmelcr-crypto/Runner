@@ -265,3 +265,79 @@ MSCRIPT.m29 = (() => {
   };
   return { setup, steps, cuts, fail: () => '', cleanup() { MS.radar = false; ESTATE.ms = null; } };
 })();
+
+/* ================= M30 - THE FALL ================= */
+MSCRIPT.m30 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, me = () => P.car || P, at = S1.at;
+  const FBI = () => MS_CHOICE.proof === 'fbi';
+  function setup(A) {
+    SKY.hour = N().hour; FIN.hold({ hold: true, doors: true, gate: true }); const E = ESTATE, H = E.house, sp = H.spots;
+    P.x = H.door.x; P.y = H.door.y - 30; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;          // MISSIONS TEST: before the mansion's door (M29 straight on)
+    A.mateo = msPed(sp.study.x, sp.study.y, 0, Object.assign(S1.look('mateo'), { msName: 'mateo', step: S1.stay, spare: true, shield: true }));
+    A.crane = msPed(sp.chair.x, sp.chair.y - 6, 0, Object.assign(S1.look('crane'), { msName: 'crane', step: S1.stay, spare: true, shield: true })); face(A.mateo, A.crane); face(A.crane, A.mateo);
+    A.men = []; for (let k = 0; k < N().houseMen; k++) { const q = S1.free(sp.ballroom.x + (k % 2 ? 40 : -40), sp.ballroom.y + (k < 2 ? -50 : 50), 6);
+      A.men.push(msFoe(q.x, q.y, Object.assign({ gun: k % 2 ? 'smg' : 'pistol', hp: N().menHp, group: 'house' }, CH4.men))); }
+    const ap = MAP.airport.apron; A.jet = at(ap[0] + 220, ap[3] - 160); A.jm = FIN.jetMesh(); A.jm.position.set(A.jet.x, groundH(A.jet.x, A.jet.y), A.jet.y); scene.add(A.jm);
+    const g = E.gate.out, rl = S1.road(g.x + 160, g.y), kl = kerbBy(rl.x, rl.y);                   // his car waits on the causeway by the gate (he runs out to it)
+    const rd = S1.road(ap[2] + 700, (ap[1] + ap[3]) / 2); A.drop = at(rd.x, rd.y);                  // by the terminal's drop-off, then out onto the apron to the jet
+    A.limo = msFoeCar('limo', kl.x, kl.y, kl.ang, { mode: 'park', crew: 1, gun: null, group: 'crane', speed: N().limoSpeed, color: '#14161d', to: [A.drop, A.jet] });
+    A.limo.hp = A.limo.maxhp = A.limo.maxhp * N().limoTough;
+    const rr = S1.road(g.x - 160, g.y), kr = kerbBy(rr.x, rr.y);
+    A.ride = msCar(lineDone('casino') ? 'armorvan' : 'sports', kr.x, kr.y, kr.ang, lineDone('casino') ? null : '#3d6fa8');   // Del's armoured van (the Casino line done) or your own car, by the gate
+  }
+  const steps = [
+    { enter(A) { MS.mark = () => ESTATE.house.door; MS.guide = ESTATE.house.door; },                // GO IN
+      tick: () => estHouseIn(P.x, P.y, -4), info: () => 'INTO THE MANSION',
+      jump(A) { const s = ESTATE.house.spots.hall; P.x = s.x; P.y = s.y; } },
+    { enter(A) { MS.mark = () => A.mateo; MS.guide = null; },                                          // FIND Mateo in the study: THE FALL
+      tick(A) { if (A.met) return true; if (!MS.start && dist(P.x, P.y, A.mateo.x, A.mateo.y) < 5 * M)
+        MS.start = { at: () => A.mateo, label: 'MATEO', go: () => { face(A.mateo, P); msCut('THE FALL', () => { A.met = true; }); } }; return false; },
+      info: A => Math.round(dist(P.x, P.y, A.mateo.x, A.mateo.y) / M) + ' M TO MATEO (THE STUDY)',
+      jump(A) { MS.start = null; A.met = true; } },
+    { enter(A) { const E = ESTATE;                                                                     // Crane drives for his jet: GET IN and stop him
+        A.crane.x = A.limo.x; A.crane.y = A.limo.y; const i = peds.indexOf(A.crane); if (i >= 0) peds.splice(i, 1);   // he is in his car now
+        msAllyFrom(A.mateo, { who: 'mateo', gun: 'pistol', hp: N().mateoHp, near: true }); for (const p of A.men) foeAlert(p);
+        A.limo.fc.wait = 0.5; foeCarGo(A.limo, 'flee'); A.d0 = dist(A.limo.x, A.limo.y, A.drop.x, A.drop.y); E.heli.spin = 0;
+        MS.mark = () => A.limo.fc.out ? null : A.limo; MS.guide = () => A.limo; msLive([9], { now: true }); },
+      tick(A) { const l = A.limo; msBar('THE JET', clamp(1 - dist(l.x, l.y, A.drop.x, A.drop.y) / A.d0, 0, 1), '#ff3b4a');
+        if (!l.fc.out && !l.dead && l.hp < l.maxhp * N().stopHp / 100) { l.vx *= 0.2; l.vy *= 0.2; foeBail(l); }
+        return l.fc.out || l.dead; },
+      info: A => Math.round(dist(A.limo.x, A.limo.y, A.drop.x, A.drop.y) / M) + " M FROM CRANE TO SKYPORT · HIS CAR " + Math.round(100 * A.limo.hp / A.limo.maxhp) + '%',
+      jump(A) { const l = A.limo; if (P.car) exitCar(true); P.x = l.x + 60; P.y = l.y + 30; foeBail(l); } },
+    { enter(A) { msBarOff(); const l = A.limo; A.at = at(l.x, l.y); MS.mark = null; MS.guide = null;   // ELECTION NIGHT, dawn, the credits
+        for (const p of peds) if (p.foe && !p.dead && p.group === 'crane') { const i = peds.indexOf(p); if (i >= 0) peds.splice(i, 1); }
+        A.crane.x = l.x + 30; A.crane.y = l.y + 10; A.crane.post.x = A.crane.x; A.crane.post.y = A.crane.y; peds.push(A.crane);
+        if (FBI()) { const q = S1.free(l.x + 50, l.y - 20, 6); A.agent = msPed(q.x, q.y, 0, Object.assign(S1.look('agent'), { msName: 'agent', step: S1.stay, spare: true })); }
+        if (P.car) { P.car.vx = P.car.vy = 0; exitCar(true); }
+        msCut('ELECTION NIGHT', () => { if (feat('credits')) creditsPlay(() => { A.done = true; }); else A.done = true; }); },
+      tick: A => !!A.done,
+      jump(A) { A.done = true; } }];
+  function fail(A) { if (A.mateo && A.mateo.dead) return MS.m.fails.mateo; if (A.limo && !A.limo.fc.out && !A.limo.dead && (dist(A.limo.x, A.limo.y, A.drop.x, A.drop.y) < N().jetR * M || (A.limo.fc.ti || 0) > 0)) return MS.m.fails.away; return ''; }
+  const cuts = {
+    'THE FALL': A => [
+      { dur: 5, cam: 'CLOSE', at: () => A.mateo, line: [1], enter: () => { face(A.mateo, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [2] },
+      { dur: 6, cam: 'CLOSE', at: () => A.mateo, line: [3] },
+      { dur: 4, cam: 'CLOSE', at: () => A.crane, line: [4], enter: () => { face(A.crane, A.mateo); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.mateo, line: [5], enter: () => { face(A.mateo, A.crane); } },
+      { dur: 5, cam: 'WIDE', at: () => ESTATE.heli, line: [6], enter: () => { const H = ESTATE.heli; A.crane.x = H.x - 40; A.crane.y = H.y + 30; ESTATE.heli.spin = 1; },
+        tick: (A, dt, u) => { ESTATE.heli.spin = Math.max(0, 1 - u * 1.6); if (Math.random() < dt * 6) smokeFx(ESTATE.heli.x - 10, ESTATE.heli.y, false, 1.2); } },
+      { dur: 4, cam: 'CLOSE', at: () => A.mateo, line: [7] },
+      { dur: 4, cam: 'CLOSE', at: () => A.limo, line: [8], fadeOut: true, enter: () => { ESTATE.heli.spin = 0; } }],
+    'ELECTION NIGHT': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.crane, line: [FBI() ? 10 : 11], enter: () => { if (A.agent) face(A.agent, A.crane); face(A.crane, A.agent || P); } },
+      { dur: 6, cam: 'WIDE', at: () => A.crane, line: [12], phone: true },
+      { dur: 6, cam: 'CLOSE', at: () => P, line: [13], enter: () => { SKY.hour = 6.1; const C = S1.colony(); P.x = C.door.x; P.y = C.door.y + 10; A.mateo.x = P.x + 18; A.mateo.y = P.y; if (A.mateo.aboard) allyAlight(A.mateo); face(A.mateo, P); } },
+      { dur: 6, cam: 'CLOSE', at: () => A.mateo, line: [14], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup(A) { msBarOff(); ESTATE.ms = null; if (A && A.jm) scene.remove(A.jm); } };
+})();
+FIN.jetMesh = () => {                      // Crane's private jet on Skyport's apron (the shape of M18's)
+  const g = new THREE.Group(), C = c => new THREE.MeshLambertMaterial({ color: c }), white = C('#14161d'), grey = C('#9aa0ab'), gold = C('#d4a020'), dark = C('#f4f6fa');
+  const box = (w, h, d, m, x, y, z) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); g.add(b); return b; };
+  box(190, 22, 22, white, 0, 18, 0); box(30, 14, 16, white, 108, 16, 0); box(180, 3, 23, gold, 0, 14, 0); box(150, 5, 23.2, dark, 6, 22, 0);
+  box(40, 3, 170, grey, -10, 12, 0); box(26, 12, 12, grey, -70, 24, 18); box(26, 12, 12, grey, -70, 24, -18);
+  box(24, 36, 4, white, -88, 40, 0); box(20, 3, 60, white, -94, 58, 0);
+  for (const z of [-40, 40]) box(4, 10, 4, grey, -8, 5, z); box(4, 10, 4, grey, 90, 5, 0);
+  return g;
+};
