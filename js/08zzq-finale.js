@@ -105,3 +105,45 @@ MSCRIPT.m26 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { LOCKERS.glow = false; msBarOff(); } };
 })();
+
+/* ================= M27 - TAKEN ================= */
+MSCRIPT.m27 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, me = () => P.car || P;
+  function setup(A) {
+    SKY.hour = N().hour; FIN.start(A); const [sx, sy] = SALV.spot, [cx, cy] = SALV.crane;
+    if (JYR.car) salvReset();
+    A.cab = msCar('taxi', sx, sy, Math.PI / 2, null); A.cab.noEnter = true; A.cab.hp = A.cab.maxhp * 0.5;   // Joe's cab on the crane's spot, Joe shut inside
+    A.button = S1.free(cx, cy, 34); A.yard = { x: (SALV.area[0] + SALV.area[2]) / 2, y: (SALV.area[1] + SALV.area[3]) / 2 };
+    A.men = []; for (let k = 0; k < N().men; k++) { const q = S1.free(A.yard.x + Math.cos(k * 1.7) * 140, A.yard.y + Math.sin(k * 1.7) * 120, 10);
+      A.men.push(msFoe(q.x, q.y, Object.assign({ gun: k % 2 ? 'smg' : 'pistol', hp: N().menHp, group: 'yard' }, CH4.men))); }
+    JYR.calmT = gameT + 1e6;                                                                       // the yard's dog is shut in tonight
+  }
+  const crushing = A => JYR.car === A.cab && (JYR.phase === 'drop' || JYR.phase === 'crush');
+  const steps = [
+    msPhone('rosa', [1, 2]),
+    { enter(A) { msLive([MS_CHOICE.kessler === 'spared' ? 3 : 4], { phone: true }); MS.guide = A.yard; MS.mark = () => A.cab; },   // GO TO the junkyard: near it, the crane starts
+      tick(A) { return dist(me().x, me().y, A.yard.x, A.yard.y) < N().yardR * M; },
+      info: A => Math.round(dist(me().x, me().y, A.yard.x, A.yard.y) / M) + ' M TO THE JUNKYARD (DOCKSIDE)',
+      jump(A) { const g = SALV.gate; if (P.car) { const c = P.car; c.x = g[0]; c.y = g[1] + 140; c.vx = c.vy = 0; } else { P.x = g[0]; P.y = g[1] + 100; } } },
+    { enter(A) { JYR.rate = (PLC.junkLift + PLC.junkSwing + 1.5) / N().crushT; jyStart(A.cab); A.t0 = gameT; MS.mark = () => A.button; MS.guide = A.button;   // STOP THE CRANE: the button in its cab
+        for (const p of A.men) foeAlert(p); msLive([5], { now: true }); },
+      tick(A) { if (A.stopped) return true; msBar('THE CRUSHER', clamp((gameT - A.t0) / N().crushT, 0, 1), '#ff3b4a');
+        if (!MS.start && !P.car && dist(P.x, P.y, A.button.x, A.button.y) < 4 * M) MS.start = { at: () => A.button, label: 'THE STOP BUTTON', go2: 'PRESS IT', go: () => {
+          const k = JYR.car; JYR.stop = true; if (k) { k.hook = false; k.vz = 0; } JYR.car = null; JYR.phase = 'back'; JYR.t = 0; JYR.rate = 1; JYR.stop = false;
+          Snd.tone(220, 110, 0.4, 0.12, 'square'); toast('THE CRANE STOPS'); msBarOff(); msLive([6], { now: true }); A.stopped = true; } };
+        return false; },
+      info: A => Math.round(dist(P.x, P.y, A.button.x, A.button.y) / M) + " M TO THE CRANE'S CAB · " + msFoesLeft('yard') + " OF CRANE'S MEN",
+      jump(A) { if (P.car) exitCar(true); P.x = A.button.x; P.y = A.button.y; const k = JYR.car; if (k) { k.hook = false; k.vz = 0; } JYR.car = null; JYR.phase = 'back'; JYR.rate = 1; msBarOff(); A.stopped = true; } },
+    { enter(A) { const c = A.cab, q = S1.free(c.x + 30, c.y, 8);                                    // Joe climbs out: TAKE HIM HOME to the Colony
+        A.joe = msPed(q.x, q.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true }));
+        msAllyFrom(A.joe, { who: 'joe', calm: true, near: true, hp: N().joeHp }); msLive([7], { now: true });
+        A.home = S1.colony().door; MS.guide = A.home; MS.mark = () => A.home; },
+      tick(A) { if (A.end) return A.end === 2; const j = A.joe.aboard || A.joe;
+        if (P.car && carSpeed(P.car) < 3 * KMH && dist(P.car.x, P.car.y, A.home.x, A.home.y) < N().homeR * M && A.joe.aboard === P.car) allyAlight(A.joe);
+        if (A.joe.aboard || dist(j.x, j.y, A.home.x, A.home.y) > N().homeR * M || dist(me().x, me().y, A.home.x, A.home.y) > N().homeR * M) return false;
+        A.end = 1; msLive([8, 9], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.home.x, A.home.y) / M) + ' M TO THE COLONY WITH PAPA JOE',
+      jump(A) { if (A.joe.aboard) allyAlight(A.joe); if (P.car) exitCar(true); P.x = A.home.x + 20; P.y = A.home.y + 10; A.joe.x = A.home.x - 10; A.joe.y = A.home.y + 14; } }];
+  function fail(A) { const f = msCastFail(); if (f) return f; return crushing(A) ? MS.m.fails.crushed : ''; }
+  return { setup, steps, fail, cuts: {}, cleanup(A) { msBarOff(); JYR.rate = 1; JYR.stop = false; JYR.calmT = 0; if (A && A.cab && JYR.car === A.cab) { A.cab.hook = false; JYR.car = null; JYR.phase = 'back'; } } };
+})();
