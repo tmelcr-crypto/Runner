@@ -2704,7 +2704,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
      {"who": "danny", "text": "Save me a table.", "mood": "warm", "when": "LIVE - the end", "live": true}],
    "fails": {"lost": "VINNIE WON THE RACE", "quit": "YOU LEFT THE RACE", "sank": "TEDDY'S JET SKI SANK", "sticks": "SAMMY STICKS IS DEAD", "lola": "LOLA DIAMOND IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
    "numbers": {"hour": 19, "nearM": 18, "homeM": 22, "laps": 2, "count": 3, "vPace": 82, "bouncerHp": 220, "doorHp": 90, "skiSpeed": 58, "skiR": 45, "skiTough": 4, "dodgeM": 25, "catchM": 10, "catchT": 2.5},
-   "reward": {"cash": 5000, "vehicle": "", "clothes": "", "next": "H5 - THE DEED (marker E)", "place": "", "contact": ""},
+   "reward": {"cash": 4000, "vehicle": "", "clothes": "", "next": "H5 - THE DEED (marker E)", "place": "", "contact": ""},
    "page": {
     "sub": "Written from your answers (the Colony line; three markers in any order, answer 169) - change anything you like.",
     "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The speedway (paddock and oval), THE PULSE's door, the sea off the Colony's beach", "unlocked": "After H3", "time": "Evening (MISSIONS TEST: 19:00)", "length": "About 12 minutes", "limit": "-"},
@@ -2752,7 +2752,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
      {"word": "PICK UP", "show": "PICK UP THE DEED BOX"},
      {"word": "TALK TO", "show": "BRING THE DEED TO ESTHER"}],
    "lines": [
-     {"who": "esther", "text": "Finch's paper says Crane owns the Colony. But the real deed - Harold's, from 1952 - is in my box at FIRST CORAL BANK.", "mood": "grim", "when": "The Deed, shot 1"},
+     {"who": "esther", "text": "Finch's paper says Crane owns the Colony. But the real deed - Harold's, from 1953 - is in my box at FIRST CORAL BANK.", "mood": "grim", "when": "The Deed, shot 1"},
      {"who": "esther", "text": "And the bank just called me: men with guns walked in asking for box two-oh-seven. Danny, that's mine!", "mood": "frightened", "when": "The Deed, shot 2"},
      {"who": "danny", "text": "Then they're about to have a bad morning.", "mood": "cold", "when": "The Deed, shot 3"},
      {"who": "craneman", "text": "Everybody on the floor! Nobody plays hero!", "mood": "shouting", "when": "LIVE - at the bank's doors", "live": true},
@@ -2763,7 +2763,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
      {"who": "danny", "text": "Now we need the man who forged it.", "mood": "thoughtful", "when": "LIVE - the end", "live": true}],
    "fails": {"hostage": "A HOSTAGE WAS KILLED", "burnt": "THE DEED BURNED WITH THE CAR", "away": "THE GETAWAY CAR GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
    "numbers": {"hour": 11, "nearM": 25, "menHp": 80, "boxHp": 60, "boxRun": 0.9, "carSpeed": 105, "bailAt": 50, "away": 420, "pickM": 3},
-   "reward": {"cash": 6000, "vehicle": "", "clothes": "", "next": "H6 - POOL PARTY (marker E)", "place": "", "contact": ""},
+   "reward": {"cash": 4500, "vehicle": "", "clothes": "", "next": "H6 - POOL PARTY (marker E)", "place": "", "contact": ""},
    "page": {
     "sub": "Written from your answers (the Colony line; the bank inside, answers 170-172) - change anything you like.",
     "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "FIRST CORAL BANK, Palm Heights - inside (top-down, the roof see-through); the streets after the getaway car", "unlocked": "After H4", "time": "Late morning (MISSIONS TEST: 11:00)", "length": "About 7 minutes", "limit": "-"},
@@ -2811,7 +2811,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
      {"who": "danny", "text": "Somebody get me a drink.", "mood": "tired", "when": "LIVE - the end", "live": true}],
    "fails": {"ruined": "THE PARTY IS RUINED", "esther": "ESTHER IS DEAD", "band": "THE BAND IS HIT", "wasted": "WASTED", "busted": "BUSTED"},
    "numbers": {"hour": 22, "firstT": 6, "gapT": 6, "wave1": 3, "wave2": 4, "wave3": 6, "fromM": 130, "carSpeed": 90, "climbT": 6, "menHp": 80, "partyDrop": 0.012, "partyBack": 0.01},
-   "reward": {"cash": 6000, "vehicle": "", "clothes": "", "next": "H7 - WRECKING CREW (marker E)", "place": "", "contact": ""},
+   "reward": {"cash": 5000, "vehicle": "", "clothes": "", "next": "H7 - WRECKING CREW (marker E)", "place": "", "contact": ""},
    "page": {
     "sub": "Written from your answers (the Colony line; the roof terrace, answer 168) - change anything you like.",
     "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The Colony's roof terrace (the pool, the bar, the dance floor, the stair hut)", "unlocked": "After H5", "time": "Night (MISSIONS TEST: 22:00)", "length": "About 6 minutes", "limit": "THE PARTY bar (it drains while Crane's men are on the roof)"},
@@ -2857,7 +2857,7 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
      {"who": "esther", "text": "Then the Colony stands. Come home, darling - Finch has some explaining to do.", "mood": "relieved", "when": "LIVE - the crew down (phone)", "live": true}],
    "fails": {"reached": "THE WRECKING CRANE REACHED THE COLONY", "wasted": "WASTED", "busted": "BUSTED"},
    "numbers": {"hour": 16, "crawl": 38, "wTough": 0.6, "bailAt": 45, "spotM": 90, "reachM": 70, "menHp": 80},
-   "reward": {"cash": 7000, "vehicle": "", "clothes": "", "next": "H8 - THE HEARING (marker E)", "place": "", "contact": ""},
+   "reward": {"cash": 5000, "vehicle": "", "clothes": "", "next": "H8 - THE HEARING (marker E)", "place": "", "contact": ""},
    "page": {
     "sub": "Written from your answers (the Colony line; the WRECKING CRANE, answer 173) - change anything you like.",
     "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The streets from Skyline One (downtown Palm Heights) toward the Colony", "unlocked": "After H6", "time": "Afternoon (MISSIONS TEST: 16:00)", "length": "About 5 minutes", "limit": "The crane's drive: about two minutes from Skyline One to the Colony"},
@@ -2879,7 +2879,60 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["Skyline One's gate", "-", "The crane rolls out, the iron ball swinging. Fade out.", "WIDE on the crane", "4", "3"]]}],
     "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
     "failing": "Marker E again (retry).",
-    "notes": {"places": "Skyline One's gate (downtown Palm Heights); the boulevards to the Colony.", "people": "Four of Crane's men to take out (and the digger's driver).", "music": "-", "new": "The WRECKING CRANE row (vehicles table) on the move; while the quest is on, the crane parked at Skyline One is the convoy's.", "other": "-"}}}
+    "notes": {"places": "Skyline One's gate (downtown Palm Heights); the boulevards to the Colony.", "people": "Four of Crane's men to take out (and the digger's driver).", "music": "-", "new": "The WRECKING CRANE row (vehicles table) on the move; while the quest is on, the crane parked at Skyline One is the convoy's.", "other": "-"}}},
+  {"id": "h8", "no": "H8", "title": "THE HEARING", "giver": "esther", "start": "marker", "where": "The Colony (marker E); Finch's office across town; the COURTHOUSE",
+   "story": "The hearing on the Colony is at four. Walter Finch, the notary who forged Crane's deed and demolition order, has called Esther ready to confess - if he lives to reach the courthouse. Danny picks him up at his office across town and drives him there through Crane's hit squads; on the courthouse steps Finch tells the truth and the Colony is saved. Esther gives Danny the hotel's top floor for his war room.",
+   "chars": ["esther", "danny", "finch", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "PICK UP", "show": "PICK UP FINCH AT HIS OFFICE"},
+     {"word": "ESCORT", "show": "DRIVE FINCH TO THE COURTHOUSE - KEEP HIM ALIVE"},
+     {"word": "WATCH", "show": "THE HEARING"}],
+   "lines": [
+     {"who": "esther", "text": "The hearing is at four, Danny. If Mister Finch tells the judge he forged that deed, Crane's paper isn't worth the ink.", "mood": "determined", "when": "The Notary, shot 1"},
+     {"who": "esther", "text": "He's hiding in his office across town, shaking like a leaf. Crane's men will be looking for him by now.", "mood": "worried", "when": "The Notary, shot 2"},
+     {"who": "danny", "text": "Then I'll give him a lift.", "mood": "calm", "when": "The Notary, shot 3"},
+     {"who": "finch", "text": "Th-they'll kill me before I reach the steps, you know. Victor Crane doesn't forgive, and he never, ever forgets.", "mood": "terrified", "when": "LIVE - at Finch's office", "live": true},
+     {"who": "finch", "text": "A black car behind us - oh God, oh God, that's one of Crane's!", "mood": "panicked", "when": "LIVE - the first hit squad", "live": true},
+     {"who": "finch", "text": "More of them - in front of us! Do you even have a licence?", "mood": "panicked", "when": "LIVE - halfway, the second squad", "live": true},
+     {"who": "danny", "text": "Not one I'd show you.", "mood": "dry", "when": "LIVE - halfway, the second squad", "live": true},
+     {"who": "finch", "text": "My name is Walter Finch. I forged the deed to the Colony Hotel, and the demolition order. Victor Crane paid me ten thousand dollars for each.", "mood": "shaking", "when": "The Confession, shot 2"},
+     {"who": "esther", "text": "Did you all hear that? The Colony stays!", "mood": "triumphant", "when": "The Confession, shot 3"},
+     {"who": "danny", "text": "And Crane just lost his notary.", "mood": "dry", "when": "The Confession, shot 4"},
+     {"who": "esther", "text": "Danny, darling - the top floor is yours. Your war room, your crew, for as long as the Colony stands.", "mood": "warm", "when": "The Confession, shot 5"}],
+   "fails": {"finch": "FINCH IS DEAD", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 15, "officeM": 950, "pickM": 25, "finchHp": 60, "cars": 2, "spawnM": 70, "huntSpeed": 120, "menHp": 70, "secondAt": 0.5, "courtM": 18},
+   "reward": {"cash": 10000, "vehicle": "", "clothes": "", "next": "The Colony line is done (the Space line next)", "place": "", "contact": "", "unlock": "colonyWar"},
+   "page": {
+    "sub": "Written from your answers (the Colony line; the COURTHOUSE and Walter Finch, answer 174) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "Finch's office (about 950 m from the courthouse, on the far side from the Colony), then the COURTHOUSE (a unique building)", "unlocked": "After H7", "time": "Afternoon (MISSIONS TEST: 15:00)", "length": "About 7 minutes", "limit": "-"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "finch": {"gives": false, "role": "Walter Finch, Crane's notary (new) - your friend in this quest: he rides with you.", "looks": "Sixties, thin, a grey three-piece suit, round glasses, a briefcase he never lets go of.", "bubble": "Grey-blue", "mumble": "Nervous and quick."},
+     "craneman": {"gives": false, "role": "Crane's hit squads: two black cars, then two more.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene THE NOTARY.", "MISSIONS TEST: you start by the door, a SEDAN on the ring drive."],
+     ["Drive to Finch's office across town. When you pull up he comes out (his line): stop in a car with room for a passenger (not a bike or a sports car) and he gets in.", ""],
+     ["Drive to the COURTHOUSE. Two black cars of Crane's men (SMGs out of the windows) come from behind; halfway, two more come from ahead. Finch's bar shows his health: in the car he is safe while the car holds; out of it, he is a target.", "Finch killed: the quest fails."],
+     ["At the courthouse steps: the cutscene THE CONFESSION; the Colony is saved; the quest is passed. The crew's war room moves to the Colony's top floor (from the loft).", ""]],
+    "fails": [
+     ["Finch is killed", "FINCH IS DEAD"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE NOTARY\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther, determined.", "CLOSE on Esther", "6", "1"],
+      ["The Colony's door", "Esther", "Esther, worried.", "CLOSE on Esther", "6", "2"],
+      ["The Colony's door", "Danny", "Danny. Fade out.", "CLOSE on Danny", "4", "3"]]},
+     {"title": "\"THE CONFESSION\"", "plays": "At the courthouse steps.", "shots": [
+      ["The COURTHOUSE", "-", "The courthouse, its clock tower; caption THE COURTHOUSE, FOUR O'CLOCK.", "WIDE on the steps", "4", "-"],
+      ["The steps", "Finch", "Finch, briefcase to his chest, before the press and the judge's clerk.", "CLOSE on Finch", "9", "8"],
+      ["The steps", "Esther", "Esther, arms up.", "CLOSE on Esther", "5", "9"],
+      ["The steps", "Danny", "Danny.", "CLOSE on Danny", "3", "10"],
+      ["The steps", "Esther", "Esther to Danny. Fade out.", "CLOSE on Esther", "6", "11"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "Finch's office (a street across town); the COURTHOUSE (a unique building, its clock tower).", "people": "Walter Finch (character table), eight of Crane's men in four cars.", "music": "-", "new": "The Colony line's gift: the war room moves to the Colony's top floor (modes table warRoom).", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */

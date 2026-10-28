@@ -625,3 +625,63 @@ MSCRIPT.h7 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { msBarOff(); if (SKX.mach && SKX.mach.wrecker) SKX.mach.wrecker.gone = gameT; } };
 })();
+
+/* ================= H8 - THE HEARING ================= */
+MSCRIPT.h8 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  function setup(A) {
+    SKY.hour = N().hour; HOTEL.esther(A); HOTEL.start(A, 'sedan'); const C = A.C;
+    const U = UNIQUES.find(u => u.row.id === 'courthouse'), d = U ? U.door : { x: C.door.x + 3000, y: C.door.y, fx: 0, fy: 1 };
+    A.court = { x: d.x + d.fx * 20, y: d.y + d.fy * 20 }; A.steps = { x: d.x - d.fx * 4, y: d.y - d.fy * 4 }; A.hits = [];
+    const away = Math.atan2(A.court.y - C.door.y, A.court.x - C.door.x), far = N().officeM * M;   // Finch's office: a long drive from the courthouse, on the far side from the Colony
+    let o = null; for (const da of [0, 0.5, -0.5, 1, -1, 1.6, -1.6, Math.PI]) { const x = A.court.x + Math.cos(away + da) * far, y = A.court.y + Math.sin(away + da) * far; if (x > 300 && x < MW - 300 && y > 300 && y < MH - 300 && shoreDist(x, y) > 60) { o = S1.road(x, y); break; } }
+    o = o || S1.road(C.door.x - 2000, C.door.y); const w = S1.sidewalk(o.x, o.y); A.office = S1.at(w.x, w.y);
+    A.finch = msPed(w.x, w.y, 0, Object.assign(S1.look('finch'), { msName: 'finch', step: S1.stay, spare: true, shield: true }));
+    A.total = dist(A.office.x, A.office.y, A.court.x, A.court.y);
+  }
+  function hitSquad(A, ahead) {             // two black cars, out of sight: behind you, or between you and the courthouse
+    const me = me4(), a = Math.atan2(A.court.y - me.y, A.court.x - me.x) + (ahead ? 0 : Math.PI);
+    for (let k = 0; k < N().cars; k++) {
+      const s = a + (k ? 0.5 : -0.5), r = S1.road(me.x + Math.cos(s) * N().spawnM * M, me.y + Math.sin(s) * N().spawnM * M), q = kerbBy(r.x, r.y);
+      A.hits.push(msFoeCar('sedan', q.x, q.y, q.ang, Object.assign({ mode: 'chase', crew: 2, gun: 'smg', group: 'hit', speed: N().huntSpeed, color: '#14161d', crewHp: N().menHp }, CH4.men)));
+    }
+  }
+  const toCourt = () => Math.round(dist(me4().x, me4().y, MS.A.court.x, MS.A.court.y) / M);
+  const steps = [
+    HOTEL.meet('THE NOTARY'),
+    { enter(A) { MS.mark = () => A.finch; MS.guide = A.office; },                                   // PICK UP Finch at his office: he comes out when you pull up
+      tick(A) {
+        if (!A.met && dist(me4().x, me4().y, A.office.x, A.office.y) < N().pickM * M) { A.met = true; msAllyFrom(A.finch, { who: 'finch', calm: true, hp: N().finchHp, fail: F().finch }); A.finch.shield = false; msLive([4]); }
+        return A.met && !!A.finch.aboard && P.car === A.finch.aboard; },
+      info: A => !A.met ? Math.round(dist(me4().x, me4().y, A.office.x, A.office.y) / M) + " M TO FINCH'S OFFICE" : A.finch.aboard ? 'FINCH IS IN' : P.car ? 'STOP - FINCH GETS IN' : 'GET IN A CAR',
+      jump(A) { if (!A.met) { const c = P.car || A.mycar; if (!P.car) enterCar(c); c.x = A.office.x + 40; c.y = A.office.y + 40; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; return; } if (!P.car) { P.x = A.mycar.x; P.y = A.mycar.y; enterCar(A.mycar); } if (!A.finch.aboard) allyBoard(A.finch, P.car); } },
+    { enter(A) { MS.mark = () => A.court; MS.guide = A.court; hitSquad(A, false); msLive([5]); },     // ESCORT him to the COURTHOUSE; Crane's hit squads
+      tick(A) {
+        const d = dist(me4().x, me4().y, A.court.x, A.court.y);
+        if (!A.second && d < A.total * N().secondAt) { A.second = true; hitSquad(A, true); msLive([6, 7]); }
+        const f = A.finch; return d < N().courtM * M && (f.aboard ? f.aboard === P.car : dist(f.x, f.y, A.court.x, A.court.y) < N().courtM * M) && !P.dead; },
+      info: A => toCourt() + ' M TO THE COURTHOUSE · FINCH ' + Math.max(0, Math.round(100 * A.finch.hp / A.finch.hpMax)) + '%',
+      jump(A) { const c = P.car; if (c) { c.x = A.court.x + 30; c.y = A.court.y + 30; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; } else { P.x = A.court.x; P.y = A.court.y; A.finch.x = A.court.x + 20; A.finch.y = A.court.y; } } },
+    { enter(A) {                                                                                     // THE CONFESSION on the courthouse steps
+        const f = A.finch; if (f.aboard) allyAlight(f); MS_CAST.allies = MS_CAST.allies.filter(q => q !== f); Object.assign(f, { ally: false, calm: true, shield: true }); f.post.step = S1.stay; f.post.x = A.steps.x; f.post.y = A.steps.y;
+        f.x = A.steps.x; f.y = A.steps.y; const e = A.esther; e.x = A.steps.x + 26; e.y = A.steps.y + 10; e.post.x = e.x; e.post.y = e.y;
+        for (const c of A.hits) if (!c.dead && !c.fc.out) { c.fc.mode = 'flee'; c.fc.to = [S1.road(c.x + (c.x - A.court.x) * 3, c.y + (c.y - A.court.y) * 3)]; }   // the squads give up
+        for (const p of peds) if (p.foe && !p.dead && p.group === 'hit') { p.calm = true; p.alert = false; }
+        MS.mark = null; MS.guide = null; if (P.car) exitCar(true); msCut('THE CONFESSION', () => { A.done = true; }); },
+      tick: A => !!A.done,
+      info: () => 'THE HEARING',
+      jump(A) { A.done = true; } }];
+  const cuts = {
+    'THE NOTARY': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [1], enter: () => { face(A.esther, P); } },
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [2] },
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [3], fadeOut: true }],
+    'THE CONFESSION': A => [
+      { dur: 4, cam: 'WIDE', at: () => A.steps, cap: 'THE COURTHOUSE, FOUR O\'CLOCK', enter: () => { face(A.finch, A.court); face(A.esther, A.finch); } },
+      { dur: 9, cam: 'CLOSE', at: () => A.finch, line: [8] },
+      { dur: 5, cam: 'CLOSE', at: () => A.esther, line: [9], enter: () => { face(A.esther, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [10] },
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [11], fadeOut: true }]
+  };
+  return { setup, steps, fail: () => msCastFail() || '', cuts };
+})();

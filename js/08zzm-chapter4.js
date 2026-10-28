@@ -5,7 +5,7 @@
    under a lamp, the crew's chairs round it, a window on the city. Later it moves to the Colony's top floor (the Colony line).
    Choice 2 still counts here: Sachs' files taken to the police mean Holloway buried them - every quest from M19 to M22 starts with a
    star. Choice 3 is made in M22 by where you drive (MS_CHOICE.tip). */
-const warRoomAt = h => h.id === 'loft' && feat('warRoom') && MS_UNLOCK.warRoom;   // js/08t svLayout: the red door on the top floor
+const warRoomAt = h => feat('warRoom') && (MS_UNLOCK.colonyWar ? h.id === 'colony' : h.id === 'loft' && MS_UNLOCK.warRoom);   // js/08t svLayout: the red door on the top floor - the loft's (M19), the Colony's once H8 is passed
 function warBoard() {                     // UP at the board: who is on it
   const ch = MS_CHOICE;
   return 'CRANE - HOLLOWAY (POLICE CHIEF) - PRATT (COUNCILMAN) - SACHS' + (ch.files === 'kept' ? ' (HIS FILES: OURS)' : ' (HIS FILES: BURIED)') + ' - MATEO?';
