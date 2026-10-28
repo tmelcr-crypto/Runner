@@ -68,3 +68,40 @@ MSCRIPT.m25 = (() => {
   };
   return { setup, steps, cuts, fail: () => '', cleanup(A) { if (A) PRISONL.kitBack(A); ESTATE.ms = null; } };
 })();
+
+/* ================= M26 - LOCKER 47 ================= */
+MSCRIPT.m26 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, me = () => P.car || P;
+  const clock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  function setup(A) { SKY.hour = N().hour; FIN.start(A); A.L = LOCKERS.at; A.race = N().raceT; }
+  const steps = [
+    msPhone('mateo', [1, 2, 3]),                                                                  // a whisper on the phone
+    { enter(A) { const f = A.L.front; MS.guide = f; MS.mark = () => f; LOCKERS.glow = true; A.on = true; },   // GO TO the lockers before Crane's men
+      tick(A, dt) { A.race -= dt; msBar("CRANE'S MEN ARRIVE IN " + clock(Math.max(0, A.race)), Math.max(0, A.race) / N().raceT, '#ff3b4a');
+        return !P.car && dist(P.x, P.y, A.L.front.x, A.L.front.y) < 3 * M; },
+      info: A => Math.round(dist(me().x, me().y, A.L.front.x, A.L.front.y) / M) + ' M TO THE LUNAPARK LOCKERS · ' + clock(Math.max(0, A.race)),
+      jump(A) { if (P.car) exitCar(true); P.x = A.L.front.x; P.y = A.L.front.y + 6; } },
+    { enter(A) { MS.guide = null; },                                                               // OPEN locker 47: THE TAPE
+      tick(A, dt) { if (A.taped) return true; A.race -= dt; msBar("CRANE'S MEN ARRIVE IN " + clock(Math.max(0, A.race)), Math.max(0, A.race) / N().raceT, '#ff3b4a');
+        if (!MS.start && !P.car && dist(P.x, P.y, A.L.front.x, A.L.front.y) < 4 * M)
+          MS.start = { at: () => A.L.front, label: 'LOCKER 47', go2: 'OPEN IT', go: () => { LOCKERS.glow = false; A.on = false; msBarOff(); Snd.tone(523, 784, 0.2, 0.1, 'triangle'); toast('THE TAPE'); msCut('THE TAPE', () => { A.taped = true; }); } };
+        return false; },
+      info: A => 'OPEN LOCKER 47 · ' + clock(Math.max(0, A.race)),
+      jump(A) { MS.start = null; LOCKERS.glow = false; A.on = false; msBarOff(); A.taped = true; } },
+    { enter(A) { const L = A.L, g = MAP.lunapark.gate;                                             // GET OUT of the lunapark alive: his men pour in
+        A.men = []; for (let k = 0; k < N().men; k++) { const a = k / N().men * TAU, q = S1.free(L.x + Math.cos(a) * 170, L.y + 120 + Math.sin(a) * 90, 10);
+          A.men.push(msFoe(q.x, q.y, Object.assign({ gun: k % 2 ? 'smg' : 'pistol', hp: N().menHp, group: 'luna', alert: true }, CH4.men))); }
+        A.cars = [-1, 1].map(s => { const r = S1.road(g.x + s * 500, g.y - 80), k = kerbBy(r.x, r.y); return msFoeCar('sedan', k.x, k.y, k.ang, Object.assign({ mode: 'chase', crew: 2, gun: 'pistol', group: 'luna', speed: N().carSpeed, color: '#14161d', crewHp: N().menHp }, CH4.men)); });
+        msLive([8], { now: true }); MS.mark = null; MS.guide = null; },
+      tick(A) { if (A.end) return A.end === 2; if (dist(me().x, me().y, A.L.x, A.L.y) < N().outM * M) return false; A.end = 1; msLive([9], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => Math.round(dist(me().x, me().y, A.L.x, A.L.y) / M) + ' / ' + N().outM + ' M FROM THE LUNAPARK · ' + msFoesLeft('luna') + " OF CRANE'S MEN",
+      jump(A) { for (const p of peds) if (p.foe && !p.dead && p.group === 'luna') killPed(p, 'gun', false); for (const c of A.cars) { c.fc.crew = 0; c.fc.out = true; } if (P.car) exitCar(true); P.x = A.L.x; P.y = A.L.y - N().outM * M - 400; } }];
+  function fail(A) { return A.on && A.race <= 0 ? MS.m.fails.race : ''; }
+  const cuts = {
+    'THE TAPE': A => [
+      { dur: 4, cam: 'CLOSE', at: () => P, line: [4] },
+      { dur: 6, cam: 'CLOSE', at: () => P, line: [5, 6], phone: true },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [7], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { LOCKERS.glow = false; msBarOff(); } };
+})();

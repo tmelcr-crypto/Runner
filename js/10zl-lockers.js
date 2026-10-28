@@ -1,13 +1,13 @@
 'use strict';
 /* ---------- 7zl. THE LUNAPARK'S LOCKERS AND THE FBI FIELD OFFICE (chapter 5's scenery; both modes) ----------
-   LEFT LUGGAGE: a bank of numbered lockers (41 to 72) inside the lunapark's gate, behind the east ticket booth (modes: lockers) - in M26
+   LEFT LUGGAGE: a bank of numbered lockers (41 to 72) inside the lunapark's gate, behind the west ticket booth (modes: lockers) - in M26
    Mateo's tape waits in locker 47 (LOCKERS.glow lights its door). The FBI FIELD OFFICE is one of the unique buildings (js/01r, a civic
    building in Palm Heights, js/10n picks its lot); its seal over the door is drawn with the civic model (js/10o); fbiDoor() is where
    its marker stands (M28). */
 const LOCKERS = { at: null, lm: null, glow: false, door47: null };
 function genLockers() {                   // js/04 genWorld, after the places: the lockers' solid and their drawable
   LOCKERS.at = null; const L = MAP.lunapark; if (!L || !L.gate) return;
-  const g = L.gate, x = g.x + g.w / 2 + 110, y = g.y + 40;                                  // behind the east ticket booth, their doors to the park (south, toward the camera)
+  const g = L.gate, x = g.x - g.w / 2 - 130, y = g.y + 40;                                  // behind the west ticket booth (clear of the big wheel), their doors to the park (south, toward the camera)
   LOCKERS.at = { x, y, w: 64, d: 10, front: { x, y: y + 22 } };
   LOCKERS.solid = makeSolid(x, y, 64, 10, 0, { soft: true });
   LOCKERS.door47 = { x: x - 32 + 6 * 8 + 4, y: y + 6 };                                     // the 7th column of the second row: number 47
