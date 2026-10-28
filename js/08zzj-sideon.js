@@ -22,7 +22,8 @@ function sbLoft() {                        // the Palm Heights loft as a quest's
 }
 function sbLayout(h) {                    // js/08t svLayout: the halls, the doors with their firms' names, the stairs, the plants
   if (h.kind === 'vault') return vaultLayout(h);
-  if (h.kind === 'loft') return { W: 1400, plants: [380, 680, 960], up: f => f % 2 === 0 ? 1290 : 110, tint: '#2a2230', carpet: '#4a2a2a',
+  if (h.kind === 'party') return partyLayout(h);   // the penthouse tower (M24, js/08zzm)
+  if (h.kind === 'loft') return { W: 1400, plants: [380, 680, 960], up: f => f % 2 === 0 ? 1290 : 110, tint: '#2a2230', carpet: '#4a2a2a', lobby: 'PALM HEIGHTS LOFT',
     doors: [].concat(...Array.from({ length: h.floors }, (_, i) => { const f = i + 1;
       return f === 5 ? [{ f, x: 300, n: 501, name: 'APT 501', shut: true }, { f, x: 1010, n: 509, name: 'SACHS & PARTNERS', crane: true, sachs: true, wide: true }]
         : [240, 520, 820, 1110].map((x, k) => ({ f, x, n: f * 100 + k + 1, name: 'APT ' + (f * 100 + k + 1), shut: true })); })) };
@@ -102,7 +103,7 @@ function sbPress(k) {
   if (s.k === 'plant') return;
   if (s.k === 'crack') { const M = SB.ms; if (M && !M.cracking && !M.cracked) { M.cracking = true; M.crackLeft = M.crackT || 15; if (M.onCrack) M.onCrack(); Snd.tone(300, 320, 0.2, 0.05, 'sine'); } return; }
   if (s.k === 'door') {
-    if (sbOpen(s.d)) { SV.room = { door: s.d, crane: !!s.d.crane, vault: !!s.d.vault, W: s.d.crane ? 900 : s.d.vault ? 700 : 620 }; SV.hide = false; SV.x = 60; SV.face = 1; SV.fade = 1; Snd.tone(240, 300, 0.1, 0.06, 'sine'); }
+    if (sbOpen(s.d)) { SV.room = { door: s.d, crane: !!s.d.crane, vault: !!s.d.vault, party: !!s.d.party, W: s.d.crane || s.d.party ? 900 : s.d.vault ? 700 : 620 }; SV.hide = false; SV.x = 60; SV.face = 1; SV.fade = 1; Snd.tone(240, 300, 0.1, 0.06, 'sine'); }
     else { SV.say = { t: 1.6, x: s.d.x, fl: SV.fl, text: s.d.crane ? 'PRIVATE' : pick(['LOCKED', 'CLOSED', 'OFFICE HOURS 9-5']) }; Snd.tone(160, 120, 0.08, 0.08, 'square'); }
     return;
   }
@@ -158,10 +159,11 @@ function sbDraw(time) {
     const R = SV.room, cx = clamp(SV.x, Wc / s / 2, Math.max(Wc / s / 2, R.W - Wc / s / 2)), X = x => (x - cx) * s + Wc / 2, fy = Hc * 0.72, Y = y => fy - y * s;
     g.fillStyle = '#120e1e'; g.fillRect(X(0), 0, R.W * s, Y(SV_FH)); g.fillRect(X(0), fy + 14 * s, R.W * s, Hc - fy);
     g.fillStyle = '#1c1630'; g.fillRect(X(0), Y(SV_FH) - 12 * s, R.W * s, 12 * s);
-    g.fillStyle = R.crane ? '#2a2236' : '#2a3040'; g.fillRect(X(0), Y(SV_FH), R.W * s, SV_FH * s);
-    g.fillStyle = R.crane ? '#5a1f2a' : '#3a4050'; g.fillRect(X(0), fy, R.W * s, 14 * s);
+    g.fillStyle = R.party ? '#1e1430' : R.crane ? '#2a2236' : '#2a3040'; g.fillRect(X(0), Y(SV_FH), R.W * s, SV_FH * s);
+    g.fillStyle = R.party ? '#3a2448' : R.crane ? '#5a1f2a' : '#3a4050'; g.fillRect(X(0), fy, R.W * s, 14 * s);
     g.fillStyle = '#1d1a2c'; g.fillRect(X(36), Y(96), 48 * s, 96 * s); g.strokeStyle = '#b8a0ff'; g.lineWidth = 2 * s; g.strokeRect(X(36), Y(96), 48 * s, 96 * s);
-    if (R.crane) {
+    if (R.party) partyDraw(g, X, Y, s, time, M);   // the party (M24, js/08zzm)
+    else if (R.crane) {
       svWindow(g, X(360), Y(140), 500 * s, 56 * s, s, time);
       g.fillStyle = '#ffd23f'; g.font = 'bold ' + Math.round(12 * s) + 'px "Arial Black",Arial'; const nm = R.door.sachs ? ['SACHS &', 'PARTNERS'] : ['CRANE', 'DEVELOPMENT']; g.fillText(nm[0], X(235), Y(118)); g.fillText(nm[1], X(235), Y(102));
       g.fillStyle = '#4a2a1a'; g.fillRect(X(160), Y(36), 150 * s, 36 * s); g.fillStyle = '#6a3a22'; g.fillRect(X(156), Y(40), 158 * s, 6 * s);   // the big desk
@@ -205,7 +207,7 @@ function sbDraw(time) {
         else svPerson(g, X(300), y0 - 4 * s, s, '#e8e8ee', '#1d2230', '#a8714a', -1, 0, '#2a1a12');
         g.fillStyle = '#5a4a3a'; g.fillRect(X(240), y0 - 40 * s, 120 * s, 40 * s); g.fillStyle = '#ffd23f'; g.fillRect(X(240), y0 - 42 * s, 120 * s, 3 * s);
         g.fillStyle = '#2f8f4e'; for (const px of [180, 420, 760, 1100]) { g.beginPath(); g.arc(X(px), y0 - 36 * s, 12 * s, 0, TAU); g.fill(); g.fillStyle = '#7a5a3a'; g.fillRect(X(px - 6), y0 - 24 * s, 12 * s, 20 * s); g.fillStyle = '#2f8f4e'; }
-        g.fillStyle = '#ffd23f'; g.font = 'bold ' + Math.round(20 * s) + 'px "Arial Black",Arial'; g.fillText('♛ THE CROWN', X(900), y1 + 46 * s);
+        g.fillStyle = '#ffd23f'; g.font = 'bold ' + Math.round(20 * s) + 'px "Arial Black",Arial'; g.fillText(B.lobby || '♛ THE CROWN', X(900), y1 + 46 * s);
       } else {
         for (const px of B.plants) { g.fillStyle = '#2f8f4e'; g.beginPath(); g.arc(X(px), y0 - 44 * s, 15 * s, 0, TAU); g.fill(); g.beginPath(); g.arc(X(px + 8), y0 - 30 * s, 11 * s, 0, TAU); g.fill(); g.fillStyle = '#7a5a3a'; g.fillRect(X(px - 8), y0 - 24 * s, 16 * s, 20 * s); }
         for (const d of B.doors) if (d.f === f) {
@@ -301,7 +303,7 @@ function vaultDraw(time) {
         g.fillStyle = '#ffd23f'; g.fillRect(X(gd.x - 3), gy - 40 * s, 6 * s, 4 * s);
         if (gd.alert > 0 || gd.lost > 0) { g.font = 'bold ' + Math.round(26 * s) + 'px "Arial Black",Arial'; g.fillStyle = gd.alert > 0 ? '#ff3b4a' : '#cfd3dc'; g.fillText(gd.alert > 0 ? '!' : '?', X(gd.x), gy - 74 * s); }
       }
-      if (M && M.mate && M.mate.fl === f) svPerson(g, X(M.mate.x), y0 - 4 * s, s, '#1a1a20', '#2a2a3a', '#f2c6a0', M.mate.face || 1, M.mate.walk || 0, '#d8262a');   // Fay: the red undercut
+      if (M && M.mate && M.mate.fl === f) svPerson(g, X(M.mate.x), y0 - 4 * s, s, M.mate.shirt || '#1a1a20', M.mate.legs || '#2a2a3a', '#f2c6a0', M.mate.face || 1, M.mate.walk || 0, M.mate.hair || '#d8262a');   // Fay: the red undercut (or another friend's colours)
       g.fillStyle = '#e8e8ee'; g.font = 'bold ' + Math.round(14 * s) + 'px "Arial Black",Arial'; g.textAlign = 'left'; g.fillText(f === 0 ? 'C' : 'B' + f, X(B.W) - 34 * s, y1 + 20 * s); g.textAlign = 'center';
     }
     g.globalAlpha = meA; svPerson(g, X(SV.x), Y(SV.fl, 0) - 4 * s, s * (SV.hide ? 0.92 : 1), me.shirt, me.legs, '#f2c6a0', SV.face, SV.walk, me.hat); g.globalAlpha = 1;
