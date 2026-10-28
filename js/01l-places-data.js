@@ -108,6 +108,8 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "substCrew", "group": "Substation", "name": "The repair crew stays", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Their truck at the gate, two men at the units; the burnt units are mended when they go."},
   {"id": "newsOpen", "group": "Newsroom", "name": "BAY TV's newsroom opens at", "unit": "h", "min": 0, "max": 23, "v": 8, "note": "Its door unlocks and the reporters come in."},
   {"id": "newsClose", "group": "Newsroom", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 20, "note": "Then the door is locked till morning (a quest can hold it open)."},
+  {"id": "golfOpen", "group": "Clubhouse", "name": "The golf clubhouse opens at", "unit": "h", "min": 0, "max": 23, "v": 7, "note": "Its door unlocks; the barman and the golfers come in."},
+  {"id": "golfClose", "group": "Clubhouse", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 21, "note": "Then the door is locked till morning (a quest can hold it open)."},
   {"id": "rallyHour", "group": "Rally", "name": "Crane's rally starts at", "unit": "h", "min": 0, "max": 23, "v": 12, "note": "Every game day (STORY, after M15): the crowd gathers at Bayfront Park's band shell."},
   {"id": "rallyLen", "group": "Rally", "name": "And lasts", "unit": "h", "min": 1, "max": 6, "v": 2, "note": "Then the crowd goes home."},
   {"id": "rallyCrowd", "group": "Rally", "name": "People in the crowd", "unit": "", "min": 6, "max": 60, "v": 26, "note": "Standing before the stage, facing Crane; they cheer now and then."}

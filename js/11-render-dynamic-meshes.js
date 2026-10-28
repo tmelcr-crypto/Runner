@@ -49,7 +49,8 @@ const PLAYER_SHIRT = mc(0xffd23f);
 const DECO = {
   laundry: { bg: '#f4f6fa', fg: '#2a5fc8', top: 'SUDS & SONS', sub: 'LAUNDRY · 24 H', dots: '#9fd4ee' },
   flamingo: { bg: '#efe6cc', fg: '#b8860b', top: 'ROYAL FLAMINGO', sub: 'CASINO · CASH IN TRANSIT', bird: '#ff5fa2' },
-  baytv: { bg: '#f4f6fa', fg: '#1f4fa8', top: 'BAY TV 7', sub: 'NEWS · LIVE · ON THE SPOT', dots: '#ff3b4a' }
+  baytv: { bg: '#f4f6fa', fg: '#1f4fa8', top: 'BAY TV 7', sub: 'NEWS · LIVE · ON THE SPOT', dots: '#ff3b4a' },
+  police: { bg: '#1d2a5a', fg: '#f4f6fa', top: 'POLICE', sub: 'VICE BAY P.D. · TO SERVE' }
 };
 const _deco = {};
 function decoTex(kind, side) {
@@ -126,6 +127,15 @@ function buildCar(c) {                       // parts that never move on their o
     for (const s of [-1, 1]) { const sd = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.62, 12), new THREE.MeshLambertMaterial({ map: decoTex('baytv', true) })); sd.position.set(-L * 0.16, 12, s * (Wd / 2 + 0.08)); if (s < 0) sd.rotation.y = Math.PI; tilt.add(sd); }
     void D; part(tilt, GCyl, E.white, 1.2, 4, 1.2, -L * 0.3, 24, 0); part(tilt, GSph, E.white, 5, 1.6, 5, -L * 0.3, 26.5, 0);   // the dish on its stand
     part(tilt, GCyl, mc(0x9aa0ab), 0.5, 10, 0.5, -L * 0.02, 27, Wd * 0.3);                       // the mast
+    for (const x of [L * 0.32, -L * 0.3]) axle(x, 5);
+    lamps(7, 3, 8, 3, 5); seat(L * 0.38, 19);
+  } else if (B === 'policevan') {            // the police van: a cab, a tall dark-blue box with POLICE on its roof and sides, a light bar over the cab, a white stripe
+    merged('b', body, [[GB, L * 0.3, 11, Wd, L * 0.35, 8.5, 0], [GB, L * 0.3, 1.4, Wd, L * 0.35, 18.7, 0], [GB, L * 0.68, 19, Wd, -L * 0.16, 11.5, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.26, 6, Wd - 2, L * 0.36, 15.5, 0);
+    const roof = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.66, Wd * 0.94), new THREE.MeshLambertMaterial({ map: decoTex('police', false) })); roof.rotation.x = -Math.PI / 2; roof.position.set(-L * 0.16, 21.1, 0); tilt.add(roof);
+    for (const s of [-1, 1]) { const sd = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.62, 11), new THREE.MeshLambertMaterial({ map: decoTex('police', true) })); sd.position.set(-L * 0.16, 11.5, s * (Wd / 2 + 0.08)); if (s < 0) sd.rotation.y = Math.PI; tilt.add(sd); }
+    part(tilt, GB, E.white, L * 0.3, 1.6, Wd + 0.2, L * 0.35, 9, 0);
+    bar(L * 0.33, 20.4, 'police');
     for (const x of [L * 0.32, -L * 0.3]) axle(x, 5);
     lamps(7, 3, 8, 3, 5); seat(L * 0.38, 19);
   } else if (B === 'produce') {              // an open-back truck: the cab up front, a wooden bed with stake sides, eight crates of produce (they fall off when it is hit hard, js/06)
