@@ -2,7 +2,7 @@
 /* ---------- 1y. THE CHARACTERS: one table for every mission (their names, letters, colours, voices and looks) ----------
    Each character once, the same in every mission that has them: the name and the letter on the maps, the bubble colour, the clothes
    their figure wears in the city (shirt, pants), their mumble, who they are (role) and how they look (look), and the recipe their
-   pixel-art portrait is drawn from (tools/portraits.py: 48 x 48, head and shoulders in a 3/4 view, three faces - calm, angry and
+   pixel-art portrait is drawn from (tools/portraits.py: 48 x 75, the owner's reference style, transparent, three faces - calm, angry and
    smiling, picked by the mood written on each line; img/chars/<id>-<face>.png). The missions (js/01x) name their characters by id.
    tools/characters_sheet.py exports the table to Apple Numbers or Excel and writes an edited copy back:
    python3 tools/characters_sheet.py export characters.numbers. Keep the JSON between the markers valid. */
@@ -121,7 +121,39 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "bull", "name": "KESSLER MAN", "letter": "Q", "bubble": "#d87a4a", "shirt": "#f0f0ea", "pants": "#3a4a6a", "mumble": {"low": 100, "high": 150, "rate": 11, "wave": "sawtooth", "gap": 0.08},
    "role": "One of Bull Kessler's men - Dockside heavies, every one much like the next.", "look": "Thirties, a buzz cut, stubble, a white vest or an orange work shirt, gold chains, jeans.",
    "skin": "#d9a27a", "hair": "#3a2a20", "hairStyle": "buzz", "facial": "stubble", "facialColour": "#3a2a20", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
-   "top": "tanktop", "topColour": "#f0f0ea", "topColour2": "#d8d8d2", "extras": ["chain"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "broad"}
+   "top": "tanktop", "topColour": "#f0f0ea", "topColour2": "#d8d8d2", "extras": ["chain"], "smileEyes": "happy", "calmMouth": "smirk", "age": "mid", "build": "broad"},
+  {"id": "gus", "name": "GUS DELGADO", "letter": "W", "bubble": "#b8a07a", "shirt": "#f0ece0", "pants": "#5a4a3a", "mumble": {"low": 120, "high": 190, "rate": 10, "wave": "triangle", "gap": 0.12},
+   "role": "Runs DELGADO HARDWARE in Dockside; the one shopkeeper on the street who will not pay Kessler his rent.", "look": "Sixties, bald with a grey fringe, round glasses, a grey moustache, a brown shopkeeper's apron over a white shirt; stubborn.",
+   "skin": "#c99a76", "hair": "#b0b0b4", "hairStyle": "sides", "facial": "moustache", "facialColour": "#a8a8ac", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "reading", "glassesColour": "#2a2a30",
+   "top": "waistcoat", "topColour": "#7a5a3a", "topColour2": "#f0ece0", "extras": ["wrinkles"], "smileEyes": "happy", "calmMouth": "frown", "age": "old", "build": "normal"},
+  {"id": "rosaman", "name": "ROSA'S MAN", "letter": "R", "bubble": "#e04a5a", "shirt": "#f2f2f2", "pants": "#2a3a5a", "mumble": {"low": 110, "high": 170, "rate": 11, "wave": "triangle", "gap": 0.07},
+   "role": "One of Rosa Ortega's market men - porters and stall-keepers who stand by her (one bubble for all of them).", "look": "Thirties, short black hair, stubble, a red bandana over the shoulder, a white vest, strong arms.",
+   "skin": "#b8805a", "hair": "#1a1416", "hairStyle": "short", "facial": "stubble", "facialColour": "#1a1416", "eyes": "#2a1a12", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "tanktop", "topColour": "#f2f2f2", "topColour2": "#e0e0e0", "extras": ["rag"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "lenny", "name": "LENNY GOLD", "letter": "G", "bubble": "#d4a017", "shirt": "#6a1a2a", "pants": "#2a1a1e", "mumble": {"low": 90, "high": 150, "rate": 12, "wave": "sawtooth", "gap": 0.04},
+   "role": "The Royal Flamingo's pit boss - Crane's man on the casino floor; his men hunt Del and Fay. Shouts at everyone.", "look": "Forties, heavy, a bad toupee, a burgundy suit, gold chains; shouts at everyone.",
+   "skin": "#e8b894", "hair": "#a8642a", "hairStyle": "combed", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "suit", "topColour": "#6a1a2a", "topColour2": "#f0e6e0", "extras": ["chain", "jowls", "sweat"], "smileEyes": "happy", "calmMouth": "frown", "age": "mid", "build": "broad"},
+  {"id": "fay", "name": "FAY \"FINGERS\"", "letter": "F", "bubble": "#ff3b6b", "shirt": "#1a1a20", "pants": "#2a2a3a", "mumble": {"low": 280, "high": 440, "rate": 17, "wave": "square", "gap": 0.02},
+   "role": "A safecracker with the steadiest hands in Florida; Gold's men hold her in the lunapark's funhouse. The vault's lock is hers.", "look": "Twenties, a dyed red undercut, a black leather jacket, a nose ring; talks fast.",
+   "skin": "#f0c8a8", "hair": "#d0202a", "hairStyle": "pixie", "facial": "none", "facialColour": "", "eyes": "#2a6a3a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "leather", "topColour": "#1a1a20", "topColour2": "#c8202c", "extras": ["nosering", "earring"], "smileEyes": "happy", "calmMouth": "smirk", "age": "young", "build": "slim"},
+  {"id": "cguard", "name": "CASINO GUARD", "letter": "Q", "bubble": "#8a8fa8", "shirt": "#16161c", "pants": "#16161c", "mumble": {"low": 120, "high": 170, "rate": 10, "wave": "square", "gap": 0.06},
+   "role": "The Royal Flamingo's guards (one bubble for all of them).", "look": "Thirties, a crew cut, a black suit with a gold flamingo pin, an earpiece.",
+   "skin": "#c89a76", "hair": "#2a1a14", "hairStyle": "buzz", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "suit", "topColour": "#16161c", "topColour2": "#f0f0f0", "extras": ["earring"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "craneman", "name": "CRANE MAN", "letter": "Q", "bubble": "#c8ccd4", "shirt": "#3a3f4c", "pants": "#2a2d36", "mumble": {"low": 110, "high": 160, "rate": 10, "wave": "triangle", "gap": 0.07},
+   "role": "Victor Crane's men - his drivers, bodyguards and fixers (one bubble for all of them).", "look": "Thirties to forties, slicked-back hair, dark sunglasses, a charcoal suit, a white shirt, no tie.",
+   "skin": "#d9b08c", "hair": "#1a1410", "hairStyle": "slick", "facial": "none", "facialColour": "", "eyes": "#2a2a2a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "shades", "glassesColour": "#14141a",
+   "top": "suit", "topColour": "#3a3f4c", "topColour2": "#f4f4f4", "extras": [], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "sharkey", "name": "\"SHARKEY\" VINCE LOMAX", "letter": "L", "bubble": "#4ab8c8", "shirt": "#2a2d3a", "pants": "#2a2d3a", "mumble": {"low": 100, "high": 150, "rate": 11, "wave": "sawtooth", "gap": 0.06},
+   "role": "The loan shark: a pawn-and-loan in Mercado, two heavies at the door; Officer Dunn owes him (P2).", "look": "Fifties, slicked-back hair, a pinstripe suit, a cigar, a gold tooth.",
+   "skin": "#d9a87c", "hair": "#2a2420", "hairStyle": "slick", "facial": "none", "facialColour": "", "eyes": "#2a2018", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "suit", "topColour": "#2a2d3a", "topColour2": "#e8e0d0", "extras": ["cigar", "goldtooth", "temples"], "smileEyes": "happy", "calmMouth": "smirk", "age": "old", "build": "broad"},
+  {"id": "otto", "name": "OTTO", "letter": "T", "bubble": "#b89a6a", "shirt": "#7a6a50", "pants": "#3a3430", "mumble": {"low": 120, "high": 170, "rate": 8, "wave": "triangle", "gap": 0.14},
+   "role": "The old printer of OTTO'S PRINTING in Mercado - and a forger, for friends (P3).", "look": "Seventies, thick glasses, an ink-stained apron over a cardigan.",
+   "skin": "#ecc8a8", "hair": "#d8d8d8", "hairStyle": "sides", "facial": "none", "facialColour": "", "eyes": "#4a4a5a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "square", "glassesColour": "#2a2a2a",
+   "top": "cardigan", "topColour": "#7a6a50", "topColour2": "#3a3a4a", "extras": ["wrinkles", "pencil"], "smileEyes": "happy", "calmMouth": "line", "age": "old", "build": "slim"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */

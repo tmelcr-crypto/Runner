@@ -37,6 +37,12 @@ function enableTouch() {                    // a touch screen: the compact HUD -
 if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enableTouch();
 addEventListener('pointerdown', e => { if (e.pointerType === 'touch') enableTouch(); }, true);
 
+const INPUT_FREE = [];                       // what lets go of every stick and button (inputRelease)
+function inputRelease() {                   // a cutscene starts (js/15c): nothing stays held - no stuck stick, key or trigger driving the car on
+  for (const f of INPUT_FREE) f();
+  for (const k in keys) keys[k] = false; mouse.down = false; TS.fire = false; TS.sprint = false; TS.tap = 0; TS.mx = TS.my = 0;
+  for (const i of ['bFire', 'bDash', 'bAct']) { const b = $(i); if (b) b.classList.remove('down'); }
+}
 function bindStick(zone, ring, knob, onMove, onEnd) {
   let id = null, ox = 0, oy = 0; const R = 55;
   zone.addEventListener('pointerdown', e => {
@@ -53,7 +59,8 @@ function bindStick(zone, ring, knob, onMove, onEnd) {
     knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; onMove(dx / R, dy / R); e.preventDefault();
   });
   const end = e => { if (e.pointerId !== id) return; id = null; ring.style.display = 'none'; onEnd(); };
-  zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
+  zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);   // hidden under a finger (a cutscene): let go too
+  INPUT_FREE.push(() => { id = null; ring.style.display = 'none'; onEnd(); });
 }
 bindStick($('zl'), $('rl'), $('kl'), (x, y) => { TS.mx = x; TS.my = y; }, () => { TS.mx = 0; TS.my = 0; });
 function bindBtn(el, down, up) {
@@ -69,7 +76,8 @@ function bindBtn(el, down, up) {
   });
   b.addEventListener('pointermove', e => { if (e.pointerId === id) { TS.fx = e.clientX; TS.fy = e.clientY; e.preventDefault(); } });
   const end = e => { if (e.pointerId !== id) return; id = null; b.classList.remove('down'); TS.fire = false; };
-  b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+  b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('lostpointercapture', end);
+  INPUT_FREE.push(() => { id = null; b.classList.remove('down'); TS.fire = false; });
 })();
 bindBtn($('bAct'), () => { pressed.KeyE = true; });
 bindBtn($('bDash'), () => { TS.sprint = true; }, () => { TS.sprint = false; });

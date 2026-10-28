@@ -53,6 +53,7 @@ function gibPerson(p, ang) {             // torn apart by a blast (js/01j gibs):
 }
 function damagePlayer(d) {
   if (P.dead || state === 'over') return;
+  if (gymHurt(d)) return;                                          // a bout in BULL'S GYM: knocked out, never killed (js/08zzg)
   const a = Math.min(P.armor, d); P.armor -= a; d -= a;              // body armor takes it first (js/01g)
   P.hp -= d; P.hurtT = 0.25; Snd.hurt(); cam.shake = Math.max(cam.shake, 4);
   if (P.hp <= 0) killPlayer();
@@ -62,12 +63,24 @@ function killPlayer() {
   if (P.car) { P.car.driver = null; P.car.thr = 0; P.car.str = 0; P.car = null; }
   $('wasted').style.display = 'flex';
 }
+const PRODUCE_KNOCK = 10;                   // a hit this hard (car damage: a ram at about 60 km/h) knocks a crate off the produce truck; twice as hard, two
+function produceSpill(c, d) {             // crates off the back of the produce truck, fruit all over the road
+  if (c.crates === undefined) c.crates = 8;
+  const n = Math.min(c.crates, d >= PRODUCE_KNOCK * 2 ? 2 : 1); if (n <= 0) return;
+  const back = -c.t.len * 0.3, x = c.x + Math.cos(c.ang) * back, y = c.y + Math.sin(c.ang) * back;
+  for (let k = 0; k < n; k++) {
+    c.crates--; if (c.m && c.m.crates && c.m.crates[c.crates]) c.m.crates[c.crates].visible = false;
+    for (let i = 0; i < 16; i++) { const a = rand(0, TAU), s = rand(40, 170); addP({ x, y, z: 12, vz: rand(40, 150), grav: 420, vx: Math.cos(a) * s + c.vx * 0.4, vy: Math.sin(a) * s + c.vy * 0.4, life: rand(1.5, 3.2), max: 3.2, s0: rand(2, 3.6), s1: 1.6, col: pick(['#ff8a1f', '#e8262a', '#ffd23f', '#3dbb4a', '#b48a58']), drag: 1.4, hold: true }); }
+  }
+  Snd.smash('crate', clamp(1 - dist(x, y, P.x, P.y) / 700, 0, 1));
+}
 function damageCar(c, d, byPlayer) {
   if (c.dead || d <= 0) return;
   if (c.tk) d *= c.tk.arm;                                         // tuned armour takes some of it (js/08y)
   d /= jobTough(c);                                                // a job's vehicle while the job is on (js/08n)
   c.hp -= d; if (byPlayer) c.byPlayer = true;
   if (c.noWreck) c.hp = Math.max(c.hp, 1);                         // a mission's prop car: dented, never burns (js/08zy)
+  if (c.t.body === 'produce' && d >= PRODUCE_KNOCK) produceSpill(c, d);   // the produce truck: a crate off the back
   if (byPlayer && c.t.cop) reportCrime(Math.min(COP.crime.ramCopMax, d * COP.crime.ramCop / 10), 0, undefined, undefined, true);
   if (c.hp <= 0 && c.burn <= 0) {
     c.hp = 0; c.burn = 2.4 + Math.random() * 0.8;
@@ -92,7 +105,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R) * blastHurt()); }   // fireproof: less (js/08n)
   blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
-  blastTargets(x, y, R, src); if (byP) { baseHurt(x, y); prisonHurt(x, y); casinoHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
+  blastTargets(x, y, R, src); substationHurt(x, y, R); if (byP) { baseHurt(x, y); prisonHurt(x, y); casinoHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }

@@ -124,6 +124,8 @@ function makePrison() {
   for (const [lx, ly] of [[PRZ.path[1][0] + 30, PRZ.path[1][1]], [PRZ.path[2][0] - 30, PRZ.path[2][1]]]) piLamp(T, G, X(lx), Z(ly));
   const ps = fasciaSign('FERRY', '#2bf3ff', 40, 10); ps.position.set(X((PRZ.pier[0] + PRZ.pier[2]) / 2), 30, Z(PRZ.pier[1]) + 2); sub.push(ps);
   T.prism(X(PRZ.pier[0]) - 6, Z(PRZ.pier[1]) + 2, 1.2, 0, 26, steel, 6); T.prism(X(PRZ.pier[2]) + 6, Z(PRZ.pier[1]) + 2, 1.2, 0, 26, steel, 6);
+  // the towers' power boxes at their feet, outside the walls (js/08zp: cut one and its searchlight is out till morning)
+  for (const b of prisonBoxes()) { box5(T, X(b.x) - 4, 0, Z(b.y) - 3, X(b.x) + 4, 11, Z(b.y) + 3, _C('#6a6f7a')); box5(G, X(b.x) - 2.5, 6, Z(b.y) + 3, X(b.x) + 2.5, 9, Z(b.y) + 3.4, _C('#ffd23f')); }
   // moving parts: the sliding gate, the four searchlights
   const gate = new THREE.Group(), gm = new THREE.MeshLambertMaterial({ color: 0x4a4e58 });
   for (let x = -gw / 2 + 2; x <= gw / 2 - 2; x += 5) { const b = new THREE.Mesh(GB, gm); b.scale.set(1.6, wh - 14, 1.6); b.position.set(x, (wh - 14) / 2, 0); gate.add(b); }
@@ -133,7 +135,7 @@ function makePrison() {
   const poolM = new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.34, blending: THREE.AdditiveBlending, depthWrite: false });
   const headM = new THREE.MeshBasicMaterial({ color: 0xfff8e0 }), lights = [];
   for (const [tx, ty] of PRZ.towers) {
-    const head = new THREE.Mesh(GB, headM); head.scale.set(5, 4, 5); head.position.set(X(tx), th - 1, Z(ty));
+    const head = new THREE.Mesh(GB, headM.clone()); head.scale.set(5, 4, 5); head.position.set(X(tx), th - 1, Z(ty));   // its own lamp glass: dark while its power is cut
     const beam = new THREE.Mesh(PRI_BEAM, beamM), pool = new THREE.Mesh(GCirc, poolM); pool.scale.set(34, 1, 22);
     lights.push({ head, beam, pool, tx, ty, ph: rand(0, TAU) }); sub.push(head);
   }

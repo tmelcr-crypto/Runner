@@ -535,6 +535,10 @@ button.stRow:hover,button.stRow:focus{outline:0;border-color:var(--good);box-sha
 #sideView{position:fixed;inset:0;z-index:25;background:#05030c;touch-action:none;overflow:hidden}
 #svCv{position:absolute;left:0;top:0;display:block}
 #svTop{position:absolute;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center;gap:10px}
+#svObj{position:absolute;left:50%;top:46px;transform:translateX(-50%);margin:0;font-family:var(--f-display);font-size:10px;letter-spacing:1px;color:#b6ff3c;text-shadow:2px 2px 0 #000;white-space:nowrap;pointer-events:none}
+#svObj[hidden]{display:none}
+#sideView.seen::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px 14px rgba(255,40,60,.6)}
+#svFloors button.lock{opacity:.35;cursor:not-allowed}
 #svTitle{font-family:var(--f-display);font-weight:400;font-size:10px;letter-spacing:1px;color:var(--paper);text-shadow:2px 2px 0 #000}
 #svMenu{font-family:var(--f-display);font-size:9px;color:var(--cyan);background:rgba(11,6,26,.8);border:2px solid var(--cyan);padding:8px 10px;cursor:pointer;touch-action:manipulation}
 #svHint{position:absolute;left:0;right:0;bottom:118px;margin:0;text-align:center;font-family:var(--f-display);font-size:11px;color:var(--good);text-shadow:2px 2px 0 #000;pointer-events:none}
@@ -666,6 +670,12 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 @media (max-width:520px){#stuntBanner{font-size:17px}#stuntBanner small{font-size:11px}}
 
 /* missions (js/08zy): the objective, the test info, the dialogue, the list and the end card */
+#msBar{position:absolute;left:50%;top:96px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;pointer-events:none}
+#msBar[hidden]{display:none}
+#msBar.low{top:172px}
+#msBarLab{font-family:var(--f-display);font-weight:400;font-size:9px;letter-spacing:1px;color:#fff;text-shadow:2px 2px 0 #000}
+#msBar i{display:block;width:160px;height:10px;border:2px solid #fff;background:rgba(0,0,0,.5)}
+#msBar s{display:block;height:100%;width:0;background:var(--good)}
 #msObj{position:absolute;left:50%;top:70px;transform:translateX(-50%);font-family:var(--f-display);font-size:11px;letter-spacing:2px;color:#b6ff3c;text-shadow:2px 2px 0 #000;white-space:nowrap;pointer-events:none;transition:font-size .4s,top .4s}
 #msObj.big{font-size:18px;top:24%}
 #msObj[hidden]{display:none}
@@ -682,11 +692,12 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #pager.buzz{animation:pgBuzz .12s linear 0s 8}
 @keyframes pgBuzz{0%{transform:translateX(0)}25%{transform:translateX(-3px) rotate(-2deg)}75%{transform:translateX(3px) rotate(2deg)}100%{transform:translateX(0)}}
 @media (max-height:500px){#pager{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:132px}}
-#msLivePic{width:48px;height:48px;border:2px solid #fff;border-radius:5px;background:#12101c;flex:none;image-rendering:pixelated}
+#msLivePic{width:40px;height:62px;border:2px solid #fff;border-radius:5px;background:#12101c;flex:none;image-rendering:pixelated}
 #msLiveBub{flex:1;background:rgba(251,251,255,.94);color:#14121c;border:3px solid #fff;border-radius:10px;padding:6px 10px;font-family:var(--f-display);font-size:10px;line-height:1.6;box-shadow:3px 3px 0 #000}
 #msLiveWho{display:block;font-size:9px;letter-spacing:2px;text-shadow:1px 1px 0 #000}
 #msLiveLine{margin:2px 0 0;min-height:1.6em}
-#msPic{width:96px;height:96px;border:3px solid #fff;border-radius:6px;background:#12101c;flex:none;image-rendering:pixelated}
+#msPic{width:80px;height:125px;border:3px solid #fff;border-radius:6px;background:#12101c;flex:none;image-rendering:pixelated}
+@media (max-height:500px){#msPic{width:60px;height:94px}#msLivePic{width:30px;height:47px}}
 #msBub{flex:1;background:#fbfbff;color:#14121c;border:4px solid #fff;border-radius:14px;padding:10px 14px 18px;position:relative;font-family:var(--f-display);font-size:12px;line-height:1.7;min-height:56px;box-shadow:4px 4px 0 #000}
 #msWho{display:block;font-size:10px;letter-spacing:2px;text-shadow:1px 1px 0 #000}
 #msLine{margin:4px 0 0}
@@ -704,3 +715,21 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #msObj{white-space:normal;text-align:center;width:max-content;max-width:92vw;line-height:1.5}
 #msObj.big{font-size:clamp(13px,4.6vw,18px)}
 #startCard .build{margin:2px 0 10px;font-size:9px;letter-spacing:2px;opacity:.55}
+/* BULL'S GYM: the opponent's name and health over the ring (js/08zzg) */
+#gymBar{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;font-family:var(--f-display);font-size:11px;color:#fff;text-shadow:0 2px 0 #000}
+#gymBar[hidden]{display:none}
+#gymBar i{display:block;width:200px;height:10px;background:#2a1418;border:2px solid #000;box-shadow:0 0 0 1px #ff3b4a}
+#gymBar span{display:block;height:100%;width:100%;background:linear-gradient(#ff7a7a,#c8202c);transition:width .15s}
+@media (max-height:500px){#gymBar{top:48px;font-size:9px}#gymBar i{width:150px;height:8px}}
+/* the brick phone (story chapter 2 on): it rings with the caller's name (js/08zy msPhone) */
+#phone{position:fixed;right:max(16px,env(safe-area-inset-right));top:226px;z-index:33;pointer-events:none;width:84px}
+#phone[hidden]{display:none}
+#phone .phAnt{display:block;width:7px;height:30px;margin-left:12px;background:linear-gradient(90deg,#14161c,#3a3f4a,#14161c);border-radius:3px 3px 0 0;border:2px solid #0c0c12;border-bottom:0}
+#phone .phBody{background:linear-gradient(90deg,#1c1f27,#3a3f4c 40%,#1c1f27);border:3px solid #0c0c12;border-radius:10px 10px 14px 14px;padding:7px 6px 8px;box-shadow:3px 4px 0 rgba(0,0,0,.45)}
+#phScreen{background:#9bd16a;color:#14261a;border-radius:3px;padding:5px 4px;text-align:center;font:bold 10px/1.35 monospace;box-shadow:inset 0 0 6px rgba(0,0,0,.4);display:flex;flex-direction:column}
+#phScreen span{font-size:8px;letter-spacing:1px;animation:phBlink .5s steps(1) infinite}
+#phone .phKeys{height:44px;margin-top:6px;background:radial-gradient(circle,#c8ccd6 1.6px,transparent 2.2px) 0 0/13px 11px;opacity:.85}
+#phone.ringing{animation:phShake .1s linear infinite}
+@keyframes phShake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(-2px,0) rotate(-4deg)}75%{transform:translate(2px,0) rotate(4deg)}}
+@keyframes phBlink{50%{opacity:.2}}
+@media (max-height:500px){#phone{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:70px}#phone .phKeys{height:26px}}

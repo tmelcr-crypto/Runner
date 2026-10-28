@@ -45,6 +45,37 @@ const GTor = new THREE.TorusGeometry(1, 0.3, 6, 14).rotateX(Math.PI / 2);   // a
 const BAR = { police: [E.redOn, E.redOff, E.blueOn, E.blueOff], ambulance: [E.redOn, E.redOff, mBas(0xffffff), mBas(0x4a4a52)],
   fire: [E.redOn, E.redOff, mBas(0xffb02e), mBas(0x5a3f1f)], trash: [mBas(0xffb02e), mBas(0x5a3f1f), mBas(0xffb02e), mBas(0x5a3f1f)] };
 const PLAYER_SHIRT = mc(0xffd23f);
+/* Liveries painted on a truck's cargo box (a quest's vehicle): the roof, seen from above, and both sides. */
+const DECO = {
+  laundry: { bg: '#f4f6fa', fg: '#2a5fc8', top: 'SUDS & SONS', sub: 'LAUNDRY · 24 H', dots: '#9fd4ee' },
+  flamingo: { bg: '#efe6cc', fg: '#b8860b', top: 'ROYAL FLAMINGO', sub: 'CASINO · CASH IN TRANSIT', bird: '#ff5fa2' },
+  baytv: { bg: '#f4f6fa', fg: '#1f4fa8', top: 'BAY TV 7', sub: 'NEWS · LIVE · ON THE SPOT', dots: '#ff3b4a' }
+};
+const _deco = {};
+function decoTex(kind, side) {
+  const k = kind + side; if (_deco[k]) return _deco[k];
+  const D = DECO[kind], c = document.createElement('canvas'); c.width = 512; c.height = side ? 128 : 320; const g = c.getContext('2d'), H = c.height;
+  g.fillStyle = D.bg; g.fillRect(0, 0, 512, H); g.strokeStyle = D.fg; g.lineWidth = 10; g.strokeRect(8, 8, 496, H - 16);
+  if (D.dots) { g.fillStyle = D.dots; for (let i = 0; i < 14; i++) { g.beginPath(); g.arc(40 + (i * 97) % 440, 30 + (i * 53) % (H - 60), 8 + (i % 4) * 5, 0, TAU); g.fill(); } }
+  if (D.bird) {                                  // a pink flamingo on one leg
+    const bx = side ? 70 : 110, by = side ? 64 : 150, sc = side ? 0.45 : 1; g.fillStyle = D.bird; g.strokeStyle = D.bird; g.lineWidth = 6 * sc;
+    g.beginPath(); g.ellipse(bx, by, 46 * sc, 26 * sc, -0.3, 0, TAU); g.fill();
+    g.beginPath(); g.moveTo(bx + 30 * sc, by - 14 * sc); g.quadraticCurveTo(bx + 70 * sc, by - 60 * sc, bx + 40 * sc, by - 92 * sc); g.stroke();
+    g.beginPath(); g.arc(bx + 40 * sc, by - 98 * sc, 10 * sc, 0, TAU); g.fill();
+    g.beginPath(); g.moveTo(bx, by + 24 * sc); g.lineTo(bx, by + 96 * sc); g.stroke();
+  }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = D.fg;
+  const x0 = D.bird ? 300 : 256, w = D.bird ? 360 : 470, fit = (t, fs) => { g.font = 'bold ' + fs + 'px "Arial Black",Impact,sans-serif'; while (g.measureText(t).width > w && fs > 12) { fs -= 2; g.font = 'bold ' + fs + 'px "Arial Black",Impact,sans-serif'; } };
+  if (side) { fit(D.top, 54); g.fillText(D.top, x0, 66); }
+  else { fit(D.top, 64); g.fillText(D.top, x0, 130); fit(D.sub, 34); g.fillText(D.sub, x0, 210); }
+  return (_deco[k] = finishTex(c));
+}
+function carDeco(kind, tilt, L, Wd) {
+  if (!DECO[kind]) return;
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.6, Wd * 0.94), new THREE.MeshLambertMaterial({ map: decoTex(kind, false) }));
+  roof.rotation.x = -Math.PI / 2; roof.position.set(-L * 0.19, 23.1, 0); tilt.add(roof);
+  for (const s of [-1, 1]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.56, 12), new THREE.MeshLambertMaterial({ map: decoTex(kind, true) })); m.position.set(-L * 0.19, 13, s * (Wd / 2 + 0.08)); if (s < 0) m.rotation.y = Math.PI; tilt.add(m); }
+}
 function buildCar(c) {                       // parts that never move on their own are merged: one mesh per material
   const t = c.t, L = t.len, Wd = t.wid, B = t.body, g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   const body = c.type === 'gold' ? new THREE.MeshPhongMaterial({ color: c.color, specular: 0xfff0c0, shininess: 38 }) : new THREE.MeshLambertMaterial({ color: c.color }),   // the gold car shines (js/08zs)
@@ -88,6 +119,31 @@ function buildCar(c) {                       // parts that never move on their o
     part(tilt, GB, E.black, L * 0.42, 0.6, Wd - 3, -L * 0.27, 12.3, 0);
     for (const x of [L * 0.32, -L * 0.32]) axle(x, 5.6);
     lamps(9, 2.6, 9, 2.6); seat(L * 0.14, 19);
+  } else if (B === 'newsvan') {              // Bay TV's van: a cab, a tall box, the station's livery on it, a dish and a mast on the roof
+    merged('b', body, [[GB, L * 0.3, 11, Wd, L * 0.35, 8.5, 0], [GB, L * 0.3, 1.4, Wd, L * 0.35, 18.7, 0], [GB, L * 0.68, 20, Wd, -L * 0.16, 12, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.26, 6, Wd - 2, L * 0.36, 15.5, 0);
+    const D = DECO.baytv, roof = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.66, Wd * 0.94), new THREE.MeshLambertMaterial({ map: decoTex('baytv', false) })); roof.rotation.x = -Math.PI / 2; roof.position.set(-L * 0.16, 22.1, 0); tilt.add(roof);
+    for (const s of [-1, 1]) { const sd = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.62, 12), new THREE.MeshLambertMaterial({ map: decoTex('baytv', true) })); sd.position.set(-L * 0.16, 12, s * (Wd / 2 + 0.08)); if (s < 0) sd.rotation.y = Math.PI; tilt.add(sd); }
+    void D; part(tilt, GCyl, E.white, 1.2, 4, 1.2, -L * 0.3, 24, 0); part(tilt, GSph, E.white, 5, 1.6, 5, -L * 0.3, 26.5, 0);   // the dish on its stand
+    part(tilt, GCyl, mc(0x9aa0ab), 0.5, 10, 0.5, -L * 0.02, 27, Wd * 0.3);                       // the mast
+    for (const x of [L * 0.32, -L * 0.3]) axle(x, 5);
+    lamps(7, 3, 8, 3, 5); seat(L * 0.38, 19);
+  } else if (B === 'produce') {              // an open-back truck: the cab up front, a wooden bed with stake sides, eight crates of produce (they fall off when it is hit hard, js/06)
+    merged('b', body, [[GB, L * 0.28, 12, Wd, L * 0.36, 9, 0], [GB, L * 0.28, 1.6, Wd, L * 0.36, 21.8, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.24, 6, Wd - 2, L * 0.37, 18, 0);
+    merged('f', E.black, [[GB, L * 0.7, 2.4, Wd - 2, -L * 0.14, 5.6, 0]]);
+    const bedL = L * 0.66, bx = -L * 0.155, stakes = [[GB, bedL, 1.2, Wd, bx, 7.8, 0]];
+    for (let k = 0; k <= 4; k++) for (const s of [-1, 1]) stakes.push([GB, 1.3, 7, 1.3, bx - bedL / 2 + 0.7 + k * (bedL - 1.4) / 4, 11.5, s * (Wd / 2 - 0.7)]);
+    for (const s of [-1, 1]) stakes.push([GB, bedL, 1, 0.9, bx, 14.4, s * (Wd / 2 - 0.7)], [GB, bedL, 1, 0.9, bx, 11, s * (Wd / 2 - 0.7)]);
+    merged('w', mc(0x8a6a48), stakes);
+    m.crates = []; const cw = bedL / 4 - 1.2, cd = Wd / 2 - 2.4, wood = mc(0xb48a58), fruit = [0xff8a1f, 0xe8262a, 0x3dbb4a, 0xffd23f, 0xff8a1f, 0x7a2a8a, 0xe8262a, 0x3dbb4a];
+    for (let i = 0; i < 8; i++) {
+      const cg = new THREE.Group(), x = bx - bedL / 2 + (3 - Math.floor(i / 2) + 0.5) * bedL / 4, z = (i % 2 ? 1 : -1) * (cd / 2 + 0.9);
+      part(cg, GB, wood, cw, 5, cd, x, 11, z); part(cg, GB, mc(fruit[i]), cw - 1.2, 1.6, cd - 1.2, x, 14, z); tilt.add(cg); m.crates.push(cg);
+    }
+    const left = c.crates === undefined ? 8 : c.crates; m.crates.forEach((cg, i) => { cg.visible = i < left; });
+    for (const x of [L * 0.34, -L * 0.12, -L * 0.36]) axle(x, 5);
+    lamps(7, 3, 8, 3, 5); seat(L * 0.38, 21);
   } else if (B === 'limo') {                 // a long, low cabin and a chrome line
     merged('b', body, [[GB, L, 7.5, Wd, 0, 6.75, 0], [GB, L * 0.6, 1.3, Wd - 7, -L * 0.03, 17.6, 0]]);
     m.cabin = part(tilt, GB, GLASS, L * 0.64, 6.5, Wd - 5, -L * 0.03, 13.75, 0);
@@ -232,6 +288,7 @@ function buildCar(c) {                       // parts that never move on their o
     lamps(8, 2.6, 8, 2.6); seat(L * 0.02, 17.9);
   }
   tuneParts(c, m, merged, wheels);                                   // the tuning workshop's roof, stripes, wing, scoop and rims (js/08y)
+  if (c.deco && B === 'truck') carDeco(c.deco, tilt, L, Wd);           // a livery on the cargo box: the laundry van, the casino's armoured van (js/08zzi)
   merged('w', E.tire, wheels);
   { const ug = new THREE.Mesh(GP, glowMat((c.tune && c.tune.glow) || c.color, 0.9)); ug.scale.set(L * 1.5, 1, Wd * 2.1); ug.position.y = 1.4; g.add(ug); m.ug = ug;       // neon underglow
     const hb = new THREE.Mesh(GP, glowMat('#bfeeff', 0.38, true)); hb.scale.set(100, 1, 50); hb.position.set(L / 2 + 44, 1.45, 0); g.add(hb); m.hb = hb;       // headlight pool
@@ -409,7 +466,7 @@ function syncPerson(p, kind, time, dt) {
   const gy = groundH(p.x, p.y); p.gy = p.gy === undefined ? gy : p.gy + (gy - p.gy) * Math.min(1, dt * 12);
   g.position.set(p.x, p.gy + (p.air || 0) + (p.z || 0), p.y);       // z: a guard up a watchtower (js/08zp)
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
-  if (kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
+  if (kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || p.boxer || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
   if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
     o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
@@ -433,7 +490,7 @@ function syncPerson(p, kind, time, dt) {
     }
     if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
   }
-  const hid = kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
+  const hid = kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || p.boxer) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }
   if (p.held) {
     if (isMelee(WEAPONS[p.arm])) { const u = p.swingT > 0 ? 1 - p.swingT / 0.25 : 0; p.held.rotation.set(0, p.swingT > 0 ? lerp(1.3, -1.3, u) : 0.7, p.swingT > 0 ? lerp(0.9, 0.1, u) : 1.05); o.arms[1].rotation.z = p.swingT > 0 ? -1.4 * Math.sin(Math.PI * u) : -0.5; }

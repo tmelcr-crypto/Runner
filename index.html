@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="build" content="57">
+<meta name="build" content="58">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Block Runner</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=57">
+<link rel="stylesheet" href="css/style.css?v=58">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -44,6 +44,7 @@
   <div id="warnBanner" hidden></div>
   <div id="stuntBanner" hidden></div>
   <div id="msObj" hidden></div>
+  <div id="msBar" hidden><b id="msBarLab"></b><i><s id="msBarFill"></s></i></div>
   <div id="msInfo"></div>
   <button id="ferrySkip" type="button" hidden>SKIP THE CROSSING ▸▸</button>
   <button id="rampBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7 2 4 5.4 4 9.6c0 2.6 1.2 4.4 3 5.5V19h2v2h2v-2h2v2h2v-2h2v-3.9c1.8-1.1 3-2.9 3-5.5C20 5.4 17 2 12 2zM8.6 13.2a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm6.8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM12 14.2l1.2 2h-2.4z"/></svg></span><b></b><span class="go">RAMPAGE</span></button>
@@ -60,6 +61,10 @@
   <button id="boatBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 6.5V21M8 10h8M4 14c0 4 4 7 8 7s8-3 8-7"/></svg></span><b></b><span class="go">ENTER</span></button>
   <button id="casBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM11 0h2v5h-2zm0 19h2v5h-2zM0 11h5v2H0zm19 0h5v2h-5z"/><circle cx="12" cy="12" r="3"/></svg></span><b></b><span class="go">PLAY</span></button>
   <button id="ixBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H5v12h14V10h-2V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9zm3 4a2 2 0 0 1 1 3.7V20h-2v-2.3A2 2 0 0 1 12 14z"/></svg></span><b></b><span class="go">FORCE</span></button>
+  <button id="gymBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 3h6a5 5 0 0 1 5 5v4a4 4 0 0 1-2 3.5V18H8v-2.6A5 5 0 0 1 5 11V7a4 4 0 0 1 3-4zM7 19h11v3H7z"/></svg></span><b></b><span class="go">FIGHT</span></button>
+  <button id="sbBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21V9l4 3 5-7 5 7 4-3v12zM8 15h2v4H8zm6 0h2v4h-2z"/></svg></span><b></b><span class="go">ENTER</span></button>
+  <button id="depotBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 20V8l10-5 10 5v12h-3v-9H5v9zm5-7h10v2H7zm0 4h10v2H7z"/></svg></span><b></b><span class="go">OPEN IT</span></button>
+  <div id="gymBar" hidden><b id="gymName"></b><i><span id="gymHp"></span></i></div>
   <button id="msBtn" class="doorBtn" type="button" hidden><span class="si"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b></b><span class="go">START MISSION</span></button>
   <div id="scope" hidden><i class="xh"></i><span id="scopeTag"></span></div>
   <div id="wheel" hidden><div id="wgTitle" hidden>WEAPONS</div><div id="wgrid" hidden></div><div id="wring"><div id="wcenter"><span id="wcName"></span><span class="lbl">TAP A WEAPON</span></div></div><p id="wHow"></p></div>
@@ -88,6 +93,7 @@
 <div id="sideView" hidden>
   <canvas id="svCv"></canvas>
   <div id="svTop"><b id="svTitle"></b><button id="svMenu" type="button">MENU</button></div>
+  <p id="svObj" hidden></p>
   <p id="svHint"></p>
   <div class="svPad" id="svPadL"><button id="svL" type="button" aria-label="Walk left">&#9664;</button><button id="svR" type="button" aria-label="Walk right">&#9654;</button></div>
   <div class="svPad" id="svPadR"><button id="svD" type="button" aria-label="Down">&#9660;</button><button id="svU" type="button" aria-label="Up">&#9650;</button></div>
@@ -102,15 +108,16 @@
   <button id="cutSkip" type="button">LAND</button>
 </div>
 <div id="pager" hidden><div class="pgTop"><b>PAGE</b><span class="pgLed"></span></div><div id="pgText"></div></div>
-<div id="msLive" hidden><canvas id="msLivePic" width="96" height="96"></canvas><div id="msLiveBub"><b id="msLiveWho"></b><p id="msLiveLine"></p></div></div>
-<div id="msTalk" hidden><canvas id="msPic" width="192" height="192"></canvas><div id="msBub"><b id="msWho"></b><p id="msLine"></p><span id="msMore" hidden>TAP ▸</span></div></div>
+<div id="phone" hidden><span class="phAnt"></span><div class="phBody"><div id="phScreen"><b id="phWho"></b><span>CALLING</span></div><div class="phKeys"></div></div></div>
+<div id="msLive" hidden><canvas id="msLivePic" width="96" height="150"></canvas><div id="msLiveBub"><b id="msLiveWho"></b><p id="msLiveLine"></p></div></div>
+<div id="msTalk" hidden><canvas id="msPic" width="192" height="300"></canvas><div id="msBub"><b id="msWho"></b><p id="msLine"></p><span id="msMore" hidden>TAP ▸</span></div></div>
 <div id="sleepFx" hidden><span class="moon"></span><b>SLEEPING</b><i id="sleepClock">00:00</i></div>
 
 <div id="overlay">
   <div class="card" id="startCard">
     <h1>BLOCK<br>RUNNER</h1>
     <p class="tag">TOP-DOWN CRIME SPREE '97</p>
-    <p class="build" id="buildTag">BUILD 57</p>
+    <p class="build" id="buildTag">BUILD 58</p>
     <div class="menu">
       <button id="contBtn" class="big pri" type="button" hidden>CONTINUE</button>
       <p class="sub" id="contInfo" hidden></p>
@@ -175,6 +182,7 @@
   <div class="card" id="msCard" hidden>
     <h2>MISSIONS</h2>
     <p class="sub" id="msSub">MISSIONS TEST · PICK ONE TO PLAY</p>
+    <div class="msRow" id="msChoices"></div>
     <div class="menu" id="msList"></div>
     <div id="msHelp" hidden>
       <p class="sub" id="msNow"></p>
@@ -314,8 +322,22 @@
         <li>Tap MISSIONS TEST on the NEW GAME screen and tap a mission: the game starts with it. <b>MISSIONS</b> on the pause menu picks another; while one runs, the same list restarts it, jumps to any step or replays a cutscene.</li>
         <li>A mission begins by its giver: walk up on foot and tap <b>START MISSION</b> (or E). Follow the words at the top, the lime line and the green arrow. In a dialogue, tap anywhere (or E) for the rest of the line, again for the next; SKIP ends a cutscene. Small bubbles under the objective are live lines (a shout, a phone call): play on, they go by themselves.</li>
         <li>Enemies (red dots) fight you and your friends; a friend (a bar over them) follows you, fights, gets in when you stop your car and shoots from it - keep them alive. Killing a mission's enemies is no crime.</li>
-        <li>While a mission runs, rampages, races, jobs, the scenic flight, the casino games, break-ins and the docks delivery are shut (NOT DURING A MISSION). Shops and the Pay 'n' Spray stay open.</li>
-        <li>The story's first chapter (M01-M06) is in the list too. The <b>pager</b> on the right buzzes with a message: go to the marked phone booth and tap <b>CALL</b>. A friend who does not fight (Papa Joe) rides with you and stays in the car when you get out - stop by him and he gets in.</li></ul></div>
+        <li>While a mission runs, rampages, races, jobs, the scenic flight, the casino games, break-ins, the ring fights and the docks delivery are shut (NOT DURING A MISSION). Shops and the Pay 'n' Spray stay open.</li>
+        <li>The story's first chapter (M01-M06) is in the list too. The <b>pager</b> on the right buzzes with a message: go to the marked phone booth and tap <b>CALL</b>. A friend who does not fight (Papa Joe) rides with you and stays in the car when you get out - stop by him and he gets in.</li>
+        <li>The story's second chapter (M07-M12) too. From M07 the <b>brick phone</b> rings on the right with the caller's name: tap <b>ANSWER</b> (or E), even in a car. In M12 you choose by what you do: shoot Kessler, or walk away.</li>
+        <li>The Casino storyline (C1-C8) with Del Ramos: the vault under the Royal Flamingo. In the side-on view some guards must not see you: a <b>!</b> and a rising tone - get out of sight within 2 seconds, or hide with <b>DOWN</b> at a door or a plant.</li>
+        <li>Chapter 3 (M13-M18) with Nina Park: some quests show a meter under the objective - SUSPICION when you tail someone (hang back, don't sit in his mirrors), LOADING or BOARDING when the clock runs. At Crane's rally the guards' yellow cones show where they look; a cheer turns their heads.</li>
+        <li>BAY TV's newsroom stands on the TV tower's plaza in Mercado: open by day, its roof turns see-through while you are inside. Crane's rallies fill Bayfront Park's band shell at noon (story).</li>
+        <li>Iron Key at night: the towers' searchlights sweep the island - step into a beam and the alarm goes. A grey power box at each tower's foot: E cuts it, and that light stays dark till morning. OTTO'S PRINTING stands in Mercado.</li></ul></div>
+      <div><h3>THE CASINO STRIP'S PLACES</h3><ul>
+        <li><b>THE CROWN</b> downtown: <b>ENTER</b> at its door - the lobby, the lift and ten floors of offices (side-on). The stairs switch ends from floor to floor.</li>
+        <li><b>The cash depot</b> north of the casino: <b>OPEN IT</b> at the guard hut's window and take a casino armoured van - a break-in, 2 stars.</li>
+        <li><b>The FUNHOUSE</b> in the lunapark: a mirror maze and a tilted room that slides you to its low wall.</li>
+        <li><b>The substation</b> west of the casino: blow it up and the strip's neon goes dark for a minute or two, until the repair crew comes.</li></ul></div>
+      <div><h3>BULL'S GYM</h3><ul>
+        <li>Bull Kessler's boxing gym at Dockside (a red glove on the maps), open 7:00-23:00: boxers at the bags, the ring at the back.</li>
+        <li>At the ring's steps tap <b>RING</b> (or E) for a bout: fists only, no armour. Jab him, step back out of his reach when he swings. Five opponents, each tougher and paying more (€200 up to €3,200).</li>
+        <li>Knocked out, you wake outside the door with a little health - try again any time.</li></ul></div>
       <div><h3>HANGARS AND WAREHOUSES</h3><ul>
         <li>The airport's three hangars, six warehouses at Dockside and Gravel Flats and the storage yard's eight lock-ups (a brown crate on the maps): walk or drive in, the roof turns see-through.</li>
         <li>Stashes of cash, guns and ammo inside, and four rare vehicles - a classic under a dust sheet, a race bike, a prototype, an armoured van with money in the back. Drive one off and it is yours; lost, a new one is back a day later.</li>
@@ -570,127 +592,140 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/00-map-data.js?v=57"></script>
-<script src="js/01-config.js?v=57"></script>
-<script src="js/01b-police-data.js?v=57"></script>
-<script src="js/01c-vehicle-data.js?v=57"></script>
-<script src="js/01d-sky-data.js?v=57"></script>
-<script src="js/01e-radio-data.js?v=57"></script>
-<script src="js/01f-weapon-data.js?v=57"></script>
-<script src="js/01g-shop-data.js?v=57"></script>
-<script src="js/01h-rampage-data.js?v=57"></script>
-<script src="js/01i-economy-data.js?v=57"></script>
-<script src="js/01j-mode-data.js?v=57"></script>
-<script src="js/01k-airport-data.js?v=57"></script>
-<script src="js/01l-places-data.js?v=57"></script>
-<script src="js/01m-streets-data.js?v=57"></script>
-<script src="js/01n-clothes-data.js?v=57"></script>
-<script src="js/01o-jobs-data.js?v=57"></script>
-<script src="js/01p-races-data.js?v=57"></script>
-<script src="js/01q-safehouse-data.js?v=57"></script>
-<script src="js/01r-buildings-data.js?v=57"></script>
-<script src="js/01s-parks-data.js?v=57"></script>
-<script src="js/01t-stats-data.js?v=57"></script>
-<script src="js/01u-casino-data.js?v=57"></script>
-<script src="js/01v-stunt-data.js?v=57"></script>
-<script src="js/01w-interior-data.js?v=57"></script>
-<script src="js/01x-mission-data.js?v=57"></script>
-<script src="js/01y-character-data.js?v=57"></script>
-<script src="js/02-audio.js?v=57"></script>
-<script src="js/02b-radio.js?v=57"></script>
-<script src="js/02c-music.js?v=57"></script>
-<script src="js/02d-city-sound.js?v=57"></script>
-<script src="js/03-input.js?v=57"></script>
-<script src="js/04-world.js?v=57"></script>
-<script src="js/05-entities.js?v=57"></script>
-<script src="js/06-gameplay.js?v=57"></script>
-<script src="js/06b-melee-throw.js?v=57"></script>
-<script src="js/07-vehicles-traffic-police.js?v=57"></script>
-<script src="js/07b-traffic-lights.js?v=57"></script>
-<script src="js/08-pedestrians-pickups-spawning.js?v=57"></script>
-<script src="js/08b-police.js?v=57"></script>
-<script src="js/08c-services.js?v=57"></script>
-<script src="js/08d-weapon-pickups.js?v=57"></script>
-<script src="js/08e-shops.js?v=57"></script>
-<script src="js/08f-rampages.js?v=57"></script>
-<script src="js/08g-armed-people.js?v=57"></script>
-<script src="js/08h-paramedics.js?v=57"></script>
-<script src="js/08i-planes.js?v=57"></script>
-<script src="js/08j-places.js?v=57"></script>
-<script src="js/08k-ships.js?v=57"></script>
-<script src="js/08l-clothes-shops.js?v=57"></script>
-<script src="js/08m-car-delivery.js?v=57"></script>
-<script src="js/08n-vehicle-jobs.js?v=57"></script>
-<script src="js/08o-races.js?v=57"></script>
-<script src="js/08p-guide.js?v=57"></script>
-<script src="js/08q-spray.js?v=57"></script>
-<script src="js/08r-heavy-guns.js?v=57"></script>
-<script src="js/08s-safehouses.js?v=57"></script>
-<script src="js/08t-sideview.js?v=57"></script>
-<script src="js/08u-police-heli.js?v=57"></script>
-<script src="js/08v-flights.js?v=57"></script>
-<script src="js/08w-showroom.js?v=57"></script>
-<script src="js/08x-visitors.js?v=57"></script>
-<script src="js/08y-tuning.js?v=57"></script>
-<script src="js/08z-salvage.js?v=57"></script>
-<script src="js/08zr-roadblocks.js?v=57"></script>
-<script src="js/08zs-stats.js?v=57"></script>
-<script src="js/08zp-prison.js?v=57"></script>
-<script src="js/08zt-site.js?v=57"></script>
-<script src="js/08zu-casino.js?v=57"></script>
-<script src="js/08zv-marina.js?v=57"></script>
-<script src="js/08zw-stunts.js?v=57"></script>
-<script src="js/08zx-interiors.js?v=57"></script>
-<script src="js/08zy-missions.js?v=57"></script>
-<script src="js/08zz-mission-cast.js?v=57"></script>
-<script src="js/09-render-core-buildings.js?v=57"></script>
-<script src="js/10-render-city-map.js?v=57"></script>
-<script src="js/10b-render-landmarks.js?v=57"></script>
-<script src="js/10c-render-fill.js?v=57"></script>
-<script src="js/10d-render-clutter.js?v=57"></script>
-<script src="js/10e-render-services.js?v=57"></script>
-<script src="js/10f-airport.js?v=57"></script>
-<script src="js/10g-places.js?v=57"></script>
-<script src="js/10h-lunapark.js?v=57"></script>
-<script src="js/10i-speedway.js?v=57"></script>
-<script src="js/10j-spray-garage.js?v=57"></script>
-<script src="js/10k-carpark.js?v=57"></script>
-<script src="js/10l-safehouses.js?v=57"></script>
-<script src="js/10m-grove.js?v=57"></script>
-<script src="js/10n-unique.js?v=57"></script>
-<script src="js/10o-unique-more.js?v=57"></script>
-<script src="js/10p-parks.js?v=57"></script>
-<script src="js/10q-forests.js?v=57"></script>
-<script src="js/10r-factory.js?v=57"></script>
-<script src="js/10s-showroom.js?v=57"></script>
-<script src="js/10t-salvage.js?v=57"></script>
-<script src="js/10u-prison.js?v=57"></script>
-<script src="js/10v-site.js?v=57"></script>
-<script src="js/10w-casino.js?v=57"></script>
-<script src="js/10x-marina.js?v=57"></script>
-<script src="js/10y-stunts.js?v=57"></script>
-<script src="js/10z-interiors.js?v=57"></script>
-<script src="js/10za-ads.js?v=57"></script>
-<script src="js/11-render-dynamic-meshes.js?v=57"></script>
-<script src="js/11b-weapon-models.js?v=57"></script>
-<script src="js/11c-clothes-models.js?v=57"></script>
-<script src="js/11d-figure-hd.js?v=57"></script>
-<script src="js/11e-weapon-hd.js?v=57"></script>
-<script src="js/12-render-effects.js?v=57"></script>
-<script src="js/12b-rockets.js?v=57"></script>
-<script src="js/12c-blast.js?v=57"></script>
-<script src="js/12d-sky-weather.js?v=57"></script>
-<script src="js/12e-smash.js?v=57"></script>
-<script src="js/12f-homing.js?v=57"></script>
-<script src="js/12g-trees.js?v=57"></script>
-<script src="js/12h-fireworks.js?v=57"></script>
-<script src="js/13-render-frame.js?v=57"></script>
-<script src="js/14-hud-minimap.js?v=57"></script>
-<script src="js/14b-weapon-wheel-scope.js?v=57"></script>
-<script src="js/15-game-flow-loop.js?v=57"></script>
-<script src="js/15b-menus-saves.js?v=57"></script>
-<script src="js/15c-cutscene.js?v=57"></script>
-<script src="js/16-octagrid-map-preview.js?v=57"></script>
-<script src="js/main.js?v=57"></script>
+<script src="js/00-map-data.js?v=58"></script>
+<script src="js/01-config.js?v=58"></script>
+<script src="js/01b-police-data.js?v=58"></script>
+<script src="js/01c-vehicle-data.js?v=58"></script>
+<script src="js/01d-sky-data.js?v=58"></script>
+<script src="js/01e-radio-data.js?v=58"></script>
+<script src="js/01f-weapon-data.js?v=58"></script>
+<script src="js/01g-shop-data.js?v=58"></script>
+<script src="js/01h-rampage-data.js?v=58"></script>
+<script src="js/01i-economy-data.js?v=58"></script>
+<script src="js/01j-mode-data.js?v=58"></script>
+<script src="js/01k-airport-data.js?v=58"></script>
+<script src="js/01l-places-data.js?v=58"></script>
+<script src="js/01m-streets-data.js?v=58"></script>
+<script src="js/01n-clothes-data.js?v=58"></script>
+<script src="js/01o-jobs-data.js?v=58"></script>
+<script src="js/01p-races-data.js?v=58"></script>
+<script src="js/01q-safehouse-data.js?v=58"></script>
+<script src="js/01r-buildings-data.js?v=58"></script>
+<script src="js/01s-parks-data.js?v=58"></script>
+<script src="js/01t-stats-data.js?v=58"></script>
+<script src="js/01u-casino-data.js?v=58"></script>
+<script src="js/01v-stunt-data.js?v=58"></script>
+<script src="js/01w-interior-data.js?v=58"></script>
+<script src="js/01x-mission-data.js?v=58"></script>
+<script src="js/01y-character-data.js?v=58"></script>
+<script src="js/01z-gym-data.js?v=58"></script>
+<script src="js/02-audio.js?v=58"></script>
+<script src="js/02b-radio.js?v=58"></script>
+<script src="js/02c-music.js?v=58"></script>
+<script src="js/02d-city-sound.js?v=58"></script>
+<script src="js/03-input.js?v=58"></script>
+<script src="js/04-world.js?v=58"></script>
+<script src="js/05-entities.js?v=58"></script>
+<script src="js/06-gameplay.js?v=58"></script>
+<script src="js/06b-melee-throw.js?v=58"></script>
+<script src="js/07-vehicles-traffic-police.js?v=58"></script>
+<script src="js/07b-traffic-lights.js?v=58"></script>
+<script src="js/08-pedestrians-pickups-spawning.js?v=58"></script>
+<script src="js/08b-police.js?v=58"></script>
+<script src="js/08c-services.js?v=58"></script>
+<script src="js/08d-weapon-pickups.js?v=58"></script>
+<script src="js/08e-shops.js?v=58"></script>
+<script src="js/08f-rampages.js?v=58"></script>
+<script src="js/08g-armed-people.js?v=58"></script>
+<script src="js/08h-paramedics.js?v=58"></script>
+<script src="js/08i-planes.js?v=58"></script>
+<script src="js/08j-places.js?v=58"></script>
+<script src="js/08k-ships.js?v=58"></script>
+<script src="js/08l-clothes-shops.js?v=58"></script>
+<script src="js/08m-car-delivery.js?v=58"></script>
+<script src="js/08n-vehicle-jobs.js?v=58"></script>
+<script src="js/08o-races.js?v=58"></script>
+<script src="js/08p-guide.js?v=58"></script>
+<script src="js/08q-spray.js?v=58"></script>
+<script src="js/08r-heavy-guns.js?v=58"></script>
+<script src="js/08s-safehouses.js?v=58"></script>
+<script src="js/08t-sideview.js?v=58"></script>
+<script src="js/08u-police-heli.js?v=58"></script>
+<script src="js/08v-flights.js?v=58"></script>
+<script src="js/08w-showroom.js?v=58"></script>
+<script src="js/08x-visitors.js?v=58"></script>
+<script src="js/08y-tuning.js?v=58"></script>
+<script src="js/08z-salvage.js?v=58"></script>
+<script src="js/08zr-roadblocks.js?v=58"></script>
+<script src="js/08zs-stats.js?v=58"></script>
+<script src="js/08zp-prison.js?v=58"></script>
+<script src="js/08zt-site.js?v=58"></script>
+<script src="js/08zu-casino.js?v=58"></script>
+<script src="js/08zv-marina.js?v=58"></script>
+<script src="js/08zw-stunts.js?v=58"></script>
+<script src="js/08zx-interiors.js?v=58"></script>
+<script src="js/08zy-missions.js?v=58"></script>
+<script src="js/08zz-mission-cast.js?v=58"></script>
+<script src="js/08zzg-gym.js?v=58"></script>
+<script src="js/08zzh-chapter2.js?v=58"></script>
+<script src="js/08zzi-casino.js?v=58"></script>
+<script src="js/08zzk-chapter3.js?v=58"></script>
+<script src="js/08zzl-prison.js?v=58"></script>
+<script src="js/08zzj-sideon.js?v=58"></script>
+<script src="js/09-render-core-buildings.js?v=58"></script>
+<script src="js/10-render-city-map.js?v=58"></script>
+<script src="js/10b-render-landmarks.js?v=58"></script>
+<script src="js/10c-render-fill.js?v=58"></script>
+<script src="js/10d-render-clutter.js?v=58"></script>
+<script src="js/10e-render-services.js?v=58"></script>
+<script src="js/10f-airport.js?v=58"></script>
+<script src="js/10g-places.js?v=58"></script>
+<script src="js/10h-lunapark.js?v=58"></script>
+<script src="js/10i-speedway.js?v=58"></script>
+<script src="js/10j-spray-garage.js?v=58"></script>
+<script src="js/10k-carpark.js?v=58"></script>
+<script src="js/10l-safehouses.js?v=58"></script>
+<script src="js/10m-grove.js?v=58"></script>
+<script src="js/10n-unique.js?v=58"></script>
+<script src="js/10o-unique-more.js?v=58"></script>
+<script src="js/10p-parks.js?v=58"></script>
+<script src="js/10q-forests.js?v=58"></script>
+<script src="js/10r-factory.js?v=58"></script>
+<script src="js/10s-showroom.js?v=58"></script>
+<script src="js/10t-salvage.js?v=58"></script>
+<script src="js/10u-prison.js?v=58"></script>
+<script src="js/10v-site.js?v=58"></script>
+<script src="js/10w-casino.js?v=58"></script>
+<script src="js/10x-marina.js?v=58"></script>
+<script src="js/10y-stunts.js?v=58"></script>
+<script src="js/10z-interiors.js?v=58"></script>
+<script src="js/10za-ads.js?v=58"></script>
+<script src="js/10zb-gym.js?v=58"></script>
+<script src="js/10zc-depot.js?v=58"></script>
+<script src="js/10zd-funhouse.js?v=58"></script>
+<script src="js/10ze-substation.js?v=58"></script>
+<script src="js/10zf-newsroom.js?v=58"></script>
+<script src="js/10zg-rally.js?v=58"></script>
+<script src="js/11-render-dynamic-meshes.js?v=58"></script>
+<script src="js/11b-weapon-models.js?v=58"></script>
+<script src="js/11c-clothes-models.js?v=58"></script>
+<script src="js/11d-figure-hd.js?v=58"></script>
+<script src="js/11e-weapon-hd.js?v=58"></script>
+<script src="js/12-render-effects.js?v=58"></script>
+<script src="js/12b-rockets.js?v=58"></script>
+<script src="js/12c-blast.js?v=58"></script>
+<script src="js/12d-sky-weather.js?v=58"></script>
+<script src="js/12e-smash.js?v=58"></script>
+<script src="js/12f-homing.js?v=58"></script>
+<script src="js/12g-trees.js?v=58"></script>
+<script src="js/12h-fireworks.js?v=58"></script>
+<script src="js/13-render-frame.js?v=58"></script>
+<script src="js/14-hud-minimap.js?v=58"></script>
+<script src="js/14b-weapon-wheel-scope.js?v=58"></script>
+<script src="js/15-game-flow-loop.js?v=58"></script>
+<script src="js/15b-menus-saves.js?v=58"></script>
+<script src="js/15c-cutscene.js?v=58"></script>
+<script src="js/16-octagrid-map-preview.js?v=58"></script>
+<script src="js/main.js?v=58"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@ COLS = [  # (header, key, kind, list)   kind: text, upper, letter, colour, colou
 HEAD = [c[0] for c in COLS] + ['ID']
 TIPS = [('Yellow cells', 'What you can change. Hair style, Facial hair, Hat, Glasses, Top, Age, Build, Smiling eyes, Calm mouth and Mumble wave are lists to pick from.', 'tap a cell and type'),
         ('Colours', 'A colour is #rrggbb, like #ff9a3d. The facial hair, hat, glasses and the top\'s second colour can be left empty when not used.', ''),
-        ('The portrait', 'Pixel art, 48 x 48, head and shoulders in a 3/4 view, drawn from the Skin ... Calm mouth columns by tools/portraits.py after the import; three faces: calm, angry, smiling. Extras: any of ' + ', '.join(PT.EXTRAS) + ', separated by commas.', ''),
+        ('The portrait', 'Pixel art, 48 x 75, built from the owner\'s reference picture (a 3/4 view, transparent around the figure), drawn from the Skin ... Calm mouth columns by tools/portraits.py after the import; three faces: calm, angry, smiling. Extras: any of ' + ', '.join(PT.EXTRAS) + ', separated by commas.', ''),
         ('Smiling eyes', 'happy: the eyes arch when they smile; open: a smile that never reaches the eyes (Nico).', ''),
         ('Calm mouth', 'line, smirk (one corner up) or frown (both corners down) - the calm face.', ''),
         ('Faces', 'On the Faces sheet: the moods (as written on each line in the missions) that show the angry face, and the ones that show the smiling face, separated by commas. Any other mood: the calm face.', ''),

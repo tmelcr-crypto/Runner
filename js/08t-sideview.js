@@ -10,6 +10,7 @@ const SV = { on: false, h: null, B: null, fl: 0, x: 0, face: 1, walk: 0, room: n
 const SV_FH = 150, SV_LIFT = 560;
 let svCv = null, svG = null;
 function svLayout(h) {                    // the building: its floors, doors, the open ones, your door - always the same for the same tower
+  if (h.kind) return sbLayout(h);          // not a home: the Crown (js/08zzj)
   return withSeed(h.id.length * 977 + h.floors * 31, () => {
     const W = 1300, slots = [200, 340, 760, 900, 1040], doors = [];
     for (let f = 1; f <= h.floors; f++) slots.forEach((x, k) => doors.push({ f, x, n: f * 100 + k + 1, open: false, mine: f === h.home && k === 1 }));
@@ -32,18 +33,20 @@ function openSide(h) {                    // in at the front door
   SV.on = true; SV.h = h; SV.B = svLayout(h); SV.fl = 0; SV.x = 80; SV.face = 1; SV.room = null; SV.lift = null; SV.fade = 1; SV.say = null; SV.keys = {}; SV.drag = 0; SV.note = null; SV.greeted = false;
   SV.npcs = withSeed(h.id.length * 131, () => Array.from({ length: SAFE.neighbours }, () => ({ fl: randi(1, h.floors), x: rand(150, SV.B.W - 160), dir: pick([-1, 1]), sp: rand(28, 52), wait: 0, gone: 0,
     shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']), legs: pick(['#2a2d3a', '#3a3f5c', '#6a5a4a', '#1d2230']), skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']) })));
+  if (h.kind) SV.npcs = sbNpcs(h); SV.hide = false;
   state = 'side'; toggleBigMap(false); toggleWheel(false); hush(); $('sideView').hidden = false; svResize(); Snd.tone(330, 440, 0.1, 0.08, 'sine');
 }
 function closeSide() {                    // out through the glass doors, back in the street
   SV.on = false; $('sideView').hidden = true; $('svLift').hidden = true; state = 'play';
   const h = SV.h; if (h && h.door) { P.x = h.door.x + h.door.fx * 26; P.y = h.door.y + h.door.fy * 26; P.ang = Math.atan2(h.door.fy, h.door.fx); P.vx = P.vy = 0; P.z = 0; }
-  safeLeft(h);
+  $('sideView').classList.remove('seen'); if (!h.kind) safeLeft(h);
 }
 function svResize() { if (!svCv) return; const pr = Math.min(2, DPR); svCv.width = Math.round(VW * pr); svCv.height = Math.round(VH * pr); svCv.style.width = VW + 'px'; svCv.style.height = VH + 'px'; }
 addEventListener('resize', () => { if (SV.on) svResize(); });
 
 /* ---------- where you can go from here ---------- */
 function svSpot() {                       // what is right here: { k, label, ... }
+  if (SV.h.kind) return sbSpot();
   const B = SV.B, x = SV.x, R = SV.room;
   if (R) {
     if (Math.abs(x - 60) < 34) return { k: 'leave', label: 'BACK TO THE HALL' };
@@ -63,6 +66,7 @@ function svSpot() {                       // what is right here: { k, label, ...
 }
 function svPress(k) {                     // UP or DOWN pressed
   if (!SV.on || SV.lift || SV.fade > 0.4 || state !== 'side') return;
+  if (SV.h.kind) { sbPress(k); return; }
   const s = svSpot();
   if (k === 'down') {
     if (s && s.k === 'stairs' && SV.fl > 0) { SV.fl--; SV.fade = 1; Snd.tone(300, 240, 0.08, 0.06, 'sine'); }
@@ -85,6 +89,7 @@ function svLiftPanel() {                  // the elevator's buttons: the lobby a
   const box = $('svFloors'); box.innerHTML = '';
   for (let f = SV.h.floors; f >= 0; f--) {
     const b = document.createElement('button'); b.type = 'button'; b.textContent = f === 0 ? 'L' : String(f); if (f === SV.fl) b.classList.add('here'); if (f === SV.h.home) b.classList.add('home');
+    if (SV.h.kind && sbLiftLock(f)) { b.disabled = true; b.classList.add('lock'); b.title = 'KEYCARD'; }   // the night lift (js/08zzj)
     b.addEventListener('click', () => { $('svLift').hidden = true; if (f !== SV.fl) { SV.lift = { from: SV.fl, to: f, t: 0, T: 0.8 + 0.22 * Math.abs(f - SV.fl) }; Snd.tone(520, 660, 0.12, 0.08, 'sine'); } });
     box.appendChild(b);
   }
@@ -102,7 +107,7 @@ function sideFrame(dt, time) {               // UP and DOWN keys: js/15 handleKe
     const L = SV.lift; L.t += dt; if (L.t >= L.T) { SV.fl = L.to; SV.lift = null; SV.x = SV_LIFT; Snd.tone(880, 880, 0.12, 0.08, 'sine'); }
   } else if ($('svLift').hidden) {
     const dir = (right ? 1 : 0) - (left ? 1 : 0), Wd = SV.room ? SV.room.W : SV.B.W;
-    if (dir) { SV.face = dir; SV.x = clamp(SV.x + dir * 150 * dt, 30, Wd - 30); SV.walk += dt * 9; } else SV.walk = 0;
+    if (dir) { SV.face = dir; SV.x = clamp(SV.x + dir * 150 * dt, 30, Wd - 30); SV.walk += dt * 9; SV.hide = false; } else SV.walk = 0;
   }
   for (const n of SV.npcs) {              // the neighbours: along the hall, now and then in at a door and out again later
     if (n.gone > 0) { n.gone -= dt; if (n.gone <= 0) { const d = pick(SV.B.doors.filter(o => o.f === n.fl)); n.x = d ? d.x : n.x; } continue; }
@@ -114,9 +119,10 @@ function sideFrame(dt, time) {               // UP and DOWN keys: js/15 handleKe
   if (SV.say && (SV.say.t -= dt) <= 0) SV.say = null;
   if (SV.note && (SV.note.t -= dt) <= 0) SV.note = null;
   if (!SV.room && SV.fl === 0 && Math.abs(SV.x - 270) < 120 && !SV.greeted) { SV.greeted = true; SV.say = { t: 2.2, x: 270, fl: 0, clerk: true, text: SKY.hour >= 18 || SKY.hour < 5 ? 'GOOD EVENING!' : SKY.hour < 12 ? 'GOOD MORNING!' : 'GOOD AFTERNOON!' }; }
-  const s = svSpot(); $('svHint').textContent = SV.note ? SV.note.text : SV.lift ? 'GOING ' + (SV.lift.to > SV.lift.from ? 'UP' : 'DOWN') + '...' : s ? '▲ ' + s.label : '';
-  $('svTitle').textContent = SV.h.name + '  ·  ' + (SV.room ? (SV.room.mine ? 'YOUR FLAT' : 'ROOM ' + SV.room.door.n) : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl);
-  drawSide(time);
+  const s = svSpot(); $('svHint').textContent = SV.note ? SV.note.text : SV.lift ? 'GOING ' + (SV.lift.to > SV.lift.from ? 'UP' : 'DOWN') + '...' : SV.hide ? 'HIDDEN - WALK ON TO COME OUT' : s ? '▲ ' + s.label : '';
+  $('svTitle').textContent = SV.h.name + '  ·  ' + (SV.room ? (SV.room.mine ? 'YOUR FLAT' : SV.room.door.name || 'ROOM ' + SV.room.door.n) : SV.h.kind === 'vault' ? (SV.fl === 0 ? 'COUNT ROOM' : 'B' + SV.fl) : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl);
+  if (SV.h.kind) sbTick(dt);               // the Crown: its guards, the quest (js/08zzj)
+  if (SV.on && state === 'side') drawSide(time);
 }
 function svThumb() {                      // a picture of the side-on view for a save made in here
   try { const g = thumbCv.getContext('2d'), W = svCv.width, H = svCv.height, sh = Math.min(H, W / 1.6), sw = sh * 1.6; g.drawImage(svCv, (W - sw) / 2, (H - sh) / 2, sw, sh, 0, 0, 160, 100); return thumbCv.toDataURL('image/jpeg', 0.72); } catch (e) { return ''; }
@@ -152,6 +158,7 @@ function svWindow(g, x, y, w, h, s, time) {     // a window on the city: sky by 
   g.strokeStyle = '#d8d4e8'; g.lineWidth = 3 * s; g.strokeRect(x, y, w, h); g.beginPath(); g.moveTo(x + w / 2, y); g.lineTo(x + w / 2, y + h); g.stroke();
 }
 function drawSide(time) {
+  if (SV.h.kind) { sbDraw(time); return; }
   const g = svG, Wc = svCv.width, Hc = svCv.height, pr = Wc / VW, s = Math.min(Hc / (SV_FH * 2.9), Wc / 420), B = SV.B, h = SV.h;
   g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#05030c'; g.fillRect(0, 0, Wc, Hc);
   const me = svMe();

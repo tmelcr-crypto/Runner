@@ -5,7 +5,8 @@ taxi, paramedic, firefighter, vigilante, their dispatch points, levels, pay and 
 booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the fixed routes' junctions stay in the file) - and the stats -
 what counts toward 100% and its reward (js/01t-stats-data.js) - and the casino strip - the ROYAL FLAMINGO's doors, slot machines, dice,
 guards and cashier's cage, THE PULSE nightclub, the strip at night (js/01u-casino-data.js) - and the stunt jumps - slow motion, how a
-ramp throws a car, a good landing, the bonus, each jump's speed and distance (js/01v-stunt-data.js).
+ramp throws a car, a good landing, the bonus, each jump's speed and distance (js/01v-stunt-data.js) - and BULL'S GYM - its hours, the
+boxers, the rules of a bout and the five opponents of the ring fights (js/01z-gym-data.js).
 
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
@@ -19,6 +20,7 @@ ramp throws a car, a good landing, the bonus, each jump's speed and distance (js
   python3 tools/settings_sheet.py stunts export stunts.numbers            ... the stunt jumps: slow motion, lift, the landing, the bonus, each jump
   python3 tools/settings_sheet.py interiors export interiors.numbers      ... hangars, warehouses, the storage yard: hours, the guard, loot, rare vehicles
   python3 tools/settings_sheet.py missions export missions.numbers        ... the missions' dialogue and cutscene timing (the missions come from the Word pages)
+  python3 tools/settings_sheet.py gym export gym.numbers                  ... BULL'S GYM: hours, the boxers, a bout's rules, the five opponents and their pay
   python3 tools/settings_sheet.py police import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
 Both are made for Numbers on an iPhone or iPad: plain tables with one header row, no merged cells, no comments. Yellow cells are the
@@ -44,13 +46,14 @@ TABLES = {'police': ('01b-police-data.js', 'POLICE', {'levels': 'Wanted levels',
           'casino': ('01u-casino-data.js', 'CASINO', {'settings': 'Settings'}),
           'stunts': ('01v-stunt-data.js', 'STUNT', {'settings': 'Settings'}),
           'interiors': ('01w-interior-data.js', 'INTERIORS', {'settings': 'Settings'}),
-          'missions': ('01x-mission-data.js', 'MISSIONS', {'settings': 'Settings'})}
+          'missions': ('01x-mission-data.js', 'MISSIONS', {'settings': 'Settings'}),
+          'gym': ('01z-gym-data.js', 'GYM', {'settings': 'Settings'})}
 JS = A = B = SHEETS = NAME = None
 def use(name):                               # pick the table the commands work on
     global JS, A, B, SHEETS, NAME, TIPS
     f, mark, SHEETS = TABLES[name]; NAME = name
     JS = os.path.join(HERE, '..', 'js', f); A, B = '/*%s-JSON*/' % mark, '/*END-%s-JSON*/' % mark
-    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES, 'stats': TIPS_STATS, 'casino': TIPS_CASINO, 'stunts': TIPS_STUNTS, 'interiors': TIPS_INTERIORS, 'missions': TIPS_MISSIONS}[name]
+    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES, 'stats': TIPS_STATS, 'casino': TIPS_CASINO, 'stunts': TIPS_STUNTS, 'interiors': TIPS_INTERIORS, 'missions': TIPS_MISSIONS, 'gym': TIPS_GYM}[name]
 
 
 def read_table():
@@ -236,6 +239,11 @@ TIPS_INTERIORS = [('ID column', 'How the game finds each row. Do not change it; 
             ('The places', 'Ten buildings: the airport\'s three hangars, three port warehouses, three more in Dockside and Gravel Flats, and the storage yard\'s eight lock-ups. They are always the same buildings.', None),
             ('Day and night', 'Between the two hours the doors are up and workers stand inside; the rest of the day the doors are down and a guard walks inside with a torch. The lock-ups have neither: force a lock any time.', None),
             ('Rare vehicles', 'The CLASSIC \'62, the RACE BIKE, the PROTOTYPE and the ARMOURED VAN (their numbers are in the vehicles table). Yours once you drive off; lost or left, a new one is back after the time set.', None)]
+TIPS_GYM = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+            ('Units', 'Hours on the game clock (0 to 24); hp = health points (you have 100); metres; m/s = metres a second (you walk about 1.4, run about 4); seconds; % as 0 to 100; money in euros.', None),
+            ('The gym', "BULL'S GYM, Bull Kessler's boxing gym in a Dockside warehouse. Between the two hours the door is open and the boxers punch the bags; the rest of the day it is locked.", None),
+            ('A bout', 'At the ring\'s steps: you and him in your corners, the count-in, the bell. Fists only; body armour does not count. Your jab (FISTS) takes 8 of his health. His punch lands after the wind-up if you are still in his reach. Your health stops at "You go down at": knocked out, you wake outside the door with "Health when thrown out".', None),
+            ('Opponents', 'Five, one after another: each must be beaten before the next. A win pays once; after the fifth nobody is left. Their names are in the game file (js/01z-gym-data.js). The pay is also in the economy sheet.', None)]
 TIPS_MISSIONS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Letters per second, % loudness (0 = silent), seconds.', None),
             ('The missions', 'Only the timing of the dialogue and the cutscenes is here. Each mission itself - its people, steps, lines, cutscenes and rewards - comes from your Word pages.', None)]
@@ -415,6 +423,9 @@ def do_import(path, dry):
     elif NAME == 'places':
         if st['shipsMax'] < st['shipsMin']: errors.append('Settings: Ships at the berths at most (%s) is less than at least (%s)' % (fmt(st['shipsMax']), fmt(st['shipsMin'])))
     elif NAME in ('streets', 'stats', 'missions'): pass
+    elif NAME == 'gym':
+        if st['openTo'] <= st['openFrom']: errors.append('Settings: the gym shuts (%s) must be later than it opens (%s)' % (fmt(st['openTo']), fmt(st['openFrom'])))
+        if st['loseHp'] <= st['koHp']: errors.append('Settings: health when thrown out (%s) must be more than where you go down (%s)' % (fmt(st['loseHp']), fmt(st['koHp'])))
     elif NAME == 'stunts':
         if st['bonusMax'] < st['bonusMin']: errors.append('Settings: The bonus - at most (%s) is less than at least (%s)' % (fmt(st['bonusMax']), fmt(st['bonusMin'])))
     elif NAME == 'interiors':

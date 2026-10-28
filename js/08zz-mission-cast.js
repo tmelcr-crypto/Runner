@@ -19,14 +19,14 @@ function msFoe(x, y, o = {}) {              // o: { gun, hp, a (facing), alert (
   const p = msPed(x, y, o.a || 0, { arm: gunIdx(o.gun || 'pistol'), shirt: o.shirt || '#2a2d3a', pants: o.pants || '#14121c', speed: 1, msName: o.name, step: foeStep });
   return Object.assign(p, { foe: true, crim: true, hp: o.hp || MSN.foeHp, alert: !!o.alert, group: o.group || 'foes', boss: !!o.boss, cool: rand(0.5, 1.2), tgT: 0, sd: Math.random() < 0.5 ? 1 : -1, sdT: rand(1, 2), pref: rand(0.55, 1.3) });   // pref < 1: it rather goes for your friend
 }
-function msAlly(x, y, o) {                  // o: { who (a character of the mission), gun, hp, a, fail (the words when killed), hurtLine, calm (never fights), stay (stays in the car when you get out) }
+function msAlly(x, y, o) {                  // o: { who (a character of the mission), gun, hp, a, fail (the words when killed), hurtLine, calm (never fights), stay (stays in the car when you get out), near (never catches up by itself: left behind, it stays behind) }
   const ch = msWho(o.who) || {};
   return msAllyFrom(msPed(x, y, o.a || 0, { shirt: ch.shirt, pants: ch.pants, msName: o.who, speed: 1 }), o);
 }
 function msAllyFrom(p, o) {                 // someone of the mission (standing at their place so far) becomes your friend now
   const ch = msWho(o.who) || {}, hp = o.hp || MSN.allyHp;
   p.arm = o.calm ? -1 : gunIdx(o.gun || 'pistol'); p.post.step = allyStep; p.state = 'post';
-  Object.assign(p, { ally: true, calm: !!o.calm, stay: !!o.stay, hp, hpMax: hp, hurtT: 99, cool: 0, tgT: 0, fail: o.fail || (ch.name || 'YOUR FRIEND') + ' IS DEAD', hurtLine: o.hurtLine, saidT: -99, col: ch.bubble || '#b6ff3c' });
+  Object.assign(p, { ally: true, calm: !!o.calm, stay: !!o.stay, near: !!o.near, hp, hpMax: hp, hurtT: 99, cool: 0, tgT: 0, fail: o.fail || (ch.name || 'YOUR FRIEND') + ' IS DEAD', hurtLine: o.hurtLine, saidT: -99, col: ch.bubble || '#b6ff3c' });
   MS_CAST.allies.push(p); return p;
 }
 function msFoeCar(type, x, y, ang, o = {}) {   // o: { crew, gun, mode: 'chase' | 'flee' | 'park', to (fleeing: where), speed (km/h), group, tough, color }
@@ -46,7 +46,7 @@ function msFoesLeft(group) {                 // foes still up in a group (on foo
 function msCastFail() { const a = MS_CAST.allies.find(p => p.dead); return a ? a.fail : ''; }   // a mission's fail(): a friend killed
 function msCastClear() {                      // msClear: friends riding with you go too
   for (const p of MS_CAST.allies) if (p.aboard && p.aboard.mates) p.aboard.mates = p.aboard.mates.filter(q => q !== p);
-  MS_CAST.allies = []; MS_CAST.cars = []; MS_CAST.field = null;
+  MS_CAST.allies = []; MS_CAST.cars = []; MS_CAST.field = null; MS_CAST.feud = null;
 }
 
 /* ---------- shooting: a roll against the target, like the armed people's (js/08g), whoever fires at whoever ---------- */
@@ -75,9 +75,11 @@ function castPick(s, list, far) {           // the nearest it can see within far
   if (best) return Object.assign(best, { d: bd, see: true });
   return any ? Object.assign(any, { d: ad, see: false }) : null;
 }
-function foeTargets() {                      // you (in your car, the car - friends riding with you are in it), and your friends on foot
+function foeTargets(me) {                    // you (in your car, the car - friends riding with you are in it), and your friends on foot
   const out = P.dead ? [] : [{ o: P.car || P, kind: 'P' }];
   for (const a of MS_CAST.allies) if (!a.dead && !a.aboard) out.push({ o: a, kind: 'ally' });
+  const F = MS_CAST.feud, g = me && (me.fc ? me.fc.group : me.group);   // two gangs at war (MS_CAST.feud = [group, group]): each shoots the other's men too
+  if (F && g && F.includes(g)) for (const q of peds) if (q.foe && !q.dead && q.group !== g && F.includes(q.group)) out.push({ o: q, kind: 'foe' });
   return out;
 }
 function allyTargets() {                     // the foes on foot, and the foes' cars with a crew still in them
@@ -146,7 +148,7 @@ function foeStep(p, dt) {                   // its post.step (js/08j postStep): 
   const back = () => { if (p.hold) { p.vx = p.vy = 0; return; } const w = castWay(p, po.x, po.y); if (w) castWalk(p, w.x, w.y, WALK, dt); else if (castWalk(p, po.x, po.y, WALK, dt) < 4) { p.vx = p.vy = 0; p.ang = p.hd = po.a; } castLift(p); };   // hold: a gunman who keeps his spot (up on a deck)
   if (!feat('msFoes') || p.calm) { back(); return true; }             // calm: waiting for a cutscene (a shot near, and it fights anyway)
   if (p.alertIn !== undefined && (p.alertIn -= dt) <= 0) { delete p.alertIn; foeAlert(p); }
-  if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = castPick(p, foeTargets(), p.alert ? MSN.foeLeash * UNITS_PER_M : MSN.foeSee * UNITS_PER_M); }
+  if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = castPick(p, foeTargets(p), p.alert ? MSN.foeLeash * UNITS_PER_M : MSN.foeSee * UNITS_PER_M); }
   const t = p.tg;
   if (!p.alert) { if (t && t.see) foeAlert(p); else { back(); return true; } }
   if (!t) { back(); return true; }                                  // you are all far off: back to its post, still on edge
@@ -199,7 +201,7 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
   const me = P.car || P, dP = dist(p.x, p.y, me.x, me.y), keep = MSN.allyKeep * UNITS_PER_M;
   if (P.car && allyRides(P.car) && carSpeed(P.car) < MSN.allyBoard * KMH) {   // you stopped in a car: in with you
     const dr = Object.assign(allyDoor(P.car, p), { z: zOf(P.car) });
-    if (dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700) { allyBoard(p, P.car); return true; }   // far behind, out of sight: it caught up
+    if (!p.near && dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700) { allyBoard(p, P.car); return true; }   // far behind, out of sight: it caught up
     if (dP < 300) { const w = castTo(p, dr); if (castWalk(p, w.x, w.y, dP > 90 ? SPRINT : RUN, dt) < 16 && w === dr) allyBoard(p, P.car); castLift(p); return true; }
   }
   if ((p.tgT -= dt) <= 0) { p.tgT = 0.3; p.tg = p.calm ? null : castPick(p, allyTargets(), MSN.allyRange * UNITS_PER_M); }
@@ -207,7 +209,7 @@ function allyStep(p, dt) {                  // its post.step: following you, fig
   const i = MS_CAST.allies.indexOf(p), side = i % 2 ? 1 : -1, ma = P.car ? P.car.ang : (P.ang || 0);
   const fx = me.x - Math.cos(ma) * keep * 0.6 + Math.cos(ma + Math.PI / 2) * side * keep * 0.6, fy = me.y - Math.sin(ma) * keep * 0.6 + Math.sin(ma + Math.PI / 2) * side * keep * 0.6;
   const df = dist(p.x, p.y, fx, fy);
-  if (!P.car && dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700 && dist(fx, fy, cam.x, cam.y) > 420 && !pedBlocked(fx, fy) && shoreDist(fx, fy) > 2) { p.x = fx; p.y = fy; p.z = zOf(me); p.vx = p.vy = 0; return true; }   // far behind and out of sight: it caught up
+  if (!P.car && !p.near && dP > MSN.allyCatch * UNITS_PER_M && dist(p.x, p.y, cam.x, cam.y) > 700 && dist(fx, fy, cam.x, cam.y) > 420 && !pedBlocked(fx, fy) && shoreDist(fx, fy) > 2) { p.x = fx; p.y = fy; p.z = zOf(me); p.vx = p.vy = 0; return true; }   // far behind and out of sight: it caught up
   if (t && dP < keep * 4) {                                         // a foe in sight and you not far off: hold and shoot
     const range = Math.min(w.range || 300, COP.fireRange);
     if (t.d > range * 0.9) castWalk(p, t.o.x, t.o.y, RUN, dt); else stepCop(p, 0, 0, 0, dt);
@@ -270,7 +272,7 @@ function foeDrive(c, dt) {                  // js/07 updateCars: c.msDrive
     steerToward(c, tx, ty, vmax); c.hb = false;
   }
   if (F.crew > 0 && F.gun >= 0 && (F.cool -= dt) <= 0) {           // the gunner, out of the window
-    if ((F.tgT -= dt) <= 0) { F.tgT = 0.3; F.tg = castPick(c, foeTargets(), COP.fireRange); }
+    if ((F.tgT -= dt) <= 0) { F.tgT = 0.3; F.tg = castPick(c, foeTargets(c), COP.fireRange); }
     const t = F.tg; if (t && t.see && t.d < COP.fireRange) { const w = WEAPONS[F.gun]; F.cool = w.id === 'smg' ? rand(0.25, 0.45) : rand(COP.pplGapMin, COP.pplGapMax); castShot(c, t, w, MSN.foeAim * MSN.foeCarAim); }
     else F.cool = 0.3;
   }

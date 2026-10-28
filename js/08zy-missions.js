@@ -10,6 +10,9 @@
 const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null, start: null, pageT: 0 };
 const MSCRIPT = {};                        // each mission's script: { setup(A), steps: [{ enter, tick → true when done, jump, info }], fail(A) → why, cuts: { name: A => shots } }
 const msTest = () => gameMode === 'test';
+const MS_CHOICE = { kessler: 'finished', files: 'police' };   // the story's choices as MISSIONS TEST plays them (STORY: what you chose)
+MS_CHOICE.from = { m12: 'kessler', m18: 'files' };   // playing the choosing quest sets the switch too
+const MS_CHOICES = [['kessler', 'KESSLER', ['finished', 'spared']], ['files', "SACHS' FILES", ['police', 'kept']]];
 
 /* ---------- MISSIONS TEST: the kit and the list ---------- */
 function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the mission picked
@@ -32,6 +35,9 @@ function paintMsCard() {
     b.addEventListener('click', () => msPick(m.id)); L.appendChild(b);
   }
   $('msSub').textContent = MS.fromNew ? 'MISSIONS TEST · PICK A MISSION TO START' : 'MISSIONS TEST · PICK ONE TO PLAY';
+  const CH = $('msChoices'); if (CH) { CH.innerHTML = '';                    // the switches: which way the earlier choices went (M14/M16 by Kessler; chapter 4 by the files)
+    for (const [k, name, opts] of MS_CHOICES) { const b = document.createElement('button'); b.type = 'button'; b.className = 'alt msStep'; b.textContent = name + ': ' + MS_CHOICE[k].toUpperCase();
+      b.addEventListener('click', e => { e.stopPropagation(); MS_CHOICE[k] = opts[(opts.indexOf(MS_CHOICE[k]) + 1) % opts.length]; paintMsCard(); }); CH.appendChild(b); } }
   const on = MS.on && !MS.fromNew, H = $('msHelp'); H.hidden = !on; if (!on) return;
   $('msNow').textContent = 'NOW: ' + MS.m.no + ' · ' + MS.m.title + ' · STEP ' + (MS.k + 1) + '/' + MS.m.steps.length;
   const S = $('msSteps'); S.innerHTML = '';
@@ -61,10 +67,15 @@ function msEnter(k) {
   const st = MS.s.steps[k]; if (st.enter) st.enter(MS.A);
   msObjective(MS.m.steps[k].show);
 }
+function msBar(label, k, col) {             // a meter under the objective (a quest's suspicion, heat and the like): k 0..1
+  const b = $('msBar'); b.hidden = false; b.classList.toggle('low', !$('msLive').hidden); $('msBarLab').textContent = label; const f = $('msBarFill'); f.style.width = (Math.max(0, Math.min(1, k)) * 100).toFixed(1) + '%'; f.style.background = col || (k > 0.7 ? '#ff3b4a' : k > 0.4 ? '#ffd23f' : '#b6ff3c');
+}
+function msBarOff() { $('msBar').hidden = true; }
 function msObjective(txt) { const o = $('msObj'); o.textContent = txt || ''; o.hidden = !txt; o.classList.add('big'); MS.objT = MSN.objTime; }
 function msTick(dt) {                       // js/15 update
   if (MS.objT > 0 && (MS.objT -= dt) <= 0) $('msObj').classList.remove('big');
   if (MS.pageT > 0 && (MS.pageT -= dt) <= 0) $('pager').hidden = true;   // the page goes after a while
+  if (MS.ring && (MS.ringT = (MS.ringT || 0) - dt) <= 0) { MS.ringT = 1.6; Snd.tone(1046, 1046, 0.09, 0.07, 'square'); setTimeout(() => Snd.tone(880, 880, 0.09, 0.07, 'square'), 120); setTimeout(() => Snd.tone(1046, 1046, 0.09, 0.07, 'square'), 240); }   // brrring
   if (!MS.on) return;
   if (MS.talk || CUT.on) { if (MS_LIVE.cur) $('msLive').hidden = true; return; }   // a live line waits out a cutscene or a dialogue, out of sight
   msLiveTick(dt); msCastTick(dt);
@@ -80,8 +91,9 @@ function msTick(dt) {                       // js/15 update
 function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPassed(); else msEnter(MS.k + 1); }
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
+  SB.ms = null; if (SV.on && SV.h && SV.h.kind) closeSide();   // a quest's hold on a side-on building (js/08zzj) goes; out in the street
   MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); msCastClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd(); if ($('msBtn')) $('msBtn').hidden = true;   // a mission's cutscene still playing: over
-  $('msObj').hidden = true; $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
+  $('msObj').hidden = true; msBarOff(); $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; msRingStop(); if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
   const id = MS.id; msClear();
@@ -89,10 +101,11 @@ function msFail(why) {
   msEndCard('MISSION FAILED', why, [], id);
 }
 function msPassed() {
-  const m = MS.m, r = m.reward, id = MS.id; msClear();
+  const m = MS.m, r = m.reward, id = MS.id, ch = MS.A && MS.A.choice; msClear();   // ch: a choice made by what you did (M12)
+  if (MS_CHOICE.from && MS_CHOICE.from[id] && ch) MS_CHOICE[MS_CHOICE.from[id]] = ch.includes('FINISHED') ? 'finished' : ch.includes('SPARED') ? 'spared' : ch.includes('POLICE') ? 'police' : ch.includes('KEPT') ? 'kept' : MS_CHOICE[MS_CHOICE.from[id]];
   if (r.cash > 0) addScore(r.cash, P.x, P.y, 'MISSION');
   Snd.tone(523, 784, 0.18, 0.12, 'square'); setTimeout(() => Snd.tone(784, 1046, 0.25, 0.12, 'square'), 180);
-  const list = [r.cash > 0 && money(r.cash), r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.next && 'NEXT: ' + r.next].filter(Boolean);
+  const list = [r.cash > 0 && money(r.cash), ch && 'CHOICE: ' + ch, r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.next && 'NEXT: ' + r.next].filter(Boolean);
   msEndCard('MISSION PASSED', m.no + ' · ' + m.title, list, id);
 }
 function msEndCard(head, sub, list, id) {   // over the game: what happened, then RETRY, MISSIONS or CARRY ON
@@ -142,14 +155,15 @@ function msShut() {                        // a side activity's spot during a mi
   return true;
 }
 function msKey() {
+  if (MS.on && MS.ring && !P.dead && state === 'play' && !CUT.on && !MS.talk) return MS.ring;   // the phone: answered anywhere, even in a car
   const s = MS.on && MS.start; if (!s || P.car || P.dead || P.act || state !== 'play' || CUT.on || MS.talk) return null;
   const t = s.at(); return t && !t.dead && dist(P.x, P.y, t.x, t.y) < 60 ? s : null;
 }
-function msUse(s) { MS.start = null; $('msBtn').hidden = true; s.go(); }
+function msUse(s) { MS.start = null; $('msBtn').hidden = true; if (s === MS.ring) MS.ring = null; s.go(); }
 function msUi() {                          // every frame (js/14): the button by you
   const k = msKey(), b = $('msBtn'); if (!b) return;
   if (!k) { if (!b.hidden) b.hidden = true; return; }
-  if (b.hidden) { b.hidden = false; b.querySelector('b').textContent = k.label; b.style.setProperty('--sc', '#b6ff3c'); }
+  if (b.hidden || b.dataset.s !== k.label) { b.hidden = false; b.dataset.s = k.label; b.querySelector('b').textContent = k.label; b.querySelector('.go').textContent = k.go2 || 'START MISSION'; b.style.setProperty('--sc', '#b6ff3c'); }
   doorBtnAt(b);
 }
 $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey(); if (k) msUse(k); });
@@ -157,16 +171,17 @@ $('msBtn').addEventListener('click', e => { e.stopPropagation(); const k = msKey
 /* ---------- dialogue: the portrait, the bubble, the mumble; the game waits ---------- */
 const MS_PICS = {};
 const msFace = mood => { const F = CHARACTER_TABLE.faces, w = String(mood || '').toLowerCase(); return F.angry.includes(w) ? 'angry' : F.smile.includes(w) ? 'smile' : 'calm'; };
-function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
-  const g = cv.getContext('2d'), W = cv.width; g.imageSmoothingEnabled = false;
-  g.fillStyle = '#12101c'; g.fillRect(0, 0, W, W);
+function msPortrait(ch, cv = $('msPic'), mood) {   // the character's pixel-art portrait with the face the line's mood asks for (img/chars/<id>-<face>.png, 48 x 75, transparent - tools/portraits.py; a picture of the owner's own: ch.pic); the letter till it loads
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height; g.imageSmoothingEnabled = false;
+  g.fillStyle = '#12101c'; g.fillRect(0, 0, W, H);                // the night-dark ground and a glow in the speaker's bubble colour behind the picture
+  const gl = g.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, H * 0.6); gl.addColorStop(0, ch.bubble + '80'); gl.addColorStop(1, ch.bubble + '00'); g.fillStyle = gl; g.fillRect(0, 0, W, H);
   const src = ch.pic || (ch.id ? ch.id + '-' + msFace(mood) + '.png' : null);
   const img = src ? (MS_PICS[src] || (MS_PICS[src] = Object.assign(new Image(), { src: 'img/chars/' + src }))) : null;
-  if (img && img.complete && img.naturalWidth) { g.drawImage(img, 0, 0, W, W); return; }
+  if (img && img.complete && img.naturalWidth) { const k = Math.min(W / img.naturalWidth, H / img.naturalHeight), w = img.naturalWidth * k, h = img.naturalHeight * k; g.drawImage(img, (W - w) / 2, H - h, w, h); return; }   // fitted, standing on the frame's bottom
   if (img) img.onload = () => { if (MS.talk && MS.talk.ch === ch) msPortrait(ch, $('msPic'), MS.talk.lines[MS.talk.i].mood); if (MS_LIVE.cur && MS_LIVE.cur.ch === ch) msPortrait(ch, $('msLivePic'), MS_LIVE.cur.L.mood); };
-  g.fillStyle = ch.bubble; g.globalAlpha = 0.35; g.beginPath(); g.arc(W / 2, W * 0.4, W * 0.2, 0, TAU); g.fill();
-  g.beginPath(); g.ellipse(W / 2, W * 1.02, W * 0.42, W * 0.36, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
-  g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.3) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, W * 0.42);
+  g.fillStyle = ch.bubble; g.globalAlpha = 0.35; g.beginPath(); g.arc(W / 2, H * 0.36, W * 0.3, 0, TAU); g.fill();
+  g.beginPath(); g.ellipse(W / 2, H * 1.02, W * 0.48, H * 0.32, 0, Math.PI, TAU); g.fill(); g.globalAlpha = 1;
+  g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(W * 0.42) + 'px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch.letter, W / 2, H * 0.37);
 }
 function msSay(nums, done, o = {}) {       // nums: line numbers (1-based) of this mission; o.phone: a call (the others' names under PHONE)
   const lines = nums.map(n => MS.m.lines[n - 1]).filter(Boolean); if (!lines.length) { done && done(); return; }
@@ -237,7 +252,23 @@ function msBooth(text, nums) {             // a step: the page, then CALL at the
       MS.start = { at: () => b, label: 'CALL', go: () => { MS.mark = null; MS.guide = null; Snd.tone(440, 440, 0.12, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
     },
     tick(A) { return !!A['call' + MS.k]; },
-    info: A => A.booth && !A['call' + MS.k] ? Math.round(dist(P.x, P.y, A.booth.x, A.booth.y) / UNITS_PER_M) + ' M TO THE BOOTH' : ''
+    info: A => A.booth && !A['call' + MS.k] ? Math.round(dist(P.x, P.y, A.booth.x, A.booth.y) / UNITS_PER_M) + ' M TO THE BOOTH' : '',
+    jump(A) { MS.mark = null; MS.guide = null; MS.start = null; A['call' + MS.k] = true; }
+  };
+}
+/* ---------- the brick phone (mode phone, the story from M07): it rings with the caller's name; ANSWER (or E) even in a car ---------- */
+function msRing(who) { const ch = msWho(who) || CHARS[who] || { name: String(who).toUpperCase() }; $('phWho').textContent = ch.name; $('phone').hidden = false; $('phone').classList.add('ringing'); MS.ringT = 0; }
+function msRingStop() { MS.ring = null; $('phone').classList.remove('ringing'); $('phone').hidden = true; }
+function msPhone(who, nums) {               // a step: the phone rings; answered, the call's lines (the game waits); without the phone the call plays on the move
+  return {
+    enter(A) {
+      const k = 'call' + MS.k; A[k] = false;
+      if (!feat('phone')) { msLive(nums, { phone: true, done: () => { A[k] = true; } }); return; }
+      msRing(who); MS.ring = { label: ((msWho(who) || CHARS[who] || {}).name || 'PHONE') + ' CALLING', go2: 'ANSWER', at: () => P, go: () => { msRingStop(); Snd.tone(440, 440, 0.1, 0.06, 'sine'); msSay(nums, () => { A[k] = true; }, { phone: true }); } };
+    },
+    tick(A) { return !!A['call' + MS.k]; },
+    info: A => MS.ring ? 'THE PHONE IS RINGING' : '',
+    jump(A) { msRingStop(); A['call' + MS.k] = true; }
   };
 }
 function msTalkNext() {
@@ -264,7 +295,7 @@ window.addEventListener('keydown', e => {   // before the game's own keys: E, Sp
 
 /* ---------- cutscenes from the shot lists: the usual camera from above ---------- */
 const MS_CAM = { WIDE: 0.7, CLOSE: 1.9, FOLLOW: 1.3, OVERHEAD: 1.5, FIXED: 1.1, PAN: 1.0 };
-function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, cap (a caption), enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
+function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y}, to() (PAN), line, phone (its lines come down the phone), cap (a caption), enter(A), tick(A, dt, u), fadeOut, wait(A) → done, max }
   const make = MS.s.cuts && MS.s.cuts[name]; if (!make) { done(); return; }
   if (MS_LIVE.cur) $('msLive').hidden = true;                        // a live line in progress waits out of sight (msLiveTick shows it again)
   const A = MS.A, list = make(A);
@@ -274,7 +305,7 @@ function msCut(name, done) {               // a shot: { dur, cam, at() → {x, y
       const place = () => { const p = s.at ? s.at(A) : P, q = s.cam === 'PAN' && s.to ? s.to(A) : null;
         cam.x = q ? lerp(p.x, q.x, smooth01(0, 1, u)) : p.x; cam.y = q ? lerp(p.y, q.y, smooth01(0, 1, u)) : p.y; cam.zoom = MS_CAM[s.cam] || 1.2; };
       if (MS.talk) { CUT.t = Math.max(0, CUT.t - dt); place(); return; }        // a line on screen: the shot waits for it, the camera stays
-      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([].concat(s.line), () => {}); place(); return; }   // one line, or several one after another
+      if (s.line && !s.said && t >= MSN.lineGap) { s.said = true; msSay([].concat(s.line), () => {}, { phone: !!s.phone }); place(); return; }   // one line, or several one after another
       if (s.tick) s.tick(A, dt, u);
       place();
       const end = CUT.T - (this.fadeOut || 0);
@@ -1089,7 +1120,7 @@ const STORY1 = {                           // shared by chapter 1's quests: plac
     let best = null, bd = 1e9;
     for (const r of BLD) { if (!r.fill || !r.shop || r.uniq || r.special || r.safe || r.ix || r.own) continue; const d = dist(r.cx, r.cy, x, y); if (d < bd && d < 1200) { const f = adFront(r); if (f && f.fy > 0.3) { bd = d; best = { r, f }; } } }
     if (!best) return null; const f = best.f;
-    return { x: f.x + f.fx * 16, y: f.y + f.fy * 16, wx: f.x, wy: f.y, fx: f.fx, fy: f.fy, a: Math.atan2(f.fy, f.fx) };
+    return { x: f.x + f.fx * 16, y: f.y + f.fy * 16, wx: f.x, wy: f.y, fx: f.fx, fy: f.fy, a: Math.atan2(f.fy, f.fx), r: best.r };
   },
   sign(text, col, at) {                    // a name over a door for as long as the quest needs it (cleanup takes it down)
     const w = fasciaFit(text, 9, 60), m = fasciaSign(text, col, w, 9); m.position.set(at.wx + at.fx * 0.9, groundH(at.wx, at.wy) + GFH + 4, at.wy + at.fy * 0.9); m.rotation.y = Math.atan2(at.fx, at.fy); scene.add(m); return m;

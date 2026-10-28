@@ -129,3 +129,56 @@ questions before building it. Each answer is written here as it comes; the story
 114. The bookie who owes Joe (M04): "Lucky" Lou Fontaine - loud and flashy, forties, a pencil moustache, a green visor, a loud check jacket, a cigar.
 115. The fare who runs without paying (M01): a skinny punk kid in a neon windbreaker; no lines, just a shout; he runs through the airport car park and gives up the cash when caught.
 116. M01's morning starts at the Colony's door: Danny walks out of the hotel's front door; Joe's cab waits on the ring drive, Joe leaning on it; START by Joe.
+
+## The portraits' new style (October 2026)
+
+The owner sent a reference picture: a detailed pixel-art head and shoulders (a man with messy black hair, stubble, blue eyes, a denim
+shirt over a white T-shirt), transparent around him. Every portrait is redrawn in its style.
+
+117. Size: tall, about 40 x 64 pixels, head and shoulders like the reference; the dialogue box gets a taller portrait frame.
+118. Background: transparent pictures; the game draws the dark ground and the bubble-colour glow behind them (the owner's own pictures fit the same way).
+119. The reference sets the style only: every character keeps the look from the answers (Danny: thirties, buzz cut, scar, leather jacket).
+120. Three faces each, as before: calm, angry and smiling, picked by each line's mood.
+121. The first redraw was "really bad": get close to the reference. Done by building the portraits from the reference itself - its own pixel grid (48 x 75, so that is the size now), its face, hair and shirt as hand-cleaned parts, recoloured and dressed per character.
+
+## Building chapter 2 and the Casino line (October 2026)
+
+122. Delivery: chapter 2 (M07-M12) first, pushed for testing in MISSIONS TEST; then the Casino line (C1-C8).
+123. The brick phone (Kessler gives it in M07): STORY only (with MISSIONS TEST). From M07 on it replaces the pager and the phone booths - it rings and you answer with a tap or E. FREE ROAM stays as it is.
+124. Kessler's gym, BULL'S GYM (marker B): the top-down kind with a see-through roof, permanent, in both modes.
+125. Rosa's market: Mercado's FARMERS MARKET, called ROSA'S MARKET in STORY and MISSIONS TEST (FARMERS MARKET in FREE ROAM); Rosa's stall and office stand in it.
+126. The gym in FREE ROAM: ring fights for cash; in STORY the gym is Kessler's and the fights stop after M12.
+127. M11's betting shop: Lucky Lou's from M04 - Kessler took it over; Lou runs it for him, scared.
+128. M10's produce truck: a new vehicle row - an open-back truck with crates of fruit you can see, which fall off when it is hit hard; it also drives in traffic now and then, in both modes.
+129. M12's Mercado flat (Kessler's old place): the safehouse already for sale in Mercado, given free after M12 in STORY (no FOR SALE sign there in STORY); FREE ROAM still sells it.
+130. BULL'S GYM stands in an existing Dockside warehouse on a street near the quays, for good - no change to the map layout.
+131. The ring fights: fists only, free to enter; five opponents one after another, each tougher, paying €200, €400, €800, €1,600 and €3,200 (the economy table); lose and you are thrown out with a little health; try again any time.
+132. Lenny Gold, the Royal Flamingo's pit boss: loud and heavy - forties, a bad toupee, a burgundy suit and gold chains; shouts at everyone.
+133. Fay "Fingers", the safecracker: a young punk - twenties, a dyed red undercut, a leather jacket, a nose ring; talks fast.
+134. C2 Blueprints: the Crown's inside in the side-on view, permanent - the lobby and the lift always open in both modes, the offices locked outside the quest; at night in C2 guards walk their rounds with torches.
+135. C5 Fingers: the lunapark's funhouse - top-down with a see-through roof, a permanent attraction in both modes: a mirror maze with clown faces and a tilted room.
+136. C8 The Vault: in the Royal Flamingo's basement - stairs down from behind the cashier's cage into the side-on view: corridors, the guards' room, the vault at the bottom.
+137. C3 The Uniform: the casino guard's uniform is a STORY wardrobe piece after C3; while you wear it in the Royal Flamingo, guards ignore you and staff doors open (STORY and MISSIONS TEST only).
+138. The armoured car: the existing ARMOURED VAN in the casino's colours (cream and gold, a pink flamingo, ROYAL FLAMINGO on the sides); after C8 it stays in your garage (STORY).
+139. The armoured-car depot: permanent, both modes - a fenced yard with a gate, a guard hut and two parked vans on an existing lot near the casino strip; in FREE ROAM you can break in and take a van (2 stars).
+140. The substation: permanent, both modes - a small fenced yard of humming transformers beside the casino block; blow it up (in any mode) and the strip goes dark, its neon off, for a minute or two until the repair crew comes.
+141. Stealth: when a guard sees you, a "!" over him and a rising tone - get out of his sight within 2 seconds or the quest fails (SPOTTED); at night guards carry torches, so you see where they look.
+
+## Building chapter 3 and the Prison line (October 2026)
+
+142. Delivery: chapter 3 (M13-M18) first, pushed for testing in MISSIONS TEST; then the Prison line (P1-P8).
+143. M13's news van: a new vehicle row, NEWS VAN - a box van with a satellite dish in Bay TV's colours; also in traffic now and then, in both modes.
+144. Choice 1 in MISSIONS TEST: a KESSLER: FINISHED / SPARED switch on the missions list, to test both versions of M14 and M16.
+145. M17 The Safe: the PALM HEIGHTS LOFT tower (side-on view) at night, Sachs' bodyguards walking the halls (the C2 stealth), his office on floor 5 with the safe. After M18 the loft is Danny's, free (STORY); FREE ROAM still sells it.
+146. M14's tailing: a suspicion bar - stay within 150 m, but not close behind him for long or in his mirrors; full, he is spooked and the quest fails.
+147. M15's rally at Bayfront Park's band shell; after M15, Crane holds rallies there in STORY until the election (chapter 5).
+148. The rallies: every game day at noon.
+149. M16 Cold Storage: the existing LOCK-UP STORAGE - Sachs rents another of its lock-ups (not Del's); his men load a van in the yard at night.
+150. Choice 2 (M18) by where you drive: any police station's door (to the police) or your safehouse's door (kept).
+151. P5 Laundry Day: the truck crosses on the ferry in a cutscene; the ferry stays foot-only otherwise.
+152. Iron Key's watchtowers get searchlights at night, permanent, both modes: caught in a beam, the prison's alarm; a tower's power box cut, its light is out till morning.
+153. Dunn's spare uniform (an Iron Key prison guard's): a STORY wardrobe piece after P5; worn on Iron Key the guards take you for one of them (STORY and MISSIONS TEST).
+154. P2's loan shark: "Sharkey" Vince Lomax - fifties, slicked-back hair, a pinstripe suit, a cigar, a gold tooth; a pawn-and-loan in Mercado with two heavies.
+155. P3's forger: old printer Otto - seventies, thick glasses, an ink-stained apron, a cardigan; his shop OTTO'S PRINTING stays in Mercado for good, in both modes (nothing to do inside).
+156. After P8 Sal lies low at the Colony (Esther gives him a room); his marker S moves there for the finale's links.
+157. Nina's marker N: inside a new Bay TV newsroom at the TV tower's base - the top-down kind, permanent, both modes (open by day in FREE ROAM). M18's plane: a new private jet on Skyport's apron.

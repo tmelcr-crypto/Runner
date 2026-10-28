@@ -70,6 +70,7 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "prisonWarn", "group": "Iron Key", "name": "Warning before the alarm", "unit": "s", "min": 1, "max": 30, "v": 5, "note": "Inside the prison walls a RESTRICTED AREA countdown runs; still inside when it ends, the alarm goes."},
   {"id": "prisonStars", "group": "Iron Key", "name": "The alarm gives", "unit": "stars", "min": 1, "max": 5, "v": 3, "note": "Wanted level the moment the alarm goes (so does shooting inside the walls or at a guard)."},
   {"id": "prisonCalm", "group": "Iron Key", "name": "The alarm stops after you are out for", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Out of the walls this long and the tower guards stand down (the police may still be after you)."},
+  {"id": "searchCatch", "group": "Iron Key", "name": "Caught in a searchlight after", "unit": "s", "min": 0, "max": 5, "v": 0.6, "note": "At night the towers' beams sweep the island: stand in one this long and the alarm goes. Cut a tower's power box (E) and its light is out till morning."},
   {"id": "towerRange", "group": "Iron Key", "name": "Tower guards fire from", "unit": "m", "min": 5, "max": 150, "v": 70, "note": "From the four watchtowers, over the walls, at you inside the walls or anywhere on the island while the alarm is on."},
   {"id": "towerAcc", "group": "Iron Key", "name": "Tower guard hit chance", "unit": "%", "min": 0, "max": 100, "v": 30, "note": "Per rifle shot, at middle range."},
   {"id": "towerDmg", "group": "Iron Key", "name": "Damage per tower guard hit", "unit": "hp", "min": 1, "max": 100, "v": 14, "note": "To you on foot."},
@@ -98,7 +99,18 @@ const PLACES_TABLE = /*PLACES-JSON*/{
   {"id": "wakeWidth", "group": "In the water", "name": "The wake opens", "unit": "%", "min": 20, "max": 300, "v": 100, "note": "How fast the V spreads (100%: like a real boat's, about 20 degrees to each side)."},
   {"id": "sprayFrom", "group": "In the water", "name": "Spray flies at the bow from", "unit": "km/h", "min": 0, "max": 150, "v": 30, "note": "Faster than this the water is thrown up and aside at the bow; more as you go faster and turn harder."},
   {"id": "spray", "group": "In the water", "name": "Spray amount", "unit": "%", "min": 0, "max": 300, "v": 100, "note": "0: no spray."},
-  {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."}
+  {"id": "siteRestock", "group": "Construction site", "name": "A machine or a deck pickup taken comes back after", "unit": "min", "min": 0.5, "max": 120, "v": 8, "note": "The mixer, the digger, the dump truck, the gun on the top deck and the health or armour three decks up - while you are away."},
+  {"id": "depotStars", "group": "Armoured-car depot", "name": "Opening the gate gives", "unit": "stars", "min": 0, "max": 5, "v": 2, "note": "A break-in at the cash depot by the casino strip: the alarm calls the police."},
+  {"id": "depotGate", "group": "Armoured-car depot", "name": "The gate stays open for", "unit": "s", "min": 5, "max": 300, "v": 25, "note": "Then it slides shut again (not while something stands in the gateway)."},
+  {"id": "depotVanBack", "group": "Armoured-car depot", "name": "A taken van is back after", "unit": "game h", "min": 1, "max": 240, "v": 24, "note": "Game hours after it was driven off - if it was lost or left (one kept in a garage stays yours)."},
+  {"id": "funSlide", "group": "Lunapark funhouse", "name": "The tilted room slides you at", "unit": "m/s", "min": 0, "max": 6, "v": 1.6, "note": "Toward its low wall, while you stand or walk in it (walk the other way to get up the slope)."},
+  {"id": "substDark", "group": "Substation", "name": "Blown, the strip stays dark for", "unit": "s", "min": 10, "max": 600, "v": 90, "note": "The neon of the Royal Flamingo, THE PULSE and the bars is off; then the repair crew comes and the lights come back."},
+  {"id": "substCrew", "group": "Substation", "name": "The repair crew stays", "unit": "s", "min": 5, "max": 600, "v": 60, "note": "Their truck at the gate, two men at the units; the burnt units are mended when they go."},
+  {"id": "newsOpen", "group": "Newsroom", "name": "BAY TV's newsroom opens at", "unit": "h", "min": 0, "max": 23, "v": 8, "note": "Its door unlocks and the reporters come in."},
+  {"id": "newsClose", "group": "Newsroom", "name": "And closes at", "unit": "h", "min": 1, "max": 24, "v": 20, "note": "Then the door is locked till morning (a quest can hold it open)."},
+  {"id": "rallyHour", "group": "Rally", "name": "Crane's rally starts at", "unit": "h", "min": 0, "max": 23, "v": 12, "note": "Every game day (STORY, after M15): the crowd gathers at Bayfront Park's band shell."},
+  {"id": "rallyLen", "group": "Rally", "name": "And lasts", "unit": "h", "min": 1, "max": 6, "v": 2, "note": "Then the crowd goes home."},
+  {"id": "rallyCrowd", "group": "Rally", "name": "People in the crowd", "unit": "", "min": 6, "max": 60, "v": 26, "note": "Standing before the stage, facing Crane; they cheer now and then."}
 ]
 }/*END-PLACES-JSON*/;
 /* PLC: the same settings in game units: km/h and m become game speeds and distances, minutes seconds, % a fraction */

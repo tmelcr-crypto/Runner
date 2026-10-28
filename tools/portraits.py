@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
 """The characters' pixel-art portraits, drawn from their recipes in js/01y-character-data.js (the character table).
 
-  python3 tools/portraits.py                       draw every portrait: img/chars/<id>-calm.png, -angry.png, -smile.png (48 x 48)
-  python3 tools/portraits.py sheet out.png [N]     a contact sheet of all of them, N times bigger (default 6), to look at
-  python3 tools/portraits.py doc                   the Word sheet docs/Characters.docx: each portrait and how the character looks
+  python3 tools/portraits.py                           draw every portrait: img/chars/<id>-calm.png, -angry.png, -smile.png (48 x 75)
+  python3 tools/portraits.py sheet out.png [N] [ids]   a contact sheet (all, or some ids: danny,joe), N times bigger (default 4), on the game's ground
+  python3 tools/portraits.py doc                       the Word sheet docs/Characters.docx: each portrait and how the character looks
 
-Every portrait is head and shoulders in a 3/4 view, turned toward the speech bubble (to the right), on a night-dark ground with a glow
-in the character's bubble colour. A recipe names the skin, hair and eye colours, a hair style, facial hair, a hat, glasses, a top and
-its two colours, extras (wrinkles, an earring, a chain, a scar, a gold tooth, sweat, tired eyes, a toothpick, hoop earrings,
-lipstick, a tattoo, pearls, a cigarette holder, a pencil behind the ear, a bow tie, grey temples, jowls, gold braid, a jeweller's loupe, a cigar, a rag over the shoulder), the age and the build; the tool does
-the shading (a darker back of the head, lit cheek and brow) and a dark outline round the figure. The three faces differ in the brows,
-eyes and mouth. Needs Pillow (and python-docx for the Word sheet)."""
+The style is the owner's reference picture (October 2026): head and shoulders, 48 x 75, a 3/4 view with the ear on the left and the
+face turned to the right, lit from the upper right, transparent around the figure (the game draws the night-dark ground and a glow in
+the character's bubble colour behind it). The head, the reference's own hair and the shirt are hand-made parts taken from that picture
+(tools/portrait_parts.py: letters for colour ramps); every character recolours them from its recipe - skin, hair and eye colours, the
+top's two colours - and adds its own parts on top: a hair style (drawn in clumps and strands like the reference's), facial hair, a hat,
+glasses, the top and extras (wrinkles, an earring, a chain, a scar, a gold tooth, sweat, tired eyes, a toothpick, hoop earrings,
+lipstick, a tattoo, pearls, a cigarette holder, a pencil behind the ear, a bow tie, grey temples, jowls, gold braid, a jeweller's loupe,
+a cigar, a rag over the shoulder, a nose ring). Women (told by their hair style - pixie, bob, bun, pulled, wave - or lipstick) get a finer face:
+thin brows, lashes, rosy lips, a blush and a softer chin. The three faces - calm, angry, smiling - differ in the brows, eyes and mouth.
+Needs Pillow (and python-docx for the Word sheet)."""
 import json, os, re, sys
+from math import atan2, cos, sin, hypot, pi
 from PIL import Image
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import portrait_parts as PARTS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, 'js', '01y-character-data.js')
 OUT = os.path.join(ROOT, 'img', 'chars')
-S = 48
+W, H = 48, 75
 FACES = ('calm', 'angry', 'smile')
 HAIR = ['short', 'slick', 'buzz', 'combed', 'pixie', 'curly', 'sides', 'bald', 'flattop', 'bob', 'bun', 'pulled', 'wave', 'spiky']
 FACIAL = ['none', 'stubble', 'beard', 'moustache', 'pencil', 'goatee']
@@ -26,11 +33,12 @@ GLASSES = ['none', 'reading', 'shades', 'square', 'roundshades']
 TOPS = ['openshirt', 'denim', 'flowershirt', 'jacketvest', 'darkshirt', 'waistcoat', 'suit', 'hivis', 'uniform', 'jumpsuit',
         'cardigan', 'leather', 'blouse', 'blazer', 'tanktop', 'labcoat', 'dress', 'buttoned', 'seersucker', 'checkjacket', 'windbreaker']
 EXTRAS = ['wrinkles', 'earring', 'chain', 'scar', 'goldtooth', 'sweat', 'tired', 'toothpick', 'hoops', 'lipstick', 'tattoo', 'pearls',
-          'holder', 'pencil', 'bowtie', 'temples', 'jowls', 'braid', 'loupe', 'cigar', 'rag']
+          'holder', 'pencil', 'bowtie', 'temples', 'jowls', 'braid', 'loupe', 'cigar', 'rag', 'nosering']
 AGES = ['young', 'mid', 'old']
 BUILDS = ['slim', 'normal', 'broad']
-SMILE_EYES = ['happy', 'open']               # smiling: arched happy eyes, or open (a smile that never reaches them)
+SMILE_EYES = ['happy', 'open']
 CALM_MOUTH = ['line', 'smirk', 'frown']
+FEM_HAIR = ('pixie', 'bob', 'bun', 'pulled', 'wave')
 
 
 def load():
@@ -39,483 +47,590 @@ def load():
 
 
 def rgb(h): h = h.lstrip('#'); return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
-def mix(a, b, t): return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
-def dark(c, k): return tuple(round(x * k) for x in c)
+def mix(a, b, t): return tuple(max(0, min(255, round(x + (y - x) * t))) for x, y in zip(a, b))
+def dark(c, k): return tuple(max(0, min(255, round(x * k))) for x in c)
 def lite(c, t): return mix(c, (255, 255, 255), t)
+def mul(c, k): return tuple(max(0, min(255, round(x * f))) for x, f in zip(c, k))
 
 
-class Canvas:                                # one layer of pixels: (x, y) -> colour; later layers cover earlier ones
+def part(p):                                 # a hand-made part: {(x, y): letter}
+    top, text = p; lines = text.split('\n')
+    if lines and lines[0] == '': lines = lines[1:]
+    return {(x, top + i): ch for i, line in enumerate(lines) for x, ch in enumerate(line) if ch != '.'}
+
+
+HEAD, HAIR_SHORT, BODY = part(PARTS.HEAD_M), part(PARTS.HAIR_SHORT), part(PARTS.BODY)
+SKULL = (24.0, 21.5, 14.2, 15.6)              # the skull under the hair: centre and radii
+def in_skull(x, y, grow=0.0):
+    cx, cy, rx, ry = SKULL
+    return ((x + 0.5 - cx) / (rx + grow)) ** 2 + ((y + 0.5 - cy) / (ry + grow)) ** 2 <= 1
+
+
+# ---- colour ramps, in the reference's own proportions
+def skin_ramp(base):
+    b = mix(base, (255, 214, 176), 0.12)                       # a little warmer and lighter, like the reference's lit skin
+    return {'O': mul(b, (0.30, 0.19, 0.22)), '0': mul(b, (0.47, 0.37, 0.41)), '1': mul(b, (0.63, 0.52, 0.57)), '2': mul(b, (0.75, 0.71, 0.77)),
+            '3': mul(b, (0.86, 0.82, 0.87)), '4': b, '5': mix(b, (255, 238, 222), 0.4)}
+
+
+def hair_ramp(h):
+    lum = h[0] * 0.3 + h[1] * 0.59 + h[2] * 0.11
+    if lum < 70:                              # dark hair: near-black with a cool blue-grey sheen (the reference)
+        return {'a': mix(dark(h, 0.3), (6, 4, 12), 0.6), 'e': dark(h, 0.62), 'b': h, 'c': mix(h, (92, 98, 124), 0.26), 'd': mix(h, (136, 146, 178), 0.48)}
+    return {'a': mix(dark(h, 0.36), (24, 18, 30), 0.4), 'e': dark(h, 0.72), 'b': h, 'c': lite(h, 0.2), 'd': lite(h, 0.48)}
+
+
+def cloth_ramp(c, letters='ADEFG'):
+    r = {'A': mul(c, (0.22, 0.21, 0.30)), 'D': mul(c, (0.54, 0.51, 0.64)), 'E': mul(c, (0.82, 0.80, 0.86)), 'F': c, 'G': mix(c, (255, 255, 255), 0.2)}
+    if max(c) > 225 and min(c) > 200:         # white cloth: grey-blue shades, not muddy
+        r.update({'A': (70, 72, 90), 'D': (150, 154, 172), 'E': (196, 198, 212)})
+    return dict(zip(letters, (r['A'], r['D'], r['E'], r['F'], r['G'])))
+
+
+class Pic:                                    # the picture as it is built: (x, y) -> colour; each part paints over the last
     def __init__(self): self.p = {}
     def put(self, x, y, c):
-        if 0 <= x < S and 0 <= y < S: self.p[(x, y)] = c
+        if 0 <= x < W and 0 <= y < H and c is not None: self.p[(x, y)] = c
+    def stamp(self, px, pal, dx=0, dy=0, only=None):
+        for (x, y), ch in px.items():
+            if ch in pal and (only is None or only(x + dx, y + dy)): self.put(x + dx, y + dy, pal[ch])
     def get(self, x, y): return self.p.get((x, y))
-    def has(self, x, y): return (x, y) in self.p
-    def rect(self, x0, y0, x1, y1, c):
-        for y in range(y0, y1 + 1):
-            for x in range(x0, x1 + 1): self.put(x, y, c)
-    def poly(self, pts, c, only=None):       # a filled polygon (pixel centres inside)
-        ys = [p[1] for p in pts]
-        for y in range(int(min(ys)), int(max(ys)) + 1):
-            xs = []
-            for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]):
-                if (y1 <= y + 0.5 < y2) or (y2 <= y + 0.5 < y1): xs.append(x1 + (y + 0.5 - y1) * (x2 - x1) / (y2 - y1))
-            xs.sort()
-            for a, b in zip(xs[::2], xs[1::2]):
-                for x in range(int(round(a)), int(round(b))):
-                    if only is None or only(x, y): self.put(x, y, c)
-    def ellipse(self, cx, cy, rx, ry, c, only=None):
-        for y in range(int(cy - ry) - 1, int(cy + ry) + 2):
-            for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
-                if ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1 and (only is None or only(x, y)): self.put(x, y, c)
+
+
+def poly_px(pts):
+    ys = [p[1] for p in pts]; out = set()
+    for y in range(int(min(ys)) - 1, int(max(ys)) + 2):
+        xs = []
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]):
+            if (y1 <= y + 0.5 < y2) or (y2 <= y + 0.5 < y1): xs.append(x1 + (y + 0.5 - y1) * (x2 - x1) / (y2 - y1))
+        xs.sort()
+        for a, b in zip(xs[::2], xs[1::2]):
+            for x in range(int(round(a)), int(round(b))): out.add((x, y))
+    return out
+
+
+def ellipse_px(cx, cy, rx, ry):
+    return {(x, y) for y in range(int(cy - ry) - 1, int(cy + ry) + 2) for x in range(int(cx - rx) - 1, int(cx + rx) + 2)
+            if ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1}
+
+
+def edge(px, x, y): return any((x + dx, y + dy) not in px for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+
+# ---- the face: the reference's features are the smiling face; patches give the calm and angry ones, the women's finer face
+def face_patch(g, face, ch, fem, extras):
+    def setrow(y, x0, s):
+        for i, c in enumerate(s):
+            if c != ' ': g[(x0 + i, y)] = c
+    brow_px = [(x, y) for (x, y), c in g.items() if c == 'B']
+    if face == 'angry':                       # the brows down to the nose, a crease between them, the lids lower; the mouth open, its corners down
+        for (x, y) in brow_px: g[(x, y)] = g.get((x, y + 3), '3') if g.get((x, y + 3), '3') in '012345' else '3'
+        for x, y in [(15, 25), (16, 25), (17, 25), (16, 26), (17, 26), (18, 26), (19, 26), (18, 27), (19, 27), (20, 27), (21, 27), (22, 27), (21, 28), (22, 28), (23, 28), (24, 28), (25, 28),
+                     (37, 25), (38, 25), (35, 26), (36, 26), (37, 26), (33, 27), (34, 27), (35, 27), (31, 28), (32, 28), (33, 28), (34, 28)]:
+            g[(x, y)] = 'B'
+        g[(28, 27)] = '2'; g[(28, 28)] = '1'
+        setrow(30, 18, 'LL'); setrow(30, 32, 'L')
+        setrow(40, 22, '444MMMMMMMM4'); setrow(41, 22, '4Mnttttttnn0'); setrow(42, 22, 'M4nnnnnnnn4M'); setrow(43, 23, '4MMMMMMMM3')
+    elif face == 'calm':                      # the smile straightened (the corner no longer curls up)
+        cm = ch.get('calmMouth', 'line')
+        setrow(40, 22, '344'); setrow(41, 24, '00000000'); g[(32, 41)] = '2'
+        if cm == 'smirk': setrow(40, 31, '00'); g[(32, 41)] = '0'
+        elif cm == 'frown': g[(23, 42)] = '0'; g[(32, 42)] = '0'; setrow(41, 24, '30000000')
+    else:                                     # smiling: the reference's own mouth
+        if ch.get('smileEyes', 'happy') == 'happy':              # the eyes narrowed by the cheeks
+            setrow(31, 18, '33333'); setrow(31, 31, '3333'); setrow(32, 18, '44444'); setrow(32, 31, '44444')
+        toothy = 'goldtooth' in extras or ch['id'] in ('tito', 'nico', 'rocco', 'sol')
+        if toothy: setrow(41, 25, 'tttttt'); setrow(42, 25, '000000')
+        if 'goldtooth' in extras: g[(28, 41)] = 'g'
+    if fem:                                   # thin arched brows, lashes at the outer corners, a lighter, smaller nose, full lips, a blush
+        brows = [(x, y) for (x, y), c in g.items() if c == 'B']
+        for (x, y) in brows:                  # one pixel thick: only the top of each column stays
+            if any((x, yy) in brows for yy in range(y - 2, y)): g[(x, y)] = '3'
+        for (x, y) in ((24, 25), (23, 25)) if face != 'angry' else ():
+            if g.get((x, y)) == 'B': g[(x, y)] = '3'
+        for x, y in ((17, 29), (16, 28), (15, 28), (37, 29), (38, 28), (17, 30), (37, 30)): g[(x, y)] = 'L'
+        for (x, y), c in list(g.items()):
+            if 26 <= x <= 33 and 33 <= y <= 38 and c in '012': g[(x, y)] = {'0': '1', '1': '2', '2': '3'}[c]
+        for x in (26, 27, 32, 33):
+            if g.get((x, 38)) in ('1', '2'): g[(x, 38)] = '3'
+        for (x, y) in [(x, y) for x in range(18, 22) for y in (35, 36)] + [(x, y) for x in range(33, 36) for y in (34, 35)]:
+            if g.get((x, y)) in ('3', '4'): g[(x, y)] = 'k'
+        if face != 'angry':
+            for x in range(24, 32):
+                if g.get((x, 41)) in ('0', 'M'): g[(x, 41)] = 'M'
+            for x in range(25, 31):
+                if g.get((x, 40)) not in ('t',): g[(x, 40)] = 'm'
+                if g.get((x, 42)) not in ('t', '0'): g[(x, 42)] = 'm'
+            g[(24, 40)] = 'M' if face == 'smile' else g[(24, 40)]
+    return g
+
+
+def frow(left, right, inner):                 # a hand-drawn row of the women's face: the outline at both ends
+    assert len(inner) == right - left - 1
+    return {left: 'O', right: 'O', **{left + 1 + i: c for i, c in enumerate(inner)}}
+FEM_JAW = {                                   # a narrower, rounder chin (rows 41-48)
+    41: frow(13, 36, '233' + '4444444' + 'M' + '0000000' + '2' + '44' + '3'),
+    42: frow(13, 36, '233' + '44444444' + '444444' + '4444' + '3'),
+    43: frow(14, 35, '234' + '44444444' + '2222' + '4444' + '3'),
+    44: frow(14, 34, '123' + '4' * 11 + '333' + '32'),
+    45: frow(15, 33, '12' + '3' + '4' * 9 + '333' + '21'),
+    46: frow(16, 32, '12' + '3' + '4' * 7 + '33' + '221'),
+    47: frow(17, 31, '11' + '22' + '33333' + '222' + '1'),
+    48: {x: 'O' for x in range(18, 31)},
+}
+
+
+def head_letters(ch, face, fem, extras):
+    g = dict(HEAD)
+    if fem:
+        for y, cols in FEM_JAW.items():
+            for x in range(10, 40): g.pop((x, y), None)
+            for x, c in cols.items(): g[(x, y)] = c
+    old = ch['age'] == 'old' or 'wrinkles' in extras
+    if old:                                   # lines: the forehead, the eyes' corners, under the eyes, from the nose to the mouth
+        for x in range(21, 34):
+            if x % 3: g[(x, 19 + (x // 5) % 2)] = '2'
+        for x, y in ((15, 31), (16, 32), (38, 30), (37, 32), (19, 33), (20, 33), (21, 33), (32, 33), (33, 33), (34, 33), (23, 39), (22, 40), (22, 41), (34, 39), (35, 40)):
+            if g.get((x, y)) in ('2', '3', '4', '5'): g[(x, y)] = '1' if g[(x, y)] in '23' else '2'
+    if 'tired' in extras:
+        for x in range(18, 23): g[(x, 33)] = '2'
+        for x in range(31, 36): g[(x, 33)] = '2'
+    if 'jowls' in extras:
+        for x in range(17, 33):
+            if g.get((x, 47)) in ('2', '3', '4'): g[(x, 47)] = '1'
+    face_patch(g, face, ch, fem, extras)
+    if 'scar' in extras:                      # down the near cheek under the eye
+        for x, y in ((14, 33), (15, 34), (15, 35), (16, 36), (16, 37)): g[(x, y)] = 's'
+    return g
+
+
+def stubble(pic, fc, face):
+    """a shadow of beard over the jaw, the chin and the upper lip: speckled, denser along the jaw (the reference's)"""
+    mouth = {(x, y) for x in range(23, 33) for y in (40, 41, 42)} | ({(x, y) for x in range(22, 34) for y in range(40, 44)} if face == 'angry' else set())
+    for y in range(38, 50):
+        for x in range(10, 38):
+            c = pic.get(x, y)
+            if c is None or HEAD.get((x, y)) in (None, 'O') or (x, y) in mouth: continue
+            jaw = y >= 44 or x <= 15 or (y >= 40 and (x <= 20 or x >= 33))
+            lip = y == 39 and 23 <= x <= 32
+            if not (jaw or lip): continue
+            dense = y >= 46 or x <= 14 or (y >= 44 and (x <= 17 or x >= 31))
+            pic.put(x, y, mix(c, fc, (0.42 if (x + y) % 2 else 0.34) if dense else (0.3 if (x + y) % 3 else 0.22)))   # a soft shadow, denser along the jaw
+
+
+# ---- hair: masks for each style, shaded in clumps and strands from a crown, the outline dark
+def hair_mask(hs):
+    """front: over the head; back: behind the head and neck; crown: where the strands start; flow: how they run"""
+    front, back = set(), set()
+    sk = lambda grow: {(x, y) for y in range(0, 50) for x in range(0, W) if in_skull(x, y, grow)}
+    def hairline(y_of_x, grow, side_l=28, side_r=25):           # the skull's cap down to a hairline over the forehead; the sides to the ear
+        out = set()
+        for (x, y) in sk(grow):
+            if y <= y_of_x(x): out.add((x, y))
+            elif x <= 14 and y <= side_l: out.add((x, y))
+            elif x >= 37 and y <= side_r: out.add((x, y))
+        return out
+    crown, flow = (20, 6), 'fall'
+    if hs == 'slick':
+        front = hairline(lambda x: 17 + (0 if x > 24 else 1), 1.2); flow, crown = 'back', (34, 14)
+    elif hs == 'combed':
+        front = hairline(lambda x: 17, 1.6) | {(x, y) for (x, y) in ellipse_px(27, 14, 13, 8.5) if y <= 18}; flow, crown = 'part', (17, 7)
+    elif hs == 'buzz':
+        front = hairline(lambda x: 17 + (1.5 if x < 17 or x > 33 else 0), 0.3, 26, 23); flow = 'buzz'
+    elif hs == 'pixie':
+        front = hairline(lambda x: 17 + max(0, min(7, (x - 16) * 0.45)), 1.6, 32, 26); flow, crown = 'part', (15, 8)
+        front |= {(x, y) for y in range(33, 38) for x in range(10, 14 - (y - 33) // 2)}           # a lock in front of the ear
+        front |= {p for p in poly_px([(3, 22), (7, 11), (16, 6), (14, 44), (8, 45), (4, 36)]) if p not in HEAD}   # the nape, past the jaw
+    elif hs == 'curly':
+        for k in range(18):
+            a = pi * (0.95 + k / 17 * 1.1)
+            front |= ellipse_px(24 + cos(a) * 15.5, 21 + sin(a) * 16, 4.2, 3.8)
+        front |= hairline(lambda x: 18 + (1 if (x // 3) % 2 else 0), 2.5, 32, 28)
+        front = {(x, y) for (x, y) in front if y <= 34 and not (14 < x < 37 and y > 20)}
+        flow = 'curl'
+    elif hs == 'sides':
+        front = {(x, y) for (x, y) in sk(0.8) if (x <= 14 and 16 <= y <= 31) or (x >= 36 and 17 <= y <= 27)}
+    elif hs == 'flattop':
+        front = poly_px([(10, 7), (11.5, 3), (37, 3), (38.5, 7), (39, 18), (9.5, 18)]) | hairline(lambda x: 17, 0.5, 26, 23)
+        flow = 'up'
+    elif hs == 'bob':                         # a blunt fringe at the brows, straight to the jaw, behind the neck
+        front = hairline(lambda x: 25, 1.6) | {(x, y) for y in range(18, 48) for x in range(5, 14) if x >= 5 + max(0, (y - 42) // 2)} | {(x, y) for y in range(19, 47) for x in range(37, 42)}
+        back = poly_px([(5, 21), (8, 10), (16, 5), (32, 5), (40, 10), (43, 21), (43, 48), (5, 48)])
+    elif hs in ('bun', 'pulled'):
+        front = hairline(lambda x: 16.5, 0.8, 27, 24); flow, crown = 'back', (14, 13)
+        if hs == 'bun':                       # a messy bun on top, loose curls at the temples
+            front |= ellipse_px(22, 5.5, 7.5, 5.0)
+            front |= {(x, y) for y in range(25, 38) for x in (10, 11) if (y // 2 + x) % 3} | {(12, y) for y in range(25, 31)}
+            front |= {(x, y) for y in range(21, 30) for x in (37, 38) if (y + x) % 3}
+            front |= {p for p in poly_px([(3, 22), (7, 11), (16, 6), (14, 41), (9, 43), (5, 38), (3, 30)]) if p not in HEAD}   # curls fallen loose behind the ear
+        else: back = ellipse_px(8, 16, 5.0, 5.4)
+    elif hs == 'wave':                        # a set 50s wave: full round the face to the jaw, rolls over the brow
+        front = hairline(lambda x: 16 + 2.5 * sin((x - 8) / 4.5), 2.6) | {(x, y) for y in range(19, 43) for x in range(4, 14)} | {(x, y) for y in range(17, 39) for x in range(37, 43)}
+        back = poly_px([(3, 23), (6, 9), (16, 3), (32, 3), (42, 9), (45, 23), (44, 43), (4, 43)])
+        flow = 'wave'
+    elif hs == 'spiky':
+        front = hairline(lambda x: 17 + (1 if x % 5 == 0 else 0), 0.6, 27, 24)
+        for i, (x0, h) in enumerate(((11, 6), (15, 9), (20, 11), (25, 11), (30, 9), (35, 7), (39, 4))):
+            front |= poly_px([(x0 - 2.6, 10), (x0 + 0.5 + i * 0.3, 8 - h), (x0 + 2.6, 10)])
+        flow = 'up'
+    return front, back, crown, flow
+
+
+def flow_dir(flow, crown, x, y):              # which way the strands run at a point
+    cx, cy = crown
+    if flow == 'back': a = atan2(-0.25 + (y - 14) * 0.05, -1.0)              # from the brow back over the head, falling at the back
+    elif flow == 'up': return (0.15, -1.0)
+    elif flow == 'wave': return (1.0, 0.45 * cos(x / 3.0))
+    else: a = atan2(y - cy + 0.01, x - cx)
+    return (cos(a), sin(a))
+
+
+def shade_hair(px, crown, flow):
+    """the hair's letters, like the reference's: broad tone bands (lit upper right c, body b, shade e), long strand lines traced along
+    the flow, a sheen streak (d) beside the strands where the light falls, the outline (a)"""
+    out = {}
+    lit = lambda x, y: (x - 24) * 0.55 - (y - 10) * 0.85
+    for (x, y) in px:
+        l = lit(x, y); out[(x, y)] = 'c' if l > 7 else 'b' if l > -10 else 'e'
+    if flow == 'curl':                                              # tiled curls, every other row shifted
+        sprite = ['.cc.', 'cbbe', 'cbbe', '.ee.']
+        for (x, y) in px:
+            row = y // 4; sx = (x + (2 if row % 2 else 0)) % 4; ch = sprite[y % 4][sx]
+            if ch == '.': ch = 'e'
+            if ch == 'c' and lit(x, y) > 0: ch = 'd'
+            out[(x, y)] = ch
+    elif flow == 'buzz':                                            # cropped close: fine speckle, lit on top
+        for (x, y) in px:
+            if (x * 3 + y * 5) % 7 == 0: out[(x, y)] = 'c' if lit(x, y) > -6 else 'e'
+            elif lit(x, y) > 8 and (x + y) % 3 == 0: out[(x, y)] = 'd'
+    else:
+        xs = [x for x, y in px]; ys = [y for x, y in px]
+        roots = [(gx + ((gx * 7 + gy * 13) % 3) - 1, gy + ((gx * 5 + gy * 11) % 3) - 1)
+                 for gy in range(min(ys), max(ys) + 1, 5) for gx in range(min(xs) + (gy // 5 % 2) * 2, max(xs) + 1, 4)]
+        for (rx, ry) in roots:
+            if (rx, ry) not in px: continue
+            for sign in (1, -1):                                    # trace the strand both ways from its root
+                x, y = float(rx), float(ry)
+                for step in range(9):
+                    fx, fy = flow_dir(flow, crown, x, y); x += fx * sign; y += fy * sign
+                    q = (int(round(x)), int(round(y)))
+                    if q not in px: break
+                    l = lit(*q)
+                    out[q] = 'e' if l < 4 else 'b'
+                    if l > -2 and 2 <= step <= 6 and sign == 1:     # a sheen streak beside the strand, on the light's side
+                        n = (q[0] + (1 if fy > 0 else 0), q[1] - (1 if abs(fx) > 0.5 else 0))
+                        if n in px and out.get(n) != 'e': out[n] = 'd' if l > 3 else 'c'
+    beside = lambda x, y: (x, y) in px or (y >= 30 and (x, y) in HEAD)          # hair down past the jaw lies on the head: no outline there
+    for (x, y) in px:
+        if any(not beside(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): out[(x, y)] = 'a'
+    return out
+
+
+# ---- the top: the reference's shirt recoloured, then each top's own collar, fronts and pattern
+def draw_top(pic, ch, sk, extras):
+    t = ch['top']; top = rgb(ch['topColour']); top2 = rgb(ch['topColour2']) if ch.get('topColour2') else dark(top, 0.8)
+    C = cloth_ramp(top); C2 = cloth_ramp(top2)
+    shirt = BODY
+    cloth = {p for p, l in shirt.items() if l in 'ADEFG'}
+    under = {p for p, l in shirt.items() if l in 'UV'}
+    V = poly_px([(19.5, 49), (31.5, 49), (27, 66), (24, 66)])
+    if t in ('tanktop', 'dress'):             # bare shoulders: the shirt's shape in skin, then the garment
+        for (x, y), l in shirt.items():
+            pic.put(x, y, sk[{'A': 'O', 'D': '1', 'E': '2', 'F': '3', 'G': '4', 'U': '3', 'V': '2'}[l]])
+        if t == 'tanktop':
+            vest = poly_px([(13, 52), (17, 50), (21, 60), (30, 60), (34, 50), (38, 52), (40, 75), (11, 75)])
+            for (x, y) in vest: pic.put(x, y, C[{'A': 'E', 'D': 'E', 'E': 'E', 'F': 'F', 'G': 'G', 'U': 'F', 'V': 'E'}.get(shirt.get((x, y)), 'F')])
+            for (x, y) in vest:
+                if edge(vest, x, y) and y < 74: pic.put(x, y, C['D'])
+        else:
+            gown = poly_px([(0, 61), (14, 59), (24, 62), (36, 59), (48, 61), (48, 75), (0, 75)])
+            for (x, y) in gown: pic.put(x, y, C[{'A': 'D', 'D': 'E', 'E': 'E', 'F': 'F', 'G': 'G'}.get(shirt.get((x, y)), 'F')])
+            for x in range(48):
+                if (x, 60) in gown: pic.put(x, 60, C['D'])
+            for x0 in (13, 35):
+                for y in range(50, 61): pic.put(x0, y, C['F']); pic.put(x0 + 1, y, C['D'])
+            for x in (6, 15, 30, 41):
+                for y in range(64, 75): pic.put(x, y, C2['F'])
+        draw_top_extras(pic, t, extras); return
+    for (x, y) in cloth: pic.put(x, y, C[shirt[(x, y)]])
+    for (x, y) in under: pic.put(x, y, (236, 236, 238) if shirt[(x, y)] == 'U' else (176, 178, 190))
+    closed = t in ('buttoned', 'uniform', 'jumpsuit', 'windbreaker', 'hivis')
+    jacket = t in ('suit', 'seersucker', 'checkjacket', 'jacketvest', 'blazer', 'labcoat', 'leather', 'cardigan', 'waistcoat')
+    if t == 'flowershirt':
+        for (cx, cy) in ((4, 62), (11, 70), (17, 58), (36, 60), (42, 68), (33, 72), (6, 72), (40, 54), (21, 73), (2, 54)):
+            for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1)):
+                if (cx + dx, cy + dy) in cloth: pic.put(cx + dx, cy + dy, (255, 170, 50) if (dx, dy) == (0, 0) else C2['F'] if (dx + dy) % 2 == 0 else C2['G'])
+    if t == 'checkjacket':
+        for (x, y) in cloth:
+            if x % 4 == 0 or y % 4 == 0: pic.put(x, y, C2['F'] if (x % 4 == 0) != (y % 4 == 0) else C2['D'])
+    if t == 'seersucker':
+        for (x, y) in cloth:
+            if x % 2 == 0: pic.put(x, y, lite(pic.get(x, y), 0.3))
+    if t == 'cardigan':
+        for (x, y) in cloth:
+            if (x + (y // 2) * 2) % 4 == 0 and y % 2: pic.put(x, y, C['E'])
+    if closed:                                # the collar shut: cloth over the open neck, a placket down the middle
+        for (x, y) in V | under:
+            if y >= 51: pic.put(x, y, C['F'] if x < 26 else C['E'])
+        for y in range(51, 75): pic.put(25, y, C['D']); pic.put(26, y, C['E'])
+        if t in ('buttoned', 'uniform'):
+            for y in range(53, 75, 4): pic.put(25, y, (226, 226, 232))
+        if t == 'buttoned':                   # a number on the pocket
+            for (x, y) in poly_px([(7, 61), (14, 61), (14, 66), (7, 66)]): pic.put(x, y, C2['F'] if y > 61 else C2['D'])
+            for x in (8, 9, 11, 12): pic.put(x, 63, (232, 232, 238))
+        if t == 'uniform':                    # a tie, a badge, epaulettes (gold braid for the chief)
+            for (x, y) in poly_px([(24, 51), (27, 51), (28, 68), (25.5, 71), (23, 68)]): pic.put(x, y, C2['F'] if x <= 25 else C2['E'])
+            for (x, y) in poly_px([(8, 61), (13, 61), (13, 66), (10.5, 68), (8, 66)]): pic.put(x, y, (236, 196, 80) if (x + y) % 3 else (255, 232, 140))
+            ep = (220, 180, 70) if 'braid' in extras else C['D']
+            for (x, y) in poly_px([(3, 55), (13, 52), (13, 54.5), (3, 57.5)]) | poly_px([(36, 52), (46, 55), (46, 57.5), (36, 54.5)]): pic.put(x, y, ep if 'braid' not in extras or (x + y) % 2 else lite(ep, 0.35))
+        if t == 'jumpsuit':                   # the zip, a name patch, grease
+            for y in range(52, 75): pic.put(25, y, (176, 178, 190) if y % 2 else C['D'])
+            for (x, y) in poly_px([(6, 61), (17, 61), (17, 66), (6, 66)]): pic.put(x, y, (238, 234, 222))
+            for x in range(7, 16): pic.put(x, 63, (40, 56, 110) if x % 2 else (238, 234, 222))
+            for x, y in ((10, 70), (11, 71), (36, 66), (37, 67), (30, 72)): pic.put(x, y, mix(top, (40, 36, 30), 0.5))
+        if t == 'windbreaker':                # a high zipped collar, a band across the chest
+            for (x, y) in cloth:
+                if 60 <= y <= 64: pic.put(x, y, C2[shirt[(x, y)]])
+            for (x, y) in poly_px([(17, 46), (34, 46), (35, 53), (16, 53)]): pic.put(x, y, C['G'] if x < 26 else C['E'])
+            for y in range(46, 75): pic.put(25, y, (214, 216, 226) if y % 2 else (150, 152, 166))
+        if t == 'hivis':                      # a navy shirt under the orange vest, silver bands
+            vest = poly_px([(14, 52), (21, 54), (24, 75), (5, 75), (6, 57)]) | poly_px([(37, 52), (30, 54), (27, 75), (44, 75), (44, 57)])
+            for (x, y) in cloth - vest: pic.put(x, y, C2[shirt[(x, y)]])
+            for (x, y) in vest: pic.put(x, y, C[shirt[(x, y)]] if shirt.get((x, y)) in C else C['F'])
+            for y in (63, 64, 70, 71):
+                for x in range(W):
+                    if (x, y) in vest: pic.put(x, y, (228, 232, 238) if (x + y) % 3 else (252, 252, 255))
+    if jacket:                                # a jacket: the shirt (second colour) in the open neck, lapels down to the first button
+        inner = C2 if t != 'checkjacket' else cloth_ramp((238, 234, 222))
+        depth = {'leather': 72, 'labcoat': 70, 'blazer': 70, 'jacketvest': 72, 'cardigan': 66, 'waistcoat': 64}.get(t, 66)
+        vee = poly_px([(18, 49), (33, 49), (27, depth), (24, depth)])
+        for (x, y) in vee: pic.put(x, y, inner['F'] if x < 26 else inner['E'])
+        if t in ('suit', 'seersucker', 'checkjacket', 'cardigan', 'waistcoat'):     # the shirt open at the neck: skin, its collar points
+            for (x, y) in poly_px([(21, 49), (30, 49), (26.5, 57), (25, 57)]):
+                l = HEAD.get((x, y)); pic.put(x, y, sk[l] if l in sk else sk['2'])
+            for (x, y) in poly_px([(20, 49), (23, 49), (25.5, 56), (21, 54)]) | poly_px([(31, 49), (28, 49), (25.8, 56), (30, 54)]): pic.put(x, y, inner['G'] if x < 26 else inner['F'])
+        elif t in ('leather', 'labcoat', 'blazer'):                                  # a T-shirt or top: a round neck
+            for (x, y) in poly_px([(20, 49), (31, 49), (30, 53), (21, 53)]):
+                l = HEAD.get((x, y)); pic.put(x, y, sk[l] if l in sk else sk['2'])
+            for x in range(20, 32): pic.put(x, 53, inner['E']); pic.put(x, 54, inner['F'])
+        elif t == 'jacketvest':                                                      # a white vest, a scoop of skin above it
+            for (x, y) in vee: pic.put(x, y, (240, 240, 236) if x < 26 else (210, 212, 220))
+            for (x, y) in ellipse_px(25.5, 49, 5, 5):
+                l = HEAD.get((x, y)); pic.put(x, y, sk[l] if l in sk else sk['2'])
+        L = poly_px([(16, 48), (20, 49), (25.5, depth), (21, depth - 6), (13, 53)]); R = poly_px([(35, 48), (31, 49), (25.5, depth), (30, depth - 6), (38, 53)])
+        for (x, y) in L: pic.put(x, y, C['G'] if not edge(L, x, y) else C['D'])
+        for (x, y) in R: pic.put(x, y, C['E'] if not edge(R, x, y) else C['A'])
+        for y in range(depth + 2, 75, 5): pic.put(25, y, C['A'])
+        if t == 'waistcoat':                  # white shirt sleeves at the sides, the waistcoat on the chest
+            for (x, y) in cloth:
+                if x <= 9 or x >= 41: pic.put(x, y, C2[shirt[(x, y)]])
+        if t == 'leather':                    # shine on the leather, the open zip
+            for x, y in ((4, 57), (5, 57), (6, 56), (3, 62), (3, 63), (40, 58), (41, 59), (9, 52), (10, 52)): pic.put(x, y, C['G'])
+            for y in range(64, 75): pic.put(20, y, (150, 150, 162) if y % 3 == 0 else C['D'])
+        if t == 'labcoat':                    # pens in the breast pocket
+            for (x, y) in poly_px([(33, 62), (40, 62), (40, 68), (33, 68)]): pic.put(x, y, C['E'] if y == 62 else C['F'])
+            for x, y, c in ((34, 61, (60, 90, 200)), (34, 60, (60, 90, 200)), (36, 61, (220, 40, 40)), (36, 60, (220, 40, 40))): pic.put(x, y, c)
+        if t == 'blazer':                     # the padded shoulders
+            for x in range(1, 47):
+                if (x, 54) in cloth: pic.put(x, 54, C['G'] if x < 30 else C['F'])
+        if t == 'cardigan':
+            for y in (68, 71, 74): pic.put(25, y, (226, 206, 160))
+    if t == 'blouse':
+        for x, y in ((9, 62), (10, 63), (38, 62), (39, 63), (6, 70), (42, 70)): pic.put(x, y, C['E'])
+    draw_top_extras(pic, t, extras)
+
+
+def draw_top_extras(pic, t, extras):
+    if 'chain' in extras:
+        ring = poly_px([(19, 50), (32, 50), (30, 57), (25.5, 59), (21, 57)]) - poly_px([(20, 50), (31, 50), (29.4, 55.8), (25.5, 57.6), (21.6, 55.8)])
+        for (x, y) in ring: pic.put(x, y, (255, 224, 110) if x % 2 else (214, 164, 54))
+    if 'pearls' in extras:
+        for i, (x, y) in enumerate(((17, 51), (18, 52), (19, 53), (20, 54), (21, 55), (22, 55), (23, 56), (24, 56), (25, 56), (26, 56), (27, 56), (28, 55), (29, 55), (30, 54), (31, 53), (32, 52), (33, 51))):
+            pic.put(x, y, (252, 250, 246) if i % 2 else (196, 192, 212))
+    if 'bowtie' in extras or t == 'waistcoat':
+        bt = (24, 22, 30) if t == 'waistcoat' else (150, 30, 44)
+        for (x, y) in poly_px([(20, 49), (25.5, 51.5), (31, 49), (31, 55), (25.5, 52.5), (20, 55)]): pic.put(x, y, bt if x not in (25, 26) else lite(bt, 0.3))
+    if 'tattoo' in extras:                    # on the near shoulder
+        for x, y in ((5, 58), (6, 57), (7, 58), (6, 59), (5, 60), (7, 60), (6, 61), (8, 59), (4, 59)): pic.put(x, y, (40, 92, 104))
+    if 'rag' in extras:
+        for (x, y) in poly_px([(3, 55), (12, 51), (14, 55), (9, 66), (4, 67)]): pic.put(x, y, (204, 70, 60) if (x + y) % 4 else (150, 48, 42))
+
+
+def draw_facial(pic, ch, face, fc):
+    f = ch['facial']; fr = hair_ramp(fc)
+    if f in ('moustache', 'goatee', 'beard'):                  # over the upper lip
+        mo = poly_px([(21, 39), (33, 39), (34, 42), (31, 41), (23, 41), (20, 42)])
+        for (x, y) in mo: pic.put(x, y, fr['a'] if edge(mo, x, y) and y >= 41 else fr['c'] if (x + y) % 3 == 0 else fr['b'])
+    if f == 'pencil':
+        for x in range(23, 32): pic.put(x, 40, fr['a'] if x in (23, 31) else fr['b'])
+    if f == 'goatee':
+        gt = poly_px([(22, 44), (31, 44), (30.5, 49.5), (26.5, 51.5), (22.5, 49.5)])
+        for (x, y) in gt:
+            if face == 'angry' and y <= 44: continue
+            pic.put(x, y, fr['a'] if edge(gt, x, y) else fr['c'] if (x * 2 + y) % 5 == 0 else fr['b'])
+    if f == 'beard':                          # a full short beard on the jaw and chin, the mouth clear
+        bd = poly_px([(9.5, 31), (12.5, 31), (15, 39), (21, 43), (31, 43), (35, 38), (37, 31), (38.5, 32), (36, 44), (31, 50), (26, 52), (19, 50), (14, 46)])
+        for (x, y) in bd:
+            if 22 <= x <= 32 and 41 <= y <= 44: continue
+            k = (x * 3 + y * 5) % 7
+            pic.put(x, y, fr['a'] if edge(bd, x, y) else fr['e'] if k < 2 else fr['d'] if (k == 3 and x > 26 and y < 45) else fr['c'] if k == 4 else fr['b'])
+
+
+def draw_glasses(pic, ch):
+    gl = ch.get('glasses', 'none')
+    if gl == 'none': return
+    gc = rgb(ch['glassesColour']) if ch.get('glassesColour') else (30, 26, 34); g_lt = lite(gc, 0.5)
+    if gl == 'shades':
+        for (x, y) in poly_px([(16, 28), (25, 28), (24.5, 33.5), (17, 33.5)]) | poly_px([(29.5, 28), (38.5, 28), (38, 33.5), (30.5, 33.5)]): pic.put(x, y, gc)
+        for x, y in ((18, 29), (19, 29), (18, 30), (31, 29), (32, 29), (31, 30)): pic.put(x, y, (156, 176, 214))
+        for x, y in ((22, 32), (36, 32)): pic.put(x, y, (96, 116, 156))
+        for x in range(25, 30): pic.put(x, 29, gc)
+        for x in range(11, 16): pic.put(x, 29, gc)
+    elif gl == 'roundshades':
+        for (x, y) in ellipse_px(20.5, 31, 4.8, 4.2) | ellipse_px(33.5, 31, 4.4, 4.2): pic.put(x, y, gc)
+        for (x, y) in ellipse_px(20.5, 31, 3.6, 3.0) | ellipse_px(33.5, 31, 3.2, 3.0): pic.put(x, y, mix(gc, (40, 30, 50), 0.5))
+        for x, y in ((19, 29), (20, 28), (32, 29), (33, 28)): pic.put(x, y, (196, 206, 236))
+        for x in range(25, 30): pic.put(x, 30, gc)
+        for x in range(11, 16): pic.put(x, 30, gc)
+    elif gl == 'square':
+        for x0, x1 in ((15, 25), (29, 39)):
+            for x in range(x0, x1 + 1): pic.put(x, 27, gc); pic.put(x, 34, gc)
+            for y in range(27, 35): pic.put(x0, y, gc); pic.put(x1, y, gc)
+            pic.put(x0 + 1, 28, g_lt); pic.put(x0 + 2, 28, g_lt)
+        for x in range(26, 29): pic.put(x, 29, gc)
+        for x in range(10, 15): pic.put(x, 29, gc)
+    elif gl == 'reading':                     # half-moon frames low on the nose, a cord to the collar
+        for x0, x1 in ((16, 24), (30, 38)):
+            for x in range(x0, x1 + 1): pic.put(x, 34, gc)
+            for y in (32, 33): pic.put(x0, y, gc); pic.put(x1, y, gc)
+            for x in range(x0 + 1, x1): pic.put(x, 33, mix(pic.get(x, 33) or (200, 160, 130), (214, 234, 250), 0.35))
+        for x in range(25, 30): pic.put(x, 33, gc)
+        for x in range(11, 16): pic.put(x, 32, gc)
+        for y in range(33, 53): pic.put(11 - (y - 33) // 7, y, gc if y % 2 else dark(gc, 0.7))
+
+
+def draw_hat(pic, ch):
+    hat = ch.get('hat', 'none')
+    if hat == 'none': return
+    hc = rgb(ch['hatColour']) if ch.get('hatColour') else (40, 40, 50); hc2 = rgb(ch['hatColour2']) if ch.get('hatColour2') else dark(hc, 0.6)
+    T = cloth_ramp(hc)
+    def crown(px):
+        for (x, y) in px:
+            c = T['F']
+            if x <= 14: c = T['E']
+            if x <= 11: c = T['D']
+            if (x, y - 1) not in px and x > 14: c = T['G']
+            if edge(px, x, y): c = T['A']
+            pic.put(x, y, c)
+    visor = lambda: [pic.put(x, y, (12, 12, 18) if y > 20 else (50, 52, 68)) for (x, y) in poly_px([(13, 20), (41, 20), (39, 24), (16, 24)])]
+    if hat == 'captain':
+        crown(poly_px([(8, 20), (8.5, 11), (14, 5), (34, 5), (40, 10), (41, 20)]))
+        for x in range(15, 34): pic.put(x, 6, lite(hc, 0.5))
+        for x in range(9, 41): pic.put(x, 17, (196, 160, 70) if x % 2 else (240, 204, 110)); pic.put(x, 18, (24, 24, 32)); pic.put(x, 19, (16, 16, 22))
+        visor()
+        for x, y in ((25, 9), (25, 10), (25, 11), (25, 12), (25, 13), (24, 10), (26, 10), (23, 13), (27, 13), (24, 14), (25, 14), (26, 14)): pic.put(x, y, (236, 190, 70))
+        pic.put(25, 8, (255, 230, 140))
+    elif hat in ('police', 'chauffeur'):
+        crown(poly_px([(6.5, 5), (41.5, 5), (38.5, 19), (9.5, 19)]))
+        for x in range(10, 39): pic.put(x, 18, (18, 18, 24)); pic.put(x, 19, hc2 if hat == 'police' else (18, 18, 24))
+        if hat == 'police':
+            for x in range(10, 39, 2): pic.put(x, 19, (230, 230, 236))
+            for x, y in ((23, 11), (24, 11), (25, 11), (23, 12), (24, 12), (25, 12), (24, 13), (24, 10)): pic.put(x, y, (236, 196, 80) if y < 13 else (200, 150, 50))
+        else: pic.put(36, 18, (236, 190, 70)); pic.put(12, 18, (236, 190, 70))
+        visor()
+    elif hat == 'flatcap':
+        px = poly_px([(7, 21), (8, 12), (13, 6.5), (32, 5.5), (39, 8.5), (42, 17), (42, 22)]); crown(px)
+        for (x, y) in px:
+            if (x * 2 + y * 3) % 6 == 0 and not edge(px, x, y): pic.put(x, y, hc2)
+        for (x, y) in poly_px([(14, 21), (43, 20), (41, 24), (17, 24)]): pic.put(x, y, T['E'] if y < 22 else T['D'])
+        for x in range(15, 31): pic.put(x, 7, T['G'])
+    elif hat == 'hardhat':
+        crown({(x, y) for (x, y) in ellipse_px(24.5, 19, 16.5, 15.5) if y <= 19})
+        for y in range(5, 19): pic.put(24, y, lite(hc, 0.5)); pic.put(25, y, T['G']); pic.put(26, y, T['E'])
+        C2 = cloth_ramp(hc2)
+        for (x, y) in poly_px([(5, 19), (45, 19), (46, 22), (4, 22)]): pic.put(x, y, C2['F'] if y == 19 else C2['E'] if y < 21 else C2['D'])
+    elif hat == 'visor':                      # a green eyeshade: a band round the head, a see-through peak
+        for x in range(9, 40): pic.put(x, 20, hc2); pic.put(x, 21, dark(hc2, 0.8))
+        for (x, y) in poly_px([(13, 22), (42, 22), (43, 27), (15, 27)]):
+            under = pic.get(x, y) or (200, 160, 130)
+            pic.put(x, y, mix(under, hc, 0.6 if (x + y) % 2 else 0.75))
+        for x in range(14, 42): pic.put(x, 22, lite(hc, 0.35))
+
+
+def draw_mouth_props(pic, extras):
+    if 'cigar' in extras:
+        for x, y in ((32, 42), (33, 42), (34, 42), (35, 41), (36, 41), (37, 41), (38, 41)): pic.put(x, y, (124, 80, 44)); pic.put(x, y + 1, (86, 54, 30))
+        pic.put(39, 41, (255, 120, 50)); pic.put(39, 42, (200, 70, 40))
+        for x, y in ((40, 38), (41, 36), (40, 34), (41, 32)): pic.put(x, y, (170, 170, 182))
+    if 'toothpick' in extras:
+        for i, (x, y) in enumerate(((32, 42), (33, 42), (34, 41), (35, 41), (36, 40), (37, 40))): pic.put(x, y, (228, 198, 142) if i < 5 else (190, 160, 110))
+    if 'holder' in extras:
+        for x, y in ((32, 42), (33, 42), (34, 41), (35, 41), (36, 40), (37, 40), (38, 39), (39, 39), (40, 38)): pic.put(x, y, (24, 22, 28))
+        pic.put(41, 38, (240, 236, 228)); pic.put(42, 37, (240, 236, 228)); pic.put(43, 37, (255, 120, 60))
+        for x, y in ((44, 34), (43, 32), (44, 30), (43, 28)): pic.put(x, y, (170, 170, 186))
 
 
 def draw(ch, face):
-    skin = rgb(ch['skin']); sk_sh = dark(skin, 0.78); sk_dp = dark(skin, 0.6); sk_lt = lite(skin, 0.16)
-    hair = rgb(ch['hair']) if ch.get('hair') else (40, 30, 30); ha_sh = dark(hair, 0.7); ha_lt = lite(hair, 0.28)
-    eyes = rgb(ch['eyes']); top = rgb(ch['topColour']); top2 = rgb(ch['topColour2']) if ch.get('topColour2') else dark(top, 0.8)
-    extras = set(ch.get('extras', [])); old = ch['age'] == 'old'; young = ch['age'] == 'young'
-    build = ch['build']; L, R = {'slim': (11, 37), 'normal': (8, 40), 'broad': (5, 43)}[build]
-    ink = (12, 9, 20)
-    body = Canvas(); head = Canvas(); over = Canvas()
-
-    # ---- the body: shoulders turned a little toward the bubble (the near shoulder on the left, lower and bigger)
-    sh = [(18, 33), (L + 4, 36), (L, 40), (L - 1, 48), (R + 1, 48), (R, 41), (R - 4, 37), (30, 34)]
-    if ch['top'] == 'blazer': sh = [(18, 33), (L + 2, 35), (L - 2, 38), (L - 2, 48), (R + 2, 48), (R + 2, 39), (R - 2, 35), (30, 34)]
-    body.poly(sh, top)
-    for y in range(34, 48):                   # shade: the far (right) side lit, the near side in shadow at its edge
-        for x in range(L - 1, R + 2):
-            c = body.get(x, y)
-            if c is None: continue
-            if x < L + 3: body.put(x, y, dark(top, 0.78))
-            elif x > R - 3: body.put(x, y, lite(top, 0.1))
-    neck = [(21, 27), (28, 27), (28, 35), (21, 35)]
-    t = ch['top']
-    # each top: its collar and what shows under it
-    if t in ('openshirt', 'flowershirt', 'darkshirt', 'suit', 'jacketvest', 'cardigan', 'blouse', 'labcoat', 'seersucker', 'checkjacket'):
-        body.poly([(20, 33), (29, 33), (25, 41)], sk_sh)                         # skin in the open collar
-        body.poly([(22, 34), (27, 34), (25, 39)], skin)
-    if t == 'openshirt':
-        body.poly([(16, 34), (21, 33), (24, 41), (20, 38)], lite(top, 0.12)); body.poly([(29, 33), (34, 35), (29, 38), (26, 41)], top2)
-        for y in (42, 45): body.put(25, y, top2)
-    elif t == 'flowershirt':
-        body.poly([(16, 34), (21, 33), (24, 41), (20, 38)], lite(top, 0.15)); body.poly([(29, 33), (34, 35), (29, 38), (26, 41)], dark(top, 0.85))
-        for (x, y) in ((12, 41), (16, 44), (31, 43), (35, 40), (21, 46), (28, 46), (38, 45), (9, 46)):
-            if body.has(x, y):
-                for dx, dy in ((0, 0), (1, 0), (0, 1), (-1, 0), (0, -1)): body.put(x + dx, y + dy, top2 if (dx, dy) != (0, 0) else (255, 196, 64))
-    elif t == 'darkshirt':
-        body.poly([(17, 34), (21, 33), (24, 40), (20, 39)], lite(top, 0.18)); body.poly([(29, 33), (33, 35), (28, 39), (26, 40)], lite(top, 0.1))
-    elif t == 'jacketvest':
-        body.poly([(21, 33), (28, 33), (28, 48), (21, 48)], top2)                 # the white vest
-        body.poly([(20, 34), (25, 37), (25, 40), (21, 39)], top2)
-        body.poly([(15, 35), (21, 33), (23, 48), (16, 48)], dark(top, 0.92)); body.poly([(28, 33), (34, 35), (33, 48), (27, 48)], lite(top, 0.06))   # the jacket's fronts
-        body.poly([(17, 36), (21, 34), (22, 42)], dark(top, 0.8)); body.poly([(28, 34), (32, 36), (27, 42)], dark(top, 0.86))   # lapels
-    elif t == 'suit':
-        body.poly([(19, 33), (30, 33), (26, 44), (23, 44)], top2)                 # the shirt
-        body.poly([(21, 33), (28, 33), (25, 39)], sk_sh); body.poly([(22, 34), (27, 34), (25, 38)], skin)
-        body.poly([(15, 35), (20, 33), (24, 46), (17, 48)], dark(top, 0.9)); body.poly([(29, 33), (35, 35), (33, 48), (26, 46)], lite(top, 0.05))
-        body.poly([(17, 37), (20, 34), (23, 42)], dark(top, 0.78)); body.poly([(29, 34), (33, 36), (27, 42)], dark(top, 0.82))
-    elif t == 'denim':
-        body.poly([(19, 33), (30, 33), (27, 37), (22, 37)], dark(top, 0.85))
-        body.poly([(17, 34), (21, 33), (24, 38), (19, 38)], lite(top, 0.12)); body.poly([(28, 33), (32, 34), (29, 38), (25, 38)], lite(top, 0.06))   # collar points
-        body.rect(25, 38, 25, 47, top2)                                            # the placket
-        for y in (40, 43, 46): body.put(26, y, (220, 220, 230))
-        body.rect(13, 40, 18, 44, top2); body.rect(13, 40, 18, 40, dark(top2, 0.8))  # a chest pocket
-        body.rect(31, 40, 35, 43, top2)
-    elif t == 'waistcoat':
-        body.poly([(19, 33), (30, 33), (28, 48), (21, 48)], top2)                 # the white shirt
-        body.poly([(14, 36), (21, 34), (24, 48), (14, 48)], top); body.poly([(28, 34), (35, 36), (35, 48), (25, 48)], lite(top, 0.08))   # the waistcoat
-        for y in (40, 43, 46): body.put(24, y, (230, 200, 120))
-        body.rect(22, 33, 27, 34, (16, 14, 20)); body.rect(24, 33, 25, 35, (30, 26, 34))   # the bow tie
-        body.put(21, 32, (16, 14, 20)); body.put(28, 32, (16, 14, 20))
-    elif t == 'hivis':
-        body.poly([(19, 33), (30, 33), (27, 40), (22, 40)], top2)                 # the navy shirt
-        body.poly([(18, 34), (22, 33), (24, 39), (20, 39)], lite(top2, 0.12))
-        body.poly([(L + 2, 37), (21, 34), (23, 48), (L + 1, 48)], top); body.poly([(28, 34), (R - 2, 37), (R - 1, 48), (26, 48)], lite(top, 0.08))   # the vest
-        for y in (41, 45):
-            for x in range(L + 1, R):
-                if body.get(x, y) in (top, lite(top, 0.08), dark(top, 0.78), lite(lite(top, 0.08), 0.1)) or (body.has(x, y) and (x < 24 or x > 25)): body.put(x, y, (205, 212, 220) if (x + y) % 3 else (240, 244, 248))
-    elif t == 'uniform':
-        body.poly([(18, 33), (22, 33), (24, 38), (20, 38)], lite(top, 0.15)); body.poly([(27, 33), (31, 33), (29, 38), (25, 38)], lite(top, 0.1))
-        body.poly([(24, 34), (26, 34), (26, 46), (25, 47), (24, 46)], top2)       # the tie
-        body.rect(14, 41, 16, 43, (232, 190, 80)); body.put(15, 40, (250, 220, 120))   # the badge
-        body.rect(L + 2, 37, L + 6, 38, dark(top, 0.7)); body.rect(R - 6, 37, R - 2, 38, dark(top, 0.75))   # epaulettes
-        for y in (40, 43, 46): body.put(27, y, (200, 205, 215))
-    elif t == 'jumpsuit':
-        body.poly([(19, 33), (30, 33), (25, 41)], top2); body.poly([(21, 33), (28, 33), (25, 38)], skin)
-        body.rect(25, 41, 25, 47, dark(top, 0.75))                                 # the zip
-        body.rect(30, 40, 35, 43, (236, 232, 222)); body.rect(31, 41, 34, 42, (40, 40, 48)); body.put(32, 41, (236, 232, 222))   # the number patch
-    elif t == 'checkjacket':
-        for (x, y), c in list(body.p.items()):                                     # a loud check: the second colour in bands both ways
-            if x % 4 == 0 or y % 4 == 0: body.put(x, y, top2 if (x % 4 == 0) != (y % 4 == 0) else dark(top2, 0.8))
-        body.poly([(19, 33), (30, 33), (26, 44), (23, 44)], (238, 234, 222))       # the shirt
-        body.poly([(21, 33), (28, 33), (25, 38)], sk_sh); body.poly([(22, 34), (27, 34), (25, 37)], skin)
-        body.poly([(17, 37), (20, 34), (23, 42)], dark(top, 0.75)); body.poly([(29, 34), (33, 36), (27, 42)], dark(top, 0.8))   # lapels
-    elif t == 'windbreaker':
-        for (x, y), c in list(body.p.items()):                                     # a two-tone shell: the second colour across the chest
-            if 39 <= y <= 42: body.put(x, y, top2)
-        body.poly([(19, 32), (30, 32), (29, 36), (20, 36)], dark(top, 0.8))       # the zipped-up collar
-        body.rect(25, 36, 25, 47, (210, 210, 220))
-        for x, y in ((12, 44), (36, 45)): body.put(x, y, lite(top, 0.3))
-    elif t == 'cardigan':
-        body.poly([(19, 33), (30, 33), (27, 43), (22, 43)], top2)                 # the shirt, its collar points
-        body.poly([(21, 33), (28, 33), (25, 38)], sk_sh); body.poly([(22, 34), (27, 34), (25, 37)], skin)
-        body.poly([(18, 33), (22, 33), (24, 38), (20, 37)], lite(top2, 0.1)); body.poly([(27, 33), (31, 33), (29, 37), (25, 38)], top2)
-        body.poly([(15, 35), (20, 34), (24, 48), (16, 48)], dark(top, 0.92)); body.poly([(29, 34), (34, 35), (33, 48), (26, 48)], lite(top, 0.06))   # the cardigan's fronts
-        for y in (41, 44, 47): body.put(24, y, (220, 200, 160))                    # its buttons
-        for y in range(36, 48, 2):                                                  # the knit
-            for x in range(L, R):
-                if body.get(x, y) in (top, dark(top, 0.92), lite(top, 0.06)) and (x + y // 2) % 3 == 0: body.put(x, y, dark(top, 0.84))
-    elif t == 'leather':
-        body.poly([(20, 33), (29, 33), (28, 48), (21, 48)], top2)                 # the T-shirt
-        body.poly([(21, 33), (28, 33), (25, 36)], sk_sh); body.poly([(22, 33), (27, 33), (25, 35)], skin)
-        body.poly([(14, 35), (20, 33), (23, 48), (15, 48)], top); body.poly([(29, 33), (35, 35), (34, 48), (26, 48)], lite(top, 0.1))   # the jacket's fronts
-        body.poly([(15, 34), (21, 32), (22, 36), (18, 40)], dark(top, 0.7)); body.poly([(28, 32), (34, 34), (31, 40), (27, 36)], dark(top, 0.75))   # the wide collar
-        for x, y in ((13, 40), (14, 43), (36, 41), (35, 44), (17, 45), (31, 46)): body.put(x, y, lite(top, 0.35))   # shine on the leather
-        body.rect(22, 38, 22, 47, (150, 150, 160))                                 # the open zip
-    elif t == 'blouse':
-        body.poly([(17, 33), (22, 33), (25, 42), (20, 38)], lite(top, 0.14)); body.poly([(27, 33), (32, 33), (29, 38), (25, 42)], lite(top, 0.06))   # the soft collar
-        body.poly([(21, 33), (28, 33), (25, 41)], sk_sh); body.poly([(22, 34), (27, 34), (25, 39)], skin)
-        for x, y in ((12, 44), (13, 43), (36, 43), (37, 44)): body.put(x, y, dark(top, 0.8))   # folds
-    elif t == 'blazer':
-        body.poly([(20, 33), (29, 33), (28, 48), (21, 48)], top2)                 # the top under it
-        body.poly([(21, 33), (28, 33), (25, 37)], sk_sh); body.poly([(22, 33), (27, 33), (25, 36)], skin)
-        body.poly([(14, 35), (20, 33), (24, 48), (15, 48)], dark(top, 0.92)); body.poly([(29, 33), (35, 35), (34, 48), (25, 48)], lite(top, 0.06))
-        body.poly([(17, 36), (20, 34), (23, 43)], dark(top, 0.78)); body.poly([(29, 34), (33, 36), (26, 43)], dark(top, 0.82))   # lapels
-        body.rect(L - 1, 36, L + 3, 37, lite(top, 0.18)); body.rect(R - 3, 36, R + 1, 37, lite(top, 0.24))   # the padded shoulders
-    elif t == 'tanktop':
-        for (x, y), c in list(body.p.items()):                                     # bare shoulders and arms: skin, the vest in the middle
-            body.put(x, y, sk_sh if x < L + 4 else skin)
-        body.poly([(17, 37), (21, 33), (23, 33), (21, 38), (21, 48), (16, 48)], top)            # the straps and the vest
-        body.poly([(26, 33), (28, 33), (32, 37), (33, 48), (28, 48), (28, 38)], lite(top, 0.06))
-        body.poly([(19, 38), (30, 38), (31, 48), (18, 48)], top)
-        body.poly([(21, 34), (28, 34), (29, 38), (20, 38)], skin)                  # the chest above the vest
-        for x, y in ((L + 2, 40), (L + 3, 44), (R - 3, 42)): body.put(x, y, sk_sh)   # muscle
-        for x in range(18, 32): body.put(x, 38, dark(top, 0.85))
-    elif t == 'labcoat':
-        body.poly([(20, 33), (29, 33), (28, 48), (21, 48)], top2)                 # the T-shirt
-        body.poly([(21, 33), (28, 33), (25, 36)], sk_sh); body.poly([(22, 33), (27, 33), (25, 35)], skin)
-        body.poly([(14, 35), (20, 33), (23, 48), (15, 48)], dark(top, 0.94)); body.poly([(29, 33), (35, 35), (34, 48), (26, 48)], top)   # the coat
-        body.poly([(17, 35), (20, 33), (22, 41)], dark(top, 0.82)); body.poly([(29, 33), (33, 35), (27, 41)], dark(top, 0.86))   # lapels
-        body.rect(29, 42, 33, 46, dark(top, 0.88)); body.put(30, 41, (60, 90, 200)); body.put(32, 40, (220, 40, 40)); body.put(32, 41, (220, 40, 40))   # pens in the pocket
-    elif t == 'dress':
-        for (x, y), c in list(body.p.items()):
-            if y < 38: body.put(x, y, sk_sh if x < L + 4 else skin)                # bare shoulders
-        body.poly([(18, 33), (31, 33), (29, 39), (20, 39)], sk_sh)                 # the open neckline
-        body.poly([(20, 33), (29, 33), (28, 38), (21, 38)], skin)
-        body.poly([(L + 1, 38), (20, 38), (21, 39), (28, 39), (29, 38), (R - 1, 38), (R + 1, 48), (L - 1, 48)], top)
-        for x, y in ((L + 3, 37), (L + 4, 36), (R - 4, 36), (R - 3, 37)): body.put(x, y, top)   # the straps
-        for y in range(40, 48):                                                     # gathered folds
-            for x in (16, 22, 28, 34):
-                if body.has(x, y): body.put(x, y, top2)
-    elif t == 'buttoned':
-        body.poly([(19, 33), (30, 33), (28, 36), (21, 36)], dark(top, 0.88))       # buttoned to the top
-        body.poly([(18, 33), (22, 32), (25, 36), (20, 37)], lite(top, 0.14)); body.poly([(27, 32), (31, 33), (29, 37), (25, 36)], lite(top, 0.08))   # collar points
-        body.rect(25, 36, 25, 47, top2)
-        for y in (37, 40, 43, 46): body.put(26, y, (225, 225, 232))
-        body.rect(13, 40, 18, 44, top2); body.rect(14, 41, 17, 41, (225, 225, 232))  # a number on the pocket
-    elif t == 'seersucker':
-        for (x, y), c in list(body.p.items()):                                     # the stripes
-            if x % 2 == 0: body.put(x, y, lite(top, 0.35))
-        body.poly([(19, 33), (30, 33), (26, 44), (23, 44)], top2)                 # the shirt
-        body.poly([(21, 33), (28, 33), (25, 38)], sk_sh); body.poly([(22, 34), (27, 34), (25, 37)], skin)
-        body.poly([(17, 37), (20, 34), (23, 42)], dark(top, 0.8)); body.poly([(29, 34), (33, 36), (27, 42)], dark(top, 0.84))   # lapels
-    if 'chain' in extras:
-        for x, y in ((21, 35), (22, 36), (23, 37), (24, 37), (25, 37), (26, 37), (27, 36), (28, 35)): body.put(x, y, (232, 190, 70) if x % 2 else (255, 226, 120))
-    if 'pearls' in extras:
-        for x, y in ((20, 34), (21, 35), (22, 36), (23, 36), (24, 37), (25, 37), (26, 36), (27, 36), (28, 35), (29, 34)): body.put(x, y, (250, 248, 240) if x % 2 else (200, 196, 210))
-    if 'bowtie' in extras:
-        bt = (150, 30, 44); body.rect(22, 33, 27, 34, bt); body.rect(24, 33, 25, 35, dark(bt, 0.7)); body.put(21, 32, bt); body.put(28, 32, bt); body.put(22, 35, bt); body.put(27, 35, bt)
-    if 'tattoo' in extras:
-        for x, y in ((L + 3, 39), (L + 4, 40), (L + 2, 41), (L + 3, 42), (L + 5, 41), (L + 4, 43)): body.put(x, y, (40, 80, 90))
-    if 'rag' in extras:                       # a rag over the near shoulder
-        body.poly([(L + 1, 36), (L + 7, 34), (L + 8, 37), (L + 4, 44), (L + 1, 44)], (196, 70, 60))
-        for x, y in ((L + 3, 38), (L + 5, 37), (L + 2, 41)): body.put(x, y, (150, 50, 44))
-    if 'braid' in extras:
-        body.rect(L + 2, 37, L + 6, 38, (232, 190, 70)); body.rect(R - 6, 37, R - 2, 38, (255, 214, 100))
-        for x in range(L + 2, L + 7, 2): body.put(x, 39, (232, 190, 70))
-
-    # ---- the neck and the head (3/4 view: the face's front to the right, the ear and the back of the head to the left)
-    head.poly(neck, sk_sh); head.rect(25, 28, 27, 33, skin); head.rect(21, 27, 28, 28, sk_dp)
-    jaw_w = {'slim': 0, 'normal': 0, 'broad': 1}[build]
-    head.ellipse(24.5, 18.5, 8.6, 9.2, skin)
-    head.poly([(16.2 - jaw_w, 19), (16.4 - jaw_w, 24), (19 - jaw_w, 28.5), (23, 31.2), (27.5, 31), (31, 28), (32.6, 23), (33, 17)], skin)
-    if 'jowls' in extras: head.ellipse(24.5, 27.2, 9.0, 5.2, skin)
-    for (x, y), c in list(head.p.items()):    # shading: the back of the head and the jaw's underside darker, the cheek and brow lit
-        if y >= 27 and x <= 28 and not head.has(x, y + 1) and y < 32: head.put(x, y, sk_sh)
-        if x <= 18 and y >= 17: head.put(x, y, sk_sh)
-    for x, y in ((28, 22), (29, 22), (29, 23), (30, 21), (26, 16), (27, 16), (28, 16), (29, 17)): head.put(x, y, sk_lt)
-    for y in range(29, 32):                   # under the chin
-        for x in range(21, 29):
-            if head.has(x, y) and not head.has(x, y + 1): head.put(x, y, sk_sh)
-    head.ellipse(19.2, 22.5, 1.9, 2.6, skin); head.put(19, 22, sk_dp); head.put(19, 23, sk_sh); head.put(20, 21, sk_sh)   # the ear
-    if 'earring' in extras: head.put(19, 25, (255, 214, 80)); head.put(19, 26, (220, 170, 50))
+    extras = set(ch.get('extras', [])); hs = ch['hairStyle']; fem = hs in FEM_HAIR or 'lipstick' in extras
+    sk = skin_ramp(rgb(ch['skin']))
+    hair = rgb(ch['hair']) if ch.get('hair') else (40, 30, 30); hr = hair_ramp(hair)
+    fcol = rgb(ch.get('facialColour') or ch['hair'])
+    eyes = rgb(ch['eyes'])
+    pal = dict(sk)
+    brow = hr['a'] if sum(hair) < 200 else dark(hair, 0.62)
+    if hs == 'bald': brow = dark(fcol, 0.7)
+    lip_line = mix(sk['0'], (96, 20, 26), 0.35); lip = mix(sk['3'], (206, 96, 96), 0.38)
+    if fem: lip_line, lip = mix(sk['0'], (150, 30, 56), 0.55), mix(sk['4'], (214, 92, 112), 0.5)     # rosy lips without lipstick too
+    if 'lipstick' in extras: lip_line, lip = (140, 14, 40), (206, 34, 64)
+    pal.update({'B': brow, 'L': (16, 10, 16), 'W': (236, 232, 228), 'I': mix(eyes, (255, 255, 255), 0.25), 'J': dark(eyes, 0.45),
+                'M': lip_line, 'm': lip, 'k': mix(sk['4'], (236, 128, 138), 0.2), 't': (244, 240, 230), 'n': (84, 18, 28), 'g': (255, 210, 70), 's': mix(sk['4'], (236, 180, 176), 0.6)})
+    pic = Pic()
+    front, back, crown, flow = hair_mask(hs) if hs not in ('short', 'bald') else (set(), set(), None, None)
+    if back:                                  # hair behind the head and neck, in shade
+        bh = shade_hair(back, (24, 10), 'fall' if hs != 'wave' else 'wave')
+        pic.stamp(bh, {'a': hr['a'], 'e': hr['a'], 'b': hr['e'], 'c': hr['b'], 'd': hr['c']})
+    pic.stamp(HEAD, sk)                       # the neck under the collar
+    draw_top(pic, ch, sk, extras)
+    g = head_letters(ch, face, fem, extras)
+    pic.stamp({p: l for p, l in g.items() if p[1] < 50}, pal)
+    if ch['facial'] == 'stubble' and not fem: stubble(pic, fcol, face)
+    draw_facial(pic, ch, face, fcol)
+    if 'earring' in extras: pic.put(7, 37, (255, 214, 90)); pic.put(7, 38, (196, 146, 46))
+    if hs == 'short':                         # the reference's own hair (under a hat: only what shows at the sides)
+        hat = ch.get('hat', 'none') != 'none'
+        pic.stamp(HAIR_SHORT, hr, only=(lambda x, y: 18 <= y <= 30 and (x <= 14 or x >= 37)) if hat else None)
+    elif hs == 'bald':
+        for x, y in ((28, 9), (29, 9), (30, 10), (31, 10), (27, 10), (30, 11)): pic.put(x, y, sk['5'])
+    elif front: pic.stamp(shade_hair(front, crown, flow), hr)
+    if 'temples' in extras:
+        for (x, y), c in list(pic.p.items()):
+            if 10 <= x <= 15 and 16 <= y <= 29 and c in (hr['b'], hr['c'], hr['d'], hr['e']): pic.put(x, y, (170, 170, 178) if c != hr['e'] else (120, 120, 130))
+    if 'pencil' in extras:                    # behind the near ear
+        for i, (x, y) in enumerate(((3, 26), (4, 27), (5, 28), (6, 29), (7, 30), (8, 31), (9, 32))): pic.put(x, y, (240, 130, 150) if i == 0 else (246, 200, 40) if i < 6 else (60, 50, 40))
+    draw_glasses(pic, ch)
+    draw_hat(pic, ch)
+    draw_mouth_props(pic, extras)
     if 'hoops' in extras:
-        for x, y in ((19, 25), (18, 26), (18, 27), (18, 28), (19, 29), (20, 28), (20, 27), (20, 26)): head.put(x, y, (255, 206, 70) if y < 28 else (210, 160, 40))
-    # the nose: past the cheek line, shadow under it
-    for x, y, c in ((32, 21, skin), (33, 22, skin), (33, 23, skin), (32, 24, sk_sh), (33, 24, sk_sh), (31, 23, sk_lt), (30, 24, sk_sh), (31, 25, sk_dp)): head.put(x, y, c)
-    # ---- the face: eyes, brows, mouth (by the face)
-    white = (240, 236, 228)
-    if ch.get('glasses') != 'shades':
-        lid = dark(hair, 0.6) if ch['hairStyle'] != 'bald' else sk_dp
-        squint = face == 'smile' and ch.get('smileEyes', 'happy') == 'happy'
-        if squint:                            # happy eyes: arched, the cheeks pushed up under them
-            arc = dark(skin, 0.42)
-            for x, y in ((23, 21), (24, 20), (25, 21), (29, 21), (30, 20), (31, 21)): head.put(x, y, arc)
-            for x, y in ((23, 22), (24, 22), (29, 22), (30, 22)): head.put(x, y, sk_lt)
-        else:
-            head.put(23, 21, white); head.put(24, 21, eyes); head.put(25, 21, (14, 10, 16)); head.put(24, 22, dark(eyes, 0.7))
-            head.put(29, 21, eyes); head.put(30, 21, (14, 10, 16))
-            for x in (23, 24, 25): head.put(x, 20, (30, 22, 26))
-            head.put(29, 20, (30, 22, 26)); head.put(30, 20, (30, 22, 26))
-            if face == 'angry': head.put(23, 20, sk_sh); head.put(23, 21, (30, 22, 26))
-        if 'tired' in extras: head.put(23, 23, sk_sh); head.put(24, 23, sk_sh); head.put(25, 23, sk_sh); head.put(30, 22, sk_sh)
-        if 'wrinkles' in extras or old: head.put(21, 21, sk_sh); head.put(21, 22, sk_sh); head.put(22, 23, sk_sh)
-    brow = dark(hair, 0.75) if ch['hairStyle'] not in ('bald',) else dark(skin, 0.5)
-    if ch['hairStyle'] == 'combed' or ch['hair'] in ('#eceae4',): brow = (200, 198, 192)
-    if face == 'angry': near, far = [(22, 17), (23, 18), (24, 18), (25, 19)], [(28, 19), (29, 18), (30, 18)]
-    elif face == 'smile': near, far = [(22, 18), (23, 17), (24, 17), (25, 18)], [(28, 18), (29, 17), (30, 17)]
-    else: near, far = [(22, 18), (23, 18), (24, 18), (25, 18)], [(28, 18), (29, 18), (30, 18)]
-    for x, y in near + far: head.put(x, y, brow)
-    lip = mix(dark(skin, 0.5), (150, 40, 50), 0.35); mouth_in = (60, 16, 24); teeth = (244, 240, 230)
-    if 'lipstick' in extras: lip = (196, 28, 52)
-    if face == 'calm':
-        for x in (26, 27, 28, 29): head.put(x, 27, lip)
-        head.put(27, 28, sk_sh)
-        cm = ch.get('calmMouth', 'line')
-        if cm == 'smirk': head.put(30, 26, lip)
-        elif cm == 'frown': head.put(25, 28, lip); head.put(30, 28, lip)
-    elif face == 'smile':
-        head.put(25, 26, lip); head.put(30, 26, lip)
-        for x in (26, 27, 28, 29): head.put(x, 27, lip)
-        if 'goldtooth' in extras or ch['id'] in ('tito', 'nico', 'rocco', 'sol'):
-            head.put(27, 27, teeth); head.put(28, 27, (255, 214, 80) if 'goldtooth' in extras else teeth)
-        head.put(27, 28, sk_sh); head.put(24, 25, sk_sh)
-    else:                                     # angry: open, teeth showing
-        for x in (26, 27, 28, 29): head.put(x, 27, teeth if x in (27, 28) else mouth_in)
-        for x in (26, 27, 28, 29): head.put(x, 28, mouth_in)
-        head.put(25, 28, lip); head.put(30, 28, lip); head.put(27, 29, sk_sh); head.put(28, 29, sk_sh)
-        head.put(26, 24, sk_sh)
-    if 'scar' in extras:
-        for x, y in ((30, 18), (30, 19), (31, 20), (31, 21)): head.put(x, y, mix(skin, (190, 120, 120), 0.6))
-    if 'jowls' in extras:                    # the double chin
-        for x in range(21, 30): head.put(x, 31, sk_sh)
-        head.put(18, 28, sk_sh); head.put(31, 29, sk_sh)
-    if 'cigar' in extras:                     # a fat cigar in the mouth's corner, lit
-        for x, y in ((30, 27), (31, 27), (32, 27), (33, 26), (34, 26)): head.put(x, y, (110, 70, 40))
-        for x, y in ((31, 28), (32, 28), (33, 27)): head.put(x, y, (80, 50, 28))
-        head.put(35, 26, (255, 120, 50)); head.put(36, 24, (160, 160, 170)); head.put(37, 22, (150, 150, 162)); head.put(36, 20, (140, 140, 152))
-    if 'toothpick' in extras:
-        for x, y in ((30, 27), (31, 27), (32, 26), (33, 26), (34, 25)): head.put(x, y, (226, 196, 140) if x < 34 else (190, 160, 110))
-    if 'holder' in extras:                    # a long cigarette holder, the cigarette lit, a curl of smoke
-        for x, y in ((30, 27), (31, 27), (32, 26), (33, 26), (34, 26), (35, 25), (36, 25)): head.put(x, y, (20, 18, 24))
-        head.put(37, 24, (240, 236, 228)); head.put(38, 24, (240, 236, 228)); head.put(39, 23, (255, 120, 60))
-        for x, y in ((40, 21), (41, 19), (40, 17), (41, 15)): head.put(x, y, (150, 150, 165))
-    if 'sweat' in extras and face != 'smile': head.put(31, 15, (190, 230, 255)); head.put(31, 16, (140, 200, 240))
+        for (x, y) in ellipse_px(7.5, 41.5, 2.6, 3.4) - ellipse_px(7.5, 41.5, 1.4, 2.2): pic.put(x, y, (255, 206, 70) if y < 42 else (210, 160, 40))
+    if 'sweat' in extras and face != 'smile':
+        for x, y, c in ((36, 21, (200, 236, 255)), (36, 22, (150, 205, 245)), (13, 24, (200, 236, 255)), (13, 25, (150, 205, 245))): pic.put(x, y, c)
+    if 'nosering' in extras:                  # a little silver ring through the near nostril
+        pic.put(29, 38, (226, 226, 236)); pic.put(29, 39, (170, 170, 186)); pic.put(30, 39, (226, 226, 236))
+    if 'loupe' in extras:
+        for (x, y) in ellipse_px(33, 21, 3.2, 3.0): pic.put(x, y, (34, 34, 40))
+        for (x, y) in ellipse_px(33, 21, 2.0, 1.8): pic.put(x, y, (170, 205, 230) if x < 33 else (120, 155, 190))
+    return finish(pic)
 
-    # ---- facial hair
-    fc = rgb(ch['facialColour']) if ch.get('facialColour') else hair
-    f = ch['facial']
-    if f == 'stubble':                       # a shadow of a beard: the jaw, the chin and the upper lip, sparse
-        for (x, y) in list(head.p):
-            c = head.get(x, y)
-            if c in (skin, sk_sh, sk_lt) and x >= 20 and 27 <= y <= 31 and not (25 <= x <= 30 and y in (27, 28)) and (x * 3 + y) % 4 < 2:
-                head.put(x, y, mix(c, fc, 0.4))
-        for x in (25, 27, 29, 30): head.put(x, 26, mix(skin, fc, 0.38))
-    elif f == 'beard':                        # a short full beard: the jaw and chin below the cheekbones, the mouth in it
-        for (x, y) in list(head.p):
-            c = head.get(x, y)
-            if c in (skin, sk_sh, sk_lt, sk_dp) and ((y >= 26 and x >= 19) or (y >= 24 and 19 <= x <= 22)) and y <= 31 and not (26 <= x <= 29 and y in (27, 28)):
-                head.put(x, y, dark(fc, 0.86) if x <= 21 or (x * 5 + y * 3) % 7 == 0 else fc)
-        for x in range(21, 30): head.put(x, 32, dark(fc, 0.8))
-        for x in (25, 26, 27, 28, 29, 30): head.put(x, 26, fc)
-        for x in (26, 27, 28, 29): head.put(x, 27, lip if face == 'calm' else head.get(x, 27))
-    elif f == 'moustache':
-        for x in (25, 26, 27, 28, 29, 30): head.put(x, 26, fc)
-        head.put(25, 27, fc); head.put(30, 27, fc)
-    elif f == 'pencil':
-        for x in (26, 27, 28, 29): head.put(x, 26, fc)
-    elif f == 'goatee':                      # a moustache joined to a beard on the chin
-        for x in (26, 27, 28, 29): head.put(x, 26, fc)
-        head.put(25, 27, fc); head.put(30, 27, fc); head.put(25, 28, dark(fc, 0.85)); head.put(30, 28, dark(fc, 0.85))
-        for y in (29, 30, 31):
-            for x in range(26 if y < 31 else 27, 30 if y < 31 else 29): head.put(x, y, fc if (x + y) % 3 else dark(fc, 0.85))
 
-    # ---- the hair (over the head)
-    hs = ch['hairStyle']
-    def on_head(x, y): return head.has(x, y)
-    if hs in ('short', 'slick', 'buzz', 'combed', 'pixie', 'curly'):
-        front = {'short': 14, 'slick': 13, 'buzz': 13, 'combed': 12, 'pixie': 15, 'curly': 13}[hs]
-        cap = Canvas()
-        cap.ellipse(24.2, 17.4, 9.2, 9.0, hair, only=lambda x, y: y <= front or x <= 20 - (y - front) // 3)
-        if hs == 'combed': cap.ellipse(23.5, 17.6, 9.2, 9.0, hair, only=lambda x, y: (y <= front and x <= 27) or (x <= 19 and y <= 20))
-        for (x, y), c in cap.p.items():
-            if hs == 'buzz' and (x + y) % 2 and y > 11: continue
-            if x <= 18 and y >= 18 and hs not in ('pixie', 'curly'): continue   # behind the ear: the nape only to the ear
-            over.put(x, y, hair)
-        if hs in ('short', 'slick', 'combed'):
-            for y in range(front + 1, 22): over.put(20, y, hair); over.put(21, y, hair) if y < 19 else None   # the sideburn
-        if hs == 'pixie':                     # a side fringe over the brow, the nape longer
-            over.poly([(20, 12), (31, 11), (29, 14), (25, 16), (22, 17), (20, 17)], hair)
-            over.poly([(15, 16), (20, 16), (20, 27), (16, 26)], hair)
-            for x, y in ((23, 13), (24, 13), (25, 12), (26, 12)): over.put(x, y, ha_lt)
-        if hs == 'curly':                     # bumps round the top and back
-            for cx, cy in ((17, 12), (20, 9), (24, 8), (28, 9), (31, 11), (16, 16), (16, 20), (32, 14)):
-                over.ellipse(cx, cy, 2.4, 2.2, hair)
-            for x, y in ((19, 10), (23, 9), (27, 10), (30, 12), (17, 14), (21, 12), (25, 11), (29, 13)): over.put(x, y, ha_lt)
-        if hs in ('slick', 'combed'):         # shine along the combing
-            pts = ((19, 11), (21, 10), (23, 10), (25, 10), (27, 11)) if hs == 'slick' else ((18, 12), (20, 11), (22, 11), (24, 11))
-            for x, y in pts: over.put(x, y, ha_lt)
-            if hs == 'combed':
-                for x, y in ((19, 13), (21, 13), (23, 13), (18, 15), (20, 15)): over.put(x, y, ha_sh)
-        if hs == 'short':
-            for x, y in ((21, 10), (24, 9), (27, 10)): over.put(x, y, ha_lt)
-        for (x, y) in list(over.p):            # the hair's lower back edge darker
-            if over.get(x, y) == hair and not over.has(x, y + 1) and x < 22: over.put(x, y, ha_sh)
-    elif hs == 'sides':                       # under a cap: grey at the side and the back only
-        over.poly([(16, 14), (21, 14), (21, 22), (19, 20), (16, 22)], hair)
-        for x, y in ((17, 16), (18, 18), (20, 17)): over.put(x, y, ha_lt)
-
-    elif hs == 'flattop':                     # short sides, the top cut flat and square
-        over.rect(17, 8, 31, 12, hair); over.rect(16, 10, 17, 17, hair); over.rect(31, 10, 32, 13, hair)
-        for x in range(17, 32): over.put(x, 8, ha_lt)
-        for y in range(13, 19):
-            for x in range(16, 22):
-                if (x + y) % 2 and head.has(x, y): over.put(x, y, hair)
-        for x, y in ((20, 10), (24, 10), (28, 10)): over.put(x, y, ha_sh)
-    elif hs == 'bob':                         # straight to the jaw at the back, a blunt fringe
-        cap = Canvas(); cap.ellipse(24.2, 17.4, 9.4, 9.2, hair, only=lambda x, y: y <= 16 or x <= 21)
-        for (x, y) in cap.p: over.put(x, y, hair)
-        over.poly([(14, 14), (21, 13), (21, 29), (14, 29)], hair)
-        for x in range(20, 32): over.put(x, 15, hair); over.put(x, 16, hair if x < 31 else ha_sh)
-        for x in range(14, 21): over.put(x, 29, ha_sh)
-        for x, y in ((19, 10), (22, 9), (25, 9), (16, 15), (16, 20), (16, 25)): over.put(x, y, ha_lt)
-    elif hs in ('bun', 'pulled'):             # pulled back from the face to a knot: tight and shiny, or a messy curly bun on top
-        cap = Canvas(); cap.ellipse(24.0, 17.6, 9.0, 8.8, hair, only=lambda x, y: y <= 13 or x <= 20 - (y - 13) // 3)
-        for (x, y) in cap.p:
-            if x <= 18 and y >= 18: continue
-            over.put(x, y, hair)
-        if hs == 'pulled':
-            over.ellipse(15.0, 15.0, 3.0, 3.2, hair)
-            for x, y in ((19, 11), (21, 10), (23, 10), (25, 10), (27, 11), (14, 14)): over.put(x, y, ha_lt)
-        else:
-            over.ellipse(18.0, 7.5, 4.6, 4.0, hair)
-            for x, y in ((14, 6), (16, 3), (21, 4), (23, 7), (13, 9), (22, 11), (28, 10), (31, 13)): over.put(x, y, hair)
-            for x, y in ((16, 6), (18, 5), (20, 7), (17, 9), (24, 11), (26, 12)): over.put(x, y, ha_lt)
-            for x, y in ((31, 14), (32, 15), (32, 16)): over.put(x, y, hair)   # a loose curl by the brow
-    elif hs == 'wave':                        # a set 50s wave, full at the sides and back
-        cap = Canvas(); cap.ellipse(23.8, 16.8, 10.2, 9.8, hair, only=lambda x, y: y <= 14 or x <= 20 - (y - 14) // 4)
-        for (x, y) in cap.p: over.put(x, y, hair)
-        over.ellipse(17.0, 21.0, 4.2, 5.0, hair)
-        for x, y in ((15, 10), (19, 8), (23, 7), (27, 8), (30, 10), (14, 17), (14, 22)): over.put(x, y, ha_lt)
-        for x, y in ((17, 11), (21, 10), (25, 10), (29, 12), (16, 14), (15, 20), (16, 24)): over.put(x, y, ha_sh)
-        for x in range(25, 32): over.put(x, 13 + (x % 3 == 0), hair)
-    elif hs == 'spiky':                       # short and gelled up in spikes
-        cap = Canvas(); cap.ellipse(24.2, 17.6, 9.0, 8.6, hair, only=lambda x, y: y <= 14 or x <= 19 - (y - 14) // 3)
-        for (x, y) in cap.p:
-            if x <= 18 and y >= 18: continue
-            over.put(x, y, hair)
-        for x0 in (16, 19, 22, 25, 28, 31):
-            for k in range(5): over.put(x0 + k // 2, 10 - k, hair if k < 4 else ha_lt)
-        for x, y in ((18, 10), (21, 9), (24, 9), (27, 9), (30, 11)): over.put(x, y, ha_lt)
-    if 'temples' in extras:                   # grey at the temples
-        for (x, y), c in list(over.p.items()):
-            if c in (hair, ha_sh, ha_lt) and 17 <= x <= 22 and 13 <= y <= 22: over.put(x, y, (176, 176, 180) if (x + y) % 2 else (150, 150, 156))
-    if 'loupe' in extras:                     # a jeweller's loupe pushed up on the brow
-        for x, y in ((27, 15), (28, 14), (29, 14), (30, 15), (30, 16), (29, 17), (28, 17), (27, 16)): over.put(x, y, (30, 30, 36))
-        over.put(28, 15, (180, 210, 230)); over.put(29, 15, (140, 170, 200)); over.put(28, 16, (140, 170, 200)); over.put(29, 16, (120, 150, 180))
-    if 'pencil' in extras:                    # a pencil behind the ear
-        for x, y in ((16, 20), (17, 19), (18, 18), (19, 17), (20, 16)): over.put(x, y, (246, 200, 40))
-        over.put(21, 15, (240, 200, 160)); over.put(22, 14, (40, 40, 40)); over.put(15, 21, (240, 120, 140))
-
-    # ---- glasses
-    gl = ch.get('glasses', 'none'); gc = rgb(ch['glassesColour']) if ch.get('glassesColour') else (30, 26, 34)
-    if gl == 'shades':
-        for x in (22, 23, 24, 25, 26): over.put(x, 20, gc); over.put(x, 21, gc)
-        for x in (23, 24, 25): over.put(x, 22, gc)
-        for x in (28, 29, 30, 31): over.put(x, 20, gc); over.put(x, 21, gc)
-        over.put(27, 20, gc); over.put(21, 20, gc); over.put(20, 20, gc)
-        over.put(23, 20, (120, 130, 160)); over.put(29, 20, (120, 130, 160))
-        if face == 'angry': over.put(22, 19, brow); over.put(25, 19, brow)
-    elif gl == 'square':                      # big square frames
-        for x in range(21, 27): over.put(x, 19, gc); over.put(x, 23, gc)
-        for y in range(19, 24): over.put(21, y, gc); over.put(26, y, gc)
-        for x in range(28, 33): over.put(x, 19, gc); over.put(x, 23, gc)
-        for y in range(19, 24): over.put(28, y, gc); over.put(32, y, gc)
-        over.put(27, 20, gc); over.put(20, 20, gc); over.put(19, 20, gc)
-        over.put(22, 20, (200, 220, 240)); over.put(29, 20, (200, 220, 240))
-    elif gl == 'roundshades':                 # big round sunglasses
-        over.ellipse(23.8, 21.2, 3.2, 2.9, gc); over.ellipse(30.0, 21.2, 2.6, 2.9, gc)
-        over.put(27, 20, gc); over.put(20, 20, gc); over.put(19, 20, gc)
-        over.put(22, 20, (150, 160, 190)); over.put(29, 20, (150, 160, 190))
-        if face == 'angry': over.put(22, 18, brow); over.put(25, 18, brow)
-    elif gl == 'reading':
-        for x in (22, 23, 24, 25, 26): over.put(x, 23, gc)
-        over.put(22, 22, gc); over.put(26, 22, gc); over.put(28, 22, gc); over.put(31, 22, gc)
-        for x in (28, 29, 30, 31): over.put(x, 23, gc)
-        over.put(27, 22, gc); over.put(21, 22, gc)
-        for y in range(23, 34): over.put(20 - (y - 23) // 5, y, gc if y % 2 else dark(gc, 0.7))   # the cord down to the collar
-
-    # ---- hats
-    hat = ch.get('hat', 'none'); hc = rgb(ch['hatColour']) if ch.get('hatColour') else (40, 40, 50); hc2 = rgb(ch['hatColour2']) if ch.get('hatColour2') else dark(hc, 0.6)
-    if hat == 'captain':
-        over.poly([(14, 13), (15, 8), (19, 5), (26, 4.5), (32, 6), (34, 10), (33, 13)], hc)      # the crown
-        for (x, y) in list(over.p):
-            if over.get(x, y) == hc and x <= 17: over.put(x, y, dark(hc, 0.82))
-        for x, y in ((24, 6), (27, 6), (29, 7), (22, 7)): over.put(x, y, lite(hc, 0.35))
-        over.rect(15, 12, 33, 13, hc2)                                                        # the band
-        over.poly([(24, 14), (35, 14), (37, 16), (25, 16)], (22, 22, 30))                     # the visor
-        over.put(36, 15, (60, 60, 76)); over.put(30, 14, (60, 60, 76))
-        over.rect(26, 9, 28, 10, (236, 190, 70)); over.put(27, 8, (255, 230, 130)); over.put(27, 11, (200, 150, 40))   # the badge
-    elif hat == 'hardhat':
-        over.ellipse(24.2, 12.5, 9.6, 7.6, hc, only=lambda x, y: y <= 13)
-        over.rect(13, 13, 35, 14, hc2); over.rect(30, 14, 36, 15, hc2)                       # the brim, longer in front
-        over.rect(23, 6, 25, 13, lite(hc, 0.25)); over.put(24, 5, lite(hc, 0.25))             # the ridge
-        for x, y in ((19, 8), (20, 7), (28, 7), (29, 8)): over.put(x, y, lite(hc, 0.4))
-        for (x, y) in list(over.p):
-            if over.get(x, y) == hc and x <= 17: over.put(x, y, dark(hc, 0.85))
-    elif hat == 'police':
-        over.poly([(14, 7), (34, 6), (33, 12), (16, 12)], hc)                                 # the crown, wider at the top
-        for x in range(14, 34): over.put(x, 6 if x > 16 else 7, lite(hc, 0.2))
-        over.rect(16, 12, 33, 13, (16, 16, 22)); over.rect(17, 12, 32, 12, hc2)               # the band
-        over.poly([(23, 14), (35, 14), (37, 16), (24, 16)], (16, 16, 22)); over.put(35, 15, (60, 60, 76))   # the visor
-        over.rect(24, 8, 26, 10, hc2); over.put(25, 7, lite(hc2, 0.3))                        # the badge
-
-    elif hat == 'flatcap':                    # a flat cap: low and round at the back, a short peak in front
-        over.poly([(14, 13), (15, 10), (19, 8), (26, 7.5), (31, 9), (34, 12), (36, 14), (30, 15), (16, 15)], hc)
-        for (x, y) in list(over.p):
-            if over.get(x, y) == hc and ((x + y * 2) % 5 == 0): over.put(x, y, hc2)   # the tweed
-            if over.get(x, y) == hc and x <= 17: over.put(x, y, dark(hc, 0.82))
-        over.poly([(28, 14), (37, 14), (36, 16), (28, 16)], dark(hc, 0.75)); over.put(26, 8, lite(hc, 0.3)); over.put(24, 8, lite(hc, 0.3))
-    elif hat == 'visor':                      # a green eyeshade: a band round the head, a see-through peak
-        over.rect(16, 13, 32, 14, hc2)
-        over.poly([(24, 15), (36, 14), (38, 17), (25, 17)], hc)
-        for x in range(26, 37): over.put(x, 15, lite(hc, 0.3))
-    elif hat == 'chauffeur':                  # a peaked cap, glossy peak, a small gold button
-        over.poly([(15, 8), (33, 7), (33, 12), (16, 12)], hc)
-        for x in range(16, 33): over.put(x, 7 if x > 17 else 8, lite(hc, 0.18))
-        over.rect(16, 12, 33, 13, hc2)
-        over.poly([(23, 14), (35, 14), (37, 16), (24, 16)], (10, 10, 14)); over.put(34, 15, (90, 90, 110)); over.put(31, 14, (70, 70, 90))
-        over.put(32, 12, (236, 190, 70))
-
-    # ---- put it together: body, head, hair and hats, then the outline, then the ground
-    fig = {}
-    for layer in (body, head, over): fig.update(layer.p)
-    img = Image.new('RGB', (S, S))
-    bub = rgb(ch['bubble']); bg = (14, 11, 24)
-    for y in range(S):
-        for x in range(S):
-            d = ((x - 24) ** 2 + (y - 20) ** 2) ** 0.5
-            t = max(0.0, 1 - d / 26) * 0.42
-            if 0.06 < t < 0.14 and (x + y) % 2: t *= 0.5           # dithered edge of the glow
-            img.putpixel((x, y), mix(dark(bg, 1 - 0.25 * y / S), bub, t))
-    for x in range(S): img.putpixel((x, 0), dark(bub, 0.7)); img.putpixel((x, S - 1), dark(bub, 0.5))
-    for y in range(S): img.putpixel((0, y), dark(bub, 0.6)); img.putpixel((S - 1, y), dark(bub, 0.6))
-    for (x, y) in fig:                        # the outline: every ground pixel touching the figure
-        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            q = (x + dx, y + dy)
-            if q not in fig and 0 < q[0] < S - 1 and 0 < q[1] < S - 1: img.putpixel(q, ink)
-    for (x, y), c in fig.items():
-        if 0 <= x < S and 0 <= y < S: img.putpixel((x, y), c)
+def finish(pic):                              # the outline round the figure, very dark, tinted by what it edges
+    ink = (12, 8, 18)
+    img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    for (x, y), c in pic.p.items(): img.putpixel((x, y), tuple(c) + (255,))
+    for y in range(H):
+        for x in range(W):
+            if (x, y) in pic.p: continue
+            nb = [pic.p[q] for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)) if q in pic.p]
+            if nb: img.putpixel((x, y), mix(dark(min(nb, key=sum), 0.25), ink, 0.6) + (255,))
     return img
 
 
@@ -535,25 +650,35 @@ def check(ch):                               # the recipe's words must be ones t
         if e not in EXTRAS: sys.exit('%s: extra "%s" is not one of %s' % (ch['id'], e, ', '.join(EXTRAS)))
 
 
-def sheet(path, k=6):
-    t = load(); chs = t['characters']; pad = 4
-    img = Image.new('RGB', (len(FACES) * (S * k + pad) + pad, len(chs) * (S * k + pad) + pad), (30, 28, 40))
+def on_ground(ch, img):                      # a portrait as the game shows it: on the night-dark ground with a glow in the bubble colour
+    bub = rgb(ch['bubble']); g = Image.new('RGBA', (W, H))
+    for y in range(H):
+        for x in range(W):
+            d = ((x - W / 2) ** 2 + ((y - H * 0.4) * 0.8) ** 2) ** 0.5
+            g.putpixel((x, y), mix((18, 15, 30), bub, max(0.0, 1 - d / (H * 0.5)) * 0.45) + (255,))
+    g.alpha_composite(img); return g.convert('RGB')
+
+
+def sheet(path, k=4, ids=None):
+    t = load(); chs = [c for c in t['characters'] if not ids or c['id'] in ids]; pad = 4
+    img = Image.new('RGB', (len(FACES) * (W * k + pad) + pad, len(chs) * (H * k + pad) + pad), (30, 28, 40))
     for r, ch in enumerate(chs):
         check(ch)
         for c, f in enumerate(FACES):
-            img.paste(draw(ch, f).resize((S * k, S * k), Image.NEAREST), (pad + c * (S * k + pad), pad + r * (S * k + pad)))
+            img.paste(on_ground(ch, draw(ch, f)).resize((W * k, H * k), Image.NEAREST), (pad + c * (W * k + pad), pad + r * (H * k + pad)))
     img.save(path); print('wrote', path)
 
 
 def doc():
     import docx
-    from docx.shared import Pt, Cm, RGBColor
+    from docx.shared import Pt, Cm
     t = load(); d = docx.Document()
     st = d.styles['Normal']; st.font.name = 'Helvetica'; st.font.size = Pt(10)
     d.add_heading('BLOCK RUNNER - THE CHARACTERS', 0)
-    d.add_paragraph('How every character looks, written down so they stay the same in every mission. The portraits are pixel art, 48 x 48, '
-                    'head and shoulders in a 3/4 view turned toward the speech bubble, on a night-dark ground with a glow in the character\'s '
-                    'bubble colour. Each has three faces: calm, angry and smiling - the game picks one from the mood written on each line '
+    d.add_paragraph('How every character looks, written down so they stay the same in every mission. The portraits are pixel art, 48 x 75, '
+                    'in the style of the reference picture: head and shoulders in a 3/4 view, the ear on the left, lit from the upper right, '
+                    'transparent around the figure (the game shows them on a night-dark ground with a glow in the character\'s bubble colour, as '
+                    'here). Each has three faces: calm, angry and smiling - the game picks one from the mood written on each line '
                     '(angry: ' + ', '.join(t['faces']['angry']) + '; smiling: ' + ', '.join(t['faces']['smile']) + '; anything else: calm).')
     d.add_paragraph('They are drawn by tools/portraits.py from the recipes in the character table (js/01y-character-data.js; to change one, '
                     'edit the table - or the exported spreadsheet - and run the tool again). A picture of your own in img/chars/ with the same '
@@ -563,8 +688,8 @@ def doc():
         d.add_heading('%s  (%s)' % (ch['name'], ch['letter']), 1)
         row = d.add_paragraph()
         for f in FACES:
-            p = os.path.join(tmp, '%s-%s.png' % (ch['id'], f)); draw(ch, f).resize((S * 4, S * 4), Image.NEAREST).save(p)
-            row.add_run().add_picture(p, width=Cm(3.2)); row.add_run('  ')
+            p = os.path.join(tmp, '%s-%s.png' % (ch['id'], f)); on_ground(ch, draw(ch, f)).resize((W * 4, H * 4), Image.NEAREST).save(p)
+            row.add_run().add_picture(p, width=Cm(2.6)); row.add_run('  ')
         d.add_paragraph('calm - angry - smiling').runs[0].font.size = Pt(8)
         tb = d.add_table(rows=0, cols=2); tb.style = 'Light Grid Accent 1'
         def line(k, v):
@@ -584,6 +709,6 @@ def doc():
 if __name__ == '__main__':
     a = sys.argv[1:]
     if not a: draw_all()
-    elif a[0] == 'sheet': sheet(a[1], int(a[2]) if len(a) > 2 else 6)
+    elif a[0] == 'sheet': sheet(a[1], int(a[2]) if len(a) > 2 else 4, a[3].split(',') if len(a) > 3 else None)
     elif a[0] == 'doc': doc()
     else: print(__doc__)
