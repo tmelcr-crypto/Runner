@@ -193,3 +193,16 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 163. Choice 3 by what you do in M22: drive to the marked silos (as told) or to the police station to tail Holloway (your own way); a HELPER'S TIP switch on the MISSIONS list follows it.
 164. After Holloway falls (M23) the police arrive a third slower and give up a third sooner (STORY; set in the modes table's STORY settings).
 165. M23's car with the keys in it: one of Crane's black town cars - a hint that the helper drives for Crane.
+
+## Building the Colony line (October 2026)
+
+166. H1 No Vacancy: a side-on scuffle - in the Colony's side-on halls walk into a thug and tap UP (or E) fast to win a short scuffle (a bar fills); he is thrown down the stairs and out.
+167. H3 Kitchen Fire: the fire is outside, at the Colony's back - flames and smoke out of the kitchen windows and the service yard, put out spot by spot with the fire engine's water cannon; then the arsonists' car.
+168. H6 Pool Party: a roof terrace on the Colony (a pool, loungers, lanterns, a little bar), seen from above, in both modes; H6 holds it against Crane's crew up the ring drive and the stairs.
+169. H4 The Band: three markers in any order - the drummer owes a race at the speedway (a short street race), the singer is held by a bouncer at The Pulse (a fight), the trumpet player is on a jet ski off the beach (catch him in a boat); each rides back with you.
+170. H5 The Deed: a new top-down bank interior at FIRST CORAL BANK (the hall, the tellers' counter, the vault with deposit boxes; the roof see-through inside).
+171. The bank: in both modes, open by day with tellers and customers, locked at night; nothing to do inside outside quests (no robbery).
+172. H5 inside: a robbery in progress - staff and customers on the floor, four of Crane's men, one at the vault with the box; the last runs for a car - chase, ram, the deed back to Esther.
+173. H7 Wrecking Crew: a new vehicle row, WRECKING CRANE - a heavy yellow crane truck with a lattice boom and a swinging iron ball, slow and very tough; parked at Skyline One in both modes; it leads the convoy (the dumper and digger behind).
+174. H8 The Hearing: the existing COURTHOUSE; the notary is a new character, Walter Finch - sixties, thin, a grey three-piece suit, round glasses, a briefcase he never lets go of; nervous and talkative.
+175. Esther's marker E stands outside the Colony's front door on the ring drive (as in M01).
