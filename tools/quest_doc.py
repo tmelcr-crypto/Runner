@@ -133,7 +133,7 @@ def build(m):
     for c in m['chars']:
         tr = copy.deepcopy(proto); pics._tbl.append(tr); row = docx.table._Row(tr, pics)
         set_cell(row.cells[0], c['id'] + '-calm / -angry / -smile.png'); set_cell(row.cells[1], c['name'] + ' - drawn (pixel art, 48 x 75, docs/Characters.docx); a picture of your own replaces them')
-    name = 'Quest-%s-%s.docx' % (m['no'], '-'.join(w.capitalize() for w in re.sub(r'[^A-Za-z ]', '', m['title']).split()))
+    name = 'Quest-%s-%s.docx' % (m['no'], '-'.join(w.capitalize() for w in re.sub(r'[^A-Za-z0-9 ]', '', m['title']).split()))
     path = os.path.join(OUT, name); d.save(path); return path
 
 
