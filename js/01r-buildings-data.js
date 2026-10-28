@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 1r. UNIQUE BUILDINGS ----------
-   160 buildings of the city, each one its own model, colours and neon name, like the original Colony on its lot (js/10n builds them):
+   161 buildings of the city, each one its own model, colours and neon name, like the original Colony on its lot (js/10n builds them):
    a Miami mix - Art Deco and Streamline hotels and MiMo motels mostly along the beachfront, Mediterranean villas, diners, cinemas,
    banks, churches, nightclubs, shops and offices - and 40 of the city's own (js/10o): skyscrapers and condo towers, schools, an
    arena on a park of its own, parking garages, gas stations, museums, civic buildings, supermarkets, car washes and bowling alleys. Each takes the lot of an ordinary building facing a street, chosen by its size and its
@@ -176,7 +176,8 @@ const UNIQUE_TABLE = /*UNIQUE-JSON*/{
   {"id": "tropic_wash", "name": "TROPIC WASH", "kind": "carwash", "c": "#d8f8c8", "neon": "#ffd23f", "note": ""},
   {"id": "strike_zone", "name": "STRIKE ZONE", "kind": "bowling", "c": "#ff9f6b", "neon": "#ffe14a", "note": "A Googie bowling alley: a long hall with a zig-zag roof edge, a giant pin by the door, a starburst over the pylon with the name."},
   {"id": "lucky_lanes", "name": "LUCKY LANES", "kind": "bowling", "c": "#7fd8c8", "neon": "#ff2bd6", "note": ""},
-  {"id": "cosmic_bowl", "name": "COSMIC BOWL", "kind": "bowling", "c": "#a88fd8", "neon": "#2bf3ff", "note": ""}
+  {"id": "cosmic_bowl", "name": "COSMIC BOWL", "kind": "bowling", "c": "#a88fd8", "neon": "#2bf3ff", "note": ""},
+  {"id": "fbi_office", "name": "FBI FIELD OFFICE", "kind": "civic", "c": "#9aa0ab", "neon": "#f4f4f6", "note": "Chapter 5 (Choice 4, M28): the federal building downtown in Palm Heights - grey stone, the FBI seal over its door, flags; nothing inside."}
 ]
 }/*END-UNIQUE-JSON*/;
 const UNIQ = Object.fromEntries(UNIQUE_TABLE.settings.map(r => [r.id, r.v]));
