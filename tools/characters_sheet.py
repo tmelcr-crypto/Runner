@@ -175,7 +175,7 @@ def do_import(src, dry):
                 if not v: errors.append('%s: %s is needed' % (where, h))
             elif kind == 'letter':
                 v = text(raw).upper()
-                if not re.fullmatch(r'[A-Z0-9]', v): errors.append('%s: Letter must be one letter or digit, not "%s"' % (where, raw))
+                if not re.fullmatch(r'[A-Z0-9?]', v): errors.append('%s: Letter must be one letter or digit (or ? for a stranger), not "%s"' % (where, raw))
             elif kind in ('colour', 'colour?'):
                 if kind == 'colour?' and not text(raw): v = ''
                 else:
