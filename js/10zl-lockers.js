@@ -9,7 +9,7 @@ function genLockers() {                   // js/04 genWorld, after the places: t
   LOCKERS.at = null; const L = MAP.lunapark; if (!L || !L.gate) return;
   const g = L.gate, x = g.x + g.w / 2 + 110, y = g.y + 40;                                  // behind the east ticket booth, their doors to the park (south, toward the camera)
   LOCKERS.at = { x, y, w: 64, d: 10, front: { x, y: y + 22 } };
-  makeSolid(x, y, 64, 10, 0, { soft: true });
+  LOCKERS.solid = makeSolid(x, y, 64, 10, 0, { soft: true });
   LOCKERS.door47 = { x: x - 32 + 6 * 8 + 4, y: y + 6 };                                     // the 7th column of the second row: number 47
   LMS.push(LOCKERS.lm = { cx: x, cy: y, a: 0, rad: 60, make: () => makeLockers(), mesh: null });
 }
@@ -26,9 +26,9 @@ function makeLockers() {
   glow.visible = false; m.add(glow); m.userData.glow = glow; m.userData.own.push(glow.material);
   return m;
 }
-function gfxLockers(time) { const m = LOCKERS.lm && LOCKERS.lm.mesh; if (m && m.userData.glow) { m.userData.glow.visible = LOCKERS.glow && Math.sin(time * 6) > -0.3; } }
+function gfxLockers(time) { const m = LOCKERS.lm && LOCKERS.lm.mesh; if (m && m.userData.glow) { m.visible = feat('lockers'); m.userData.glow.visible = LOCKERS.glow && Math.sin(time * 6) > -0.3; } if (LOCKERS.solid) LOCKERS.solid.off = !feat('lockers'); }
 function fbiSite() { return (typeof UNIQUES !== 'undefined' && UNIQUES.find(u => u.row.id === 'fbi_office')) || null; }
 function fbiDoor() {                      // the FBI office's door (its marker in M28), or null when it found no lot
-  const U = fbiSite(); if (!U) return null; const ca = Math.cos(U.a), sa = Math.sin(U.a), lz = U.D / 2 + 18;
+  const U = fbiSite(); if (!U || !feat('fbiOffice')) return null; const ca = Math.cos(U.a), sa = Math.sin(U.a), lz = U.D / 2 + 18;
   return { x: U.r.cx - sa * lz, y: U.r.cy + ca * lz };
 }

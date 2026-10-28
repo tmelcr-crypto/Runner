@@ -27,9 +27,16 @@ function adTexture(kind) {                // the board (512 x 256) or the poster
       g.fillStyle = '#d8b04a'; g.font = font(17, 'bold'); g.fillText('FOR MAYOR', 64, 166);
       g.fillStyle = '#c03040'; g.fillRect(0, 176, W, 10);
     }
+    if (adDefaced()) {                                             // after the finale (js/08zzp): sprayed over - LOSER across the face, handcuffs, drips
+      const k = W / 512 * (kind === 'board' ? 1 : 3.2); g.save(); g.translate(W * (kind === 'board' ? 0.3 : 0.5), H * 0.5); g.rotate(-0.32);
+      g.font = 'bold ' + Math.round(70 * k) + 'px "Arial Black",Impact,sans-serif'; g.textAlign = 'center'; g.lineWidth = 6 * k; g.strokeStyle = '#1a0a0a'; g.strokeText('LOSER', 0, 20 * k); g.fillStyle = '#ff2a3a'; g.fillText('LOSER', 0, 20 * k); g.restore();
+      g.strokeStyle = '#e8e8f0'; g.lineWidth = 5 * k; const cx = kind === 'board' ? 430 : 64, cy = kind === 'board' ? 60 : 30;
+      for (const s of [-1, 1]) { g.beginPath(); g.arc(cx + s * 18 * k, cy, 12 * k, 0, TAU); g.stroke(); } g.beginPath(); g.moveTo(cx - 6 * k, cy); g.lineTo(cx + 6 * k, cy); g.stroke();
+      g.fillStyle = '#ff2a3a'; for (let i = 0; i < 6; i++) g.fillRect(W * (0.12 + i * 0.07), H * 0.55 + (i % 3) * 6, 3 * k, (18 + (i * 7) % 20) * k);
+    }
     tex.needsUpdate = true;
   };
-  img.onload = paint; img.src = 'img/chars/crane-smile.png'; paint();
+  tex.paintAd = paint; img.onload = paint; img.src = 'img/chars/crane-smile.png'; paint();
   return (_adTex[kind] = tex);
 }
 

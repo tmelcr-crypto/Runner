@@ -24,7 +24,7 @@ function salvTick(dt) {                   // js/15 update: the spot, the crane a
       const k = JYR.cand; JYR.cand = null; JYR.hinted = null;
       if (cars.includes(k) && !k.dead && !k.driver && !k.hook && jyOnSpot(k) && k.t.scrap > 0 && carSpeed(k) < 15) jyStart(k);
     } else if (c !== JYR.cand) { JYR.cand = null; if (!c || !jyOnSpot(c)) JYR.hinted = null; }
-  } else jyWork(dt);
+  } else if (!JYR.stop) jyWork(dt * (JYR.rate || 1));             // M27: a quest can slow the crane (rate) or hold it (stop)
   jyDog(dt);
 }
 function jyStart(k) {
@@ -110,7 +110,7 @@ function jyDog(dt) {
 }
 function salvReset() {                    // js/15 resetGame: the crane at rest, no cubes, the dog by its kennel
   if (JYR.car && JYR.car.mesh) JYR.car.mesh.scale.set(1, 1, 1);
-  Object.assign(JYR, { phase: 'idle', car: null, cand: null, t: 0, yaw: SALV ? jyYaw(SALV.spot[0], SALV.spot[1]) : 0, mag: JY_BOOM_H - 12, press: 0, cubes: [], hinted: null });
+  Object.assign(JYR, { rate: 1, stop: false, phase: 'idle', car: null, cand: null, t: 0, yaw: SALV ? jyYaw(SALV.spot[0], SALV.spot[1]) : 0, mag: JY_BOOM_H - 12, press: 0, cubes: [], hinted: null });
   if (JYR.dog) { const [kx, ky] = SALV.kennel; Object.assign(JYR.dog, { x: kx + 16, y: ky - 14, state: 'lie', biteT: 0 }); JYR.dog.t.hp = PLC.dogHp; JYR.dog.t.dead = JYR.dog.t.off = false; }
 }
 

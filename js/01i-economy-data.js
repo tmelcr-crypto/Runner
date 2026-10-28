@@ -15,7 +15,13 @@ const ECONOMY_TABLE = /*ECONOMY-JSON*/{
   {"id": "townN", "name": "Cash stacks in town at a time", "unit": "count", "v": 10, "note": "How many lie around at once."},
   {"id": "dropTime", "name": "Dropped cash and weapons stay for", "unit": "s", "v": 60, "note": "They blink for the last 10 s, then vanish."},
   {"id": "carBoom", "name": "Blowing up a vehicle", "unit": "€", "v": 0, "note": "Destroying pays nothing."},
-  {"id": "copCarBoom", "name": "Blowing up a police vehicle", "unit": "€", "v": 0, "note": "Destroying pays nothing."}
+  {"id": "copCarBoom", "name": "Blowing up a police vehicle", "unit": "€", "v": 0, "note": "Destroying pays nothing."},
+  {"id": "incomeJoe", "name": "Daily income: Papa Joe's cab firm", "unit": "€", "v": 500, "note": "After the finale (STORY), at midnight every game day."},
+  {"id": "incomeRosa", "name": "Daily income: Rosa's market", "unit": "€", "v": 500, "note": "After the finale, every game day."},
+  {"id": "incomeMarco", "name": "Daily income: Marco's boat shop (the Varga line done)", "unit": "€", "v": 800, "note": "After the finale, every game day."},
+  {"id": "incomeCasino", "name": "Daily income: the casino's take (the Casino line done)", "unit": "€", "v": 2000, "note": "After the finale, every game day."},
+  {"id": "incomeColony", "name": "Daily income: the Colony (the Colony line done)", "unit": "€", "v": 700, "note": "After the finale, every game day."},
+  {"id": "incomeSpace", "name": "Daily income: the space center's tours (the Space line done)", "unit": "€", "v": 600, "note": "After the finale, every game day."}
 ]
 }/*END-ECONOMY-JSON*/;
 const ECO = Object.fromEntries(ECONOMY_TABLE.earn.map(r => [r.id, r.min != null ? [Math.max(0, +r.min || 0), Math.max(+r.min || 0, +r.max || 0)] : Math.max(0, +r.v || 0)]));
