@@ -575,3 +575,53 @@ MSCRIPT.h6 = (() => {
   };
   return { setup, steps, fail, cuts, cleanup() { msBarOff(); } };
 })();
+
+/* ================= H7 - WRECKING CREW ================= */
+MSCRIPT.h7 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  function setup(A) {
+    SKY.hour = N().hour; HOTEL.esther(A); HOTEL.start(A, 'muscle');
+    const Mw = SKX.mach && SKX.mach.wrecker; if (Mw) { if (Mw.car) { const i = cars.indexOf(Mw.car); if (i >= 0 && P.car !== Mw.car) cars.splice(i, 1); } SKX.mach.wrecker = { car: null, gone: gameT + 1e6 }; }   // the site's own crane rolls out as the convoy's
+    const rd = openRoad(A.C.door.x, A.C.door.y, 3000), q = rd ? edgeAt(rd.e, rd.s, {}) : HOTEL.inland(A, 300, 0); A.drop = { x: q.x, y: q.y };
+    const [gx, gy] = SITE.gate, r = S1.road(gx - 160, gy), fx = Math.cos(r.a), fy = Math.sin(r.a);
+    const toC = (fx * (A.drop.x - r.x) + fy * (A.drop.y - r.y)) > 0 ? 1 : -1, ang = r.a + (toC > 0 ? 0 : Math.PI), at = k => ({ x: r.x - fx * toC * k, y: r.y - fy * toC * k });   // nose toward the Colony, the rest behind
+    const go = (type, k, o) => { const p = at(k); return msFoeCar(type, p.x, p.y, ang, Object.assign({ mode: 'flee', group: 'wreck', to: [A.drop], gun: 'pistol', crewHp: N().menHp }, CH4.men, o)); };
+    A.wrecker = go('wrecker', 0, { crew: 1, speed: N().crawl, tough: N().wTough, color: '#ffc81e' });
+    A.dumper = go('dumper', 150, { crew: 3, speed: N().crawl, tough: 1.4 }); A.dumper.fc.wait = 0.8;
+    A.digger = go('digger', 260, { crew: 1, speed: 20, gun: null, group: 'dig' }); A.digger.fc.wait = 1.6;   // the digger trails far behind (not one you must stop)
+    A.convoy = [A.wrecker, A.dumper];
+  }
+  const left = A => Math.round(dist(A.wrecker.x, A.wrecker.y, A.C.door.x, A.C.door.y) / M);
+  function stop(A) {                        // the crane stopped: the whole convoy pulls up and its men pile out to fight
+    if (A.stopped) return; A.stopped = true;
+    for (const c of A.convoy) if (!c.dead && !c.fc.out) foeBail(c);
+    if (!A.digger.dead) { A.digger.fc.mode = 'park'; A.digger.driver = null; A.digger.msDrive = null; A.digger.thr = 0; }   // the digger pulls over where it is
+    msLive([5], { now: true });
+  }
+  const steps = [
+    HOTEL.meet('WRECKING CREW'),
+    { enter(A) { MS.mark = () => A.wrecker; MS.guide = () => A.wrecker; },                           // STOP the wrecking crane before it reaches the Colony
+      tick(A) {
+        const w = A.wrecker, me = me4();
+        if (!A.said && dist(me.x, me.y, w.x, w.y) < N().spotM * M) { A.said = true; msLive([4]); }
+        msBar('THE CRANE ' + left(A) + ' M FROM THE COLONY', w.hp / w.maxhp, '#ffc81e');
+        if (w.dead || w.fc.out || w.hp < w.maxhp * N().bailAt / 100) { msBarOff(); stop(A); return true; }
+        return false; },
+      info: A => left(A) + ' M FROM THE COLONY · ' + Math.round(100 * A.wrecker.hp / A.wrecker.maxhp) + '% (STOPS UNDER ' + N().bailAt + '%)',
+      jump(A) { const w = A.wrecker; if (P.car) exitCar(true); P.x = w.x + 90; P.y = w.y + 60; w.hp = w.maxhp * (N().bailAt - 5) / 100; } },
+    { enter(A) { MS.guide = null; MS.mark = () => peds.find(p => p.foe && !p.dead && p.group === 'wreck'); },   // TAKE OUT the crew
+      tick(A) { if (A.end) return A.end === 2; if (msFoesLeft('wreck') > 0) return false; A.end = 1; msLive([6, 7, 8], { phone: true, done: () => { A.end = 2; } }); return false; },
+      info: () => msFoesLeft('wreck') + ' LEFT',
+      jump() { for (const p of peds) if (p.foe && !p.dead && p.group === 'wreck') killPed(p, 'gun', false); for (const c of MS_CAST.cars) if (c.fc.group === 'wreck' && !c.fc.out) { c.fc.crew = 0; c.fc.out = true; } } }];
+  function fail(A) {
+    if (MS.k === 1 && !A.stopped && (A.wrecker.fc.gone || left(A) < N().reachM)) return F().reached;
+    return '';
+  }
+  const cuts = {
+    'WRECKING CREW': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [1], enter: () => { face(A.esther, P); } },
+      { dur: 6, cam: 'CLOSE', at: () => A.esther, line: [2] },
+      { dur: 4, cam: 'WIDE', at: () => A.wrecker, line: [3], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { msBarOff(); if (SKX.mach && SKX.mach.wrecker) SKX.mach.wrecker.gone = gameT; } };
+})();

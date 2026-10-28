@@ -2838,7 +2838,48 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The Colony's door", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "3"]]}],
     "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
     "failing": "Marker E again (retry).",
-    "notes": {"places": "The Colony's roof terrace (js/10b colonyTerrace; modes: colonyRoof).", "people": "Eight dancing guests, the band (Sammy, Lola, Teddy), thirteen of Crane's men in three waves.", "music": "-", "new": "A quest on a roof: people up there stay up there; the way up is the door (UP TO THE ROOF).", "other": "-"}}}
+    "notes": {"places": "The Colony's roof terrace (js/10b colonyTerrace; modes: colonyRoof).", "people": "Eight dancing guests, the band (Sammy, Lola, Teddy), thirteen of Crane's men in three waves.", "music": "-", "new": "A quest on a roof: people up there stay up there; the way up is the door (UP TO THE ROOF).", "other": "-"}}},
+  {"id": "h7", "no": "H7", "title": "WRECKING CREW", "giver": "esther", "start": "marker", "where": "The Colony (marker E); the streets between Skyline One and the Colony",
+   "story": "Crane has a demolition order for the Colony - forged by Finch, Esther is sure - and his WRECKING CRANE rolls out of Skyline One with a dump truck full of men and a digger behind it. Danny has to stop the crane before it reaches the beach avenue, then deal with the crew.",
+   "chars": ["esther", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO ESTHER AT THE COLONY'S DOOR"},
+     {"word": "STOP", "show": "STOP THE WRECKING CRANE BEFORE IT REACHES THE COLONY"},
+     {"word": "TAKE OUT", "show": "TAKE OUT THE WRECKING CREW"}],
+   "lines": [
+     {"who": "esther", "text": "Crane has a demolition order for the Colony, Danny. Finch's work again - I'd bet my pearls on it.", "mood": "furious", "when": "Wrecking Crew, shot 1"},
+     {"who": "esther", "text": "His wrecking crane is rolling out of Skyline One right now. If that ball touches my hotel, it's over.", "mood": "frightened", "when": "Wrecking Crew, shot 2"},
+     {"who": "danny", "text": "It won't get past the avenue.", "mood": "cold", "when": "Wrecking Crew, shot 3"},
+     {"who": "craneman", "text": "Keep her rolling! Mister Crane wants that dump flat by sundown!", "mood": "shouting", "when": "LIVE - close to the convoy", "live": true},
+     {"who": "craneman", "text": "The crane's done - everybody out, get him!", "mood": "shouting", "when": "LIVE - the crane stops", "live": true},
+     {"who": "esther", "text": "Danny! They said on the radio a crane stopped dead on the boulevard. Tell me that was you.", "mood": "breathless", "when": "LIVE - the crew down (phone)", "live": true},
+     {"who": "danny", "text": "It was. And it's not starting again.", "mood": "calm", "when": "LIVE - the crew down (phone)", "live": true},
+     {"who": "esther", "text": "Then the Colony stands. Come home, darling - Finch has some explaining to do.", "mood": "relieved", "when": "LIVE - the crew down (phone)", "live": true}],
+   "fails": {"reached": "THE WRECKING CRANE REACHED THE COLONY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 16, "crawl": 38, "wTough": 0.6, "bailAt": 45, "spotM": 90, "reachM": 70, "menHp": 80},
+   "reward": {"cash": 7000, "vehicle": "", "clothes": "", "next": "H8 - THE HEARING (marker E)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Colony line; the WRECKING CRANE, answer 173) - change anything you like.",
+    "glance": {"kind": "side", "given": "ESTHER BLOOM - marker E outside the Colony's front door", "where": "The streets from Skyline One (downtown Palm Heights) toward the Colony", "unlocked": "After H6", "time": "Afternoon (MISSIONS TEST: 16:00)", "length": "About 5 minutes", "limit": "The crane's drive: about two minutes from Skyline One to the Colony"},
+    "chars": {
+     "esther": {"gives": true, "role": "Esther Bloom.", "looks": "Seventies, silver hair in a 50s wave, big round sunglasses, pearls, a turquoise dress.", "bubble": "Pink", "mumble": "Bright and quick."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "The wrecking crew: the crane's driver, three in the dump truck (and the digger's driver, left behind).", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Esther: the cutscene WRECKING CREW (the last shot: the crane rolling out of Skyline One).", "MISSIONS TEST: you start by the door, a BRUISER on the ring drive."],
+     ["The convoy drives from Skyline One's gate toward the Colony at a crawl (38 km/h): the WRECKING CRANE in front (yellow, slow, very tough - its bar shows its health and how far it still is), a DUMPER with three men behind it, a DIGGER trailing far behind (it does not count). Hurt the crane under 45% (ram it, shoot it, blow it up): its driver bails and the convoy stops.", "The crane within 70 m of the Colony's door: the quest fails."],
+     ["The crew pile out and fight: take them out. Esther's call; the quest is passed.", ""]],
+    "fails": [
+     ["The crane gets within 70 m of the Colony's door", "THE WRECKING CRANE REACHED THE COLONY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"WRECKING CREW\"", "plays": "START MISSION by Esther.", "shots": [
+      ["The Colony's door", "Esther", "Esther, furious.", "CLOSE on Esther", "6", "1"],
+      ["The Colony's door", "Esther", "Esther, frightened.", "CLOSE on Esther", "6", "2"],
+      ["Skyline One's gate", "-", "The crane rolls out, the iron ball swinging. Fade out.", "WIDE on the crane", "4", "3"]]}],
+    "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
+    "failing": "Marker E again (retry).",
+    "notes": {"places": "Skyline One's gate (downtown Palm Heights); the boulevards to the Colony.", "people": "Four of Crane's men to take out (and the digger's driver).", "music": "-", "new": "The WRECKING CRANE row (vehicles table) on the move; while the quest is on, the crane parked at Skyline One is the convoy's.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
