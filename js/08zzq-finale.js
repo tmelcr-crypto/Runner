@@ -186,3 +186,82 @@ MSCRIPT.m28 = (() => {
   };
   return { setup, steps, cuts, fail: () => '', cleanup() { ch5HeliOff(); } };
 })();
+
+/* ================= M29 - PEARL KEY ================= */
+// The finale's way in follows the side lines (MS_CHOICE: their switches in MISSIONS TEST) and Choice 4:
+// Varga done - Marco's boat to Crane's dock; else over the causeway through his roadblock. Prison done - Sal's tunnel from the old
+// boathouse (Sal comes up under the folly in any case); else the front gate: Esther's laundry van crashes it (Colony done) or a charge.
+// Space done - every guard on the map (Iris' satellite). FBI - agents at the gate. Bay TV - fewer guards. Rosa's two men always.
+const FIN_CREW = [['rosa', 2, () => true], ['joe', 3, () => true], ['nina', 4, () => true], ['marco', 5, () => lineDone('varga')], ['sal', 6, () => lineDone('prison')],
+  ['iris', 7, () => lineDone('space')], ['esther', 8, () => lineDone('colony')], ['del', 9, () => lineDone('casino')], ['agent', 10, () => MS_CHOICE.proof === 'fbi']];
+MSCRIPT.m29 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, me = () => P.car || P, at = S1.at;
+  const V = () => lineDone('varga'), PZ = () => lineDone('prison'), CO = () => lineDone('colony'), SP = () => lineDone('space'), FBI = () => MS_CHOICE.proof === 'fbi';
+  function setup(A) {
+    SKY.hour = N().hour; FIN.hold({ hold: true }); const E = ESTATE, L = E.L;
+    const h = CO() ? SAFES.find(s => s.id === 'colony') : SAFES.find(s => s.id === 'loft'), d = h.door;   // the war room's door: the Colony's, or the loft's
+    A.room = at(d.x + d.fx * 30, d.y + d.fy * 30); P.x = A.room.x; P.y = A.room.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;
+    A.crew = FIN_CREW.filter(c => c[2]()).map((c, i) => { const a = Math.PI / 2 + (i - 4) * 0.42, q = S1.free(A.room.x + Math.cos(a) * 46, A.room.y + Math.sin(a) * 40, 6);
+      const p = msPed(q.x, q.y, 0, Object.assign(S1.look(c[0]), { msName: c[0], step: S1.stay, spare: true, shield: true })); face(p, A.room); return { id: c[0], line: c[1], p }; });
+    A.rosa = A.crew[0].p;
+    const men = (k, n, x, y, r, gun) => { for (let i = 0; i < n; i++) { const q = S1.free(x + Math.cos(i * 2.1) * r, y + Math.sin(i * 2.1) * r * 0.7, 8); msFoe(q.x, q.y, Object.assign({ gun: i % 2 ? 'smg' : gun || 'pistol', hp: N().menHp, group: k }, CH4.men)); } };
+    const fewer = MS_CHOICE.proof === 'bay tv' ? N().tvFewer : 0;                                   // Bay TV: the city turned on Crane, some of his men stayed home
+    men('est', Math.max(1, N().gateMen - (CO() ? 2 : 0)), L.x, E.gate.in.y + 30, 60);
+    men('est', Math.max(2, N().groundMen - fewer), L.x, L.y + 60, 300);
+    if (V()) men('est', N().dockMen, E.dock.x, E.dock.in.y - 20, 40);
+    if (!V()) { const bx = L.x - 560, by = 9900;                                                  // the roadblock on the causeway
+      [-24, 24].forEach(dy => msFoeCar('sedan', bx, by + dy, Math.PI / 2, Object.assign({ mode: 'park', crew: 0, group: 'bridge', color: '#14161d' }, CH4.men)));
+      men('bridge', N().bridgeMen, bx + 60, by, 50); }
+    MS.radar = SP();
+  }
+  const inside = () => estIn(P.x, P.y, -6);
+  const ally = (who, x, y, o) => { const q = STORY1.free(x, y, 6); const p = msPed(q.x, q.y, 0, Object.assign(who ? STORY1.look(who) : {}, who ? { msName: who } : {}, { step: STORY1.stay, spare: true }, o || {})); return msAllyFrom(p, Object.assign({ who, gun: 'smg', hp: N().crewHp, near: true }, o || {})); };
+  const steps = [
+    { enter(A) { MS.mark = () => A.rosa; MS.start = { at: () => A.rosa, label: 'START MISSION', go: () => { msCut('THE CREW', () => { A.go = true; }); } }; },   // TALK TO the crew: THE CREW
+      tick: A => !!A.go },
+    { enter(A) { const E = ESTATE;                                                                // the way to Pearl Key: Marco's boat, or by car over the causeway
+        for (const c of A.crew) if (peds.includes(c.p)) { peds.splice(peds.indexOf(c.p), 1); }
+        if (V()) { const x = E.dock.x, y = E.L.y + E.L.h / 2 + 330; A.boat = msCar('speedboat', x, y, -Math.PI / 2, '#f4f6fa'); P.x = x; P.y = y; enterCar(A.boat);
+          A.marco = ally('marco', x + 20, y, { gun: 'smg' }); allyBoard(A.marco, A.boat); A.to = E.dock.out; }
+        else { const r = S1.road(E.L.x - 1500, 9900), k = kerbBy(r.x, r.y); A.car = msCar('sports', k.x, k.y, 0, '#3d6fa8'); P.x = k.x; P.y = k.y; enterCar(A.car); A.to = E.gate.out; }
+        cam.x = P.x; cam.y = P.y; MS.guide = A.to; MS.mark = () => A.to; },
+      tick(A) { if (V()) return !P.car && dist(P.x, P.y, A.to.x, A.to.y) < N().reachM * M; return dist(me().x, me().y, A.to.x, A.to.y) < 30 * M; },
+      info: A => (V() ? Math.round(dist(me().x, me().y, A.to.x, A.to.y) / M) + " M TO CRANE'S DOCK (LAND ON THE JETTY)" : Math.round(dist(me().x, me().y, A.to.x, A.to.y) / M) + " M TO CRANE'S GATE · " + msFoesLeft('bridge') + ' ON THE CAUSEWAY'),
+      jump(A) { if (P.car) exitCar(true); P.x = A.to.x; P.y = A.to.y + (V() ? 30 : -20); } },
+    { enter(A) { const E = ESTATE;                                                                // IN: the dock gate, Sal's tunnel, the van or a charge at the front gate
+        if (V()) { E.ms.dock = true; if (A.marco.aboard) allyAlight(A.marco); msLive([12], { now: true }); A.way = 'dock'; MS.mark = () => E.dock.in; MS.guide = E.dock.in; }
+        else if (PZ()) { A.way = 'tunnel'; MS.mark = () => E.boathouse.door; MS.guide = E.boathouse.door; }
+        else if (CO()) { A.way = 'van'; E.ms.gate = true; A.van = msCar('truck', E.gate.in.x - 40, E.gate.in.y + 70, 2.4, '#f4f6fa'); A.van.deco = 'laundry'; A.van.hp = A.van.maxhp * 0.2; A.van.noEnter = true; msLive([14], { now: true }); MS.mark = () => E.gate.in; MS.guide = E.gate.in; }
+        else { A.way = 'charge'; MS.mark = () => E.gate.out; MS.guide = E.gate.out; } },
+      tick(A, dt) { const E = ESTATE;
+        if (A.way === 'tunnel' && !MS.start && !P.car && dist(P.x, P.y, E.boathouse.door.x, E.boathouse.door.y) < N().reachM * M)
+          MS.start = { at: () => E.boathouse.door, label: "SAL'S TUNNEL", go2: 'GO IN', go: () => { if (A.car && P.car === A.car) exitCar(true); P.x = E.folly.out.x; P.y = E.folly.out.y; cam.x = P.x; cam.y = P.y; Snd.tone(196, 147, 0.4, 0.08, 'triangle'); toast("UP UNDER THE FOLLY - BEHIND THEIR GUARDS"); } };
+        if (A.way === 'charge') {
+          if (!A.armed && !MS.start && !P.car && dist(P.x, P.y, E.gate.out.x, E.gate.out.y) < N().reachM * M)
+            MS.start = { at: () => E.gate.out, label: 'THE GATE', go2: 'PLANT A CHARGE', go: () => { A.armed = gameT + N().charge; msLive([17], { now: true }); toast('STAND BACK!'); } };
+          if (A.armed && gameT > A.armed && !A.blown) { A.blown = true; explosion(E.gate.x, E.gate.y, 70, null); E.ms.gate = true; for (const p of peds) if (p.foe && !p.dead && p.group === 'est' && dist(p.x, p.y, E.gate.x, E.gate.y) < 400) foeAlert(p); }
+        }
+        return inside(); },
+      info: A => A.way === 'tunnel' ? Math.round(dist(P.x, P.y, ESTATE.boathouse.door.x, ESTATE.boathouse.door.y) / M) + ' M TO THE OLD BOATHOUSE (WEST SHORE)' : A.way === 'charge' ? (A.blown ? 'IN THROUGH THE GATE' : 'BLOW THE FRONT GATE') : 'INTO THE GROUNDS',
+      jump(A) { if (P.car) exitCar(true); MS.start = null; const q = A.way === 'tunnel' ? ESTATE.folly.out : A.way === 'dock' ? ESTATE.dock.in : ESTATE.gate.in; ESTATE.ms.gate = A.way !== 'dock' && A.way !== 'tunnel' ? true : ESTATE.ms.gate; P.x = q.x; P.y = q.y; } },
+    { enter(A) { const E = ESTATE;                                                                // CLEAR the grounds: his guards; your crew with you
+        MS.start = null; for (const p of peds) if (p.foe && !p.dead && p.group === 'est') foeAlert(p);
+        A.rosaMen = [0, 1].map(k => ally('rosaman', P.x + (k ? 24 : -24), P.y + 16, { gun: k ? 'smg' : 'pistol' }));
+        if (PZ()) { A.sal = ally('sal', E.folly.out.x, E.folly.out.y + 10, { gun: 'pistol' }); msLive([13]); }
+        if (FBI()) { E.ms.gate = true; A.agents = [0, 1].map(k => ally(k ? 'agent' : null, E.gate.out.x + (k ? 30 : -30), E.gate.out.y, k ? { gun: 'smg' } : { gun: 'pistol', shirt: '#2a3a6a', pants: '#3a3d47' })); msLive([15]); }
+        if (SP()) msLive([16], { phone: true }); msLive([18]);
+        MS.mark = () => { let b = null; for (const p of peds) if (p.foe && !p.dead && p.group === 'est' && (!b || dist(p.x, p.y, P.x, P.y) < dist(b.x, b.y, P.x, P.y))) b = p; return b; }; MS.guide = null; },
+      tick: A => msFoesLeft('est') === 0,
+      info: A => msFoesLeft('est') + " OF CRANE'S GUARDS IN THE GROUNDS",
+      jump(A) { for (const p of peds) if (p.foe && !p.dead && p.group === 'est') killPed(p, 'gun', false); } },
+    { enter(A) { const d = ESTATE.house.door; MS.mark = () => d; MS.guide = d; },                  // TO the mansion's door
+      tick(A) { if (A.end) return A.end === 2; const d = ESTATE.house.door; if (P.car || dist(P.x, P.y, d.x, d.y) > N().reachM * M) return false; A.end = 1; msLive([19], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => Math.round(dist(P.x, P.y, ESTATE.house.door.x, ESTATE.house.door.y) / M) + " M TO THE MANSION'S DOOR",
+      jump(A) { if (P.car) exitCar(true); const d = ESTATE.house.door; P.x = d.x; P.y = d.y - 10; } }];
+  const cuts = {
+    'THE CREW': A => [{ dur: 4, cam: 'CLOSE', at: () => P, line: [1] }]
+      .concat(A.crew.map(c => ({ dur: 4, cam: 'CLOSE', at: () => c.p, line: [c.line], enter: () => { face(c.p, P); } })))
+      .concat([{ dur: 4, cam: 'CLOSE', at: () => P, line: [11], fadeOut: true }])
+  };
+  return { setup, steps, cuts, fail: () => '', cleanup() { MS.radar = false; ESTATE.ms = null; } };
+})();
