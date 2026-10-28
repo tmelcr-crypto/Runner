@@ -206,3 +206,14 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 173. H7 Wrecking Crew: a new vehicle row, WRECKING CRANE - a heavy yellow crane truck with a lattice boom and a swinging iron ball, slow and very tough; parked at Skyline One in both modes; it leads the convoy (the dumper and digger behind).
 174. H8 The Hearing: the existing COURTHOUSE; the notary is a new character, Walter Finch - sixties, thin, a grey three-piece suit, round glasses, a briefcase he never lets go of; nervous and talkative.
 175. Esther's marker E stands outside the Colony's front door on the ring drive (as in M01).
+
+## Building the Space line (October 2026)
+
+176. The space center's insides are the top-down kind with a see-through roof: the assembly building's clean room (the rocket stage on its stand, workers in white suits) and launch control (rows of consoles, the big screen) - S2 trails the suspects there, S8 holds the control room.
+177. The way into the space center, in both modes: in STORY (and MISSIONS TEST during a Space quest) Iris' pass (after S1), the lab coat (after S2) or the flight suit (after S6) gets you past the gate guards; in FREE ROAM the gate opens too for a lab coat or a flight suit (sold in a clothes shop).
+178. S1's fuel truck: a new vehicle row, FUEL TRUCK - a white tanker in the Bay Space Center's colours with a blue stripe and hazard signs; heavy and slow, a huge blast when it blows; parked at the space center in both modes; S1 has a DAMAGE bar (it fails at about 25% damage).
+179. After S8 the launch pad stays empty in STORY (scorched, the tower standing); FREE ROAM keeps its rocket.
+180. S2 Clean Room: watch what they do - each suspect walks a round of his own; keep close but unseen (sight cones, as at Crane's rally); the saboteur is the one who slips into the clean room and tampers with the rocket stage; seeing it (a WATCHING bar) names him, then take him down.
+181. S4 Picket Line: a crowd with placards at the gate, not to be hurt (run one over and the cameras catch it - the quest fails); four of Crane's men in grey suits among them keep the crowd there - take them out and the rest disperse; then lead the convoy in.
+182. S6 Tracking Dish: in the flight suit the base guards wave you through; take the dish's flatbed truck from a hangar and drive out calmly; halfway the alarm goes (Crane's tip-off) and army jeeps chase you to the space center's gate (3 stars, the base's own).
+183. S8 Lift-off: about 4 minutes of play while the countdown shows T-minus 10:00 running faster; waves - cars at the gate, men at launch control (inside, the roof see-through), a boat landing by the pad; Iris at her console must live; at T-0 the launch cutscene.
