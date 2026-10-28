@@ -9,12 +9,13 @@
 const SV = { on: false, h: null, B: null, fl: 0, x: 0, face: 1, walk: 0, room: null, lift: null, fade: 0, npcs: [], say: null, keys: {}, hint: '', drag: 0, note: null };
 const SV_FH = 150, SV_LIFT = 560;
 let svCv = null, svG = null;
+const svQuest = h => !!h.kind && h.kind !== 'tower';   // not a home: the Crown, the vault, the loft as a quest's building (js/08zzj); a tower safehouse is one
 function svLayout(h) {                    // the building: its floors, doors, the open ones, your door - always the same for the same tower
-  if (h.kind) return sbLayout(h);          // not a home: the Crown (js/08zzj)
+  if (svQuest(h)) return sbLayout(h);          // not a home: the Crown (js/08zzj)
   return withSeed(h.id.length * 977 + h.floors * 31, () => {
     const W = 1300, slots = [200, 340, 760, 900, 1040], doors = [];
-    for (let f = 1; f <= h.floors; f++) slots.forEach((x, k) => doors.push({ f, x, n: f * 100 + k + 1, open: false, mine: f === h.home && k === 1 }));
-    const others = doors.filter(d => !d.mine);
+    for (let f = 1; f <= h.floors; f++) slots.forEach((x, k) => doors.push({ f, x, n: f * 100 + k + 1, open: false, mine: f === h.home && k === 1, war: f === h.floors && k === 3 && warRoomAt(h) }));
+    const others = doors.filter(d => !d.mine && !d.war);
     for (let k = 0; k < SAFE.openDoors && others.length; k++) others.splice(randi(0, others.length - 1), 1)[0].open = true;
     const tint = pick(['#2b2350', '#26304f', '#3a2440', '#203a3a']);
     return { W, stairs: W - 110, doors, tint, carpet: pick(['#6a1f3a', '#1f3a6a', '#2f5a3a', '#5a3a1f']) };
@@ -33,23 +34,24 @@ function openSide(h) {                    // in at the front door
   SV.on = true; SV.h = h; SV.B = svLayout(h); SV.fl = 0; SV.x = 80; SV.face = 1; SV.room = null; SV.lift = null; SV.fade = 1; SV.say = null; SV.keys = {}; SV.drag = 0; SV.note = null; SV.greeted = false;
   SV.npcs = withSeed(h.id.length * 131, () => Array.from({ length: SAFE.neighbours }, () => ({ fl: randi(1, h.floors), x: rand(150, SV.B.W - 160), dir: pick([-1, 1]), sp: rand(28, 52), wait: 0, gone: 0,
     shirt: pick(['#e0554b', '#4f8fe0', '#e0c34a', '#58b36b', '#c97be0', '#f08a3a', '#e8e8e8', '#3fd0c0']), legs: pick(['#2a2d3a', '#3a3f5c', '#6a5a4a', '#1d2230']), skin: pick(['#f2c6a0', '#d9a074', '#a8714a', '#7a4d30']) })));
-  if (h.kind) SV.npcs = sbNpcs(h); SV.hide = false;
+  if (svQuest(h)) SV.npcs = sbNpcs(h); SV.hide = false;
   state = 'side'; toggleBigMap(false); toggleWheel(false); hush(); $('sideView').hidden = false; svResize(); Snd.tone(330, 440, 0.1, 0.08, 'sine');
 }
 function closeSide() {                    // out through the glass doors, back in the street
   SV.on = false; $('sideView').hidden = true; $('svLift').hidden = true; state = 'play';
   const h = SV.h; if (h && h.door) { P.x = h.door.x + h.door.fx * 26; P.y = h.door.y + h.door.fy * 26; P.ang = Math.atan2(h.door.fy, h.door.fx); P.vx = P.vy = 0; P.z = 0; }
-  $('sideView').classList.remove('seen'); if (!h.kind) safeLeft(h);
+  $('sideView').classList.remove('seen'); if (!svQuest(h)) safeLeft(h);
 }
 function svResize() { if (!svCv) return; const pr = Math.min(2, DPR); svCv.width = Math.round(VW * pr); svCv.height = Math.round(VH * pr); svCv.style.width = VW + 'px'; svCv.style.height = VH + 'px'; }
 addEventListener('resize', () => { if (SV.on) svResize(); });
 
 /* ---------- where you can go from here ---------- */
 function svSpot() {                       // what is right here: { k, label, ... }
-  if (SV.h.kind) return sbSpot();
+  if (svQuest(SV.h)) return sbSpot();
   const B = SV.B, x = SV.x, R = SV.room;
   if (R) {
     if (Math.abs(x - 60) < 34) return { k: 'leave', label: 'BACK TO THE HALL' };
+    if (R.war) { if (Math.abs(x - 230) < 60) return { k: 'board', label: 'THE BOARD' }; return null; }
     if (R.mine) {
       if (x > 290 && x < 450) return { k: 'sleep', label: 'SLEEP' };
       if (Math.abs(x - 510) < 34) return { k: 'wardrobe', label: 'WARDROBE' };
@@ -61,12 +63,12 @@ function svSpot() {                       // what is right here: { k, label, ...
   if (Math.abs(x - SV_LIFT) < 34) return { k: 'lift', label: 'ELEVATOR' };
   if (Math.abs(x - B.stairs) < 36) return { k: 'stairs', label: SV.fl < SV.h.floors ? 'STAIRS UP' + (SV.fl > 0 ? ' (DOWN: DOWN)' : '') : 'STAIRS DOWN' };
   const d = B.doors.find(o => o.f === SV.fl && Math.abs(o.x - x) < 26);
-  if (d) return { k: 'door', d, label: d.mine ? 'YOUR DOOR - ' + d.n : d.open ? 'DOOR ' + d.n + ' - IT IS OPEN' : 'DOOR ' + d.n + ' - LOCKED' };
+  if (d) return { k: 'door', d, label: d.war ? 'THE WAR ROOM' : d.mine ? 'YOUR DOOR - ' + d.n : d.open ? 'DOOR ' + d.n + ' - IT IS OPEN' : 'DOOR ' + d.n + ' - LOCKED' };
   return null;
 }
 function svPress(k) {                     // UP or DOWN pressed
   if (!SV.on || SV.lift || SV.fade > 0.4 || state !== 'side') return;
-  if (SV.h.kind) { sbPress(k); return; }
+  if (svQuest(SV.h)) { sbPress(k); return; }
   const s = svSpot();
   if (k === 'down') {
     if (s && s.k === 'stairs' && SV.fl > 0) { SV.fl--; SV.fade = 1; Snd.tone(300, 240, 0.08, 0.06, 'sine'); }
@@ -79,17 +81,18 @@ function svPress(k) {                     // UP or DOWN pressed
   if (s.k === 'stairs') { if (SV.fl < SV.h.floors) { SV.fl++; SV.fade = 1; Snd.tone(300, 360, 0.08, 0.06, 'sine'); } else if (SV.fl > 0) { SV.fl--; SV.fade = 1; } return; }
   if (s.k === 'lift') { svLiftPanel(); return; }
   if (s.k === 'door') {
-    if (s.d.mine || s.d.open) { SV.room = { door: s.d, mine: s.d.mine, W: s.d.mine ? 820 : 620 }; SV.x = 60; SV.face = 1; SV.fade = 1; Snd.tone(240, 300, 0.1, 0.06, 'sine'); }
+    if (s.d.mine || s.d.open || s.d.war) { SV.room = { door: s.d, mine: s.d.mine, war: s.d.war, W: s.d.mine || s.d.war ? 820 : 620 }; SV.x = 60; SV.face = 1; SV.fade = 1; Snd.tone(240, 300, 0.1, 0.06, 'sine'); }
     else { SV.say = { t: 1.6, x: s.d.x, fl: SV.fl, text: pick(['LOCKED', 'NOBODY HOME', 'GO AWAY!', '...']) }; Snd.tone(160, 120, 0.08, 0.08, 'square'); }
     return;
   }
+  if (s.k === 'board') { svToast(warBoard()); Snd.tone(440, 520, 0.08, 0.06, 'sine'); return; }   // js/08zzm
   if (s.k === 'sleep' || s.k === 'wardrobe' || s.k === 'stash') safeAction(s.k, SV.h);   // js/08s
 }
 function svLiftPanel() {                  // the elevator's buttons: the lobby and every floor
   const box = $('svFloors'); box.innerHTML = '';
   for (let f = SV.h.floors; f >= 0; f--) {
     const b = document.createElement('button'); b.type = 'button'; b.textContent = f === 0 ? 'L' : String(f); if (f === SV.fl) b.classList.add('here'); if (f === SV.h.home) b.classList.add('home');
-    if (SV.h.kind && sbLiftLock(f)) { b.disabled = true; b.classList.add('lock'); b.title = 'KEYCARD'; }   // the night lift (js/08zzj)
+    if (svQuest(SV.h) && sbLiftLock(f)) { b.disabled = true; b.classList.add('lock'); b.title = 'KEYCARD'; }   // the night lift (js/08zzj)
     b.addEventListener('click', () => { $('svLift').hidden = true; if (f !== SV.fl) { SV.lift = { from: SV.fl, to: f, t: 0, T: 0.8 + 0.22 * Math.abs(f - SV.fl) }; Snd.tone(520, 660, 0.12, 0.08, 'sine'); } });
     box.appendChild(b);
   }
@@ -120,8 +123,8 @@ function sideFrame(dt, time) {               // UP and DOWN keys: js/15 handleKe
   if (SV.note && (SV.note.t -= dt) <= 0) SV.note = null;
   if (!SV.room && SV.fl === 0 && Math.abs(SV.x - 270) < 120 && !SV.greeted) { SV.greeted = true; SV.say = { t: 2.2, x: 270, fl: 0, clerk: true, text: SKY.hour >= 18 || SKY.hour < 5 ? 'GOOD EVENING!' : SKY.hour < 12 ? 'GOOD MORNING!' : 'GOOD AFTERNOON!' }; }
   const s = svSpot(); $('svHint').textContent = SV.note ? SV.note.text : SV.lift ? 'GOING ' + (SV.lift.to > SV.lift.from ? 'UP' : 'DOWN') + '...' : SV.hide ? 'HIDDEN - WALK ON TO COME OUT' : s ? '▲ ' + s.label : '';
-  $('svTitle').textContent = SV.h.name + '  ·  ' + (SV.room ? (SV.room.mine ? 'YOUR FLAT' : SV.room.door.name || 'ROOM ' + SV.room.door.n) : SV.h.kind === 'vault' ? (SV.fl === 0 ? 'COUNT ROOM' : 'B' + SV.fl) : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl);
-  if (SV.h.kind) sbTick(dt);               // the Crown: its guards, the quest (js/08zzj)
+  $('svTitle').textContent = SV.h.name + '  ·  ' + (SV.room ? (SV.room.war ? 'THE WAR ROOM' : SV.room.mine ? 'YOUR FLAT' : SV.room.door.name || 'ROOM ' + SV.room.door.n) : SV.h.kind === 'vault' ? (SV.fl === 0 ? 'COUNT ROOM' : 'B' + SV.fl) : SV.fl === 0 ? 'LOBBY' : 'FLOOR ' + SV.fl);
+  if (svQuest(SV.h)) sbTick(dt);               // the Crown: its guards, the quest (js/08zzj)
   if (SV.on && state === 'side') drawSide(time);
 }
 function svThumb() {                      // a picture of the side-on view for a save made in here
@@ -158,7 +161,7 @@ function svWindow(g, x, y, w, h, s, time) {     // a window on the city: sky by 
   g.strokeStyle = '#d8d4e8'; g.lineWidth = 3 * s; g.strokeRect(x, y, w, h); g.beginPath(); g.moveTo(x + w / 2, y); g.lineTo(x + w / 2, y + h); g.stroke();
 }
 function drawSide(time) {
-  if (SV.h.kind) { sbDraw(time); return; }
+  if (svQuest(SV.h)) { sbDraw(time); return; }
   const g = svG, Wc = svCv.width, Hc = svCv.height, pr = Wc / VW, s = Math.min(Hc / (SV_FH * 2.9), Wc / 420), B = SV.B, h = SV.h;
   g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#05030c'; g.fillRect(0, 0, Wc, Hc);
   const me = svMe();
@@ -166,10 +169,11 @@ function drawSide(time) {
     const R = SV.room, cx = clamp(SV.x, Wc / s / 2, Math.max(Wc / s / 2, R.W - Wc / s / 2)), X = x => (x - cx) * s + Wc / 2, fy = Hc * 0.72, Y = y => fy - y * s;
     g.fillStyle = '#120e1e'; g.fillRect(X(0), 0, R.W * s, Y(SV_FH)); g.fillRect(X(0), fy + 14 * s, R.W * s, Hc - fy);   // the floors above and below, in the dark
     g.fillStyle = '#1c1630'; g.fillRect(X(0), Y(SV_FH) - 12 * s, R.W * s, 12 * s); g.fillRect(X(0), fy + 14 * s, R.W * s, 10 * s);       // the slabs
-    g.fillStyle = R.mine ? '#3a2f5c' : '#2c2a36'; g.fillRect(X(0), Y(SV_FH), R.W * s, SV_FH * s);
-    g.fillStyle = R.mine ? '#5a3a2a' : '#3a3846'; g.fillRect(X(0), fy, R.W * s, 14 * s);
+    g.fillStyle = R.war ? '#2e2a26' : R.mine ? '#3a2f5c' : '#2c2a36'; g.fillRect(X(0), Y(SV_FH), R.W * s, SV_FH * s);
+    g.fillStyle = R.war ? '#4a3a2a' : R.mine ? '#5a3a2a' : '#3a3846'; g.fillRect(X(0), fy, R.W * s, 14 * s);
     g.fillStyle = '#1d1a2c'; g.fillRect(X(36), Y(96), 48 * s, 96 * s); g.strokeStyle = '#b8a0ff'; g.lineWidth = 2 * s; g.strokeRect(X(36), Y(96), 48 * s, 96 * s);
-    if (R.mine) {
+    if (R.war) warRoomDraw(g, X, Y, s, time);   // js/08zzm: the board, the map table, the crew's chairs
+    else if (R.mine) {
       svWindow(g, X(160), Y(140), 240 * s, 52 * s, s, time);
       g.fillStyle = '#4a2a5a'; g.fillRect(X(120), Y(30), 110 * s, 30 * s); g.fillStyle = '#6a3a7a'; g.fillRect(X(120), Y(44), 20 * s, 44 * s);   // the sofa
       g.fillStyle = '#111'; g.fillRect(X(250), Y(70), 50 * s, 32 * s); g.fillStyle = Math.floor(time * 3) % 2 ? '#2bf3ff' : '#ff2bd6'; g.fillRect(X(253), Y(67), 44 * s, 26 * s);   // the TV
@@ -206,10 +210,10 @@ function drawSide(time) {
         g.fillStyle = '#4a2a5a'; g.fillRect(X(400), y0 - 24 * s, 90 * s, 20 * s); g.fillStyle = '#2f8f4e'; for (const px of [370, 520, 700]) { g.beginPath(); g.arc(X(px), y0 - 36 * s, 12 * s, 0, TAU); g.fill(); g.fillStyle = '#7a5a3a'; g.fillRect(X(px - 6), y0 - 24 * s, 12 * s, 20 * s); g.fillStyle = '#2f8f4e'; }
         g.fillStyle = '#ff2bd6'; g.font = 'bold ' + Math.round(20 * s) + 'px "Arial Black",Arial'; g.fillText(h.name.split(' ')[0], X(620), y1 + 40 * s);
       } else for (const d of B.doors) if (d.f === f) {
-        g.fillStyle = d.mine ? '#2bf3ff' : d.open ? '#ffd98a' : '#5a3a2a'; g.fillRect(X(d.x - 24), y0 - 96 * s, 48 * s, 96 * s);
+        g.fillStyle = d.war ? '#ff3b4a' : d.mine ? '#2bf3ff' : d.open ? '#ffd98a' : '#5a3a2a'; g.fillRect(X(d.x - 24), y0 - 96 * s, 48 * s, 96 * s);
         g.fillStyle = d.mine ? '#0b4a5a' : d.open ? '#2a1f12' : '#7a5a3a'; g.fillRect(X(d.x - 20), y0 - 92 * s, 40 * s, 92 * s);
         g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(X(d.x + 13), y0 - 46 * s, 2.5 * s, 0, TAU); g.fill();
-        g.fillStyle = '#e8e8ee'; g.font = 'bold ' + Math.round(10 * s) + 'px Arial'; g.fillText(String(d.n), X(d.x), y0 - 102 * s);
+        g.fillStyle = '#e8e8ee'; g.font = 'bold ' + Math.round(10 * s) + 'px Arial'; g.fillText(d.war ? 'WAR ROOM' : String(d.n), X(d.x), y0 - 102 * s);
       }
       for (const n of SV.npcs) if (n.fl === f && n.gone <= 0) svPerson(g, X(n.x), y0 - 4 * s, s, n.shirt, n.legs, n.skin, n.dir, n.wait > 0 ? 0 : gameT * 8 + n.x * 0.1);
       g.fillStyle = '#e8e8ee'; g.font = 'bold ' + Math.round(14 * s) + 'px "Arial Black",Arial'; g.textAlign = 'left'; g.fillText(f === 0 ? 'L' : String(f), X(B.W) - 30 * s, y1 + 20 * s); g.textAlign = 'center';

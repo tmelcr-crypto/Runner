@@ -10,9 +10,12 @@
 const MS = { on: false, id: '', m: null, s: null, k: -1, t: 0, A: null, guide: null, mark: null, talk: null, objT: 0, end: null, fromNew: false, next: null, start: null, pageT: 0 };
 const MSCRIPT = {};                        // each mission's script: { setup(A), steps: [{ enter, tick → true when done, jump, info }], fail(A) → why, cuts: { name: A => shots } }
 const msTest = () => gameMode === 'test';
-const MS_CHOICE = { kessler: 'finished', files: 'police' };   // the story's choices as MISSIONS TEST plays them (STORY: what you chose)
-MS_CHOICE.from = { m12: 'kessler', m18: 'files' };   // playing the choosing quest sets the switch too
-const MS_CHOICES = [['kessler', 'KESSLER', ['finished', 'spared']], ['files', "SACHS' FILES", ['police', 'kept']]];
+const MS_CHOICE = { kessler: 'finished', files: 'police', tip: 'trusted' };   // the story's choices as MISSIONS TEST plays them (STORY: what you chose)
+MS_CHOICE.from = { m12: 'kessler', m18: 'files', m22: 'tip' };   // playing the choosing quest sets the switch too
+const MS_UNLOCK = { warRoom: false, copEase: false };   // what passed quests open: the crew's war room (M19), the easier police (M23) - MISSIONS TEST until the game is left (STORY: from the saved story)
+function msUnlock(k) { MS_UNLOCK[k] = true; if (k === 'warRoom') { const L = SAFES.find(h => h.id === 'loft'); if (L) L.own = true; } }   // the war room is on the loft's top floor: the loft is the crew's
+const msUnlockReset = () => { for (const k in MS_UNLOCK) MS_UNLOCK[k] = false; };
+const MS_CHOICES = [['kessler', 'KESSLER', ['finished', 'spared']], ['files', "SACHS' FILES", ['police', 'kept']], ['tip', "HELPER'S TIP", ['trusted', 'own way']]];
 
 /* ---------- MISSIONS TEST: the kit and the list ---------- */
 function testKit() {                       // js/15 startGame: lots of cash, every weapon full, full health and armour - then the mission picked
@@ -91,7 +94,7 @@ function msTick(dt) {                       // js/15 update
 function msNext() { if (!MS.on) return; if (MS.k + 1 >= MS.s.steps.length) msPassed(); else msEnter(MS.k + 1); }
 function msClear() {                        // the mission's people and vehicles go, the bar and the line too
   if (MS.A) { if (MS.s && MS.s.cleanup) MS.s.cleanup(MS.A); for (const o of MS.A.list) { if (o.t) { if (P.car !== o && cars.includes(o)) cars.splice(cars.indexOf(o), 1); } else if (peds.includes(o)) peds.splice(peds.indexOf(o), 1); } }
-  SB.ms = null; if (SV.on && SV.h && SV.h.kind) closeSide();   // a quest's hold on a side-on building (js/08zzj) goes; out in the street
+  SB.ms = null; if (SV.on && SV.h && svQuest(SV.h)) closeSide();   // a quest's hold on a side-on building (js/08zzj) goes; out in the street
   MS.on = false; MS.A = null; MS.guide = null; MS.mark = null; MS.start = null; msTalkClose(); msLiveClear(); msCastClear(); if (CUT.on && CUT.sc && CUT.sc.ms) cutEnd(); if ($('msBtn')) $('msBtn').hidden = true;   // a mission's cutscene still playing: over
   $('msObj').hidden = true; msBarOff(); $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; msRingStop(); if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
@@ -101,11 +104,12 @@ function msFail(why) {
   msEndCard('MISSION FAILED', why, [], id);
 }
 function msPassed() {
-  const m = MS.m, r = m.reward, id = MS.id, ch = MS.A && MS.A.choice; msClear();   // ch: a choice made by what you did (M12)
-  if (MS_CHOICE.from && MS_CHOICE.from[id] && ch) MS_CHOICE[MS_CHOICE.from[id]] = ch.includes('FINISHED') ? 'finished' : ch.includes('SPARED') ? 'spared' : ch.includes('POLICE') ? 'police' : ch.includes('KEPT') ? 'kept' : MS_CHOICE[MS_CHOICE.from[id]];
+  const m = MS.m, r = m.reward, id = MS.id, ch = MS.A && MS.A.choice; msClear();   // ch: a choice made by what you did (M12, M18, M22)
+  if (MS_CHOICE.from && MS_CHOICE.from[id] && ch) MS_CHOICE[MS_CHOICE.from[id]] = ch.includes('FINISHED') ? 'finished' : ch.includes('SPARED') ? 'spared' : ch.includes('POLICE') ? 'police' : ch.includes('KEPT') ? 'kept' : ch.includes('TRUSTED') ? 'trusted' : ch.includes('OWN WAY') ? 'own way' : MS_CHOICE[MS_CHOICE.from[id]];
+  if (r.unlock) msUnlock(r.unlock);
   if (r.cash > 0) addScore(r.cash, P.x, P.y, 'MISSION');
   Snd.tone(523, 784, 0.18, 0.12, 'square'); setTimeout(() => Snd.tone(784, 1046, 0.25, 0.12, 'square'), 180);
-  const list = [r.cash > 0 && money(r.cash), ch && 'CHOICE: ' + ch, r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.next && 'NEXT: ' + r.next].filter(Boolean);
+  const list = [r.cash > 0 && money(r.cash), ch && 'CHOICE: ' + ch, r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.police && 'POLICE: ' + r.police, r.next && 'NEXT: ' + r.next].filter(Boolean);
   msEndCard('MISSION PASSED', m.no + ' · ' + m.title, list, id);
 }
 function msEndCard(head, sub, list, id) {   // over the game: what happened, then RETRY, MISSIONS or CARRY ON
