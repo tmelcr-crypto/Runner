@@ -30,7 +30,7 @@ function alertPeds(x, y, r, notMe, provokeR) {   // people near trouble run away
 }
 const hearV = (x, y) => clamp(1 - dist(x, y, P.x, P.y) / 800, 0, 1);   // how loud something sounds from where you are
 function killPed(p, how, byPlayer, ang) {
-  if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm(); if (p.pguard && byPlayer) prisonAlarm(); if (byPlayer) casinoHurt(p.x, p.y);   // a soldier killed: the base is on alert (js/08j); a prison guard: the prison (js/08zp)
+  if (p.dead) return; p.dead = true; p.deadT = 0; if (p.soldier && byPlayer) raiseAlarm(); if (p.pguard && byPlayer) prisonAlarm(); if (byPlayer) { casinoHurt(p.x, p.y); estateHurt(p.x, p.y); }   // a soldier killed: the base is on alert (js/08j); a prison guard: the prison (js/08zp)
   if (how === 'blast' && feat('gibs')) gibPerson(p, ang); else { bloodFx(p.x, p.y, 14, ang); if (decals.length < 120) bloodMark(p.x, p.y, rand(8, 13), 50); }
   if (byPlayer) { P.kills++; if (p.cop) { STAT.cops++; addHeat(COP.crime.killCop); PS.armedT = gameT; } else if (!p.crim) reportCrime(how === 'car' ? COP.crime.runOver : COP.crime.kill, 0); rampHit('people', p.x, p.y); }   // a criminal of the vigilante job: no crime (js/08n)
   dropLoot(p, p.cop);                                              // a cash stack and the weapon they carried (js/08g); killing pays nothing itself
@@ -105,7 +105,7 @@ function explosion(x, y, R, src, throwK) {   // throwK: how hard it throws thing
   }
   if (!P.car && !P.dead) { const d = dist(P.x, P.y, x, y); if (d < R) damagePlayer(70 * (1 - d / R) * blastHurt()); }   // fireproof: less (js/08n)
   blastPlanes(x, y, R, src);                                      // close to a plane's tanks it goes up too (js/08i)
-  blastTargets(x, y, R, src); substationHurt(x, y, R); if (byP) { baseHurt(x, y); prisonHurt(x, y); casinoHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
+  blastTargets(x, y, R, src); substationHurt(x, y, R); if (byP) { baseHurt(x, y); prisonHurt(x, y); casinoHurt(x, y); estateHurt(x, y); }             // the helicopter; a blast you set off inside the base (js/08j)
   blastPush(x, y, R, src, throwK === undefined ? 1 : throwK);   // and throws everything still in one piece
   callFor('fire', x, y);                                          // a fire engine comes (js/08c)
 }
@@ -113,7 +113,7 @@ function explodeCar(c) {
   c.burn = 0; c.dead = true; c.deadT = 0; c.hp = 0;
   const wasPlayer = P.car === c;
   if (wasPlayer) exitCar(true);
-  explosion(c.x, c.y, 130, c);
+  explosion(c.x, c.y, c.t.body === 'fueltruck' ? PLC.fuelBlast : 130, c);   // the space center's tanker: a huge blast (places table)
   if (wasPlayer && blastHurt() >= 1) damagePlayer(45);            // fireproof: not at all (js/08n)
   if (c.byPlayer && c.t.cop) { addScore(ECO.copCarBoom, c.x, c.y, 'COP ' + c.t.name); reportCrime(COP.crime.copCarBoom, COP.blastHear, undefined, undefined, true); }
   else if (c.byPlayer) addScore(ECO.carBoom, c.x, c.y, 'BOOM');
@@ -122,10 +122,10 @@ function explodeCar(c) {
 
 function raycast(ox, oy, ang, range) {
   const dx = Math.cos(ang), dy = Math.sin(ang); let bt = range, type = null, obj = null;
-  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } });
-  const up = zOf(P.car || P) > 15;                                  // shooting from a car park deck: nobody in the street below (js/10k)
-  for (const p of peds) { if (up || p.dead || p.shield || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }   // p.shield: a mission's friend you are protecting - your shots pass by (js/08zy)
-  for (const o of officers) { if (up || o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }
+  const z0 = zOf(P.car || P);
+  buildingsAlong(ox, oy, ox + dx * range, oy + dy * range, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < bt) { bt = t; type = 'wall'; obj = rc; } }, z0);
+  for (const p of peds) { if (Math.abs(zOf(p) - z0) > 15 || p.dead || p.shield || Math.abs(p.x - ox) > range + 20 || Math.abs(p.y - oy) > range + 20) continue; const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < bt) { bt = t; type = 'ped'; obj = p; } }   // p.shield: a mission's friend you are protecting - your shots pass by (js/08zy)
+  for (const o of officers) { if (Math.abs(zOf(o) - z0) > 15 || o.dead) continue; const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < bt) { bt = t; type = 'officer'; obj = o; } }   // up on a deck or a roof: nobody in the street below (js/10k)
   for (const c of cars) {
     if (P.car === c || Math.abs(c.x - ox) > range + 60 || Math.abs(c.y - oy) > range + 60 || Math.abs(zOf(c) - zOf(P.car || P)) > 15) continue;
     for (const q of carCircles(c)) { const t = rayCircle(ox, oy, dx, dy, q[0], q[1], q[2]); if (t < bt) { bt = t; type = 'car'; obj = c; } }
@@ -136,7 +136,7 @@ function raycast(ox, oy, ang, range) {
 }
 function rifleRay(ox, oy, ang, w) {     // a rifle round goes through props and one unarmoured car; a building, the first person, an armoured or a second car stops it
   const dx = Math.cos(ang), dy = Math.sin(ang), R = w.range, hits = [];
-  buildingsAlong(ox, oy, ox + dx * R, oy + dy * R, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < R) hits.push({ t, type: softSolid(rc) ? 'soft' : 'wall', obj: rc }); });
+  buildingsAlong(ox, oy, ox + dx * R, oy + dy * R, rc => { const t = raySolid(ox, oy, dx, dy, rc); if (t < R) hits.push({ t, type: softSolid(rc) ? 'soft' : 'wall', obj: rc }); }, zOf(P.car || P));
   for (const p of peds) if (!p.dead) { const t = rayCircle(ox, oy, dx, dy, p.x, p.y, 8); if (t < R) hits.push({ t, type: 'ped', obj: p }); }
   for (const o of officers) if (!o.dead) { const t = rayCircle(ox, oy, dx, dy, o.x, o.y, 8); if (t < R) hits.push({ t, type: 'officer', obj: o }); }
   for (const c of cars) {
@@ -193,7 +193,7 @@ function fireWeapon(aim) {                                      // aim: a point 
     const pa = k ? P.ang + rand(-w.spread, w.spread) : a;
     h = w.pierce ? rifleRay(P.x, P.y, pa, w) : raycast(P.x, P.y, pa, w.range); bulletHit(h, w, pa);
   }
-  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true); baseHurt(P.x, P.y); prisonHurt(P.x, P.y); casinoHurt(P.x, P.y);   // shooting inside the base sets off the alarm (js/08j)
+  Snd.shot(w.sound); alertPeds(P.x, P.y, w.panic); reportCrime(w.heat * COP.crime.gunfire, w.hear, h.x, h.y, true); baseHurt(P.x, P.y); prisonHurt(P.x, P.y); casinoHurt(P.x, P.y); estateHurt(P.x, P.y);   // shooting inside the base sets off the alarm (js/08j)
   cam.shake = Math.max(cam.shake, w.shake);
 }
 /* the drive-by (js/01j driveBy): in a car, a gun the weapon table lets fire from a car shoots out of the window at the nearest target

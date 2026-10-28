@@ -144,7 +144,7 @@ MSCRIPT.m14 = (() => {
       { dur: 6, cam: 'CLOSE', at: () => A.nina, line: [1, 2], enter: () => { face(A.nina, P); P.ang = Math.atan2(A.nina.y - P.y, A.nina.x - P.x); } },
       { dur: 5, cam: 'CLOSE', at: () => P, line: [3, 4], fadeOut: true }],
     'THE OFFICE': A => [
-      { dur: 5, cam: 'CLOSE', at: () => A.sachs, line: [8], enter: () => { face(A.sachs, A.car); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.sachs || A.car, line: [8], enter: () => { if (A.sachs) face(A.sachs, A.car); } },   // (a skipped step may leave Sachs not yet out)
       { dur: 6, cam: 'CLOSE', at: () => P, line: [9, 10], phone: true, fadeOut: true }]
   };
   return { setup, steps, fail, cuts, cleanup() { NEWS.ms = null; } };

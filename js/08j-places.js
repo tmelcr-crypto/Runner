@@ -150,14 +150,15 @@ function raiseAlarm() {
   if (!feat('base') || BASEX.alarm || RAMP.on) return;                // not during a rampage: like the police, the base looks away (js/08f)
   BASEX.alarm = true; BASEX.outT = 0; forceWanted(PLC.baseStars); toast('BASE ALARM!', true); Snd.tone(440, 880, 0.6, 0.15, 'sawtooth');
 }
-const baseHurt = (x, y) => { if (inBase(x, y)) raiseAlarm(); };     // js/06: a shot, a blast or a body inside the base
+const baseHurt = (x, y) => { if (inBase(x, y)) raiseAlarm(); };
+const pilotSuit = () => feat('flightSuitBase') && !!P.outfit && P.outfit.top === 'flight_suit';   // S6: the base's guards wave a pilot through     // js/06: a shot, a blast or a body inside the base
 function baseTick(dt) {
   const el = $('warnBanner');
   if (!BASEM || !feat('base')) { warnOff('base'); return; }       // the banner is shared with the prison (js/08zp)
   const t = P.car || P, inside = !P.dead && state === 'play' && inBase(t.x, t.y);
   if (inside) {
     BASEX.outT = 0;
-    if (RAMP.on) { BASEX.warnT = 0; warnOff('base'); }
+    if (RAMP.on || (pilotSuit() && !BASEX.alarm)) { BASEX.warnT = 0; warnOff('base'); }   // in the flight suit the guards take you for a pilot (modes: flightSuitBase)
     else if (!BASEX.alarm) { BASEX.warnT += dt; const n = Math.max(0, Math.ceil(PLC.baseWarn - BASEX.warnT)); warnSet('base', 'RESTRICTED AREA<br><small>LEAVE NOW ' + n + '</small>'); if (BASEX.warnT >= PLC.baseWarn) raiseAlarm(); }
     else warnOff('base');
   } else {

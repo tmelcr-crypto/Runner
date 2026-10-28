@@ -86,7 +86,7 @@ function closeClothes() {                // back on the street: new clothes may 
   if ((CLS.bought || changed) && !saveBlock()) putSave('auto', makeSave(lastThumb));
 }
 function clRows() {                      // the shop's range, or what you own (and taking off the hat or the glasses)
-  if (CLS.tab === 'shop') return CLOTHES_TABLE.items.filter(i => i.shop === CLS.at.id);
+  if (CLS.tab === 'shop') return CLOTHES_TABLE.items.filter(i => i.shop === CLS.at.id && (!SPACE_WEAR.includes(i.id) || feat('spaceWearShop')));   // the lab coat and the flight suit: FREE ROAM's shops only (STORY: the Space line's rewards)
   const out = [];
   for (const sl of CL_SLOTS) {
     if (sl === 'hat' || sl === 'glasses') out.push({ id: 'none_' + sl, none: true, slot: sl, name: 'NO ' + CL_SLOT_NAME[sl], c1: '#3a3f5c' });

@@ -49,7 +49,8 @@ const PLAYER_SHIRT = mc(0xffd23f);
 const DECO = {
   laundry: { bg: '#f4f6fa', fg: '#2a5fc8', top: 'SUDS & SONS', sub: 'LAUNDRY · 24 H', dots: '#9fd4ee' },
   flamingo: { bg: '#efe6cc', fg: '#b8860b', top: 'ROYAL FLAMINGO', sub: 'CASINO · CASH IN TRANSIT', bird: '#ff5fa2' },
-  baytv: { bg: '#f4f6fa', fg: '#1f4fa8', top: 'BAY TV 7', sub: 'NEWS · LIVE · ON THE SPOT', dots: '#ff3b4a' }
+  baytv: { bg: '#f4f6fa', fg: '#1f4fa8', top: 'BAY TV 7', sub: 'NEWS · LIVE · ON THE SPOT', dots: '#ff3b4a' },
+  police: { bg: '#1d2a5a', fg: '#f4f6fa', top: 'POLICE', sub: 'VICE BAY P.D. · TO SERVE' }
 };
 const _deco = {};
 function decoTex(kind, side) {
@@ -126,6 +127,15 @@ function buildCar(c) {                       // parts that never move on their o
     for (const s of [-1, 1]) { const sd = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.62, 12), new THREE.MeshLambertMaterial({ map: decoTex('baytv', true) })); sd.position.set(-L * 0.16, 12, s * (Wd / 2 + 0.08)); if (s < 0) sd.rotation.y = Math.PI; tilt.add(sd); }
     void D; part(tilt, GCyl, E.white, 1.2, 4, 1.2, -L * 0.3, 24, 0); part(tilt, GSph, E.white, 5, 1.6, 5, -L * 0.3, 26.5, 0);   // the dish on its stand
     part(tilt, GCyl, mc(0x9aa0ab), 0.5, 10, 0.5, -L * 0.02, 27, Wd * 0.3);                       // the mast
+    for (const x of [L * 0.32, -L * 0.3]) axle(x, 5);
+    lamps(7, 3, 8, 3, 5); seat(L * 0.38, 19);
+  } else if (B === 'policevan') {            // the police van: a cab, a tall dark-blue box with POLICE on its roof and sides, a light bar over the cab, a white stripe
+    merged('b', body, [[GB, L * 0.3, 11, Wd, L * 0.35, 8.5, 0], [GB, L * 0.3, 1.4, Wd, L * 0.35, 18.7, 0], [GB, L * 0.68, 19, Wd, -L * 0.16, 11.5, 0]]);
+    m.cabin = part(tilt, GB, GLASS, L * 0.26, 6, Wd - 2, L * 0.36, 15.5, 0);
+    const roof = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.66, Wd * 0.94), new THREE.MeshLambertMaterial({ map: decoTex('police', false) })); roof.rotation.x = -Math.PI / 2; roof.position.set(-L * 0.16, 21.1, 0); tilt.add(roof);
+    for (const s of [-1, 1]) { const sd = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.62, 11), new THREE.MeshLambertMaterial({ map: decoTex('police', true) })); sd.position.set(-L * 0.16, 11.5, s * (Wd / 2 + 0.08)); if (s < 0) sd.rotation.y = Math.PI; tilt.add(sd); }
+    part(tilt, GB, E.white, L * 0.3, 1.6, Wd + 0.2, L * 0.35, 9, 0);
+    bar(L * 0.33, 20.4, 'police');
     for (const x of [L * 0.32, -L * 0.3]) axle(x, 5);
     lamps(7, 3, 8, 3, 5); seat(L * 0.38, 19);
   } else if (B === 'produce') {              // an open-back truck: the cab up front, a wooden bed with stake sides, eight crates of produce (they fall off when it is hit hard, js/06)
@@ -262,6 +272,35 @@ function buildCar(c) {                       // parts that never move on their o
     merged('d', mc(0x5a4a38), [[GB, L * 0.6, 0.6, Wd - 3, -L * 0.17, 22.2, 0]]);              // the load of dirt in it
     for (const x of [L * 0.32, -L * 0.12, -L * 0.33]) axle(x, 6);
     lamps(8, 3, 9, 3, 5);
+  } else if (B === 'wrecker') {              // a wrecking crane: a yellow cab, the long chassis, the turning house, a lattice boom raised forward, the iron ball swinging on its cable (js/08zzn)
+    merged('c', body, [[GB, L * 0.16, 14, Wd, L * 0.42, 11, 0]]);
+    m.cabin = merged('g', E.glass, [[GB, 0.6, 6, Wd - 4, L / 2 + 0.05, 14, 0], [GB, L * 0.1, 5, Wd + 0.2, L * 0.42, 14, 0]]);
+    merged('k', E.black, [[GB, L * 0.84, 4, Wd - 5, -L * 0.06, 5, 0]]);
+    merged('h', body, [[GB, L * 0.34, 10, Wd - 2, -L * 0.18, 13, 0], [GB, L * 0.14, 6, Wd - 6, -L * 0.36, 21, 0]]);   // the house and its counterweight
+    merged('w', mc(0x2a2d38), [[GB, L * 0.12, 8, Wd * 0.4, -L * 0.02, 22, -Wd * 0.2]]);                      // the operator's cab on the house
+    for (const s of [-1, 1]) merged('st' + s, mc(0xff3b4a), [[GB, L * 0.8, 0.5, 0.6, -L * 0.04, 8.5, s * (Wd / 2 + 0.1)]]);   // red stripes
+    const boom = new THREE.Group(); boom.position.set(-L * 0.12, 20, 0); boom.rotation.z = 0.62; tilt.add(boom);
+    const BL = L * 1.05, lat = mc(0xffd23f);
+    for (const s of [-1, 1]) { part(boom, GB, lat, BL, 1.2, 1.2, BL / 2, 1.6, s * 2.6); part(boom, GB, lat, BL, 1.2, 1.2, BL / 2, -1.6, s * 2.6); }   // the four chords
+    for (let k = 1; k < 12; k++) { const x = k * BL / 12, d = part(boom, GB, lat, 0.6, 4.2, 0.6, x, 0, (k % 2 ? 2.6 : -2.6)); d.rotation.x = 0; part(boom, GB, lat, 0.6, 0.6, 5.8, x, k % 2 ? 1.6 : -1.6, 0); }   // the lacing
+    const tip = new THREE.Group(); tip.position.set(BL, 0, 0); boom.add(tip);
+    const swing = new THREE.Group(); tip.add(swing); swing.rotation.z = -0.62; m.swing = swing;   // hangs straight down whatever the boom's angle
+    part(swing, GB, mc(0x2a2a30), 0.4, 26, 0.4, 0, -13, 0);                                        // the cable
+    part(swing, GSph, mc(0x3a3d44), 6, 6, 6, 0, -30, 0);                                           // the iron ball
+    for (const x of [L * 0.34, L * 0.14, -L * 0.2, -L * 0.36]) axle(x, 6);
+    lamps(8, 3, 8, 3, 5);
+  } else if (B === 'fueltruck') {            // the space center's tanker: a white cab, the long polished tank with a blue stripe, hazard diamonds, a catwalk on top (js/10zj)
+    merged('c', body, [[GB, L * 0.2, 12, Wd, L * 0.39, 10, 0]]);
+    m.cabin = merged('g', E.glass, [[GB, 0.6, 5.5, Wd - 4, L * 0.49 + 0.05, 12.5, 0], [GB, L * 0.12, 4.6, Wd + 0.2, L * 0.4, 12.5, 0]]);
+    merged('k', E.black, [[GB, L * 0.92, 3, Wd - 5, -L * 0.04, 4, 0]]);
+    merged('t', mc(0xe8ecf0), [[GB, L * 0.66, 10, Wd - 0.6, -L * 0.13, 12, 0], [GB, L * 0.64, 2.4, Wd - 3.4, -L * 0.13, 18, 0], [GB, L * 0.02, 8, Wd - 3, -L * 0.47, 12, 0], [GB, L * 0.02, 8, Wd - 3, L * 0.21, 12, 0]]);   // the tank, rounded by its top and its end caps
+    for (const s of [-1, 1]) merged('st' + s, mc(0x2a5ad6), [[GB, L * 0.66, 1.6, 0.4, -L * 0.13, 12.5, s * (Wd / 2 - 0.1)]]);   // the blue stripe
+    merged('hz', mc(0xff7a1a), [[GB, 0.4, 2.6, 2.6, -L * 0.47 - 0.3, 13, 0], [GB, 2.6, 2.6, 0.4, -L * 0.3, 14.5, Wd / 2 - 0.1], [GB, 2.6, 2.6, 0.4, -L * 0.3, 14.5, -(Wd / 2 - 0.1)]]);   // hazard diamonds
+    merged('cw', mc(0x9aa0ab), [[GB, L * 0.5, 0.5, 2.4, -L * 0.13, 19.5, 0], [GB, 0.6, 9, 0.6, -L * 0.45, 14, Wd / 2 - 0.6]]);   // the catwalk and its ladder
+    merged('tp', mc(0x2a5ad6), [[GB, L * 0.62, 0.3, 1.4, -L * 0.13, 19.3, Wd * 0.3], [GB, L * 0.62, 0.3, 1.4, -L * 0.13, 19.3, -Wd * 0.3]]);   // the blue stripes over the top
+    merged('hc', mc(0x3a3d47), [[GB, 3, 0.5, 3, -L * 0.3, 19.6, 0], [GB, 3, 0.5, 3, L * 0.02, 19.6, 0]]); merged('hd', mc(0xff7a1a), [[GB, 3.2, 0.5, 3.2, -L * 0.42, 19.4, 0]]);   // the hatches, a hazard diamond on top
+    for (const x of [L * 0.36, -L * 0.1, -L * 0.24, -L * 0.38]) axle(x, 5);
+    lamps(8, 3, 8, 3, 4.5);
   } else if (B === 'digger') {               // a tracked excavator: tracks, the turning house with its cab, the boom, the stick and the bucket (move: js/08zt)
     merged('k', E.tire, [[GB, L * 0.82, 8, 9, -L * 0.04, 5, Wd / 2 - 4.5], [GB, L * 0.82, 8, 9, -L * 0.04, 5, -(Wd / 2 - 4.5)]]);
     merged('b', body, [[GB, L * 0.62, 11, Wd - 4, -L * 0.1, 14.5, 0], [GB, L * 0.22, 4, Wd - 8, -L * 0.3, 21.5, 0]]);
@@ -468,8 +507,8 @@ function syncPerson(p, kind, time, dt) {
   const sp = Math.hypot(p.vx || 0, p.vy || 0);
   if (kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || p.boxer || ((p.valet || p.post) && sp <= 8))) p.h3 = p.ang; else if (kind === 'ped' && sp > 8) p.h3 = Math.atan2(p.vy, p.vx); else if (kind !== 'ped') p.h3 = p.ang || 0;   // armed and after you: facing you (js/08g)
   g.rotation.y = -p.h3;
-  if (p.dead || p.stunT > 0) {                                      // dead, or knocked down for a while by a melee hit (js/06b)
-    o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = 0;
+  if (p.dead || p.stunT > 0 || p.floor) {                          // dead, knocked down for a while by a melee hit (js/06b), or face down with the hands on the head (a hostage, js/08zzn)
+    o.tilt.rotation.z = -Math.PI / 2; o.tilt.position.y = 3; for (const l of o.legs) l.rotation.z = 0; for (const a of o.arms) a.rotation.z = p.floor && !p.dead ? -2.9 : 0;
     g.scale.setScalar(p.dead ? clamp((bodyTime(p) + 1 - p.deadT) / 6, 0.01, 1) : 1);   // a body shrinks away at the end (later while an ambulance is coming)
   } else {
     const live = feat('liveWalk'), run = live ? clamp((sp - 30) / 45, 0, 1) : 0, k = Math.sin(p.bob * 3) * Math.min(1, sp / 60) * 0.8, ak = live ? 1.05 : 0.8;
@@ -489,6 +528,10 @@ function syncPerson(p, kind, time, dt) {
       o.arms[0].rotation.z = p.dj ? -1.2 : -2.2 - 0.6 * b; o.arms[1].rotation.z = p.dj ? -1.2 + 0.3 * Math.sin(u * 2) : -1.4 + 0.9 * Math.sin(u);
     }
     if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
+    if (p.placard && p.state !== 'flee') {                          // a protester (S4): both arms up holding a placard on a stick, bobbing with the chant
+      if (!o.plac) { o.plac = new THREE.Group(); part(o.plac, GB, mc(0xf4f0e0), 0.6, 7, 11, 0, 0, 0); part(o.plac, GB, mc(p.placard), 0.7, 1.8, 9, 0.05, 1, 0); part(o.plac, GB, mc(0x6a4a2a), 0.5, 9, 0.6, 0, -6, 0); o.tilt.add(o.plac); }
+      const b = Math.sin(time * 4 + (p.x + p.y) * 0.03); o.plac.position.set(1, 33 + b, 0); o.plac.visible = true; o.arms[0].rotation.z = -2.9; o.arms[1].rotation.z = -2.9;
+    } else if (o.plac) o.plac.visible = false;
   }
   const hid = kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || p.boxer) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }

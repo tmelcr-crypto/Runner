@@ -634,10 +634,14 @@ def finish(pic):                              # the outline round the figure, ve
     return img
 
 
+NO_PORTRAIT = {'anon'}                       # the unknown caller (M22) stays a shadow with a question mark: the game draws the letter when there is no picture
+
+
 def draw_all():
     t = load(); os.makedirs(OUT, exist_ok=True); n = 0
     for ch in t['characters']:
         check(ch)
+        if ch['id'] in NO_PORTRAIT: continue
         for f in FACES: draw(ch, f).save(os.path.join(OUT, '%s-%s.png' % (ch['id'], f))); n += 1
     print('drew %d portraits in %s' % (n, os.path.relpath(OUT, ROOT)))
 

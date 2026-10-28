@@ -92,6 +92,7 @@ function waterCannon(c, inp, dt) {
   }
   if (Math.random() < 0.15) Snd.thud(40);
   const inJet = (x, y) => { const rx = x - ox, ry = y - oy, al = rx * ux + ry * uy; return al > 0 && al < R && Math.abs(-rx * uy + ry * ux) < 12 + al * 0.12 ? al : -1; };
+  for (const f of WATER_FIRES) if (f.lit && inJet(f.x, f.y) >= 0) f.wet = (f.wet || 0) + dt;   // a quest's fires (js/08zzn, H3)
   let hitPeople = false;
   const wet = (p, officer) => {
     if (p.dead || p.knocked || inJet(p.x, p.y) < 0) return;

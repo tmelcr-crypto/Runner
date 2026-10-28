@@ -72,7 +72,7 @@ function nearRails(x, y, out) { return rHash.query(x - 40, y - 40, x + 40, y + 4
 function resolveCircle(o, r) {
   let hit = null;
   const push = h => { o.x += h.nx * h.pen; o.y += h.ny * h.pen; hit = hit || { nx: 0, ny: 0 }; hit.nx += h.nx; hit.ny += h.ny; };
-  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { if (rc.gate || rc.walk || rc.barrier || !solidAt(rc, zOf(o)) || (rc.bld && rc.H && zOf(o) > rc.H - 1)) continue; const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }   // solidAt: a car park wall at another height (js/10k)   // people duck under gates and barriers, through turnstiles
+  nearBuildings(o.x, o.y, _nb); for (const rc of _nb) { if (rc.gate || rc.walk || rc.barrier || !solidAt(rc, zOf(o)) || ((rc.bld || rc.deck) && rc.H && zOf(o) > rc.H - 1)) continue; const h = circleSolid(o.x, o.y, r, rc); if (h) push(h); }   // solidAt: a car park wall at another height (js/10k)   // people duck under gates and barriers, through turnstiles
   if (!o.swim) { nearRails(o.x, o.y, _nr); for (const s of _nr) { const h = circleSeg(o.x, o.y, r, s); if (h) push(h); } }   // swimming: under the bridges, out to sea (js/08zv)
   const sd = shoreDist(o.x, o.y);
   if (sd < -WADE && !o.swim) { const g = shoreGrad(o.x, o.y); push({ nx: g[0], ny: g[1], pen: -WADE - sd }); }
@@ -95,14 +95,14 @@ function rayCircle(ox, oy, dx, dy, cx, cy, r) {
   return tca - Math.sqrt(r * r - d2);
 }
 const _ba = [];
-function buildingsAlong(x1, y1, x2, y2, fn) {
+function buildingsAlong(x1, y1, x2, y2, fn, z) {               // z: the height of whoever looks or shoots - up on a roof, that building's box is under them
   bHash.query(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), _ba);
-  for (const rc of _ba) if (!rc.gate && !rc.fence) fn(rc);       // a gate's boom and the airport fence stop cars, not bullets or eyes
+  for (const rc of _ba) if (!rc.gate && !rc.fence && !(z && rc.H && (rc.deck || rc.bld) && z > rc.H - 1)) fn(rc);   // a gate's boom and the airport fence stop cars, not bullets or eyes
 }
-function losClear(x1, y1, x2, y2, hardOnly) {                 // hardOnly: only buildings and landmarks block, not the props a rifle round goes through
+function losClear(x1, y1, x2, y2, hardOnly, z) {              // hardOnly: only buildings and landmarks block, not the props a rifle round goes through
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
   const dx = (x2 - x1) / d, dy = (y2 - y1) / d; let clear = true;
-  buildingsAlong(x1, y1, x2, y2, rc => { if (hardOnly && softSolid(rc)) return; const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; });
+  buildingsAlong(x1, y1, x2, y2, rc => { if (hardOnly && softSolid(rc)) return; const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; }, z);
   return clear;
 }
 const softSolid = rc => !!(rc.clutter || rc.soft);             // dumpsters, crates, AC units, pumps, fountains, cranes, containers, planes, sign posts
@@ -120,6 +120,7 @@ function buildShoreField() {
   const gv = MAP.lunapark && MAP.lunapark.grove; if (gv) for (const b of [gv.pier, gv.head]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // the grove's pier: walked on like land (js/10m)
   const pz = MAP.prison; if (pz) for (const b of [pz.pier, pz.head, pz.mpier, pz.mhead]) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Iron Key's piers (js/10u)
   if (MAP.marina) for (const b of MAP.marina.piers) g.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);   // Sunset Harbor's piers and fuel dock (js/08zv)
+  const est = MAP.lm.find(l => l.t === 'estate'), ed = est && est.dock; if (ed) g.fillRect(ed.x - ed.w / 2, ed.y0 - 10, ed.w, ed.y1 - ed.y0 + 10);   // Crane's jetty (js/10zk)
   for (const j of MAP.jetties || []) {                            // the small jetties round the coast (js/10x): the walkway and its T
     g.save(); g.translate(j.x, j.y); g.rotate(j.a * Math.PI / 180); g.fillRect(-24, -j.w / 2, j.len + 24, j.w); g.fillRect(j.len - j.head[1], -j.head[0] / 2, j.head[1], j.head[0]); g.restore();
   }
@@ -324,7 +325,7 @@ function genWorld() {
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
     GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
   }
-  genLandmarks(); genAirport(); genPlaces(); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genMarina(); genStunts(); genInteriors(); ixSetup(); genGym(); genDepot(); genFunhouse(); genSubstation(); genNewsroom(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
+  genLandmarks(); genAirport(); genPlaces(); if (ESTATE.L) estatePosts(ESTATE.L); genLockers(); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genMarina(); genStunts(); genInteriors(); ixSetup(); genGym(); genDepot(); genFunhouse(); genSubstation(); genNewsroom(); genGolfClub(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genBank(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them
   DRAW = BLD.filter(b => !b.fill && !b.uniq && !b.ix).concat(LMS, fillChunks());   // fill buildings stream as merged chunks; a unique building is its own drawable (js/10n)
   // bridges: wherever both sides of the road are water, put a rail along each edge of the deck

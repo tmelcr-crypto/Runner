@@ -12,16 +12,18 @@ function aaTargets() {                    // everything the AA launcher can lock
   const out = [];
   if (heliLive()) out.push({ kind: 'heli', o: PH });
   if (HELI && !HELI.dead && !HELI.off) out.push({ kind: 'pad', o: HELI });
+  if (CH5.heli && !CH5.heli.dead) out.push({ kind: 'ch5', o: CH5.heli });           // Crane's helicopter (M28, js/08zzp)
   for (const c of cars) if (!c.dead && !c.sunk && c !== P.car && isArmour(c)) out.push({ kind: 'car', o: c });
   return out;
 }
 function aaPos(t, out) {                  // where a target is: x, y on the map, h above the street
   if (t.kind === 'heli') { out.x = PH.x; out.y = PH.y; out.h = PH.h - 6; }
   else if (t.kind === 'pad') { out.x = t.o.x - 10; out.y = t.o.y; out.h = 22; }
+  else if (t.kind === 'ch5') { out.x = t.o.x; out.y = t.o.y; out.h = t.o.h; }
   else { out.x = t.o.x; out.y = t.o.y; out.h = t.o.t.body === 'tank' ? 18 : 16; }
   return out;
 }
-const aaAlive = t => t.kind === 'heli' ? heliLive() : t.kind === 'pad' ? !t.o.dead : !t.o.dead && !t.o.sunk && cars.includes(t.o);
+const aaAlive = t => t.kind === 'heli' ? heliLive() : t.kind === 'pad' || t.kind === 'ch5' ? !t.o.dead : !t.o.dead && !t.o.sunk && cars.includes(t.o);
 function aaPick(sx, sy, hw, hh) {         // the target inside the sight's frame nearest its centre (js/14b scopePick; the camera is placed), or null
   let best = null, bs = Infinity; const q = {};
   for (const t of aaTargets()) {
@@ -67,6 +69,7 @@ function homingStrike(m) {                // the flight time is up: it hits, and
   if (aaAlive(t)) {
     if (t.kind === 'heli') { airBurst(e.x, e.y, PH.h); heliDown(true); return; }
     if (t.kind === 'pad') { t.o.hit(1e9, true); return; }
+    if (t.kind === 'ch5') { airBurst(e.x, e.y, t.o.h); ch5HeliHurt(1e9, true); return; }
     t.o.byPlayer = true; explodeCar(t.o); reportCrime(COP.crime.blast, COP.blastHear, e.x, e.y, true); return;
   }
   if (e.h > 40) airBurst(e.x, e.y, e.h); else { explosion(e.x, e.y, m.w.blast || RK_R, RK_SRC, m.w.blastThrow); reportCrime(COP.crime.blast, COP.blastHear, e.x, e.y, true); }

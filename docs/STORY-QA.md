@@ -182,3 +182,55 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 155. P3's forger: old printer Otto - seventies, thick glasses, an ink-stained apron, a cardigan; his shop OTTO'S PRINTING stays in Mercado for good, in both modes (nothing to do inside).
 156. After P8 Sal lies low at the Colony (Esther gives him a room); his marker S moves there for the finale's links.
 157. Nina's marker N: inside a new Bay TV newsroom at the TV tower's base - the top-down kind, permanent, both modes (open by day in FREE ROAM). M18's plane: a new private jet on Skyport's apron.
+
+## Building chapter 4 (October 2026)
+
+158. Order: chapter 4 (M19-M24) first, pushed for testing; then the Colony line (H1-H8); then the Space Center line (S1-S8) - each asked about before it is built.
+159. The crew's war room (M19's reward): a room on the Palm Heights loft's top floor in the side-on view - a map table, a board with photos and string, the crew's chairs; later it moves to the Colony's top floor.
+160. M21's clubhouse: a new small clubhouse at the golf links, the top-down kind with a see-through roof (a bar, lounge chairs, trophy cases, a terrace over the course); both modes, open by day.
+161. M24: the existing PENTHOUSE tower (Palm Heights, side-on): Pratt's party on its top floor, bodyguards on the floors below; after M24 it is Danny's, free (STORY); FREE ROAM still sells it.
+162. M20's police van: a new vehicle row, POLICE VAN - a dark-blue box van with POLICE on the sides and a light bar; the police also use it at 3+ stars, in both modes.
+163. Choice 3 by what you do in M22: drive to the marked silos (as told) or to the police station to tail Holloway (your own way); a HELPER'S TIP switch on the MISSIONS list follows it.
+164. After Holloway falls (M23) the police arrive a third slower and give up a third sooner (STORY; set in the modes table's STORY settings).
+165. M23's car with the keys in it: one of Crane's black town cars - a hint that the helper drives for Crane.
+
+## Building the Colony line (October 2026)
+
+166. H1 No Vacancy: a side-on scuffle - in the Colony's side-on halls walk into a thug and tap UP (or E) fast to win a short scuffle (a bar fills); he is thrown down the stairs and out.
+167. H3 Kitchen Fire: the fire is outside, at the Colony's back - flames and smoke out of the kitchen windows and the service yard, put out spot by spot with the fire engine's water cannon; then the arsonists' car.
+168. H6 Pool Party: a roof terrace on the Colony (a pool, loungers, lanterns, a little bar), seen from above, in both modes; H6 holds it against Crane's crew up the ring drive and the stairs.
+169. H4 The Band: three markers in any order - the drummer owes a race at the speedway (a short street race), the singer is held by a bouncer at The Pulse (a fight), the trumpet player is on a jet ski off the beach (catch him in a boat); each rides back with you.
+170. H5 The Deed: a new top-down bank interior at FIRST CORAL BANK (the hall, the tellers' counter, the vault with deposit boxes; the roof see-through inside).
+171. The bank: in both modes, open by day with tellers and customers, locked at night; nothing to do inside outside quests (no robbery).
+172. H5 inside: a robbery in progress - staff and customers on the floor, four of Crane's men, one at the vault with the box; the last runs for a car - chase, ram, the deed back to Esther.
+173. H7 Wrecking Crew: a new vehicle row, WRECKING CRANE - a heavy yellow crane truck with a lattice boom and a swinging iron ball, slow and very tough; parked at Skyline One in both modes; it leads the convoy (the dumper and digger behind).
+174. H8 The Hearing: the existing COURTHOUSE; the notary is a new character, Walter Finch - sixties, thin, a grey three-piece suit, round glasses, a briefcase he never lets go of; nervous and talkative.
+175. Esther's marker E stands outside the Colony's front door on the ring drive (as in M01).
+
+## Building the Space line (October 2026)
+
+176. The space center's insides are the top-down kind with a see-through roof: the assembly building's clean room (the rocket stage on its stand, workers in white suits) and launch control (rows of consoles, the big screen) - S2 trails the suspects there, S8 holds the control room.
+177. The way into the space center, in both modes: in STORY (and MISSIONS TEST during a Space quest) Iris' pass (after S1), the lab coat (after S2) or the flight suit (after S6) gets you past the gate guards; in FREE ROAM the gate opens too for a lab coat or a flight suit (sold in a clothes shop).
+178. S1's fuel truck: a new vehicle row, FUEL TRUCK - a white tanker in the Bay Space Center's colours with a blue stripe and hazard signs; heavy and slow, a huge blast when it blows; parked at the space center in both modes; S1 has a DAMAGE bar (it fails at about 25% damage).
+179. After S8 the launch pad stays empty in STORY (scorched, the tower standing); FREE ROAM keeps its rocket.
+180. S2 Clean Room: watch what they do - each suspect walks a round of his own; keep close but unseen (sight cones, as at Crane's rally); the saboteur is the one who slips into the clean room and tampers with the rocket stage; seeing it (a WATCHING bar) names him, then take him down.
+181. S4 Picket Line: a crowd with placards at the gate, not to be hurt (run one over and the cameras catch it - the quest fails); four of Crane's men in grey suits among them keep the crowd there - take them out and the rest disperse; then lead the convoy in.
+182. S6 Tracking Dish: in the flight suit the base guards wave you through; take the dish's flatbed truck from a hangar and drive out calmly; halfway the alarm goes (Crane's tip-off) and army jeeps chase you to the space center's gate (3 stars, the base's own).
+183. S8 Lift-off: about 4 minutes of play while the countdown shows T-minus 10:00 running faster; waves - cars at the gate, men at launch control (inside, the roof see-through), a boat landing by the pad; Iris at her console must live; at T-0 the launch cutscene.
+
+## Building chapter 5 (October 2026)
+
+184. Crane's estate on Pearl Key stands in both modes: walled, with its gate shut and guarded like the military base (RESTRICTED AREA, then the alarm) in FREE ROAM; in STORY it opens for the quests (M25, M29, M30).
+185. The mansion's inside is the top-down kind with a see-through roof: one big ground floor - the hall, the study with his safe, the ballroom, the terrace out to the helipad.
+186. The FBI's office (Choice 4, M28): a grey federal building downtown with FBI and the seal on its front and a marker at its door, nothing inside; scenery in both modes.
+187. MISSIONS TEST picks the finale's variants with switches on the MISSIONS list (like SACHS' FILES): one per side line (Varga, Casino, Prison, Colony, Space - DONE or NOT) and THE PROOF (BAY TV or FBI).
+188. M25's chase: Danny's weapons back at the gate, into his car; two carloads of Crane's men chase him over the bridge off Pearl Key - lose them by getting far enough away.
+189. M26's locker 47: a bank of numbered left-luggage lockers beside the lunapark's entrance gate (scenery in both modes); after the tape Crane's men pour in and Danny fights his way out of the lunapark.
+190. M27: a timer while the junkyard's crane swings the car with Papa Joe in it to the crusher; Crane's men guard the yard; reach the crane's cab and press E on the red stop button in time; Joe climbs out and rides home with Danny.
+191. M28's helicopter: a black helicopter follows with a gunner firing at the car; it can be shot down (an AA launcher or a lot of bullets) or outlasted; cars of Crane's men ram as well.
+192. M29's allies: each finished side line sends help that fights beside Danny - Marco at the dock (Varga), Sal through the tunnel (Prison), FBI agents at the gate (the FBI proof) - plus Rosa's two men always; up to about four; they can fall without failing the quest.
+193. M30: Crane drives for his jet at Skyport; ram his car until it stops before it reaches the jet (a distance bar to the jet, like M21's white car); then the cutscene - Crane in handcuffs.
+194. The credits roll over a slow flyover of the city at dawn to the game's synth track - the characters met, each with their portrait; SKIP works; then free play, and the sunburnt tourist at the Colony's desk.
+195. The daily income after the finale (STORY only) is paid straight into Danny's cash at midnight each game day, wherever he is, with a message; the amounts per business in the economy table.
+196. The mansion is locked in FREE ROAM: you can break onto the estate's grounds (the alarm, the guards fight back) but its doors stay shut; only the quests open them (STORY, MISSIONS TEST).
+197. After the finale in STORY Crane's billboards stay up, sprayed over with LOSER and handcuffs; the estate stays guarded. FREE ROAM keeps them clean.

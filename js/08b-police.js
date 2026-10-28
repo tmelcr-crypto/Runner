@@ -48,8 +48,9 @@ function reportCrime(n, hear, ix, iy, armed) {
   if (w) { addHeat(n); if (armed) PS.armedT = gameT; }
   return w;
 }
+const copEase = () => MS_UNLOCK.copEase ? modeVal('copEase', 0) / 100 : 0;   // Holloway has fallen (M23): the police come slower and give up sooner by the modes table's share (js/08zy MS_UNLOCK)
 function policeAlert(from, to) {         // a new wanted level: when the next car is sent
-  const dl = COP.lv.delay[to] / OPT.police; PS.dispT = from === 0 ? dl : Math.min(PS.dispT, dl);   // tougher police (OPT) come sooner
+  const dl = COP.lv.delay[to] / OPT.police * (1 + copEase()); PS.dispT = from === 0 ? dl : Math.min(PS.dispT, dl);   // tougher police (OPT) come sooner
   if (from === 0) { PS.lose = 0; PS.warned = false; PS.stopOn = false; PS.holdT = PS.ignT = 0; }
 }
 function clearWanted(msg) {              // they gave up, or you paid: the cars go back to patrolling and the crews back to their cars
@@ -72,7 +73,7 @@ function updatePolice(dt) {
   else {
     PS.seen = false; PS.r = Math.min(COP.lv.searchMax[lv], PS.r + COP.searchGrow * dt);
     PS.lose += dt * (dist(P.x, P.y, PS.lx, PS.ly) < PS.r ? COP.insideRate : 1);
-    if (PS.lose >= COP.lv.lose[lv] * OPT.police) { clearWanted('YOU LOST THEM'); return; }
+    if (PS.lose >= COP.lv.lose[lv] * OPT.police * (1 - copEase())) { clearWanted('YOU LOST THEM'); return; }
   }
   if (COP.lv.stop[lv]) stopOrder(dt); else PS.stopOn = false;
   if (PS.grab) { PS.bustT += dt; if (PS.bustT >= COP.bustTime) { bustPlayer(); return; } }   // a cop has hold of you

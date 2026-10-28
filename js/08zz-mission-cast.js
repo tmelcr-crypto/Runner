@@ -70,7 +70,7 @@ function castPick(s, list, far) {           // the nearest it can see within far
   for (const t of list) {
     const d = dist(s.x, s.y, t.o.x, t.o.y) * (t.kind === 'ally' ? s.pref || 1 : 1); if (d > far || Math.abs(zOf(s) - zOf(t.o)) > 40) continue;   // a deck or more apart (Skyline One's tower): neither sees the other
     if (d < ad) { ad = d; any = t; }
-    if (d < bd && losClear(s.x, s.y, t.o.x, t.o.y, true)) { bd = d; best = t; }
+    if (d < bd && losClear(s.x, s.y, t.o.x, t.o.y, true, zOf(s))) { bd = d; best = t; }
   }
   if (best) return Object.assign(best, { d: bd, see: true });
   return any ? Object.assign(any, { d: ad, see: false }) : null;
@@ -90,8 +90,19 @@ function allyTargets() {                     // the foes on foot, and the foes' 
 }
 
 /* ---------- the way in or out of a top-down place (js/10z): through an open door (the roller door, or the side door by day) when one is inside and the other is not; Skyline One's gate likewise ---------- */
+const CAST_IX = [];                         // the sites castWay knows: the interiors (js/10z) and the space center's two buildings (js/10zj)
 function castWay(p, x, y) {
-  for (const S of IXS) {
+  if (ESTATE.L && dist(p.x, p.y, ESTATE.L.x, ESTATE.L.y) < ESTATE.L.w + 400) {   // Crane's walls: in or out by the gate (north) or the dock gate (south), whichever is open and nearer
+    const E = ESTATE, a = estIn(p.x, p.y, -6);
+    if (a !== estIn(x, y, -6)) {
+      const gs = [E.gate, E.dock].filter(g => g.open > 0.8); if (!gs.length) return null;
+      const g = gs.reduce((b, o) => dist(p.x, p.y, o.x, o.y) + dist(x, y, o.x, o.y) < dist(p.x, p.y, b.x, b.y) + dist(x, y, b.x, b.y) ? o : b), lane = Math.abs(p.x - g.x) < g.w / 2 - 8, near = Math.abs(p.y - g.y) < 56;
+      if (a) return lane && near ? g.out : g.in;
+      return lane && near ? g.in : g.out;
+    }
+  }
+  CAST_IX.length = 0; for (const S of IXS) CAST_IX.push(S); if (SPACE.vab) CAST_IX.push(SPACE.vab, SPACE.lcc); if (ESTATE.house) CAST_IX.push(ESTATE.house);
+  for (const S of CAST_IX) {
     if (S.kind === 'unit' || dist(p.x, p.y, S.cx, S.cy) > S.hw + S.hd + 300) continue;
     const a = ixIn(S, p.x, p.y, -8); if (a === ixIn(S, x, y, -8)) continue;
     const doors = []; if (S.open > 0.85) doors.push([0, S.dw / 2 - 8]); if (S.px !== null && S.pOpen > 0.5) doors.push([S.px, IX_PD / 2 - 3]);   // [its x, half its lane]

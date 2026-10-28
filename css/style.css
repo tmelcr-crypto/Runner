@@ -733,3 +733,12 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 @keyframes phShake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(-2px,0) rotate(-4deg)}75%{transform:translate(2px,0) rotate(4deg)}}
 @keyframes phBlink{50%{opacity:.2}}
 @media (max-height:500px){#phone{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:70px}#phone .phKeys{height:26px}}
+/* the credits (js/08zzp): names rolling up over the dawn flight */
+#credits{position:fixed;inset:0;z-index:31;pointer-events:none;overflow:hidden;display:flex;justify-content:center}
+#credits[hidden]{display:none}
+#credits .crRoll{position:absolute;top:100%;width:min(420px,86vw);text-align:center;color:#fff;text-shadow:0 2px 6px #000,0 0 14px #000;font-family:var(--f-display);letter-spacing:2px}
+#credits h1{font-size:30px;margin:28px 0 6px;color:#ffe14a}#credits h2{font-size:14px;margin:30px 0 10px;color:#2bf3ff}#credits p{font-size:12px;margin:4px 0 18px}
+#credits .crRow{display:flex;align-items:center;gap:14px;margin:10px 0;text-align:left}#credits .crRow img{width:38px;height:59px;image-rendering:pixelated;flex:none}
+#credits .crRow b{display:block;font-size:13px}#credits .crRow small{display:block;font-size:10px;opacity:.8;letter-spacing:1px;font-family:var(--f-body,sans-serif)}
+#credits .crEnd{margin-top:60px;font-size:40px}
+@keyframes crRoll{from{transform:translateY(0)}to{transform:translateY(calc(-100% - 100vh))}}
