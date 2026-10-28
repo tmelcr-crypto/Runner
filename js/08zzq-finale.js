@@ -147,3 +147,42 @@ MSCRIPT.m27 = (() => {
   function fail(A) { const f = msCastFail(); if (f) return f; return crushing(A) ? MS.m.fails.crushed : ''; }
   return { setup, steps, fail, cuts: {}, cleanup(A) { msBarOff(); JYR.rate = 1; JYR.stop = false; JYR.calmT = 0; if (A && A.cab && JYR.car === A.cab) { A.cab.hook = false; JYR.car = null; JYR.phase = 'back'; } } };
 })();
+
+/* ================= M28 - THE PROOF (Choice 4) ================= */
+MSCRIPT.m28 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, me = () => P.car || P;
+  function setup(A) {
+    SKY.hour = N().hour; FIN.start(A); const C = S1.colony();
+    A.nina = msPed(C.door.x - C.door.fx * 6 + 24, C.door.y + 26, Math.PI, Object.assign(S1.look('nina'), { msName: 'nina', step: S1.stay, spare: true, shield: true }));
+    A.tv = NEWS.S ? NEWS.S.door : null; A.fbi = fbiDoor();
+  }
+  const dests = A => [A.tv && { k: 'BAY TV', at: A.tv }, A.fbi && { k: 'FBI', at: A.fbi }].filter(Boolean);
+  const steps = [
+    { enter(A) { MS.mark = () => A.nina; MS.start = { at: () => A.nina, label: 'START MISSION', go: () => { face(A.nina, P); msCut('THE PROOF', () => { A.go = true; }); } }; },   // TALK TO Nina at the Colony's door
+      tick: A => !!A.go },
+    { enter(A) { MS.mark = () => A.mycar; MS.guide = () => A.mycar; },                              // GET IN: his men are already on the street
+      tick(A) { return !!P.car; }, info: () => 'GET IN A CAR',
+      jump(A) { if (!P.car) { P.x = A.mycar.x; P.y = A.mycar.y; enterCar(A.mycar); } } },
+    { enter(A) { MS.guide = null; A.t0 = gameT; const c = me();                                      // DRIVE the tape to Bay TV or the FBI: cars ram you, his helicopter overhead
+        A.cars = [0, 1].map(k => { const r = CH4.near(c.x, c.y, 500 + k * 200, 800 + k * 200), kk = kerbBy(r.x, r.y);
+          const f = msFoeCar('sedan', kk.x, kk.y, kk.ang, Object.assign({ mode: 'chase', crew: 2, gun: k ? 'smg' : 'pistol', group: 'proof', speed: N().carSpeed, color: '#14161d', crewHp: N().menHp }, CH4.men)); f.fc.wait = 1 + k * 2; return f; });
+        msLive([6], { now: true });
+        MS.mark = () => { const d = dests(A); return d.length ? d[Math.floor(gameT * 1.2) % d.length].at : null; }; },   // the marker blinks between the two
+      tick(A) {
+        if (!A.heli && gameT - A.t0 > N().heliAt) { const c = me(); A.heli = ch5HeliUp(c.x - 600, c.y - 500, N()); msLive([7]); }
+        if (A.end) return A.end === 2;
+        for (const d of dests(A)) if (dist(me().x, me().y, d.at.x, d.at.y) < N().reachR * M && (!P.car || carSpeed(P.car) < 15 * KMH)) {
+          A.choice = d.k; A.end = 1; if (P.car) P.car.vx = P.car.vy = 0; if (CH5.heli && !CH5.heli.dead) ch5HeliOff();
+          msLive(d.k === 'FBI' ? [10, 11] : [8, 9], { now: true, phone: d.k !== 'FBI', done: () => { A.end = 2; } }); break; }
+        return false; },
+      info: A => dests(A).map(d => Math.round(dist(me().x, me().y, d.at.x, d.at.y) / M) + ' M TO ' + d.k).join(' · ') + (CH5.heli && !CH5.heli.dead ? " · CRANE'S HELICOPTER" : ''),
+      jump(A) { const d = dests(A)[MS_CHOICE.proof === 'fbi' ? 1 : 0] || dests(A)[0]; const c = P.car || A.mycar; if (P.car !== c) { P.x = c.x; P.y = c.y; enterCar(c); } c.x = d.at.x; c.y = d.at.y + 30; c.vx = c.vy = 0; } }];
+  const cuts = {
+    'THE PROOF': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.nina, line: [1, 2], enter: () => { face(A.nina, P); } },
+      { dur: 5, cam: 'CLOSE', at: () => A.nina, line: [3] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [4] },
+      { dur: 4, cam: 'CLOSE', at: () => A.nina, line: [5], fadeOut: true }]
+  };
+  return { setup, steps, cuts, fail: () => '', cleanup() { ch5HeliOff(); } };
+})();
