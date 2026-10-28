@@ -177,7 +177,19 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "vinnie", "name": "VINNIE RAPP", "letter": "V", "bubble": "#ff8a2a", "shirt": "#1a1a1a", "pants": "#1a1a1a", "mumble": {"low": 110, "high": 170, "rate": 12, "wave": "sawtooth", "gap": 0.05},
    "role": "A loan shark who races at the speedway and takes bets on himself; holds Sammy Sticks until his debt is paid - or raced off (H4).", "look": "Forties, slicked-back black hair, a black leather racing jacket with an orange stripe, aviator shades, a gold chain.",
    "skin": "#d8a880", "hair": "#141014", "hairStyle": "slick", "facial": "stubble", "facialColour": "#3a3030", "eyes": "#2a1a14", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "shades", "glassesColour": "#1a1a1a",
-   "top": "leather", "topColour": "#1a1a1a", "topColour2": "#ff8a2a", "extras": ["chain", "toothpick"], "smileEyes": "open", "calmMouth": "smirk", "age": "mid", "build": "normal"}
+   "top": "leather", "topColour": "#1a1a1a", "topColour2": "#ff8a2a", "extras": ["chain", "toothpick"], "smileEyes": "open", "calmMouth": "smirk", "age": "mid", "build": "normal"},
+  {"id": "tolan", "name": "RICK TOLAN", "letter": "R", "bubble": "#c86a3a", "shirt": "#eef2f6", "pants": "#2a2d3a", "mumble": {"low": 110, "high": 170, "rate": 11, "wave": "sawtooth", "gap": 0.07},
+   "role": "The space center's night supervisor, deep in debt; Crane pays him to wreck the rocket's guidance (S2's saboteur).", "look": "Fifties, a grey crew cut, a heavy moustache, a short-sleeved white shirt with a pocket protector, an ID badge.",
+   "skin": "#e0b090", "hair": "#8a8a8a", "hairStyle": "buzz", "facial": "moustache", "facialColour": "#7a7a7a", "eyes": "#4a5a6a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "buttoned", "topColour": "#eef2f6", "topColour2": "#2a4aa8", "extras": ["sweat", "pencil"], "smileEyes": "open", "calmMouth": "frown", "age": "old", "build": "broad"},
+  {"id": "mercer", "name": "HAL MERCER", "letter": "H", "bubble": "#6ac0ff", "shirt": "#ff7a1a", "pants": "#2a3a5a", "mumble": {"low": 140, "high": 220, "rate": 13, "wave": "triangle", "gap": 0.05},
+   "role": "A fuel technician at the space center: loud, grumpy, honest - one of S2's three suspects.", "look": "Forties, red hair under a cap pushed back, a beard, orange coveralls.",
+   "skin": "#f0c8a8", "hair": "#c0502a", "hairStyle": "short", "facial": "beard", "facialColour": "#a0401a", "eyes": "#3a6a3a", "hat": "flatcap", "hatColour": "#2a3a5a", "hatColour2": "", "glasses": "none", "glassesColour": "",
+   "top": "jumpsuit", "topColour": "#ff7a1a", "topColour2": "#2a3a5a", "extras": ["rag"], "smileEyes": "happy", "calmMouth": "line", "age": "mid", "build": "broad"},
+  {"id": "voss", "name": "DANA VOSS", "letter": "D", "bubble": "#b07cff", "shirt": "#f4f6f8", "pants": "#3a3a44", "mumble": {"low": 220, "high": 340, "rate": 14, "wave": "sine", "gap": 0.05},
+   "role": "The guidance engineer, cool and clever - Crane's real mole at the space center; she runs with the launch codes (S5).", "look": "Thirties, a sleek black bob, thin-rimmed square glasses, a lab coat over a black turtleneck.",
+   "skin": "#e8c8a8", "hair": "#121014", "hairStyle": "bob", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "square", "glassesColour": "#2a2a2a",
+   "top": "labcoat", "topColour": "#f4f6f8", "topColour2": "#14141a", "extras": ["lipstick"], "smileEyes": "open", "calmMouth": "smirk", "age": "mid", "build": "slim"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */

@@ -528,6 +528,10 @@ function syncPerson(p, kind, time, dt) {
       o.arms[0].rotation.z = p.dj ? -1.2 : -2.2 - 0.6 * b; o.arms[1].rotation.z = p.dj ? -1.2 + 0.3 * Math.sin(u * 2) : -1.4 + 0.9 * Math.sin(u);
     }
     if (p.valet) { const w = p.waveT > 0 && p.state !== 'flee'; o.arms[1].rotation.x = w ? -2.5 + 0.4 * Math.sin(time * 13) : 0; if (w) o.arms[1].rotation.z = 0; }   // the valet waves
+    if (p.placard && p.state !== 'flee') {                          // a protester (S4): both arms up holding a placard on a stick, bobbing with the chant
+      if (!o.plac) { o.plac = new THREE.Group(); part(o.plac, GB, mc(0xf4f0e0), 0.6, 7, 11, 0, 0, 0); part(o.plac, GB, mc(p.placard), 0.7, 1.8, 9, 0.05, 1, 0); part(o.plac, GB, mc(0x6a4a2a), 0.5, 9, 0.6, 0, -6, 0); o.tilt.add(o.plac); }
+      const b = Math.sin(time * 4 + (p.x + p.y) * 0.03); o.plac.position.set(1, 33 + b, 0); o.plac.visible = true; o.arms[0].rotation.z = -2.9; o.arms[1].rotation.z = -2.9;
+    } else if (o.plac) o.plac.visible = false;
   }
   const hid = kind === 'ped' && (p.hostile || p.soldier || p.foe || p.ally || p.boxer) && !p.dead && p.arm >= 0 ? WEAPONS[p.arm].id : null;   // the weapon out, in hand, while after you (a soldier always)
   if (p.heldId !== hid) { if (p.held) o.tilt.remove(p.held); p.held = null; p.heldId = hid; if (hid) { p.held = new THREE.Group(); p.held.add(weaponModel(hid)); p.held.position.set(5, 14, 3.6); o.tilt.add(p.held); } }

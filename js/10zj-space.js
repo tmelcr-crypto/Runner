@@ -144,6 +144,10 @@ function gfxSpace(time) {
     const inside = !P.dead && spaceIn(S, me.x, me.y, -6); S.roof += ((inside ? (S.kind === 'vab' ? 0 : 0.08) : 1) - S.roof) * Math.min(1, dt * 6);   // the assembly building's walls are tall: they go altogether
     if (Math.abs(S.roof - S.fade.op) > 0.003) { S.fade.op = S.roof; for (const m of S.fade.mats) { m.transparent = true; m.opacity = S.roof; m.depthWrite = S.roof > 0.97; } for (const m of S.fade.meshes) m.visible = S.roof > 0.03; }
   }
+  for (const c of cars) if (c.dish && c.tilt && !c.dishM) {         // S6: the spare tracking dish on its truck's bed
+    const L = c.t.len, g = c.dishM = new THREE.Group(); g.position.set(-L * 0.18, 20, 0); c.tilt.add(g);
+    part(g, GB, mc(0x9aa0ab), 3, 6, 3, 0, 0, 0); const bowl = part(g, GSph, mc(0xeef0f2), 15, 5, 15, 0, 6, 0); bowl.rotation.z = 0.5; part(g, GB, mc(0x5a606a), 1, 10, 1, 4, 9, 0);
+  }
   const R = SPACE.rocket; if (R && R.mesh) {
     const L = SPACE.launch, gone = rocketGone() && !L;
     R.mesh.visible = !gone; if (R.scorch) R.scorch.visible = gone || !!(L && L.h > 40);

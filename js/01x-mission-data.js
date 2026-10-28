@@ -2932,7 +2932,105 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The steps", "Esther", "Esther to Danny. Fade out.", "CLOSE on Esther", "6", "11"]]}],
     "start": {"how": "marker", "marker": "E - Esther outside the Colony's front door", "phone": "-"},
     "failing": "Marker E again (retry).",
-    "notes": {"places": "Finch's office (a street across town); the COURTHOUSE (a unique building, its clock tower).", "people": "Walter Finch (character table), eight of Crane's men in four cars.", "music": "-", "new": "The Colony line's gift: the war room moves to the Colony's top floor (modes table warRoom).", "other": "-"}}}
+    "notes": {"places": "Finch's office (a street across town); the COURTHOUSE (a unique building, its clock tower).", "people": "Walter Finch (character table), eight of Crane's men in four cars.", "music": "-", "new": "The Colony line's gift: the war room moves to the Colony's top floor (modes table warRoom).", "other": "-"}}},
+  {"id": "s1", "no": "S1", "title": "THE PASS", "giver": "iris", "start": "marker", "where": "The space center's gate (marker K); the port; back to launch control",
+   "story": "Dr. Iris Kahn's last rocket is all that keeps the Bay Space Center open, and Crane wants Gravel Flats for a resort. She gives Danny a visitor's pass - then sends him for the launch's fuel truck, hijacked from the port by Crane's men. It has to come back without a scratch: it is full.",
+   "chars": ["iris", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "GO TO", "show": "GO TO THE FUEL TRUCK AT THE PORT"},
+     {"word": "GET IN", "show": "GET IN THE FUEL TRUCK - NOT A SCRATCH"},
+     {"word": "DRIVE", "show": "DRIVE THE FUEL TRUCK TO LAUNCH CONTROL'S ROAD"}],
+   "lines": [
+     {"who": "iris", "text": "You're Danny? Esther says you fix things. Good - everything here is broken.", "mood": "brisk", "when": "The Pass, shot 1"},
+     {"who": "iris", "text": "Here, a visitor's pass. It gets you through that gate. Don't lose it, I only have the one.", "mood": "dry", "when": "The Pass, shot 2"},
+     {"who": "danny", "text": "What do you need?", "mood": "calm", "when": "The Pass, shot 3"},
+     {"who": "iris", "text": "My fuel truck. Crane's men drove it off from the port this morning - every drop of the launch's fuel.", "mood": "angry", "when": "The Pass, shot 4"},
+     {"who": "iris", "text": "And Danny - not a scratch. It's full. One spark and you'll be in orbit before my rocket.", "mood": "grim", "when": "The Pass, shot 4"},
+     {"who": "craneman", "text": "That's Kahn's errand boy - stop him!", "mood": "shouting", "when": "LIVE - at the port", "live": true},
+     {"who": "danny", "text": "Company. Easy does it...", "mood": "tense", "when": "LIVE - a black car behind you", "live": true},
+     {"who": "iris", "text": "Not a dent on it. Do you know how rare that is around here?", "mood": "delighted", "when": "LIVE - parked at launch control", "live": true},
+     {"who": "iris", "text": "Keep the pass. You're one of us now, whether you like it or not.", "mood": "warm", "when": "LIVE - parked at launch control", "live": true}],
+   "fails": {"blown": "THE FUEL TRUCK BLEW UP", "damaged": "THE FUEL TRUCK IS DAMAGED", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 10, "nearM": 60, "menHp": 70, "maxDamage": 25, "chaseT": 20, "carSpeed": 110, "parkM": 18},
+   "reward": {"cash": 4000, "vehicle": "", "clothes": "", "next": "S2 - CLEAN ROOM (marker K)", "place": "THE SPACE CENTER (IRIS' PASS)", "contact": "", "unlock": "spacePass"},
+   "page": {
+    "sub": "Written from your answers (the Space line; the FUEL TRUCK, answer 178) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "The port (the road west of the container stacks), then the space center", "unlocked": "Start of chapter 4", "time": "Morning (MISSIONS TEST: 10:00)", "length": "About 6 minutes", "limit": "The DAMAGE bar: 25% damage and the fuel is lost"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Three of Crane's men at the truck; two more in a black car later.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene THE PASS - she gives Danny her visitor's pass.", "MISSIONS TEST: you start by Iris, a SEDAN on the road outside the gate."],
+     ["Drive to the port: the white FUEL TRUCK stands on the road west of the container stacks, three of Crane's men round it.", ""],
+     ["Get in the truck (deal with the men first, or not - their shots hit the tank). The DAMAGE bar shows how hurt it is.", "25% damage: the quest fails; it blows up: it fails."],
+     ["Drive it back to the space center - the gate opens for you now - and stop it by launch control's road (where it stands every day). On the way a black car of Crane's men comes after you. Iris' lines; the quest is passed. From now on the pass opens the gate.", ""]],
+    "fails": [
+     ["The truck takes 25% damage", "THE FUEL TRUCK IS DAMAGED"],
+     ["The truck blows up", "THE FUEL TRUCK BLEW UP"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE PASS\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris, clipboard in hand.", "CLOSE on Iris", "5", "1"],
+      ["The gate", "Iris", "She holds out a pass on a lanyard.", "CLOSE on Iris", "6", "2"],
+      ["The gate", "Danny", "Danny takes it.", "CLOSE on Danny", "3", "3"],
+      ["The gate", "Iris", "Iris, furious. Fade out.", "CLOSE on Iris", "5", "4, 5"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "The port; the space center (its gate, launch control's road).", "people": "Five of Crane's men.", "music": "-", "new": "The FUEL TRUCK (vehicles table); the gate opening for a pass (modes table: spaceEntry); the reward: Iris' pass.", "other": "-"}}},
+  {"id": "s2", "no": "S2", "title": "CLEAN ROOM", "giver": "iris", "start": "marker", "where": "The space center: its grounds, the assembly building's clean room, launch control",
+   "story": "Someone keeps wrecking the rocket's guidance. Three people had the codes to the clean room. In a lab coat Danny trails them round the center without being noticed, until one of them slips in to the rocket stage - then he takes the saboteur down before he reaches the gate.",
+   "chars": ["iris", "danny", "mercer", "voss", "tolan"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "FOLLOW", "show": "FOLLOW THE THREE SUSPECTS - STAY OUT OF THEIR SIGHT"},
+     {"word": "WATCH", "show": "WATCH WHO SLIPS INTO THE CLEAN ROOM"},
+     {"word": "TAKE DOWN", "show": "TAKE DOWN THE SABOTEUR BEFORE HE REACHES THE GATE"}],
+   "lines": [
+     {"who": "iris", "text": "Somebody keeps opening the guidance bay on my rocket stage at night. Three people have the clean room's codes.", "mood": "grim", "when": "Clean Room, shot 1"},
+     {"who": "iris", "text": "Hal Mercer from fuel, Dana Voss from guidance, and Rick Tolan, the night supervisor.", "mood": "tired", "when": "Clean Room, shot 2"},
+     {"who": "iris", "text": "Here, a lab coat. Nobody here looks twice at a lab coat. Follow them - but don't let them see you do it.", "mood": "brisk", "when": "Clean Room, shot 2"},
+     {"who": "danny", "text": "And if they all look guilty?", "mood": "dry", "when": "Clean Room, shot 3"},
+     {"who": "iris", "text": "Then watch which one goes near my rocket.", "mood": "dry", "when": "Clean Room, shot 4"},
+     {"who": "iris", "text": "Danny, the clean room's door just opened. Somebody's at the stage!", "mood": "urgent", "when": "LIVE - the saboteur slips in", "live": true},
+     {"who": "tolan", "text": "You didn't see anything, kid. Walk away.", "mood": "menacing", "when": "Caught in the Act, shot 1"},
+     {"who": "tolan", "text": "All right! Crane paid me - forty grand! And I wasn't the only one he bought in here...", "mood": "panicked", "when": "LIVE - Tolan down", "live": true},
+     {"who": "iris", "text": "Rick. Twenty years I knew him. Keep the coat, Danny - and keep your eyes open.", "mood": "hurt", "when": "LIVE - Tolan down (phone)", "live": true}],
+   "fails": {"spotted": "THEY SAW YOU FOLLOWING", "missed": "THE SABOTEUR FINISHED THE JOB", "escaped": "TOLAN GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 14, "seeM": 12, "cone": 70, "spotT": 1.6, "tamperAt": 50, "tamperT": 14, "watchM": 14, "watchT": 3, "tolanHp": 60},
+   "reward": {"cash": 4000, "vehicle": "", "clothes": "LAB COAT", "next": "S3 - CARGO (marker K)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Space line; the clean room inside, answers 176 and 180) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "Inside the space center: the grounds, the clean room (the assembly building, top-down) and launch control", "unlocked": "After S1", "time": "Afternoon (MISSIONS TEST: 14:00)", "length": "About 5 minutes", "limit": "The SEEN bar (1.6 s in a suspect's sight)"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "mercer": {"gives": false, "role": "Hal Mercer, a fuel technician (new) - innocent.", "looks": "Forties, red hair and beard, a cap, orange coveralls.", "bubble": "Sky blue", "mumble": "Gruff."},
+     "voss": {"gives": false, "role": "Dana Voss, the guidance engineer (new) - she looks clean today (S5).", "looks": "Thirties, a sleek black bob, square glasses, a lab coat over a black turtleneck.", "bubble": "Violet", "mumble": "Cool and quick."},
+     "tolan": {"gives": false, "role": "Rick Tolan, the night supervisor (new) - Crane's saboteur.", "looks": "Fifties, a grey crew cut, a heavy moustache, a short-sleeved white shirt, a pocket protector.", "bubble": "Rust", "mumble": "Low and rough."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene CLEAN ROOM; she gives you a LAB COAT (worn at once).", "MISSIONS TEST: you start by Iris, a car on the road outside the gate."],
+     ["Three suspects walk rounds of their own about the center (Mercer by the fuel spheres and the truck, Voss between launch control and the clean room, Tolan from the offices past the crawler to the clean room's benches), each with a yellow sight cone. Keep close but out of their cones: in one, in plain sight, the SEEN bar fills.", "The SEEN bar full: the quest fails."],
+     ["After about 50 s Iris calls: someone is at the stage. Tolan slips into the clean room to the guidance bay; watch him at it from within 14 m (the WATCHING bar, 3 s) before he is done (14 s).", "He finishes unwatched: the quest fails."],
+     ["The cutscene CAUGHT IN THE ACT; Tolan runs for the gate - knock him down or take him out before he is through it and away. His confession; Iris' call; the quest is passed. The lab coat is yours.", "He gets out of the gate and away: the quest fails."]],
+    "fails": [
+     ["The SEEN bar fills", "THEY SAW YOU FOLLOWING"],
+     ["Tolan finishes at the stage unwatched", "THE SABOTEUR FINISHED THE JOB"],
+     ["Tolan gets away past the gate", "TOLAN GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"CLEAN ROOM\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris, grim.", "CLOSE on Iris", "6", "1"],
+      ["The gate", "Iris", "She names them, then holds out a lab coat.", "CLOSE on Iris", "7", "2, 3"],
+      ["The gate", "Danny", "Danny pulls it on.", "CLOSE on Danny", "4", "4"],
+      ["The gate", "Iris", "Iris. Fade out.", "CLOSE on Iris", "4", "5"]]},
+     {"title": "\"CAUGHT IN THE ACT\"", "plays": "When you have watched him at the stage.", "shots": [
+      ["The clean room", "Tolan", "Tolan turns from the open panel.", "CLOSE on Tolan", "4", "7"],
+      ["The clean room", "Danny", "Danny. He bolts. Fade out.", "CLOSE on Danny", "2", "-"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "The space center's clean room (the assembly building) and launch control, the top-down kind (new).", "people": "Three new characters: Hal Mercer, Dana Voss, Rick Tolan; the center's staff at work.", "music": "-", "new": "Sight cones on people who walk rounds; the LAB COAT (clothes table) as S2's reward.", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
