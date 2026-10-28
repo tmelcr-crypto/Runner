@@ -182,3 +182,14 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 155. P3's forger: old printer Otto - seventies, thick glasses, an ink-stained apron, a cardigan; his shop OTTO'S PRINTING stays in Mercado for good, in both modes (nothing to do inside).
 156. After P8 Sal lies low at the Colony (Esther gives him a room); his marker S moves there for the finale's links.
 157. Nina's marker N: inside a new Bay TV newsroom at the TV tower's base - the top-down kind, permanent, both modes (open by day in FREE ROAM). M18's plane: a new private jet on Skyport's apron.
+
+## Building chapter 4 (October 2026)
+
+158. Order: chapter 4 (M19-M24) first, pushed for testing; then the Colony line (H1-H8); then the Space Center line (S1-S8) - each asked about before it is built.
+159. The crew's war room (M19's reward): a room on the Palm Heights loft's top floor in the side-on view - a map table, a board with photos and string, the crew's chairs; later it moves to the Colony's top floor.
+160. M21's clubhouse: a new small clubhouse at the golf links, the top-down kind with a see-through roof (a bar, lounge chairs, trophy cases, a terrace over the course); both modes, open by day.
+161. M24: the existing PENTHOUSE tower (Palm Heights, side-on): Pratt's party on its top floor, bodyguards on the floors below; after M24 it is Danny's, free (STORY); FREE ROAM still sells it.
+162. M20's police van: a new vehicle row, POLICE VAN - a dark-blue box van with POLICE on the sides and a light bar; the police also use it at 3+ stars, in both modes.
+163. Choice 3 by what you do in M22: drive to the marked silos (as told) or to the police station to tail Holloway (your own way); a HELPER'S TIP switch on the MISSIONS list follows it.
+164. After Holloway falls (M23) the police arrive a third slower and give up a third sooner (STORY; set in the modes table's STORY settings).
+165. M23's car with the keys in it: one of Crane's black town cars - a hint that the helper drives for Crane.
