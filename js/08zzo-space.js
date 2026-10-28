@@ -39,7 +39,10 @@ const KAHN = {
   },
   drive(c, way, speed) {                    // a vehicle driven along a list of points (the convoy, a getaway inside the fence); stops at the end
     c.driver = 'ai'; c.pw = way; c.pwi = 0;
-    c.msDrive = (o, dt) => { const t = o.pw[o.pwi]; if (!t) { o.thr = 0; o.str = 0; o.hb = true; return; } if (dist(o.x, o.y, t.x, t.y) < 70) { o.pwi++; return; } o.hb = false; steerToward(o, t.x, t.y, (o.pwi === o.pw.length - 1 ? 0.6 : 1) * speed * KMH); };
+    c.msDrive = (o, dt) => { const t = o.pw[o.pwi]; if (!t || (o.waitT || 0) > 0) { if (t) o.waitT -= dt; o.thr = 0; o.str = 0; o.hb = true; o.stuck = 0; return; } if (dist(o.x, o.y, t.x, t.y) < 70) { o.pwi++; return; } o.hb = false;   // waitT: held (the quest says when)
+      if (o.rev > 0) { o.rev -= dt; o.thr = -1; o.str = -clamp(angDiff(o.ang, Math.atan2(t.y - o.y, t.x - o.x)) * 2, -1, 1); return; }   // backing off whatever held it up
+      steerToward(o, t.x, t.y, (o.pwi === o.pw.length - 1 ? 0.6 : 1) * speed * KMH);
+      if (carSpeed(o) < 8 * KMH) { o.stuck = (o.stuck || 0) + dt; if (o.stuck > 1.5) { o.stuck = 0; o.rev = 0.9; } } else o.stuck = 0; };
   },
   dmg: c => 1 - c.hp / c.maxhp
 };
@@ -150,4 +153,141 @@ MSCRIPT.s2 = (() => {
       { dur: 2, cam: 'CLOSE', at: () => P, fadeOut: true }]
   };
   return { setup, steps, fail, cuts, cleanup(A) { msBarOff(); SPACE.ms = null; if (A && A.sus) for (const p of A.sus) KAHN.uncone(p); } };
+})();
+
+/* ================= S3 - CARGO ================= */
+MSCRIPT.s3 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  function setup(A) {
+    SKY.hour = N().hour; KAHN.iris(A); KAHN.start(A); KAHN.hold();
+    const [x0, , , y1] = AIRF.apron, q = S1.free(x0 + 420, y1 - 100, 20); A.unit = msCar('truck', q.x, q.y, 0, '#f4f6f8'); A.apron = q;
+    A.dest = SPACE.vab.door; A.cond = 1; A.lastHp = A.unit.hp;
+  }
+  function knocks(A) {                      // every knock costs the guidance unit in proportion; a hard one says so
+    const c = A.unit, dh = A.lastHp - c.hp; A.lastHp = c.hp;
+    if (dh > 0) { A.cond -= dh / (c.maxhp * N().breakAt / 100); if (dh > N().knockHp) { toast('A HARD KNOCK!'); Snd.tone(220, 110, 0.2, 0.12, 'square'); } }
+    msBar('THE GUIDANCE UNIT', clamp(A.cond, 0, 1), A.cond > 0.5 ? '#3dff7a' : A.cond > 0.25 ? '#ffd23f' : '#ff3b4a');
+  }
+  const steps = [
+    KAHN.meet('CARGO'),
+    { enter(A) { MS.mark = () => A.unit; MS.guide = () => A.unit; },                                  // GET IN the cargo truck on Skyport's apron
+      tick(A) { knocks(A); return P.car === A.unit; },
+      info: A => Math.round(dist(me4().x, me4().y, A.unit.x, A.unit.y) / M) + " M TO THE CARGO TRUCK",
+      jump(A) { if (P.car) exitCar(true); P.x = A.unit.x; P.y = A.unit.y; enterCar(A.unit); } },
+    { enter(A) { MS.mark = () => A.dest; MS.guide = A.dest; },                                         // DRIVE it to the clean room - no hard knocks; Crane's men ram
+      tick(A) {
+        knocks(A); const c = A.unit;
+        if (!A.rams && dist(c.x, c.y, A.apron.x, A.apron.y) > N().ramFromM * M) { A.rams = true; msLive([6]);
+          for (let k = 0; k < 2; k++) { const a = c.ang + Math.PI + (k ? 0.5 : -0.5), r = S1.road(c.x + Math.cos(a) * 900, c.y + Math.sin(a) * 900), q = kerbBy(r.x, r.y);
+            const f = msFoeCar('muscle', q.x, q.y, q.ang, Object.assign({ mode: 'chase', crew: 1, gun: null, group: 'ram', speed: N().ramSpeed, color: '#14161d', crewHp: N().menHp, tough: 1.5 }, CH4.men)); f.fc.wait = k * 2; } }
+        if (A.end) return A.end === 2;
+        if (P.car !== c || dist(c.x, c.y, A.dest.x, A.dest.y) > N().parkM * M || carSpeed(c) > 12 * KMH) return false;
+        A.end = 1; msBarOff(); msLive([7, 8], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => Math.round(dist(A.unit.x, A.unit.y, A.dest.x, A.dest.y) / M) + ' M TO THE CLEAN ROOM · THE UNIT ' + Math.max(0, Math.round(100 * A.cond)) + '%',
+      jump(A) { const c = A.unit; if (P.car !== c) { if (P.car) exitCar(true); enterCar(c); } c.x = A.dest.x + 40; c.y = A.dest.y; c.vx = c.vy = 0; P.x = c.x; P.y = c.y; A.lastHp = c.hp; } }];
+  function fail(A) { if (A.unit.dead || A.cond <= 0) return F().broken; return ''; }
+  const cuts = {
+    'CARGO': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [1, 2], enter: () => { face(A.iris, P); } },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [3] },
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [4, 5], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { msBarOff(); SPACE.ms = null; } };
+})();
+
+/* ================= S4 - PICKET LINE ================= */
+MSCRIPT.s4 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  const at = (x, y) => ({ x, y });
+  function setup(A) {
+    SKY.hour = N().hour; KAHN.iris(A); const g = SPACE.gate.g; Object.assign(A.iris, S1.free(g.x + 420, g.y - 100, 8)); A.iris.post.x = A.iris.x; A.iris.post.y = A.iris.y;
+    KAHN.start(A); KAHN.hold({ in: false });
+    const cols = ['#d0402a', '#2a4aa8', '#2a8a3a', '#ff7a1a'], shirts = ['#f4f4f0', '#ffd23f', '#3fd0ff', '#ff9ad0', '#7fd4a8', '#c8b89a', '#a259ff'];
+    A.crowd = []; for (let k = 0; k < N().crowd; k++) { const q = S1.free(g.x + 50 + (k % 7) * 26, g.y - 70 + Math.floor(k / 7) * 46 + rand(-8, 8), 4);
+      A.crowd.push(msPed(q.x, q.y, Math.PI, { shirt: pick(shirts), pants: pick(['#2a2d3a', '#3a5a8a', '#5a4a3a']), placard: cols[k % cols.length], step: S1.stay, spare: true })); }
+    A.men = [[60, -30, 'bat'], [130, 40, 'fists'], [190, -50, 'fists'], [100, 70, 'fists']].map(([dx, dy, gun]) => { const q = S1.free(g.x + dx, g.y + dy, 4); const p = msFoe(q.x, q.y, Object.assign({ gun, hp: N().menHp, group: 'pick', a: Math.PI }, CH4.men)); p.calm = true; return p; });
+    const rv = S1.road(g.x + 260, g.y + 140), kv = kerbBy(rv.x, rv.y); A.van = msCar('newsvan', kv.x, kv.y, kv.ang, null);   // Bay TV's cameras
+    A.conv = [0, 1].map(k => msCar('truck', g.x + 470 + k * 120, g.y + 18, Math.PI, '#f4f6f8')); A.conv.forEach(c => { c.noEnter = true; c.hp = c.maxhp = c.maxhp * 3; });   // waiting on the gate's road, noses to the gate
+  }
+  const left = A => A.men.filter(p => !p.dead).length;
+  const steps = [
+    KAHN.meet('PICKET LINE'),
+    { enter(A) { MS.mark = () => A.men.find(p => !p.dead); },                                         // TAKE OUT Crane's four men in the crowd - nobody else gets hurt
+      tick(A) { if (A.men.some(p => p.alert || p.dead || p.hp < N().menHp)) for (const p of A.men) if (!p.dead && p.calm) { p.calm = false; foeAlert(p); }
+        return left(A) === 0; },
+      info: A => left(A) + " OF CRANE'S MEN IN THE CROWD",
+      jump(A) { for (const p of A.men) if (!p.dead) killPed(p, 'fists', false); } },
+    { enter(A) { const g = SPACE.gate.g; msLive([5, 6], { now: true });                               // LEAD THE CONVOY IN: the crowd goes home; the trucks follow you in
+        for (const p of A.crowd) if (!p.dead) { const sd = p.y < g.y ? -1 : 1; p.placard = 0; p.post.step = KAHN.walker([at(p.x + rand(-40, 40), g.y + sd * 160), at(p.x + rand(100, 300), g.y + sd * 520)], 1.6, false); p.wi = 0; }   // off the road to either side, and away
+        A.goT = gameT + N().clearT;
+        SPACE.ms.in = true; SPACE.ms.gate = true; const V = SPACE.vab.door;
+        A.conv.forEach((c, k) => KAHN.drive(c, [at(g.x + 160, g.y), at(g.x - 60, g.y), at(V.x + 140, V.y - 40 + k * 0), at(V.x + 60 + k * 110, V.y + 20)], N().convSpeed));
+        MS.mark = () => A.conv[0]; MS.guide = () => SPACE.vab.door; },
+      tick(A) {
+        const lead = A.conv[0], near = dist(me4().x, me4().y, lead.x, lead.y) < N().leadM * M;
+        for (const c of A.conv) if (!near || gameT < A.goT) c.waitT = 0.2;   // the trucks wait for the road to clear, and for you
+        for (const p of A.crowd) if (!p.dead && p.wi >= 2 && peds.includes(p)) peds.splice(peds.indexOf(p), 1);
+        if (A.end) return A.end === 2; if (lead.pwi < lead.pw.length) return false;
+        A.end = 1; msLive([7, 8], { now: true, done: () => { A.end = 2; } }); return false; },
+      info: A => dist(me4().x, me4().y, A.conv[0].x, A.conv[0].y) < N().leadM * M ? Math.round(dist(A.conv[0].x, A.conv[0].y, SPACE.vab.door.x, SPACE.vab.door.y) / M) + ' M TO THE CLEAN ROOM' : 'THE CONVOY WAITS FOR YOU',
+      jump(A) { const V = SPACE.vab.door; A.conv.forEach((c, k) => { c.x = V.x + 60 + k * 110; c.y = V.y + 20; c.pwi = c.pw.length; }); P.x = V.x + 80; P.y = V.y + 120; } }];
+  function fail(A) {
+    if (A.crowd.some(p => p.dead)) return F().cameras;
+    if (A.conv.some(c => c.dead)) return F().convoy;
+    return '';
+  }
+  const cuts = {
+    'PICKET LINE': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [1, 2], enter: () => { face(A.iris, P); } },
+      { dur: 5, cam: 'WIDE', at: () => SPACE.gate.g, line: [3] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [4], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { msBarOff(); SPACE.ms = null; } };
+})();
+
+/* ================= S5 - THE MOLE ================= */
+MSCRIPT.s5 = (() => {
+  const S1 = STORY1, N = () => MS.m.numbers, M = UNITS_PER_M, face = S1.face, F = () => MS.m.fails;
+  const at = (x, y) => ({ x, y });
+  function setup(A) {
+    SKY.hour = N().hour; KAHN.iris(A); KAHN.start(A); KAHN.hold({ doors: true });
+    const [lx, ly] = SPACEM.lot, v = msWho('voss');
+    A.car = msFoeCar('sedan', lx - 90, ly, 0, { mode: 'park', crew: 1, gun: null, group: 'mole', speed: N().carSpeed, color: '#f4f6fa', crewHp: N().vossHp, shirt: v.shirt, pants: v.pants, name: 'voss' });
+    const g = SPACE.gate.g; A.out = [S1.road(g.x + 1400, g.y + 1300), S1.road(g.x + 2600, g.y + 2900), S1.road(g.x + 1200, g.y + 4200)];
+  }
+  const steps = [
+    KAHN.meet('THE MOLE'),
+    { enter(A) { const g = SPACE.gate.g, [vx, vy, vw, vh] = SPACEM.vab; SPACE.ms.gate = true; msLive([5]);   // STOP Dana Voss: out through the gate and away across Gravel Flats
+        KAHN.drive(A.car, [at(vx - vw / 2 - 60, vy - vh / 2 - 60), at(vx + vw / 2 + 60, vy - vh / 2 - 60), at(4400, g.y), at(g.x + 120, g.y)], N().carSpeed * 0.6); A.inside = true;
+        MS.mark = () => A.car.fc.out ? null : A.car; MS.guide = () => A.car; },
+      tick(A) {
+        const v = A.car;
+        if (A.inside && v.pwi >= v.pw.length) { A.inside = false; v.fc.to = A.out; v.fc.ti = 0; foeCarGo(v, 'flee'); }
+        if (!v.fc.out && !v.dead && v.hp < v.maxhp * N().bailAt / 100) { const men = foeBail(v); A.voss = men[0]; }
+        if (v.dead && !v.fc.out) A.voss = null;
+        return !!A.voss || (v.dead && !v.fc.out); },
+      info: A => Math.round(dist(me4().x, me4().y, A.car.x, A.car.y) / M) + " M TO VOSS' CAR · " + Math.round(100 * A.car.hp / A.car.maxhp) + '%',
+      jump(A) { const v = A.car; if (P.car) exitCar(true); P.x = v.x + 70; P.y = v.y + 50; const men = foeBail(v); A.voss = men[0]; } },
+    { enter(A) { const p = A.voss; if (!p) { A.bag = S1.dryNear(A.car.x, A.car.y); return; }   // TAKE HER DOWN: she runs, the codes on her
+        p.arm = -1; A.carry = p; const a = Math.atan2(p.y - me4().y, p.x - me4().x); p.post.step = KAHN.walker([at(p.x + Math.cos(a) * 900, p.y + Math.sin(a) * 900)], 3, false); p.wi = 0; MS.mark = () => A.voss; MS.guide = null; },
+      tick(A) { const p = A.voss; if (!p) return true; if (p.dead || p.stunT > 0) { A.carry = null; A.bag = S1.dryNear(p.x, p.y); return true; } return false; },
+      info: A => A.voss ? Math.round(dist(P.x, P.y, A.voss.x, A.voss.y) / M) + ' M TO VOSS' : '',
+      jump(A) { if (A.voss) A.voss.stunT = 3; } },
+    { enter(A) { MS.mark = () => A.bag; MS.guide = () => A.bag; if (A.voss && !A.voss.dead) msLive([6]); },   // PICK UP the launch codes
+      tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > N().pickM * M) return false; A.bag = null; toast('THE LAUNCH CODES'); Snd.tone(660, 990, 0.2, 0.1, 'triangle'); return true; },
+      info: A => A.bag ? Math.round(dist(me4().x, me4().y, A.bag.x, A.bag.y) / M) + ' M TO THE CODES' : '',
+      jump(A) { if (P.car) exitCar(true); P.x = A.bag.x; P.y = A.bag.y; } },
+    KAHN.back([7, 8])];
+  function fail(A) {
+    if (MS.k === 1 && !A.inside && !A.car.fc.out && !A.car.dead && (A.car.fc.gone || dist(me4().x, me4().y, A.car.x, A.car.y) > N().away * M)) return F().away;
+    if (MS.k === 2 && A.voss && !A.voss.dead && !(A.voss.stunT > 0) && dist(P.x, P.y, A.voss.x, A.voss.y) > N().footAway * M) return F().away;
+    return '';
+  }
+  const cuts = {
+    'THE MOLE': A => [
+      { dur: 6, cam: 'CLOSE', at: () => A.iris, line: [1, 2], enter: () => { face(A.iris, P); } },
+      { dur: 4, cam: 'WIDE', at: () => A.car, line: [3] },
+      { dur: 3, cam: 'CLOSE', at: () => P, line: [4], fadeOut: true }]
+  };
+  return { setup, steps, fail, cuts, cleanup() { msBarOff(); SPACE.ms = null; } };
 })();

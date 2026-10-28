@@ -3030,7 +3030,135 @@ const MISSION_TABLE = /*MISSIONS-JSON*/{
       ["The clean room", "Danny", "Danny. He bolts. Fade out.", "CLOSE on Danny", "2", "-"]]}],
     "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
     "failing": "Marker K again (retry).",
-    "notes": {"places": "The space center's clean room (the assembly building) and launch control, the top-down kind (new).", "people": "Three new characters: Hal Mercer, Dana Voss, Rick Tolan; the center's staff at work.", "music": "-", "new": "Sight cones on people who walk rounds; the LAB COAT (clothes table) as S2's reward.", "other": "-"}}}
+    "notes": {"places": "The space center's clean room (the assembly building) and launch control, the top-down kind (new).", "people": "Three new characters: Hal Mercer, Dana Voss, Rick Tolan; the center's staff at work.", "music": "-", "new": "Sight cones on people who walk rounds; the LAB COAT (clothes table) as S2's reward.", "other": "-"}}},
+  {"id": "s3", "no": "S3", "title": "CARGO", "giver": "iris", "start": "marker", "where": "The space center's gate (marker K); Skyport's cargo apron; across town to the clean room",
+   "story": "The rocket's new guidance unit lands at Skyport. Danny drives it from the cargo apron to the space center's clean room without a hard knock, while Crane's men try to ram it into scrap.",
+   "chars": ["iris", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "GET IN", "show": "GET IN THE CARGO TRUCK ON SKYPORT'S CARGO APRON"},
+     {"word": "DRIVE", "show": "DRIVE THE GUIDANCE UNIT TO THE CLEAN ROOM - NO HARD KNOCKS"}],
+   "lines": [
+     {"who": "iris", "text": "The rocket's new guidance unit flies in this morning - Skyport, the cargo apron.", "mood": "brisk", "when": "Cargo, shot 1"},
+     {"who": "iris", "text": "It's a box of glass and gold wire worth more than this whole block. One hard knock and it's scrap.", "mood": "worried", "when": "Cargo, shot 1"},
+     {"who": "danny", "text": "I'll drive like my grandmother's in the back.", "mood": "dry", "when": "Cargo, shot 2"},
+     {"who": "iris", "text": "Crane knows it's coming. He'll try to make that knock happen.", "mood": "grim", "when": "Cargo, shot 3"},
+     {"who": "iris", "text": "Bring it to the clean room's door. Gently.", "mood": "firm", "when": "Cargo, shot 3"},
+     {"who": "craneman", "text": "There's the truck - ram it, boys!", "mood": "shouting", "when": "LIVE - Crane's cars come", "live": true},
+     {"who": "iris", "text": "Not a crack in it. Danny, you drive like a surgeon.", "mood": "delighted", "when": "LIVE - at the clean room", "live": true},
+     {"who": "danny", "text": "A surgeon with a lot of dents.", "mood": "dry", "when": "LIVE - at the clean room", "live": true}],
+   "fails": {"broken": "THE GUIDANCE UNIT IS BROKEN", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 9, "breakAt": 30, "knockHp": 25, "ramFromM": 120, "ramSpeed": 140, "menHp": 70, "parkM": 22},
+   "reward": {"cash": 4500, "vehicle": "", "clothes": "", "next": "S4 - PICKET LINE (marker K)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Space line, S3) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "Skyport's cargo apron, the city, the space center's clean room", "unlocked": "After S2", "time": "Morning (MISSIONS TEST: 09:00)", "length": "About 6 minutes", "limit": "THE GUIDANCE UNIT bar"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Two of Crane's men in black BRUISERs, out to ram you.", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene CARGO.", "MISSIONS TEST: you start by Iris, a car on the road outside the gate."],
+     ["Drive to Skyport (the airport's gates) and get in the white cargo truck on the cargo apron.", ""],
+     ["Drive it to the space center's clean room (the assembly building's door on the road). Every knock costs THE GUIDANCE UNIT bar in proportion (a hard one says so); 120 m out, two black BRUISERs come after you to ram. Stop at the door: Iris' lines; the quest is passed.", "THE GUIDANCE UNIT bar empty (30% of the truck's health lost) or the truck wrecked: the quest fails."]],
+    "fails": [
+     ["The guidance unit's bar runs out", "THE GUIDANCE UNIT IS BROKEN"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"CARGO\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris.", "CLOSE on Iris", "6", "1, 2"],
+      ["The gate", "Danny", "Danny.", "CLOSE on Danny", "3", "3"],
+      ["The gate", "Iris", "Iris. Fade out.", "CLOSE on Iris", "6", "4, 5"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "Skyport's cargo apron; the clean room's door.", "people": "Two of Crane's men.", "music": "-", "new": "A fragile load: knocks counted from the truck's damage.", "other": "-"}}},
+  {"id": "s4", "no": "S4", "title": "PICKET LINE", "giver": "iris", "start": "marker", "where": "The space center's gate (marker K) - blocked by a protest",
+   "story": "Crane bussed in a crowd of placard-wavers to block the space center's gate for the TV cameras, and the rocket's second stage is stuck on the road behind them. Four of Crane's men in grey suits keep the crowd there. Danny takes them out without hurting anyone else, the crowd goes home and he leads the convoy in.",
+   "chars": ["iris", "danny", "craneman"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS BY THE SPACE CENTER'S GATE"},
+     {"word": "TAKE OUT", "show": "TAKE OUT CRANE'S FOUR MEN IN THE CROWD - HURT NOBODY ELSE"},
+     {"word": "LEAD", "show": "LEAD THE CONVOY IN TO THE CLEAN ROOM"}],
+   "lines": [
+     {"who": "iris", "text": "Crane bussed in a crowd of 'concerned citizens'. They're blocking my gate for the TV cameras.", "mood": "furious", "when": "Picket Line, shot 1"},
+     {"who": "iris", "text": "The rocket's second stage is stuck on the road behind them. If those trucks aren't in today, we miss the window.", "mood": "worried", "when": "Picket Line, shot 1"},
+     {"who": "iris", "text": "Most of them are paid to wave signs. The four in grey suits are paid to keep them there.", "mood": "dry", "when": "Picket Line, shot 2"},
+     {"who": "danny", "text": "Then the suits go first. Nobody else gets a scratch.", "mood": "calm", "when": "Picket Line, shot 3"},
+     {"who": "iris", "text": "That's it - they're going home! Bring my trucks in, Danny!", "mood": "excited", "when": "LIVE - the four down", "live": true},
+     {"who": "danny", "text": "Follow me in. Nice and slow.", "mood": "calm", "when": "LIVE - the four down", "live": true},
+     {"who": "iris", "text": "The second stage is in the building. You have no idea what that means to me.", "mood": "moved", "when": "LIVE - at the clean room", "live": true},
+     {"who": "danny", "text": "Tell the cameras it was a peaceful protest.", "mood": "dry", "when": "LIVE - at the clean room", "live": true}],
+   "fails": {"cameras": "THE CAMERAS CAUGHT A PROTESTER HURT", "convoy": "THE CONVOY WAS WRECKED", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 11, "crowd": 14, "menHp": 90, "convSpeed": 30, "leadM": 60, "clearT": 6},
+   "reward": {"cash": 4500, "vehicle": "", "clothes": "", "next": "S5 - THE MOLE (marker K)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from your answers (the Space line; the protest, answer 181) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K, up the road from the gate today", "where": "The road outside the space center's gate; inside to the clean room", "unlocked": "After S3", "time": "Late morning (MISSIONS TEST: 11:00)", "length": "About 4 minutes", "limit": "-"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "craneman": {"gives": false, "role": "Four of Crane's men among the protesters (a bat, fists).", "looks": "Grey suits.", "bubble": "Grey", "mumble": "Flat."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene PICKET LINE (the crowd at the gate, Bay TV's van filming).", "MISSIONS TEST: you start by Iris, a car on the road."],
+     ["Fourteen protesters with placards stand in front of the gate - not to be hurt. Among them four of Crane's men in grey suits: take them out (they fight back once one is hit). The gate stays shut meanwhile.", "A protester killed (a car, a blast, a stray shot): the cameras catch it - the quest fails."],
+     ["The crowd steps off the road and goes home. The gate opens; after 6 s the two trucks with the rocket's second stage follow you in - they wait whenever you are more than 60 m ahead - to the clean room's door. Iris' lines; the quest is passed.", "A convoy truck wrecked: the quest fails."]],
+    "fails": [
+     ["A protester is killed", "THE CAMERAS CAUGHT A PROTESTER HURT"],
+     ["A convoy truck is wrecked", "THE CONVOY WAS WRECKED"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"PICKET LINE\"", "plays": "START MISSION by Iris.", "shots": [
+      ["Up the road", "Iris", "Iris, furious.", "CLOSE on Iris", "6", "1, 2"],
+      ["The gate", "the crowd", "The crowd chanting, placards up; the grey suits among them.", "WIDE on the gate", "5", "3"],
+      ["Up the road", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "4"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "The space center's gate and the road before it.", "people": "Fourteen protesters (placards), four of Crane's men, two convoy trucks, Bay TV's van.", "music": "-", "new": "People with placards; a convoy that follows you in.", "other": "-"}}},
+  {"id": "s5", "no": "S5", "title": "THE MOLE", "giver": "iris", "start": "marker", "where": "The space center (marker K); out of the gate and across Gravel Flats",
+   "story": "The launch codes are gone from Iris' safe, and so is Dana Voss, her own guidance engineer - Crane's real mole. Danny runs her car down across Gravel Flats, takes her down when she bolts on foot and brings the codes back.",
+   "chars": ["iris", "danny", "voss"],
+   "steps": [
+     {"word": "TALK TO", "show": "TALK TO IRIS AT THE SPACE CENTER'S GATE"},
+     {"word": "STOP", "show": "STOP DANA VOSS' CAR - RAM IT"},
+     {"word": "TAKE DOWN", "show": "TAKE DOWN DANA VOSS"},
+     {"word": "PICK UP", "show": "PICK UP THE LAUNCH CODES"},
+     {"word": "TALK TO", "show": "BRING THE CODES BACK TO IRIS"}],
+   "lines": [
+     {"who": "iris", "text": "The launch codes are gone from my safe. And Dana Voss badged out ten minutes early.", "mood": "shocked", "when": "The Mole, shot 1"},
+     {"who": "iris", "text": "Dana. My guidance engineer. Tolan said he wasn't the only one...", "mood": "hurt", "when": "The Mole, shot 1"},
+     {"who": "iris", "text": "That's her car by the offices - she's running!", "mood": "urgent", "when": "The Mole, shot 2"},
+     {"who": "danny", "text": "Open the gate.", "mood": "cold", "when": "The Mole, shot 3"},
+     {"who": "iris", "text": "She's out through the gate! Don't let her get to the airport!", "mood": "urgent", "when": "LIVE - Voss drives off", "live": true},
+     {"who": "voss", "text": "You think one rocket stops Victor Crane? He'll build his resort on the ashes!", "mood": "furious", "when": "LIVE - Voss down", "live": true},
+     {"who": "iris", "text": "All of them. Now nobody can stop the countdown but me.", "mood": "relieved", "when": "LIVE - the codes to Iris", "live": true},
+     {"who": "danny", "text": "Then let's keep it that way.", "mood": "calm", "when": "LIVE - the codes to Iris", "live": true}],
+   "fails": {"away": "VOSS GOT AWAY", "wasted": "WASTED", "busted": "BUSTED"},
+   "numbers": {"hour": 16, "carSpeed": 120, "vossHp": 50, "bailAt": 50, "away": 420, "footAway": 90, "pickM": 3},
+   "reward": {"cash": 5000, "vehicle": "", "clothes": "", "next": "S6 - TRACKING DISH (marker K)", "place": "", "contact": ""},
+   "page": {
+    "sub": "Written from the story plan (the Space line, S5) - change anything you like.",
+    "glance": {"kind": "side", "given": "DR. IRIS KAHN - marker K outside the space center's gate", "where": "The space center's offices, out of the gate, the streets of Gravel Flats", "unlocked": "After S4", "time": "Afternoon (MISSIONS TEST: 16:00)", "length": "About 5 minutes", "limit": "-"},
+    "chars": {
+     "iris": {"gives": true, "role": "Dr. Iris Kahn, the rocket engineer.", "looks": "Forties, dark curly hair in a messy bun, big square glasses, a white lab coat over a mission T-shirt, a pencil behind her ear.", "bubble": "Mint", "mumble": "Quick and clipped."},
+     "danny": {"gives": false, "role": "You.", "looks": "Thirties, a buzz cut, a scar.", "bubble": "Royal blue", "mumble": "Middling and steady."},
+     "voss": {"gives": false, "role": "Dana Voss, the guidance engineer - Crane's mole.", "looks": "Thirties, a sleek black bob, square glasses, a lab coat over a black turtleneck.", "bubble": "Violet", "mumble": "Cool and quick."}},
+    "steps": [
+     ["START MISSION by Iris: the cutscene THE MOLE.", "MISSIONS TEST: you start by Iris, a car on the road outside the gate."],
+     ["Voss' white car leaves the offices' lot round the assembly building and out through the gate (it opens for her), then into Gravel Flats. Ram it (or shoot it) till it is badly hurt (under 50%): she bails out and runs.", "420 m behind her car: she gets away."],
+     ["Knock her down or take her out before she gets 90 m from you.", "90 m ahead of you on foot: she gets away."],
+     ["Pick up the launch codes where she fell.", ""],
+     ["Back to Iris at the gate; her lines; the quest is passed.", ""]],
+    "fails": [
+     ["Voss gets away (420 m in her car, 90 m on foot)", "VOSS GOT AWAY"],
+     ["You are wasted or busted (as always)", "WASTED / BUSTED"]],
+    "cuts": [
+     {"title": "\"THE MOLE\"", "plays": "START MISSION by Iris.", "shots": [
+      ["The gate", "Iris", "Iris, shocked.", "CLOSE on Iris", "6", "1, 2"],
+      ["The offices' lot", "-", "Voss' white car starting up.", "WIDE on the car", "4", "3"],
+      ["The gate", "Danny", "Danny. Fade out.", "CLOSE on Danny", "3", "4"]]}],
+    "start": {"how": "marker", "marker": "K - Iris outside the space center's gate", "phone": "-"},
+    "failing": "Marker K again (retry).",
+    "notes": {"places": "The space center's offices and gate; Gravel Flats.", "people": "Dana Voss.", "music": "-", "new": "-", "other": "-"}}}
 ]
 }/*END-MISSIONS-JSON*/;
 /* MSN: the settings by id; MISSIONS by id */
