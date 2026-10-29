@@ -172,6 +172,12 @@ function paintBoatShop() {
   for (const btn of $('bsList').querySelectorAll('button')) btn.addEventListener('click', () => buyBoat(btn.dataset.b));
   $('bsOwn').textContent = MB.boats.length ? 'AT YOUR BERTHS: ' + MB.boats.map(b => CAR_TYPES[b.type].name).join(', ') : 'YOURS WAIT AT YOUR BERTHS (THE YELLOW LINES), UP TO THREE';
 }
+function marinaGive(id, color) {          // STORY: a boat given to you (Q01: Marco's speedboat) - at your first free berth, there when you are next by the harbour
+  const i = MARINA ? MARINA.own.find(k => !MB.boats.some(b => b.berth === k)) : undefined; if (i === undefined) return false;
+  MB.boats.push({ type: id, color: color || CAR_TYPES[id].colors[0], berth: i });
+  for (const c of cars.filter(c => c.berth === i && !c.mine && c.driver !== 'player')) cars.splice(cars.indexOf(c), 1);   // anything lying in your berth is moved off
+  return true;
+}
 function buyBoat(id) {
   const t = CAR_TYPES[id], i = MARINA.own.find(k => !MB.boats.some(b => b.berth === k));
   if (i === undefined) { $('bsMsg').textContent = 'YOUR BERTHS ARE FULL'; return; }

@@ -124,7 +124,7 @@ function stPassed(id) {
   const h = ST_PLACE[id] && SAFES.find(s => s.id === ST_PLACE[id]); if (h) h.own = true;
   for (const c of ST_WEAR[id] || []) if (CLOTH[c] && !P.wardrobe.includes(c)) P.wardrobe.push(c);
   if (id === 'c8') stKeepVan();
-  if (id === 'q01' && typeof marinaGive === 'function') marinaGive('speedboat');
+  if (id === 'q01') marinaGive('speedboat', '#f4f4f6');            // Marco's white speedboat, at your first free berth in Sunset Harbor (js/08zv)
 }
 function stFailed(id) { if (STQ[id]) { STY.hold[id] = true; if (stCall(id)) STY.retry[id] = STY.clock + STM.retryH; } }
 function stKeepVan() {                     // C8: the armoured van in the casino's colours stays Danny's - the first free space of a safehouse of his

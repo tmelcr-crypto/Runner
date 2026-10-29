@@ -11,7 +11,7 @@ import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__)); JS = os.path.join(HERE, '..', 'js', '01n-clothes-data.js')
 A, B = '/*CLOTHES-JSON*/', '/*END-CLOTHES-JSON*/'
-STYLES = {'hat': ['cap', 'beanie', 'bucket', 'fedora', 'cowboy', 'hardhat', 'beret', 'bandana', 'headband', 'aviator'],
+STYLES = {'hat': ['cap', 'beanie', 'bucket', 'fedora', 'cowboy', 'hardhat', 'beret', 'bandana', 'headband', 'aviator', 'peaked'],
           'glasses': ['shades', 'aviators', 'round', 'visor'],
           'top': ['tee', 'tank', 'hawaii', 'shirt', 'check', 'hoodie', 'jacket', 'suit', 'leather', 'hivis', 'jersey', 'camo', 'labcoat', 'flight'],
           'bottoms': ['jeans', 'trousers', 'shorts', 'track', 'cargo'],

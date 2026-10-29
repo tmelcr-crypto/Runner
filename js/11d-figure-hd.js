@@ -209,6 +209,7 @@ function hdShoe(hp, shoe, s) {             // the foot under the shin, toes towa
 function hdHat(head, hat) {                // on the head (its centre; the crown about 2.9 above)
   const h1 = hdM(hat.c1), h2 = hdM(hat.c2 || hat.c1), hs = hat.style, D = (r, h) => hdCyl(r, r, h, 28);
   if (hs === 'cap') { hdAdd(head, new THREE.SphereGeometry(2.85, 24, 12, 0, TAU, 0, Math.PI / 2), h1, 0, 0.55, -0.05, 1, 0.95, 1.05); const b = hdAdd(head, D(2.1, 0.22), h2, 0, 0.75, 2.85, 1, 1, 1.15); b.rotation.x = 0.12; }
+  else if (hs === 'peaked') { hdAdd(head, hdCyl(3.2, 2.75, 1.4, 28), h1, 0, 2.0, 0); hdAdd(head, D(2.8, 0.85), h2, 0, 1.05, 0); const b = hdAdd(head, D(1.9, 0.2), h2, 0, 0.75, 2.6, 1, 1, 1.1); b.rotation.x = 0.28; }   // a peaked cap: the flat crown, the band, the visor
   else if (hs === 'beanie') { hdAdd(head, new THREE.SphereGeometry(2.9, 24, 12, 0, TAU, 0, Math.PI / 2), h1, 0, 0.5, -0.05, 1, 1.2, 1.05); hdAdd(head, D(2.95, 1.1), h2, 0, 0.75, -0.05, 1, 1, 1.05); }
   else if (hs === 'bucket') { hdAdd(head, hdCyl(2.3, 2.85, 2.2, 28), h1, 0, 2.0, 0); hdAdd(head, hdCyl(2.9, 4.1, 0.5, 28), h1, 0, 0.75, 0); hdAdd(head, D(2.75, 0.55), h2, 0, 1.25, 0); }
   else if (hs === 'fedora' || hs === 'cowboy') {
