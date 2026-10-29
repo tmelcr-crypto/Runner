@@ -70,7 +70,7 @@ function castPick(s, list, far) {           // the nearest it can see within far
   for (const t of list) {
     const d = dist(s.x, s.y, t.o.x, t.o.y) * (t.kind === 'ally' ? s.pref || 1 : 1); if (d > far || Math.abs(zOf(s) - zOf(t.o)) > 40) continue;   // a deck or more apart (Skyline One's tower): neither sees the other
     if (d < ad) { ad = d; any = t; }
-    if (d < bd && losClear(s.x, s.y, t.o.x, t.o.y, true, zOf(s))) { bd = d; best = t; }
+    if (d < bd && shotClear(s.x, s.y, t.o.x, t.o.y, zOf(s))) { bd = d; best = t; }
   }
   if (best) return Object.assign(best, { d: bd, see: true });
   return any ? Object.assign(any, { d: ad, see: false }) : null;
@@ -326,7 +326,7 @@ function gfxCast() {                        // js/13 via gfxMs
 function msCastBlips(g, X, Y, q, inView) {   // js/14 maps: a foe a red dot, a friend a dot in its colour
   if (!MS.on) return;
   const dot = (x, y, col, r) => { if (!inView(x, y)) return; g.fillStyle = '#000'; g.fillRect(x - r - 1, y - r - 1, r * 2 + 2, r * 2 + 2); g.fillStyle = col; g.fillRect(x - r, y - r, r * 2, r * 2); };
-  for (const p of peds) if (p.foe && !p.dead && p.alert) dot(X(p.x), Y(p.y), '#ff3b4a', 1.6 * q);
+  for (const p of peds) if (p.foe && !p.dead && (p.alert || MS.radar)) dot(X(p.x), Y(p.y), '#ff3b4a', 1.6 * q);   // MS.radar: every foe, alert or not (M29-M30 with the Space line done: Iris' satellite)
   for (const c of MS_CAST.cars) if (!c.dead && !c.fc.out && !c.fc.gone && c.fc.mode !== 'park') dot(X(c.x), Y(c.y), '#ff3b4a', 2.4 * q);
   for (const p of MS_CAST.allies) if (!p.dead && !p.aboard) dot(X(p.x), Y(p.y), p.col, 1.8 * q);
 }

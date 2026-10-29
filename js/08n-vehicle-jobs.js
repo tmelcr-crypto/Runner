@@ -412,7 +412,7 @@ function bail(o) {                        // the car is done for: everyone out a
 function crimShoot(o, dt) {               // from the car, at you, like a cop would (js/08g)
   const K = o.crim; if ((K.cool -= dt) > 0) return;
   const tgt = P.car || P, d = dist(o.x, o.y, tgt.x, tgt.y);
-  if (d > COP.fireRange || !losClear(o.x, o.y, tgt.x, tgt.y, true)) return;
+  if (d > COP.fireRange || !shotClear(o.x, o.y, tgt.x, tgt.y)) return;
   K.cool = rand(0.9, 1.6); const a = Math.atan2(tgt.y - o.y, tgt.x - o.x);
   tracers.push({ x1: o.x + Math.cos(a) * 16, y1: o.y + Math.sin(a) * 16, x2: tgt.x + rand(-14, 14), y2: tgt.y + rand(-14, 14), life: 0.07 });
   Snd.tone(900, 200, 0.05, 0.06, 'square'); alertPeds(o.x, o.y, 200, true);

@@ -95,16 +95,17 @@ function rayCircle(ox, oy, dx, dy, cx, cy, r) {
   return tca - Math.sqrt(r * r - d2);
 }
 const _ba = [];
-function buildingsAlong(x1, y1, x2, y2, fn, z) {               // z: the height of whoever looks or shoots - up on a roof, that building's box is under them
+function buildingsAlong(x1, y1, x2, y2, fn, z, shot) {        // z: the height of whoever looks or shoots - up on a roof, that building's box is under them
   bHash.query(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2), _ba);
-  for (const rc of _ba) if (!rc.gate && !rc.fence && !(z && rc.H && (rc.deck || rc.bld) && z > rc.H - 1)) fn(rc);   // a gate's boom and the airport fence stop cars, not bullets or eyes
+  for (const rc of _ba) if (!(rc.gate && (rc.boom || !shot)) && !rc.barrier && !(rc.fence && !shot) && !(z && rc.H && (rc.deck || rc.bld) && z > rc.H - 1)) fn(rc);   // shot: a bullet's way - a fence or a shut gate stops it; eyes see through the mesh, and both pass over a boom
 }
-function losClear(x1, y1, x2, y2, hardOnly, z) {              // hardOnly: only buildings and landmarks block, not the props a rifle round goes through
+function losClear(x1, y1, x2, y2, hardOnly, z, shot) {        // hardOnly: only buildings and landmarks block, not the props a rifle round goes through
   const d = dist(x1, y1, x2, y2); if (d < 1) return true;
   const dx = (x2 - x1) / d, dy = (y2 - y1) / d; let clear = true;
-  buildingsAlong(x1, y1, x2, y2, rc => { if (hardOnly && softSolid(rc)) return; const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; }, z);
+  buildingsAlong(x1, y1, x2, y2, rc => { if (hardOnly && softSolid(rc)) return; const t = raySolid(x1, y1, dx, dy, rc); if (t < d) clear = false; }, z, shot);
   return clear;
 }
+const shotClear = (x1, y1, x2, y2, z) => losClear(x1, y1, x2, y2, true, z, true);   // a gun can hit there: no building, fence or shut gate between
 const softSolid = rc => !!(rc.clutter || rc.soft);             // dumpsters, crates, AC units, pumps, fountains, cranes, containers, planes, sign posts
 
 /* ---------- water: signed distance to the shore, sampled from a field built from the land polygons ---------- */
@@ -323,7 +324,7 @@ function genWorld() {
   GATES = [];
   for (const E of RE) if (E.nt && !E.v) {                         // a boom across each driveway, just past the sidewalk of the street it leaves (not the visitors' streets, js/08x)
     const atA = RN[E.a].e.length > 1, s = ROAD_HALF + SW_W + 40, q = edgeAt(E.i, atA ? s : E.len - s, {}), a = Math.atan2(q.ty, q.tx);
-    GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, a, open: 0 }));
+    GATES.push(makeSolid(q.x, q.y, 8, ROAD_W, a, { gate: true, boom: true, a, open: 0 }));
   }
   genLandmarks(); genAirport(); genPlaces(); if (ESTATE.L) estatePosts(ESTATE.L); genLockers(); genFactory(); genShowroom(); genSalvage(); genPrison(); genSite(); genCasino(); genMarina(); genStunts(); genInteriors(); ixSetup(); genGym(); genDepot(); genFunhouse(); genSubstation(); genNewsroom(); genGolfClub(); genSpeedway(); genCarpark(); placeGrove(); pickFireStations(); pickSprays(); placeSafes(); placeUniques(); genBank(); genParks(); serviceDecor(); genVisitors();              // landmarks; the cement works (js/10r); the palm grove by the car park (js/10m); the fire stations (js/08n); the Pay 'n' Spray garages (js/10j); the safehouses (js/10l); the 160 unique buildings (js/10n); the parks (js/10p); the signs, the cross and the lamps of the hospitals, police and fire stations (js/10e)
   CLUTTER = withSeed(4242, makeClutter);                          // after the landmarks: clutter keeps out of them

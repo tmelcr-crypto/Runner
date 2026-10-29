@@ -21,6 +21,46 @@ function guideTarget() {                 // where to: { x, y } or { route, i } (
   if (P.car && feat('carDelivery') && dlvMatch(P.car) && !inBay(P.car)) return { x: DLV_BAY.x, y: DLV_BAY.y, key: 'dlv' };
   return null;
 }
+function guideEnd(x, y, far) {           // where the line leaves the roads for (x, y): { r: the nearest road point (a driveway too) with no fence or wall between, way: on foot from it } - or round by a gate (walkWay)
+  const rs = nearRoads(x, y, far).sort((a, b) => a.d - b.d), q = {};
+  for (const r of rs) { if (r.d < 1) return { r }; edgeAt(r.e, r.s, q); if (guideClear(q.x, q.y, x, y)) return { r }; }
+  const w = walkWay(x, y, GUIDE_WALK); if (w) return w;
+  const r = openRoad(x, y, far); return r ? { r } : null;        // nothing better: straight from the nearest street
+}
+function guideClear(x1, y1, x2, y2) {    // nothing you can't walk through between: no wall or fence (turnstiles, booms and gates let you by)
+  const d = dist(x1, y1, x2, y2); if (d < 1) return true;
+  const dx = (x2 - x1) / d, dy = (y2 - y1) / d; let ok = true;
+  buildingsAlong(x1, y1, x2, y2, rc => { if (ok && !rc.walk && !rc.gate && !rc.opens && !softSolid(rc) && raySolid(x1, y1, dx, dy, rc) < d) ok = false; }, 0, true);
+  return ok;
+}
+const GUIDE_CELL = 24, GUIDE_WALK = 1800, _gw = [];
+function guideWalkable(x, y) {           // a person could stand here: on land, in no wall, fence or building
+  if (shoreDist(x, y) < -4) return false;
+  nearBuildings(x, y, _gw); for (const rc of _gw) if (!rc.walk && !rc.barrier && !rc.gate && !rc.opens && !softSolid(rc) && solidAt(rc, 0) && inSolid(x, y, rc, 6)) return false;
+  return true;
+}
+function walkWay(x, y, far) {            // on foot from (x, y) to the nearest road, round fences and walls (out by a gate): { r, way: [road point ... (x, y)] } or null
+  const n = 2 * Math.ceil(far / GUIDE_CELL) + 1, h = (n - 1) / 2, x0 = x - h * GUIDE_CELL, y0 = y - h * GUIDE_CELL;
+  const from = new Int32Array(n * n).fill(-2), ok = new Uint8Array(n * n), cx = i => x0 + (i % n) * GUIDE_CELL, cy = i => y0 + Math.floor(i / n) * GUIDE_CELL;
+  const s0 = h * n + h, Q = [s0]; from[s0] = -1;
+  for (let qi = 0; qi < Q.length; qi++) {                        // breadth first from (x, y) - the first cell by a road wins
+    const i = Q[qi], px = cx(i), py = cy(i);
+    if (qi > 0) { const rs = nearRoads(px, py, GUIDE_CELL); if (rs.length) {
+      const r = rs.sort((a, b) => a.d - b.d)[0], way = []; for (let k = i; k >= 0; k = from[k]) way.push([cx(k), cy(k)]);
+      way[way.length - 1] = [x, y]; const q = edgeAt(r.e, r.s, {}); way.unshift([q.x, q.y]);
+      const out = [way[0]]; for (let a = 0; a < way.length - 1;) { let b = way.length - 1; while (b > a + 1 && !guideClear(way[a][0], way[a][1], way[b][0], way[b][1])) b--; out.push(way[b]); a = b; }   // pulled tight
+      return { r, way: out };
+    } }
+    const ix = i % n, iy = (i - ix) / n;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if (!dx && !dy) continue; const jx = ix + dx, jy = iy + dy; if (jx < 0 || jy < 0 || jx >= n || jy >= n) continue;
+      const j = jy * n + jx; if (from[j] !== -2 || ok[j] === 2) continue;
+      if (!ok[j]) ok[j] = guideWalkable(cx(j), cy(j)) ? 1 : 2;
+      if (ok[j] === 1 && guideClear(px, py, cx(j), cy(j))) { from[j] = i; Q.push(j); }   // not over a thin fence between two cells
+    }
+  }
+  return null;
+}
 function guidePath(tg) {                 // the line's points, from you
   const out = []; let len = 0;
   if (tg.route) {                                                  // a race: its own route from where you are on it
@@ -29,10 +69,12 @@ function guidePath(tg) {                 // the line's points, from you
     if (len < GUIDE_FAR) out.push([R.x[R.n - 1], R.y[R.n - 1]]);
     return out;
   }
-  if (!GUIDE.G || Math.abs(GUIDE.gx - tg.x) + Math.abs(GUIDE.gy - tg.y) > 40) { GUIDE.G = fieldNT(tg.x, tg.y); GUIDE.gx = tg.x; GUIDE.gy = tg.y; }
-  const r = openRoad(P.x, P.y, 400); if (!GUIDE.G || !r) return null;
-  const pts = [[P.x, P.y]]; if (!roadPath(r.e, r.s, 0, GUIDE.G, pts)) return null;
-  pts.push([tg.x, tg.y]);                                          // the last bit, off the street to the marker
+  if (!GUIDE.G || Math.abs(GUIDE.gx - tg.x) + Math.abs(GUIDE.gy - tg.y) > 40) { const t = guideEnd(tg.x, tg.y, 900); GUIDE.G = t && fieldNT(tg.x, tg.y, t.r); GUIDE.end = t; GUIDE.gx = tg.x; GUIDE.gy = tg.y; }
+  if (!GUIDE.start || dist(P.x, P.y, GUIDE.sx, GUIDE.sy) > 120) { GUIDE.start = guideEnd(P.x, P.y, 400); GUIDE.sx = P.x; GUIDE.sy = P.y; }   // where you join the roads (worked out again as you go)
+  const st = GUIDE.start; if (!GUIDE.G || !st) return null;
+  const pts = [[P.x, P.y]]; if (st.way) for (let k = st.way.length - 2; k >= 0; k--) pts.push(st.way[k]);   // inside a fence: out by its gate first
+  if (!roadPath(st.r.e, st.r.s, 0, GUIDE.G, pts)) return null;
+  if (GUIDE.end.way) pts.push(...GUIDE.end.way.slice(1)); else pts.push([tg.x, tg.y]);   // the last bit, off the street to the marker (by the gate, round the fence)
   out.push(pts[0]);
   for (let k = 1; k < pts.length && len < GUIDE_FAR; k++) { len += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); out.push(pts[k]); }
   return out;

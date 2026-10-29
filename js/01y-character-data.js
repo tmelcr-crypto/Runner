@@ -189,7 +189,11 @@ const CHARACTER_TABLE = /*CHARACTERS-JSON*/{
   {"id": "voss", "name": "DANA VOSS", "letter": "D", "bubble": "#b07cff", "shirt": "#f4f6f8", "pants": "#3a3a44", "mumble": {"low": 220, "high": 340, "rate": 14, "wave": "sine", "gap": 0.05},
    "role": "The guidance engineer, cool and clever - Crane's real mole at the space center; she runs with the launch codes (S5).", "look": "Thirties, a sleek black bob, thin-rimmed square glasses, a lab coat over a black turtleneck.",
    "skin": "#e8c8a8", "hair": "#121014", "hairStyle": "bob", "facial": "none", "facialColour": "", "eyes": "#3a2a1a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "square", "glassesColour": "#2a2a2a",
-   "top": "labcoat", "topColour": "#f4f6f8", "topColour2": "#14141a", "extras": ["lipstick"], "smileEyes": "open", "calmMouth": "smirk", "age": "mid", "build": "slim"}
+   "top": "labcoat", "topColour": "#f4f6f8", "topColour2": "#14141a", "extras": ["lipstick"], "smileEyes": "open", "calmMouth": "smirk", "age": "mid", "build": "slim"},
+  {"id": "agent", "name": "SPECIAL AGENT REYES", "letter": "F", "bubble": "#4a7ad8", "shirt": "#2a3a6a", "pants": "#3a3d47", "mumble": {"low": 130, "high": 190, "rate": 10, "wave": "square", "gap": 0.08},
+   "role": "The FBI's special agent in Miravista: by the book, tired of Crane's lawyers. With Choice 4's FBI way, her agents fight at the estate's gate (M29) and make the arrest (M30).", "look": "Forties, black hair pulled back, aviator shades, a navy FBI windbreaker over a grey suit.",
+   "skin": "#c8946a", "hair": "#1a1414", "hairStyle": "pulled", "facial": "none", "facialColour": "", "eyes": "#4a3a2a", "hat": "none", "hatColour": "", "hatColour2": "", "glasses": "shades", "glassesColour": "#a0aab8",
+   "top": "windbreaker", "topColour": "#2a3a6a", "topColour2": "#f4d23f", "extras": [], "smileEyes": "open", "calmMouth": "line", "age": "mid", "build": "slim"}
 ]
 }/*END-CHARACTERS-JSON*/;
 /* CHARS: the characters by id */

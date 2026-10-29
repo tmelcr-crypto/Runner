@@ -61,7 +61,7 @@ function copHeavy(c, dt) {
     beltTick(c, dt);
     if (!on || !feat('apcGun') || d > COP.apcRange * 1.5) { turnTurret(c, c.ang, 2, dt); return; }
     const off = turnTurret(c, Math.atan2(tgt.y - c.y, tgt.x - c.x), 3, dt), w = apcGunW();
-    if (c.relT > 0 || c.gunT > 0 || off > 0.2 || d > COP.apcRange || !c.sees || !losClear(c.x, c.y, tgt.x, tgt.y)) return;
+    if (c.relT > 0 || c.gunT > 0 || off > 0.2 || d > COP.apcRange || !c.sees || !losClear(c.x, c.y, tgt.x, tgt.y, false, 0, true)) return;
     if (c.belt <= 0) { c.relT = w.reload; return; }
     if (!(c.burst > 0)) c.burst = Math.round(COP.apcBurst);
     c.belt--; c.burst--; c.gunT = c.burst > 0 ? w.rate : COP.apcPause;
