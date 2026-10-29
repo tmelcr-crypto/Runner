@@ -80,6 +80,9 @@ MSCRIPT.m19 = (() => {
     msLive([A.wave === 1 ? 3 : 4]);
   }
   const fallen = () => { MS_CAST.allies = MS_CAST.allies.filter(q => !(q.dead && q.msName === 'rosaman')); };   // her men may fall
+  function rankMen(A) {                                               // Crane's men round Joe's rank (once)
+    if (!A.men) A.men = [0, 1, 2].map(k => { const q = S1.free(A.joe.x + Math.cos(k * 2.1) * 120, A.joe.y + Math.sin(k * 2.1) * 120, 10); return msFoe(q.x, q.y, Object.assign({ gun: k ? 'pistol' : 'smg', hp: N().menHp, group: 'rank', name: 'craneman' }, CH4.men)); });
+  }
   const steps = [
     msPhone('rosa', [1, 2]),                                                                     // the call
     { enter(A) { CH4.heat(); MS.guide = A.mk.street; MS.mark = () => A.mk.c; },                  // GO TO the market
@@ -98,10 +101,10 @@ MSCRIPT.m19 = (() => {
       jump(A) { A.wave = N().waves; for (const c of MS_CAST.cars) if (c.fc.group === 'w') { c.fc.crew = 0; c.fc.out = true; } for (const p of peds) if (p.foe && !p.dead && p.group === 'w') killPed(p, 'gun', false); } },
     { enter(A) { CH4.drop(A.rosa); A.mates.forEach(m => CH4.drop(m)); MS.guide = at(A.rank.x, A.rank.y); MS.mark = () => A.joe;   // GO TO Joe's rank before he runs out of shells
         A.joeLeft = N().joeT; msLive([6], { phone: true });
-        A.men = [0, 1, 2].map(k => { const q = S1.free(A.joe.x + Math.cos(k * 2.1) * 120, A.joe.y + Math.sin(k * 2.1) * 120, 10); return msFoe(q.x, q.y, Object.assign({ gun: k ? 'pistol' : 'smg', hp: N().menHp, group: 'rank', name: 'craneman' }, CH4.men)); }); },
+        rankMen(A); },
       tick(A, dt) { A.joeLeft -= dt; msBar('JOE HOLDS OUT', A.joeLeft / N().joeT, '#e6b980'); return dist(me().x, me().y, A.joe.x, A.joe.y) < N().rankM * M; },
       info: A => Math.round(dist(me().x, me().y, A.joe.x, A.joe.y) / M) + " M TO JOE'S RANK · " + Math.max(0, Math.ceil(A.joeLeft)) + ' S',
-      jump(A) { const c = P.car || A.mycar; if (P.car !== c) { if (P.car) exitCar(true); P.x = c.x; P.y = c.y; enterCar(c); } const r = S1.road(A.rank.x + 160, A.rank.y); c.x = r.x; c.y = r.y; c.vx = c.vy = 0; } },
+      jump(A) { rankMen(A); const c = P.car || A.mycar, r = S1.road(A.rank.x + 160, A.rank.y); if (!c) { P.x = r.x; P.y = r.y; return; } if (P.car !== c) { P.x = c.x; P.y = c.y; enterCar(c); } c.x = r.x; c.y = r.y; c.vx = c.vy = 0; } },
     { enter(A) { msBarOff(); MS.guide = null; msAllyFrom(A.joe, { who: 'joe', gun: 'shotgun', hp: N().joeHp, near: true }); for (const m of A.men) foeAlert(m); },   // TAKE OUT Crane's men at the rank
       tick: A => A.men.every(m => m.dead),
       info: A => A.men.filter(m => !m.dead).length + ' LEFT',
@@ -326,7 +329,7 @@ MSCRIPT.m22 = (() => {
         if (dist(o.x, o.y, A.pol.x, A.pol.y) < N().stationR * M) { A.way = 'own'; A.choice = 'OWN WAY'; return true; }
         return false; },
       info: A => Math.round(dist(me().x, me().y, A.silo.x, A.silo.y) / M) + ' M TO THE SILOS · ' + Math.round(dist(me().x, me().y, A.pol.x, A.pol.y) / M) + ' M TO THE POLICE',
-      jump(A) { const t = MS_CHOICE.tip === 'own way' ? A.pol : A.silo; if (P.car) exitCar(true); P.x = t.x; P.y = t.y; } },
+      jump(A) { const own = MS_CHOICE.tip === 'own way', t = own ? A.pol : A.silo; A.way = own ? 'own' : 'told'; A.choice = own ? 'OWN WAY' : 'TIP TRUSTED'; if (P.car) exitCar(true); P.x = t.x; P.y = t.y; } },
     { enter(A) {                                                                                   // THE MEETING: wait at the silos - or tail Holloway
         MS.guide = null; A.t = 0;
         if (A.way === 'told') { msObjective('WAIT BY THE SILOS - THE MEETING IS AT MIDNIGHT'); MS.mark = () => A.silo; return; }
@@ -342,7 +345,8 @@ MSCRIPT.m22 = (() => {
         else { suspicion(A, dt); if (!A.cruiser.fc.gone) return false; msBarOff(); meeting(A, true); for (const e of A.escort) if (!e.fc.out && !e.dead) foeBail(e); }
         A.cut = true; msCut('THE MEETING', () => { A.met = true; }); return false; },
       info: A => A.way === 'told' ? (A.t > 0 ? 'MIDNIGHT IN ' + Math.max(0, Math.ceil(N().waitT - A.t)) + ' S' : Math.round(dist(me().x, me().y, A.silo.x, A.silo.y) / M) + ' M TO THE SILOS') : Math.round(A.d || 0) + ' M BEHIND HIM (LOST AT ' + N().lostM + ')',
-      jump(A) { if (A.way === 'told') { if (P.car) exitCar(true); P.x = A.silo.x; P.y = A.silo.y; A.t = N().waitT; } else { A.sus = 0; const c = A.cruiser; c.x = A.yard.x; c.y = A.yard.y; c.fc.gone = true; for (const e of A.escort) { e.x = A.yard.x + 60; e.y = A.yard.y - 60; } if (P.car) exitCar(true); P.x = A.yard.x + 200; P.y = A.yard.y; } } },
+      jump(A) { if (A.way === 'told') { if (P.car) exitCar(true); P.x = A.silo.x; P.y = A.silo.y; A.t = N().waitT; } else { A.sus = 0; const c = A.cruiser; if (c) { c.x = A.yard.x; c.y = A.yard.y; c.fc.gone = true; } for (const e of A.escort || []) { e.x = A.yard.x + 60; e.y = A.yard.y - 60; } if (P.car) exitCar(true); P.x = A.yard.x + 200; P.y = A.yard.y; }
+        if (!A.men) meeting(A, A.way !== 'told'); } },   // (a step jumped to: the meeting's people are there)
     { enter(A) { msBarOff(); for (const m of A.men) foeAlert(m); A.runT = 1.2; MS.mark = () => peds.find(p => p.foe && !p.dead && p.group === 'meet'); },   // TAKE OUT Crane's men and his cops
       tick(A, dt) { if ((A.runT -= dt) <= 0) getAway(A);
         if (msFoesLeft('meet') > 0) return false;
@@ -403,7 +407,7 @@ MSCRIPT.m23 = (() => {
         const v = CH4.near(S.cx, S.cy, 700, 1000); A.van = msFoeCar('policevan', v.x, v.y, v.a, Object.assign({ mode: 'chase', crew: 2, gun: 'pistol', group: 'loyal', speed: 105 }, cop)); },
       tick(A, dt) { if (P.car) A.t += dt; if (A.t < N().wreckT) return false; wreck(A); return true; },
       info: A => Math.round(dist(me().x, me().y, A.hol.x, A.hol.y) / M) + ' M BEHIND HOLLOWAY (LOST AT ' + N().lostM + ')',
-      jump(A) { const c = P.car || A.mycar; if (P.car !== c) { if (P.car) exitCar(true); P.x = c.x; P.y = c.y; enterCar(c); } A.t = N().wreckT; } },
+      jump(A) { if (!A.hol) this.enter(A); const c = P.car || A.mycar; if (c && P.car !== c) { P.x = c.x; P.y = c.y; enterCar(c); } A.t = N().wreckT; if (!A.town) wreck(A); } },   // (a step jumped to: the town car round the corner)
     { enter(A) { MS.guide = () => A.town; MS.mark = () => A.town; },                              // GET IN the town car
       tick(A) { if (P.car !== A.town) return false; A.hol.fc.speed = N().carSpeed; msLive([5], { now: true }); return true; },
       info: A => Math.round(dist(P.x, P.y, A.town.x, A.town.y) / M) + ' M TO THE TOWN CAR',

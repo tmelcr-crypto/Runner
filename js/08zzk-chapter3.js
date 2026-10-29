@@ -261,7 +261,7 @@ MSCRIPT.m16 = (() => {
         if (sp) msLive([5, 6], { phone: true }); },
       tick(A, dt) { A.left -= dt; msBar('LOADING', 1 - A.left / N().loadT, '#ffd23f'); return dist(me().x, me().y, A.to.x, A.to.y) < N().yardM * M || A.men.some(p => p.alert) || A.left <= 0; },
       info: A => Math.round(dist(me().x, me().y, A.to.x, A.to.y) / M) + ' M TO THE STORAGE YARD',
-      jump(A) { if (P.car) exitCar(true); P.x = A.to.x; P.y = A.to.y; } },
+      jump(A) { const to = A.to || (S3.kessler() === 'spared' ? A.back : A.front); if (P.car) exitCar(true); P.x = to.x; P.y = to.y; } },   // (a step jumped to: where it goes)
     { enter(A) { MS.guide = null; MS.mark = () => A.van.fc.out || A.van.dead ? peds.find(p => p.foe && !p.dead && p.group === 'sachs') : A.van;   // TAKE OUT Sachs' men before the van leaves
         if (S3.kessler() === 'finished') A.kessT = N().kessT; },
       tick(A, dt) {

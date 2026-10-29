@@ -123,12 +123,15 @@ MSCRIPT.h2 = (() => {
     A.sus = clamp(A.sus + (d < N().closeM ? N().closeRate : -N().coolRate) * dt, 0, 1); msBar('SUSPICION', A.sus); A.d = d;
   }
   const walkStep = speed => (p, dt) => { if (p.state === 'flee') p.state = 'post'; const q = p.way && p.way[p.wi]; if (!q) return S1.stay(p, dt); if (walkTo(p, q.x, q.y, NPC_RUN * speed, dt) < 12) p.wi++; return true; };
+  function meetMen(A) {                                               // Crane's man at the meeting and his minder (once)
+    if (A.man) return; A.man = msPed(A.meet.x, A.meet.y, 0, Object.assign(S1.look('craneman'), { msName: 'craneman', step: S1.stay, spare: true }));
+    A.man2 = msFoe(A.meet.x + 40, A.meet.y + 10, Object.assign({ gun: 'pistol', hp: N().menHp, group: 'h2' }, CH4.men));
+  }
   const steps = [
     HOTEL.meet('THE INSPECTOR'),
     { enter(A) {                                                                                 // TAIL the inspector to Crane's man
         MS.mark = () => A.walking || !A.inCar ? A.insp : A.car; A.insp.post.step = walkStep(0.7); A.insp.way = [allyDoor(A.car, A.insp)]; A.insp.wi = 0; A.insp.shield = false;
-        const m = A.man = msPed(A.meet.x, A.meet.y, 0, Object.assign(S1.look('craneman'), { msName: 'craneman', step: S1.stay, spare: true }));
-        A.man2 = msFoe(A.meet.x + 40, A.meet.y + 10, Object.assign({ gun: 'pistol', hp: N().menHp, group: 'h2' }, CH4.men)); void m; },
+        meetMen(A); },
       tick(A, dt) {
         const p = A.insp;
         if (!A.inCar && (p.wi >= 1 || dist(p.x, p.y, A.car.x, A.car.y) < 30)) { A.inCar = true; const i = peds.indexOf(p); if (i >= 0) peds.splice(i, 1); A.car.fc.to = [A.stop]; A.car.fc.ti = 0; A.car.fc.wait = 1; foeCarGo(A.car, 'flee'); }
@@ -137,7 +140,7 @@ MSCRIPT.h2 = (() => {
         if (A.car.fc.gone && !A.walking) { A.walking = true; const q = S1.free(A.car.x, A.car.y, 24); p.x = q.x; p.y = q.y; peds.push(p); p.way = [S1.free(A.meet.x + 14, A.meet.y, 6)]; p.wi = 0; }
         return A.walking && p.wi >= 1; },
       info: A => A.inCar ? Math.round(A.d || 0) + ' M BEHIND HIM (LOST AT ' + N().lostM + ')' : 'HE IS GOING TO HIS CAR',
-      jump(A) { A.inCar = true; A.walking = true; const p = A.insp; if (!peds.includes(p)) peds.push(p); p.x = A.meet.x + 14; p.y = A.meet.y; p.wi = 1; A.car.x = A.stop.x; A.car.y = A.stop.y; A.car.fc.gone = true; A.sus = 0;
+      jump(A) { meetMen(A); A.inCar = true; A.walking = true; const p = A.insp; if (!peds.includes(p)) peds.push(p); p.x = A.meet.x + 14; p.y = A.meet.y; p.wi = 1; A.car.x = A.stop.x; A.car.y = A.stop.y; A.car.fc.gone = true; A.sus = 0;
         if (P.car) exitCar(true); P.x = A.meet.x + 200; P.y = A.meet.y + 100; } },
     { enter(A) { MS.mark = () => A.insp; face(A.insp, A.man); face(A.man, A.insp); msBarOff(); },  // WATCH the envelope change hands - close, but not too close
       tick(A, dt) {
@@ -449,7 +452,7 @@ MSCRIPT.h5 = (() => {
     { enter(A) { MS.guide = null; MS.mark = () => A.men.find(p => !p.dead); },                    // TAKE OUT the robbers in the hall
       tick(A) { if (hallLeft(A)) return false; runFor(A); msLive([5, 6], { now: true }); return true; },
       info: A => hallLeft(A) + ' LEFT IN THE HALL',
-      jump(A) { for (const p of A.men) if (!p.dead) killPed(p, 'gun', false); } },
+      jump(A) { for (const p of A.men) if (!p.dead) killPed(p, 'gun', false); if (!A.boxman.way) runFor(A); } },   // (a step jumped to: he is off with the box)
     { enter(A) { MS.mark = () => A.boxman.dead ? null : A.boxman; for (const h of A.hostages) if (!h.dead) h.floor = false; },   // STOP the man with the box (or he is off in the car)
       tick(A) {
         const p = A.boxman;
@@ -466,8 +469,9 @@ MSCRIPT.h5 = (() => {
         if (A.carry && A.carry.dead) dropBox(A, A.carry);
         return !!A.bag && msFoesLeft('getaway') === 0; },
       info: A => A.car.fc.out ? msFoesLeft('getaway') + ' LEFT' : Math.round(dist(me4().x, me4().y, A.car.x, A.car.y) / M) + ' M TO THE GETAWAY CAR · ' + Math.round(100 * A.car.hp / A.car.maxhp) + '%',
-      jump(A) { const v = A.car; if (!v.fc.out) { if (P.car) exitCar(true); P.x = v.x + 60; P.y = v.y + 40; const men = foeBail(v); A.carry = men[men.length - 1]; } else for (const p of peds) if (p.foe && !p.dead && p.group === 'getaway') killPed(p, 'gun', false); } },
-    { enter(A) { MS.mark = () => A.bag; MS.guide = () => A.bag; },                                  // PICK UP the deed box
+      jump(A) { const v = A.car; if (!v.fc.out) { if (P.car) exitCar(true); P.x = v.x + 60; P.y = v.y + 40; const men = foeBail(v); A.carry = men[men.length - 1]; } else for (const p of peds) if (p.foe && !p.dead && p.group === 'getaway') killPed(p, 'gun', false);
+        if (!A.bag) { const c = A.carry && !A.carry.dead ? A.carry : null; if (c) killPed(c, 'gun', false); dropBox(A, c || v); } } },   // (a step jumped to: the box on the ground)
+    { enter(A) { if (!A.bag) dropBox(A, A.carry || A.boxman); MS.mark = () => A.bag; MS.guide = () => A.bag; },   // PICK UP the deed box (always somewhere on the ground by now)
       tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > N().pickM * M) return false; A.bag = null; Snd.tone(660, 990, 0.2, 0.1, 'triangle'); toast('THE DEED BOX'); msLive([7], { now: true }); return true; },
       info: A => A.bag ? Math.round(dist(me4().x, me4().y, A.bag.x, A.bag.y) / M) + ' M TO THE BOX' : '',
       jump(A) { if (P.car) exitCar(true); P.x = A.bag.x; P.y = A.bag.y; } },
