@@ -6,7 +6,8 @@ booths, street races, the NASCAR race, the drag strip (js/01p-races-data.js; the
 what counts toward 100% and its reward (js/01t-stats-data.js) - and the casino strip - the ROYAL FLAMINGO's doors, slot machines, dice,
 guards and cashier's cage, THE PULSE nightclub, the strip at night (js/01u-casino-data.js) - and the stunt jumps - slow motion, how a
 ramp throws a car, a good landing, the bonus, each jump's speed and distance (js/01v-stunt-data.js) - and BULL'S GYM - its hours, the
-boxers, the rules of a bout and the five opponents of the ring fights (js/01z-gym-data.js).
+boxers, the rules of a bout and the five opponents of the ring fights (js/01z-gym-data.js) - and STORY - its markers, calls and
+days, the chapter cards, Kessler's men in Dockside (js/01za-story-data.js; the order of the quests stays in the file).
 
   python3 tools/settings_sheet.py police export police.numbers            write the police table as a Numbers file (or .xlsx)
   python3 tools/settings_sheet.py sky export sky.numbers                  ... the day, night & weather table
@@ -20,6 +21,7 @@ boxers, the rules of a bout and the five opponents of the ring fights (js/01z-gy
   python3 tools/settings_sheet.py stunts export stunts.numbers            ... the stunt jumps: slow motion, lift, the landing, the bonus, each jump
   python3 tools/settings_sheet.py interiors export interiors.numbers      ... hangars, warehouses, the storage yard: hours, the guard, loot, rare vehicles
   python3 tools/settings_sheet.py missions export missions.numbers        ... the missions' dialogue and cutscene timing (the missions come from the Word pages)
+  python3 tools/settings_sheet.py story export story.numbers          ... STORY: markers, calls, days, chapter cards, Kessler's men in Dockside
   python3 tools/settings_sheet.py gym export gym.numbers                  ... BULL'S GYM: hours, the boxers, a bout's rules, the five opponents and their pay
   python3 tools/settings_sheet.py police import police.numbers [--dry-run] read an edited file (.numbers or .xlsx) back, check it, rewrite the table
 
@@ -47,13 +49,14 @@ TABLES = {'police': ('01b-police-data.js', 'POLICE', {'levels': 'Wanted levels',
           'stunts': ('01v-stunt-data.js', 'STUNT', {'settings': 'Settings'}),
           'interiors': ('01w-interior-data.js', 'INTERIORS', {'settings': 'Settings'}),
           'missions': ('01x-mission-data.js', 'MISSIONS', {'settings': 'Settings'}),
-          'gym': ('01z-gym-data.js', 'GYM', {'settings': 'Settings'})}
+          'gym': ('01z-gym-data.js', 'GYM', {'settings': 'Settings'}),
+          'story': ('01za-story-data.js', 'STORYMODE', {'settings': 'Settings'})}
 JS = A = B = SHEETS = NAME = None
 def use(name):                               # pick the table the commands work on
     global JS, A, B, SHEETS, NAME, TIPS
     f, mark, SHEETS = TABLES[name]; NAME = name
     JS = os.path.join(HERE, '..', 'js', f); A, B = '/*%s-JSON*/' % mark, '/*END-%s-JSON*/' % mark
-    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES, 'stats': TIPS_STATS, 'casino': TIPS_CASINO, 'stunts': TIPS_STUNTS, 'interiors': TIPS_INTERIORS, 'missions': TIPS_MISSIONS, 'gym': TIPS_GYM}[name]
+    TIPS = {'police': TIPS_POLICE, 'sky': TIPS_SKY, 'airport': TIPS_AIRPORT, 'places': TIPS_PLACES, 'streets': TIPS_STREETS, 'jobs': TIPS_JOBS, 'races': TIPS_RACES, 'stats': TIPS_STATS, 'casino': TIPS_CASINO, 'stunts': TIPS_STUNTS, 'interiors': TIPS_INTERIORS, 'missions': TIPS_MISSIONS, 'gym': TIPS_GYM, 'story': TIPS_STORY}[name]
 
 
 def read_table():
@@ -244,6 +247,11 @@ TIPS_GYM = [('ID column', 'How the game finds each row. Do not change it; rows m
             ('The gym', "BULL'S GYM, Bull Kessler's boxing gym in a Dockside warehouse. Between the two hours the door is open and the boxers punch the bags; the rest of the day it is locked.", None),
             ('A bout', 'At the ring\'s steps: you and him in your corners, the count-in, the bell. Fists only; body armour does not count. Your jab (FISTS) takes 8 of his health. His punch lands after the wind-up if you are still in his reach. Your health stops at "You go down at": knocked out, you wake outside the door with "Health when thrown out".', None),
             ('Opponents', 'Five, one after another: each must be beaten before the next. A win pays once; after the fifth nobody is left. Their names are in the game file (js/01z-gym-data.js). The pay is also in the economy sheet.', None)]
+TIPS_STORY = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
+            ('Units', 'm = metres; hours on the game clock (0 to 24; a game hour is about a real minute); s = seconds; % as 0 to 100.', None),
+            ('STORY', 'The 68 quests told as one story. Each opens when the quests before it are passed (the order of the connectors, docs/STORY.md - it stays in the game file js/01za-story-data.js); by a giver waiting at a marker (the letter on the maps) or by a call or a page.', None),
+            ('Days', "'A game day later': the next day at the quest's own hour (the missions table). 'That night': the same day when its hour is far enough off.", None),
+            ("Kessler's men", 'Between M09 and M12 Kessler is your enemy: in Dockside his men may pull up and get out to fight.', None)]
 TIPS_MISSIONS = [('ID column', 'How the game finds each row. Do not change it; rows may be moved or sorted.', None),
             ('Units', 'Letters per second, % loudness (0 = silent), seconds.', None),
             ('The missions', 'Only the timing of the dialogue and the cutscenes is here. Each mission itself - its people, steps, lines, cutscenes and rewards - comes from your Word pages.', None)]
@@ -423,6 +431,9 @@ def do_import(path, dry):
     elif NAME == 'places':
         if st['shipsMax'] < st['shipsMin']: errors.append('Settings: Ships at the berths at most (%s) is less than at least (%s)' % (fmt(st['shipsMax']), fmt(st['shipsMin'])))
     elif NAME in ('streets', 'stats', 'missions'): pass
+    elif NAME == 'story':
+        if st['dayTo'] <= st['dayFrom']: errors.append('Settings: a day marker shows until (%s) must be later than from (%s)' % (fmt(st['dayTo']), fmt(st['dayFrom'])))
+        if st['leaveR'] <= st['offerR']: errors.append('Settings: walking away (%s m) must be further than where a quest gets ready (%s m)' % (fmt(st['leaveR']), fmt(st['offerR'])))
     elif NAME == 'gym':
         if st['openTo'] <= st['openFrom']: errors.append('Settings: the gym shuts (%s) must be later than it opens (%s)' % (fmt(st['openTo']), fmt(st['openFrom'])))
         if st['loseHp'] <= st['koHp']: errors.append('Settings: health when thrown out (%s) must be more than where you go down (%s)' % (fmt(st['loseHp']), fmt(st['koHp'])))

@@ -167,6 +167,7 @@
     <div class="menu">
       <button id="resumeBtn" class="big pri" type="button">RESUME</button>
       <button id="pMsBtn" class="big alt" type="button" hidden>MISSIONS</button>
+      <button id="pStoryBtn" class="big alt" type="button" hidden>STORY</button>
       <button id="saveBtn" class="big alt" type="button">SAVE GAME</button>
       <p class="warn" id="saveWhy" hidden></p>
       <p class="sub" id="sleepNote" hidden>TO SAVE, SLEEP IN A SAFEHOUSE (THE GAME ALSO SAVES ITSELF)</p>
@@ -191,6 +192,12 @@
       <p class="sub">REPLAY A CUTSCENE</p><div class="msRow" id="msCuts"></div>
       <div class="menu"><button id="msQuit" class="big alt" type="button">STOP THE MISSION</button></div>
     </div>
+    <div class="menu"><button class="big alt back" type="button">BACK</button></div>
+  </div>
+  <div class="card" id="storyCard" hidden>
+    <h2>STORY</h2>
+    <p class="sub" id="stSub"></p>
+    <div id="stList"></div>
     <div class="menu"><button class="big alt back" type="button">BACK</button></div>
   </div>
   <div class="card" id="msEndCard" hidden>
@@ -629,6 +636,7 @@
 <script src="js/01x-mission-data.js?v=60"></script>
 <script src="js/01y-character-data.js?v=60"></script>
 <script src="js/01z-gym-data.js?v=60"></script>
+<script src="js/01za-story-data.js?v=60"></script>
 <script src="js/02-audio.js?v=60"></script>
 <script src="js/02b-radio.js?v=60"></script>
 <script src="js/02c-music.js?v=60"></script>
@@ -686,6 +694,7 @@
 <script src="js/08zzo-space.js?v=60"></script>
 <script src="js/08zzp-chapter5.js?v=60"></script>
 <script src="js/08zzq-finale.js?v=60"></script>
+<script src="js/08zzr-story.js?v=60"></script>
 <script src="js/08zzj-sideon.js?v=60"></script>
 <script src="js/09-render-core-buildings.js?v=60"></script>
 <script src="js/10-render-city-map.js?v=60"></script>

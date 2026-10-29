@@ -39,7 +39,7 @@ for (const r of NEW_OPTS) {
   $('optRows').appendChild(b);
 }
 paintOpts();
-function newGame() { Object.assign(OPT, NEWOPT); gameMode = newMode; startGame(); }
+function newGame() { Object.assign(OPT, NEWOPT); gameMode = newMode; if (newMode === 'story') OPT.start = 'usual'; startGame(); }   // STORY begins with the arrival at the Colony (js/08zzr)
 
 /* the modes (js/01j): NEW GAME asks first - FREE ROAM goes on to its options; one that is not built yet shows COMING SOON */
 let newMode = 'free';
@@ -112,6 +112,7 @@ function paintPause() {
   $('pStatsBtn').hidden = !statOn(); $('pStatsBtn').textContent = 'STATS · ' + statPct() + '%';   // js/08zs
   const why = saveBlock(), sh = feat('safehouses'); $('saveBtn').hidden = sh; $('saveBtn').disabled = !!why; $('saveWhy').textContent = why; $('saveWhy').hidden = !why || sh;   // with safehouses you save by sleeping in one (js/08s)
   $('sleepNote').hidden = !sh || gameMode === 'test'; $('pMsBtn').hidden = gameMode !== 'test';   // MISSIONS TEST: the list (js/08zy)
+  $('pStoryBtn').hidden = !storyOn() || !feat('storyPage');            // STORY: the story so far (js/08zzr)
 }
 function quitToTitle() {
   if (!saveBlock()) putSave('auto', makeSave(lastThumb));
@@ -175,7 +176,7 @@ function makeSave(thumb) {
     P: { x: P.x, y: P.y, ang: P.ang, hp: P.hp, armor: P.armor, weapon: WEAPONS[P.weapon].id, arms: Object.fromEntries(WEAPONS.map((w, i) => [w.id, [P.mag[i], P.ammo[i], P.has[i] ? 1 : 0]])), score: P.score, kills: P.kills, maxStars: P.maxStars,
       outfit: Object.assign({}, P.outfit), wardrobe: [...P.wardrobe], boostH: P.boostH || 0 },
     car: c ? { type: c.type, color: c.color, hp: c.hp, x: c.x, y: c.y, ang: c.ang, radio: c.radio, tune: c.tune || undefined } : null,
-    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(), marina: marinaSave(), stunts: stuntSave(), ix: ixSave(), gym: gymSave(),
+    ramp: { found: [...rampFound], done: [...rampDone] }, dlv: dlvSave(), jobs: jobSave(), races: raceSave(), safe: safeSave(), stats: statSave(), marina: marinaSave(), stunts: stuntSave(), ix: ixSave(), gym: gymSave(), story: storySave(),
     sky: { hour: SKY.hour, kind: SKY.kind, left: SKY.left, cloud: SKY.cloud, rain: SKY.rain, fog: SKY.fog, storm: SKY.storm, wet: SKY.wet }, thumb: thumb || '' };
 }
 function saveSpot(sv) {                              // where a saved game puts you (null: the spot is no good on this map, start at the usual one)
@@ -221,6 +222,7 @@ function applySave(sv) {                             // called by resetGame (js/
   ixLoad(sv.ix);                                                  // the interiors: rare vehicles taken, lock-ups open (js/08zx)
   gymLoad(sv.gym);                                                // BULL'S GYM: the bouts won (js/08zzg)
   stuntLoad(sv.stunts);                                           // the stunt jumps done (js/08zw)
+  storyLoad(sv.story);                                            // STORY: the quests passed and open, the clock, the unlocks and the choices (js/08zzr)
   rampFound = new Set(ids(rp.found)); rampDone = new Set(ids(rp.done)); for (const id of rampDone) rampFound.add(id);
   const s = sv.sky;
   if (s) {

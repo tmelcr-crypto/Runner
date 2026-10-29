@@ -1,6 +1,6 @@
 'use strict';
 /* ---------- 1j. GAME MODES ----------
-   FREE ROAM: the city as it is, no story - do as you like. STORY: missions told as a story, built later (ready: false shows it as
+   FREE ROAM: the city as it is, no story - do as you like. STORY: the quests told as one story (js/08zzr; ready: false would show it as
    COMING SOON on the New game screen). MISSIONS TEST: each new mission on its own, picked from a list, to try before it goes into
    STORY (js/08zy); its column is STORY's, it starts with everything and is never saved. features: which features each mode has, yes or no per mode. Every new feature gets a row
    here - free roam, story or both - and the game asks feat(id) before using it. A saved game keeps its mode.
@@ -9,7 +9,7 @@
 const MODE_TABLE = /*MODE-JSON*/{
 "modes": [
   {"id": "free", "name": "FREE ROAM", "ready": true, "note": "The whole city and no story: steal cars, fight, shop, find weapons, play rampages."},
-  {"id": "story", "name": "STORY", "ready": false, "note": "Missions told as a story. Coming later."},
+  {"id": "story", "name": "STORY", "ready": true, "note": "Danny Cruz lands in Miravista with nothing, looking for his brother: the main story in five chapters and five side lines, 68 quests."},
   {"id": "test", "name": "MISSIONS TEST", "ready": true, "note": "Every new mission, to try before it goes into STORY: pick one from the list. The city as STORY will have it; you start with everything; never saved."}
 ],
 "features": [
@@ -121,6 +121,8 @@ const MODE_TABLE = /*MODE-JSON*/{
   {"id": "dailyIncome", "name": "The daily income after the finale", "free": false, "story": true, "test": false, "note": "Paid into your cash at midnight every game day: Papa Joe's cabs and Rosa's market always; Marco's boats, the casino's take, the Colony and the space tours for the side lines done (economy table)."},
   {"id": "craneDefaced", "name": "Crane's billboards sprayed over after the finale", "free": false, "story": true, "test": true, "note": "LOSER across his face, handcuffs, drips. The rallies stop. FREE ROAM keeps them clean (and has none). MISSIONS TEST: once M30 is passed, until the game is left."},
   {"id": "finaleTourist", "name": "The sunburnt tourist after the finale", "free": false, "story": true, "test": true, "note": "By the Colony's door: has anybody seen his suitcase? (A wink at the next story.)"},
+  {"id": "storyPage", "name": "The STORY page in the pause menu", "free": false, "story": true, "test": false, "note": "The chapters and side lines: each quest done or open, and where (and when) the next one starts."},
+  {"id": "kesslerHunt", "name": "Kessler's men in Dockside (M09 to M12)", "free": false, "story": true, "test": false, "note": "Kessler is your enemy between M09 and M12: in Dockside a car of his men may pull up and they get out to fight (story table, Kessler's men)."},
   {"id": "golfClub", "name": "The Fairway Isles golf clubhouse (top-down interior)", "free": true, "story": true, "test": true, "note": "A glass clubhouse on Fairway Isles' lawns: a car park, a terrace with umbrella tables, a putting green; inside (its green roof turns see-through) the bar with a barman, dining tables with golfers, trophy cases and a fireplace. Open by day (places table, Clubhouse); locked at night. The quest M21 meets Councilman Pratt there. Off: the lawn stays empty."},
   {"id": "rallies", "name": "Crane's rallies at Bayfront Park", "free": false, "story": true, "test": true, "note": "Crane speaks from the band shell to a crowd every game day at noon (places table, Rally) - in STORY after M15 until the election (chapter 5); MISSIONS TEST plays M15's rally."},
   {"id": "ottoShop", "name": "OTTO'S PRINTING in Mercado", "free": true, "story": true, "test": true, "note": "Old Otto's print shop: its sign over a Mercado shop front for good (nothing to do inside); the forger of P3."},

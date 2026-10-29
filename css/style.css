@@ -742,3 +742,16 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 #credits .crRow b{display:block;font-size:13px}#credits .crRow small{display:block;font-size:10px;opacity:.8;letter-spacing:1px;font-family:var(--f-body,sans-serif)}
 #credits .crEnd{margin-top:60px;font-size:40px}
 @keyframes crRoll{from{transform:translateY(0)}to{transform:translateY(calc(-100% - 100vh))}}
+
+/* STORY (js/08zzr): a chapter's title card, the STORY page */
+#stCard{position:fixed;left:0;right:0;top:34%;z-index:40;text-align:center;pointer-events:none;color:#fff;text-shadow:0 0 12px #ff3fae,0 2px 0 #000;transition:opacity .6s}
+#stCard b{display:block;font-size:clamp(28px,6vw,56px);letter-spacing:.12em}
+#stCard span{display:block;margin-top:6px;font-size:clamp(16px,3.4vw,30px);letter-spacing:.3em;color:#ffd23f}
+#stCard.out{opacity:0}
+#stList{max-height:56vh;overflow-y:auto;text-align:left;margin:6px 0 10px}
+#stList h3{font-size:12px;margin:12px 0 4px;color:#ffd23f;letter-spacing:.08em}
+#stList ul{list-style:none;padding:0;margin:0;font-size:11px;line-height:1.7}
+#stList li.done{opacity:.6}
+#stList li.open{color:#b6ff3c}
+#stList li small{display:block;margin-left:16px;color:#cfd3e6;font-size:10px;line-height:1.4}
+#stList li.more{opacity:.5;font-style:italic}

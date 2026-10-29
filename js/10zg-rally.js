@@ -34,7 +34,7 @@ function rallyCheer() {                     // the crowd roars: confetti over th
 function rallyTick(dt) {                    // js/15 update
   if (RALLY.ms) { if ((RALLY.cheerT -= dt) <= 0) { RALLY.cheerT = rand(10, 16); rallyCheer(); } }
   else {
-    const S = rallyShell(), h = SKY.hour, want = feat('rallies') && !msTest() && !MS_UNLOCK.finale && !(typeof MS !== 'undefined' && MS.on) && S && h >= PLC.rallyHour && h < PLC.rallyHour + PLC.rallyLen && dist(P.x, P.y, S.x, S.y) < 1400;
+    const S = rallyShell(), h = SKY.hour, want = feat('rallies') && storyOn() && stDone('m15') && !MS_UNLOCK.finale && !(typeof MS !== 'undefined' && MS.on) && S && h >= PLC.rallyHour && h < PLC.rallyHour + PLC.rallyLen && dist(P.x, P.y, S.x, S.y) < 1400;
     if (want && !RALLY.on) rallyUp(false); else if (!want && RALLY.on) rallyDown();
     if (RALLY.on && (RALLY.cheerT -= dt) <= 0) { RALLY.cheerT = rand(10, 16); rallyCheer(); }
   }

@@ -60,10 +60,11 @@ $('pMsBtn').addEventListener('click', () => { MS.fromNew = false; showCard('msCa
 function msStart(id, k) {                  // from the list (or RETRY / a step): fresh, at its start, or set up as if the steps before were done
   const m = MISSIONS[id], s = MSCRIPT[id]; if (!m || !s) return;
   msClear(); closeMenus(); state = 'play';
-  if (P.car) exitCar(true); P.stars = 0; P.heat = 0; resetPolice();
-  Object.assign(MS, { on: true, id, m, s, k: -1, t: 0, A: { list: [] }, guide: null, mark: null, end: null });
+  const story = storyOn(), keep = story && !STQ[id].place ? { x: P.x, y: P.y, ang: P.ang, car: P.car } : null;   // STORY: it begins where you are (js/08zzr)
+  if (!story) { if (P.car) exitCar(true); P.stars = 0; P.heat = 0; resetPolice(); }
+  Object.assign(MS, { on: true, id, m: story ? stMet(m) : m, s, k: -1, t: 0, A: { list: [] }, guide: null, mark: null, end: null });   // STORY: "we've met" lines when the other line came first
   if (msTest()) { P.hp = hpMax(); P.armor = armorMax(); }
-  s.setup(MS.A);
+  s.setup(MS.A); if (keep) stKeep(MS.A, keep);
   for (let j = 0; j < k; j++) if (s.steps[j].jump) s.steps[j].jump(MS.A);
   msEnter(k || 0);
 }
@@ -101,7 +102,7 @@ function msClear() {                        // the mission's people and vehicles
   $('msObj').hidden = true; msBarOff(); $('msInfo').textContent = ''; $('pager').hidden = true; MS.pageT = 0; msRingStop(); if (MS_MARK) MS_MARK.visible = false; if (MS_BAG) MS_BAG.visible = false;
 }
 function msFail(why) {
-  const id = MS.id; msClear();
+  const id = MS.id; msClear(); if (storyOn()) stFailed(id);
   Snd.tone(330, 160, 0.5, 0.12, 'sawtooth');
   msEndCard('MISSION FAILED', why, [], id);
 }
@@ -111,13 +112,15 @@ function msPassed() {
   if (MS_LINE_END[id]) MS_CHOICE[MS_LINE_END[id]] = 'done';
   if (r.unlock) msUnlock(r.unlock);
   if (r.cash > 0) addScore(r.cash, P.x, P.y, 'MISSION');
+  if (storyOn()) stPassed(id);                                       // STORY: done, the rewards, the quests it opens (js/08zzr)
   Snd.tone(523, 784, 0.18, 0.12, 'square'); setTimeout(() => Snd.tone(784, 1046, 0.25, 0.12, 'square'), 180);
   const list = [r.cash > 0 && money(r.cash), ch && 'CHOICE: ' + ch, r.vehicle && 'VEHICLE: ' + r.vehicle, r.clothes && 'CLOTHES: ' + r.clothes, r.place && 'PLACE: ' + r.place, r.contact && 'CONTACT: ' + r.contact, r.police && 'POLICE: ' + r.police, r.next && 'NEXT: ' + r.next].filter(Boolean);
   msEndCard('MISSION PASSED', m.no + ' · ' + m.title, list, id);
 }
 function msEndCard(head, sub, list, id) {   // over the game: what happened, then RETRY, MISSIONS or CARRY ON
   $('msEndHead').textContent = head; $('msEndHead').className = head === 'MISSION PASSED' ? 'ok' : 'bad'; $('msEndSub').textContent = sub;
-  $('msEndList').innerHTML = list.map(t => '<li>' + t + '</li>').join('') + (list.length > 1 && msTest() ? '<li class="note">MISSIONS TEST: only the cash is given; the rest comes with STORY.</li>' : '');
+  $('msEndList').innerHTML = list.map(t => '<li>' + t + '</li>').join('') + (list.length > 1 && msTest() ? '<li class="note">MISSIONS TEST: only the cash is given; the rest comes with STORY.</li>' : '') + (storyOn() && head !== 'MISSION PASSED' ? '<li class="note">TRY AGAIN FROM ITS MARKER OR THE NEXT CALL - NOTHING IS LOST.</li>' : '');
+  $('msRetry').hidden = $('msToList').hidden = storyOn();            // STORY: no replays here (MISSIONS TEST plays any quest)
   $('msRetry').onclick = () => msStart(id, 0);
   pauseRet = 'play'; state = 'pause'; hush(); showCard('msEndCard', true);
 }
@@ -1080,7 +1083,7 @@ MSCRIPT.q06 = (() => {
     'ONE TOWER': A => [
       { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [1, 2], enter: () => { face(A.marco, P); face(A.lucia, P); } },
       { dur: 4, cam: 'CLOSE', at: () => A.marco, line: [3, 4], enter: () => { A.marco.arm = gunIdx('shotgun'); Snd.tone(220, 140, 0.08, 0.1, 'square'); } },
-      { dur: 4, cam: 'WIDE', at: () => at(A.door.x - 40, A.door.y + 40), line: [5, 6], enter: () => { A.lucia.arm = gunIdx('pistol'); face(A.lucia, A.mycar); face(A.marco, A.mycar); } }],
+      { dur: 4, cam: 'WIDE', at: () => at(A.door.x - 40, A.door.y + 40), line: [5, 6], enter: () => { A.lucia.arm = gunIdx('pistol'); face(A.lucia, A.mycar || P); face(A.marco, A.mycar || P); } }],
     'THE TOP': A => [
       { dur: 4, cam: 'CLOSE', at: () => A.nico, line: 14, enter: () => { face(A.nico, P); for (const g of A.guards) face(g, P); } },
       { dur: 3, cam: 'CLOSE', at: () => A.marco, line: 15, enter: () => face(A.marco, A.nico) },
