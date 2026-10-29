@@ -169,7 +169,7 @@ function msKey() {
   const s = MS.on && MS.start; if (!s || P.car || P.dead || P.act || state !== 'play' || CUT.on || MS.talk) return null;
   const t = s.at(); return t && !t.dead && dist(P.x, P.y, t.x, t.y) < 60 ? s : null;
 }
-function msUse(s) { MS.start = null; $('msBtn').hidden = true; if (s === MS.ring) MS.ring = null; s.go(); }
+function msUse(s) { MS.start = null; $('msBtn').hidden = true; if (s === MS.ring) MS.ring = null; if (storyOn()) stUsed(); s.go(); }   // STORY: START pressed or the phone answered - under way (js/08zzr)
 function msUi() {                          // every frame (js/14): the button by you
   const k = msKey(), b = $('msBtn'); if (!b) return;
   if (!k) { if (!b.hidden) b.hidden = true; return; }

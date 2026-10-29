@@ -103,6 +103,7 @@ function stBegun(id) {                     // under way: the chapter's title car
   const first = STORYMODE_TABLE.quests.find(q => q.line === L.id);
   if (first && first.id === id) stCard(L.name);
 }
+function stUsed() { const O = STY.offer; if (O && O.id === MS.id) { STY.offer = null; stBegun(O.id); } }   // START MISSION pressed (or the call answered): no longer just set up
 function stDrop() { const O = STY.offer; STY.offer = null; msClear(); if (O && O.me) stBack(O.me, O.set); }   // walked off, or the call not answered: it waits again, nothing changed
 const stSnap = () => ({ outfit: Object.assign({}, P.outfit), wardrobe: P.wardrobe.slice() });   // the clothes a quest's setup may put on Danny (S2's coat, the guard's uniform)
 function stBack(was, set) {                // a setup taken down: what it put on goes again (what you changed since stays); weapons: the quests' own cleanup
