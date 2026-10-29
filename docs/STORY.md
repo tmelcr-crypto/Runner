@@ -1,7 +1,7 @@
 # Story mode - notes and open items
 
-Story mode is built later (it shows as COMING SOON). This file collects what the owner asked to keep for it, so nothing is lost.
-When work on story mode starts, go through the open items with the owner first.
+STORY mode is built (October 2026, `js/08zzr-story.js` and the story table `js/01za-story-data.js`; see Building STORY below). This file
+collects what the owner asked to keep for it, so nothing is lost.
 
 ## Open items
 
@@ -69,6 +69,9 @@ reference picture's style - 48 x 75, transparent, the game drawing the dark grou
 the table now, drawn from the owner's answers 21-107 (October 2026); the minor people come with their quests.
 
 ## Approval list
+
+The owner approved all 68 quests as they are (October 2026), and STORY was built from them. MISSIONS TEST keeps every quest
+to play again; a new quest is still tested there first.
 
 | Quest | State | Notes |
 | --- | --- | --- |
@@ -222,7 +225,30 @@ the connectors below add what happens between quests. Filled in as each quest ar
   - **The side lines' gifts to the finale**: Varga - Marco's speedboat to Crane's dock (and Marco fights); Prison - Sal's tunnel from the old boathouse to the folly (and Sal fights); Colony - Esther's laundry van through the gate; Space - every guard on the map (Iris' satellite); Casino - Del's armoured van for the chase in M30.
   - **After M30**: the end - the credits, then free play. Mateo is a contact; the daily income at midnight (STORY only: Joe's cabs and Rosa's market always, the side lines' businesses when done - economy table); Crane's billboards sprayed over and the rallies stopped for good; the sunburnt tourist by the Colony's door; Crane's estate stays guarded (answer 197).
   - **Decided while building (ask to change)**: the estate was fitted to Pearl Key's south peninsula (map remodel 19) - the gate on the causeway road (north), the mansion with its door north, the helipad east, the folly in the west garden, the dock gate and jetty south; the **old boathouse** for Sal's tunnel stands on the shore outside the west wall; the LEFT LUGGAGE lockers stand just inside the lunapark's gate, west of it (clear of the big wheel); the FBI field office is a new unique building in Palm Heights (161 now); M25's party is round the statue in the west garden, your weapons are held at the gate (as in Quest 05) and you lose the chase 260 m from his men and 150 m off Pearl Key; M26's race clock is 2:30; in M27 the crane lifts slowly while you are within 250 m (about 50 s to the crusher) and Joe is taken home to the Colony; in M28 Nina waits at the Colony's door rather than the newsroom, and the helicopter has 400 health, a burst every 3.5 s, 35% of shots hitting for 16; in M29 the way in goes by the first that applies - the dock (Varga), the tunnel (Prison), the van (Colony), a charge; Sal waits at the folly whenever the Prison line is done; the FBI agents open the gate; your friends can fall without failing the quest; in M30 Crane drives for the terminal's drop-off on his way to the jet, and the quest fails if he reaches it; Special Agent Reyes is a new character (letter F).
-- **All 68 quests are built** in MISSIONS TEST (October 2026): STORY is built in one piece once the owner has approved every one, with the connectors above.
+- **All 68 quests are built** in MISSIONS TEST (October 2026) and approved by the owner; STORY joins them with the connectors above.
+
+## Building STORY (October 2026, answers 198-206 in `docs/STORY-QA.md`)
+
+- **The order**: the connectors above as a table - each quest's line, the quests before it (`after`) and how long after (`wait`: day -
+  the next game day at its own hour, same - that night, now - at once), in `js/01za-story-data.js` (the settings in it:
+  `python3 tools/settings_sheet.py story export story.numbers`). How each starts (a marker, a call, a page) comes from the missions table.
+- **The start** (198, 199): a new STORY game opens with M01's arrival; Danny has €0, his fists and no car (the Colony room on credit).
+- **The clock** (200): "a game day later" is the game clock - the next day at the quest's hour (or 9:00); a quest's own hour moving
+  the sky does not count as time gone by.
+- **Kessler's men** (201): from M09 until M12, in Dockside (modes table `kesslerHunt`; the numbers in the story table).
+- **The STORY page** (202): on the pause menu (modes table `storyPage`).
+- **The police** (203): a marker quest says LOSE THE POLICE FIRST; a call waits until they are gone.
+- **Timed calls** (204): M13, M18 and M26 ring only near where they begin.
+- **Your own car** (205): no car is put out; a quest's "your car" is the one you came in, else none.
+- **No replays** (206): a passed quest is done; MISSIONS TEST plays any quest again.
+- **Decided while building (ask to change)**: a marker quest is set up when you come within 45 m and goes quietly 120 m off before
+  START (story table); day markers 6:00-20:00, night markers the rest; an unanswered call rings for 30 s and again an hour later; a
+  failed quest waits until you have walked off its marker before it sets up again; the first quest of each main chapter shows the
+  chapter's title card; the rewards as given: the safehouses (flat M12, loft M18 and M19, penthouse M24), Marco's captain's cap
+  (Quest 01) and Mateo's chauffeur's cap (M08) as two new reward hats (the clothes table, a peaked cap), the guard's and prison guard's
+  uniforms, the lab coat and the flight suit to the wardrobe, Marco's white speedboat to your first free berth at Sunset Harbor, the
+  C8 armoured van to the first free space of a safehouse of yours; a quest's setup that dresses Danny (S2's coat) is undone if you
+  walk off before START; the "we've met" lines (Del in Quest 03 and C1, Dunn in Quest 05 and P2) when the other line came first.
 - **Story-wide things settled** (October 2026, `docs/STORY-QA.md`): the space center's entry (answer 31); the player speaks like
   everyone else (6); a failed quest is retried from its marker with nothing lost (63); STORY saves as now, never during a quest.
 

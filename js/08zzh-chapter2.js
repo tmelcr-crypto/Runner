@@ -108,7 +108,7 @@ MSCRIPT.m08 = (() => {
     P.x = A.g.door.x; P.y = A.g.door.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: by Bull's Gym at night, a car at the kerb
     const k0 = kerbBy(P.x + 40, P.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
     const d = CASM.door, r = S1.road(d[0] + 90, d[1]), k = kerbBy(r.x, r.y); A.bay = at(k.x, k.y); A.bayA = k.ang;   // the valet bay: the kerb by the Royal Flamingo's door
-    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, k.x, k.y) < 70) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, k.x, k.y) < 70) cars.splice(i, 1);
     A.car = msCar('sedan', k.x, k.y, k.ang, '#15161c'); A.car.free = true;      // Crane's town car: the valet is paid, no crime
     const vp = S1.sidewalk(k.x, k.y); A.valet = msPed(vp.x, vp.y, 0, { valet: true, shirt: '#b3122a', pants: '#1a1a20', step: S1.stay, spare: true });
     const [x0, y0, x1, y1] = SALV.area; A.junk = at((x0 + x1) / 2, (y0 + y1) / 2);   // Kessler's chop shop: the junkyard, his man waiting
@@ -233,7 +233,7 @@ MSCRIPT.m10 = (() => {
     const q = S1.free(A.rosa.x, A.rosa.y, 50); P.x = q.x; P.y = q.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.rosa, P);   // MISSIONS TEST: in the market, a car at the kerb
     const k0 = kerbBy(A.mk.street.x, A.mk.street.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
     const cs = IXS.find(S => S.name === 'HARBOR COLD STORE') || IXS[0], r = S1.road(cs.dx, cs.dy + 60), k = kerbBy(r.x, r.y);   // the truck by the cold store's door
-    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, k.x, k.y) < 90) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, k.x, k.y) < 90) cars.splice(i, 1);
     A.store = at(cs.dx, cs.dy); A.truck = msCar('produce', k.x, k.y, k.ang, '#2f8f4f'); A.truck.free = true; A.truck.crates = 8;
   }
   const left = A => A.truck.crates === undefined ? 8 : A.truck.crates, inTruck = A => P.car === A.truck;

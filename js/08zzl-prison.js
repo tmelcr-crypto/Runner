@@ -251,7 +251,7 @@ MSCRIPT.p5 = (() => {
     const st = A.kiosk = L.kiosk(); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; P.swim = false; cam.x = P.x; cam.y = P.y;   // MISSIONS TEST: by the ferry kiosk (marker S)
     const dq = S1.free(st.x + 40, st.y, 6); A.dunn = msPed(dq.x, dq.y, 0, Object.assign(S1.look('guard'), { msName: 'guard', step: S1.stay, spare: true, shield: true })); face(A.dunn, P);
     const r0 = S1.road(st.x - 200, st.y + 150), k0 = kerbBy(r0.x, r0.y);                    // the prison's laundry truck at the kerb (Suds & Sons do Iron Key's washing)
-    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, k0.x, k0.y) < 90) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, k0.x, k0.y) < 90) cars.splice(i, 1);
     A.truck = msCar('truck', k0.x, k0.y, k0.ang, '#f4f6fa'); A.truck.deco = 'laundry';
     const [mx0, my0, , my1] = PRZ.mpier; A.pier = at(mx0 - 10, (my0 + my1) / 2);                 // the mainland ferry pier's land end
     const pa = PRZ.path; A.isle = { x: pa[2][0], y: pa[2][1] - 20, a: Math.atan2(pa[1][1] - pa[2][1], pa[1][0] - pa[2][0]) };   // on the island's path above its pier

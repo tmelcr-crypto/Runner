@@ -67,7 +67,7 @@ MSCRIPT.m14 = (() => {
     P.x = S.inside.x; P.y = S.inside.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y;        // MISSIONS TEST: in the newsroom, a car at the kerb
     const r0 = S1.road(S.door.x, S.door.y + 80), k0 = kerbBy(r0.x + 60, r0.y); A.mycar = msCar('estate', k0.x, k0.y, k0.ang, '#3d6fa8');
     const b = bank(), rb = S1.road(b.cx, b.cy), kb = kerbBy(rb.x, rb.y);                      // the courier's car at the bank's kerb
-    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, kb.x, kb.y) < 90) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, kb.x, kb.y) < 90) cars.splice(i, 1);
     A.car = msFoeCar('sedan', kb.x, kb.y, kb.ang, { mode: 'park', crew: 1, gun: null, group: 'courier', speed: N().carSpeed, color: '#2a2d36' });
     A.bankOut = S1.free(kb.x, kb.y, 34); A.wait = at(kb.x, kb.y);
     const g = gasNorth(), L = loft();
@@ -249,7 +249,7 @@ MSCRIPT.m16 = (() => {
     for (const u of Y.units) { const d = ixWorld(u, 0, u.hd + 40); if (dist(d.x, d.y, rd.x, rd.y) > dist(Y.cx, Y.cy, rd.x, rd.y) + 20) continue; if (!U || dist(u.cx, u.cy, del.S.cx, del.S.cy) > dist(U.cx, U.cy, del.S.cx, del.S.cy)) U = u; }
     U = A.U = U || Y.units[0]; U.ms = true;
     const vp = ixWorld(U, 0, U.hd + 34), va = Math.atan2(vp.y - U.cy, vp.x - U.cx) + Math.PI / 2;
-    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, vp.x, vp.y) < 120) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, vp.x, vp.y) < 120) cars.splice(i, 1);
     A.van = msFoeCar('truck', vp.x, vp.y, va, { mode: 'park', crew: 1, gun: 'pistol', group: 'sachs', speed: N().vanSpeed, color: '#2a2a32', crewHp: N().menHp, shirt: look.shirt, pants: look.pants });
     A.men = [[-24, 20], [22, 22], [0, 52]].map(([x, z]) => { const q = ixWorld(U, x, U.hd + z); return msFoe(q.x, q.y, Object.assign({ gun: 'pistol', group: 'sachs', hp: N().menHp, name: 'craneman' }, look)); });
     for (const s of [-1, 1]) { const q = S1.free(A.front.x + s * 30, A.front.y, 6); A.men.push(msFoe(q.x, q.y, Object.assign({ gun: 'smg', group: 'sachs', hp: N().menHp, name: 'craneman', a: Math.atan2(fy, fx) }, look))); }   // the lookouts at the street side

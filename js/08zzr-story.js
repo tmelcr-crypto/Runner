@@ -22,6 +22,7 @@ const stDone = id => !!STY.done[id];
 const stHour = id => { const n = MISSIONS[id] && MISSIONS[id].numbers; return n && typeof n.hour === 'number' ? n.hour : null; };
 const stNight = h => h !== null && (h >= STM.dayTo || h < STM.dayFrom);
 const stCall = id => MISSIONS[id] && MISSIONS[id].start === 'phone';
+const stMine = c => storyOn() && !!c && c === STY.car;          // STORY: your own car - a quest clearing its spot leaves it be (js/08zy and the chapter files)
 const MS_CHOICE_TEST = Object.assign({}, MS_CHOICE);           // MISSIONS TEST's switches as they start (js/08zy)
 const MS_CHOICE_STORY = { kessler: 'finished', files: 'police', tip: 'trusted', proof: 'bay tv', varga: 'not done', casino: 'not done', prison: 'not done', colony: 'not done', space: 'not done' };
 
@@ -49,14 +50,14 @@ const stOpen = id => !stDone(id) && STY.at[id] !== undefined && STY.clock >= STY
 /* ---------- where a marker quest's giver waits (set up once, read, taken down again) ---------- */
 function stSpot(id) {
   if (STY.mk[id]) return STY.mk[id];
-  const keep = { x: P.x, y: P.y, ang: P.ang, hour: SKY.hour, cx: cam.x, cy: cam.y };
+  const keep = { x: P.x, y: P.y, ang: P.ang, hour: SKY.hour, cx: cam.x, cy: cam.y }, me = stSnap();
   let t = null, s0 = null;
   try {
     Object.assign(MS, { on: true, id, m: MISSIONS[id], s: MSCRIPT[id], k: -1, t: 0, A: { list: [] }, guide: null, mark: null, end: null, probe: true });
     MS.s.setup(MS.A); s0 = { x: P.x, y: P.y }; msEnter(0);
     const st = MS.start, mk = MS.mark; t = st && st.at ? st.at() : typeof mk === 'function' ? mk() : mk;
   } catch (e) { console.error('STORY: ' + id, e); }
-  MS.probe = false; msClear(); SKY.hour = keep.hour; STY.lastH = keep.hour;
+  const set = stSnap(); MS.probe = false; msClear(); SKY.hour = keep.hour; STY.lastH = keep.hour; stBack(me, set);
   Object.assign(P, { x: keep.x, y: keep.y, ang: keep.ang }); cam.x = keep.cx; cam.y = keep.cy;
   const at = t || s0 || { x: P.x, y: P.y };
   return STY.mk[id] = { x: at.x, y: at.y, sx: (s0 || at).x, sy: (s0 || at).y };
@@ -94,15 +95,20 @@ function storyTick(dt) {
   }
 }
 function stBegin(id, kind, s) {            // set the quest up where you are (js/08zy msStart, its STORY path)
-  msStart(id, 0); if (!MS.on) return;
-  STY.offer = { id, kind, x: s ? s.x : P.x, y: s ? s.y : P.y, t: 0 };
+  const me = stSnap(); msStart(id, 0); if (!MS.on) return;
+  STY.offer = { id, kind, x: s ? s.x : P.x, y: s ? s.y : P.y, t: 0, me, set: stSnap() };
 }
 function stBegun(id) {                     // under way: the chapter's title card for its first quest
   const L = STL[STQ[id].line]; if (!L || !L.ch) return;
   const first = STORYMODE_TABLE.quests.find(q => q.line === L.id);
   if (first && first.id === id) stCard(L.name);
 }
-function stDrop() { STY.offer = null; msClear(); }               // walked off, or the call not answered: it waits again
+function stDrop() { const O = STY.offer; STY.offer = null; msClear(); if (O && O.me) stBack(O.me, O.set); }   // walked off, or the call not answered: it waits again, nothing changed
+const stSnap = () => ({ outfit: Object.assign({}, P.outfit), wardrobe: P.wardrobe.slice() });   // the clothes a quest's setup may put on Danny (S2's coat, the guard's uniform)
+function stBack(was, set) {                // a setup taken down: what it put on goes again (what you changed since stays); weapons: the quests' own cleanup
+  for (const sl in set.outfit) if (P.outfit[sl] === set.outfit[sl] && set.outfit[sl] !== was.outfit[sl]) P.outfit[sl] = was.outfit[sl];
+  for (const id of set.wardrobe) if (!was.wardrobe.includes(id)) { const i = P.wardrobe.indexOf(id); if (i >= 0) P.wardrobe.splice(i, 1); }
+}
 function stOwnCar(A, keep) {               // STORY: no car put out for you - the quest's "your car" is the one you came in, else none (answer 205)
   if (!A.mycar) return;
   const c = A.mycar, i = cars.indexOf(c); if (i >= 0 && P.car !== c) cars.splice(i, 1); A.list = A.list.filter(o => o !== c);
@@ -187,7 +193,8 @@ function stWhere(id) {                     // where the next quest starts, in wo
   if (!stOpen(id)) { const t = STY.at[id]; if (t === undefined) return ''; const days = Math.floor(t / 24) - Math.floor(STY.clock / 24), h = t % 24, hh = String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.round(h % 1 * 60)).padStart(2, '0');
     return (days <= 0 ? 'LATER TODAY' : days === 1 ? 'TOMORROW' : 'IN ' + days + ' DAYS') + ' AT ' + hh; }
   if (stCall(id)) return (ch ? ch.name : 'SOMEONE') + ' WILL CALL' + (STQ[id].near ? ' (NEAR ' + (m.where || '').toUpperCase().split(/[;,]/)[0] + ')' : '');
-  return (st.marker || ((ch ? ch.letter + ' - ' + ch.name : '') + ' · ' + (m.where || ''))).toUpperCase() + (stWindow(id) ? '' : stNight(stHour(id)) ? ' · AT NIGHT' : ' · BY DAY');
+  const t = (st.marker || ((ch ? ch.letter + ' - ' + ch.name : '') + ' · ' + (m.where || ''))).toUpperCase(), w = stWindow(id) ? '' : stNight(stHour(id)) ? 'AT NIGHT' : 'BY DAY';
+  return t + (w && !t.includes(w) ? ' · ' + w : '');
 }
 function paintStory() {
   const el = $('stList'); if (!el) return; const rows = [];

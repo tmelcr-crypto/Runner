@@ -387,7 +387,7 @@ MSCRIPT.m23 = (() => {
     if (c) { exitCar(true); c.hp = c.maxhp * 0.06; c.noEnter = true; c.vx *= 0.2; c.vy *= 0.2; }
     toast('YOUR CAR IS WRECKED', true); Snd.smash && Snd.smash('booth', 1);
     const h = A.hol, d = Math.max(1, dist(P.x, P.y, h.x, h.y)), r = S1.road(P.x + (h.x - P.x) / d * N().keysM, P.y + (h.y - P.y) / d * N().keysM), k = kerbBy(r.x, r.y);
-    for (let i = cars.length - 1; i >= 0; i--) if (!cars[i].ms && dist(cars[i].x, cars[i].y, k.x, k.y) < 40) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (!cars[i].ms && cars[i] !== P.car && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, k.x, k.y) < 40) cars.splice(i, 1);
     A.town = msCar('sedan', k.x, k.y, k.ang, '#14161d'); popup(k.x, k.y - 14, 'A BLACK TOWN CAR - THE KEYS IN IT', '#b6ff3c');
     h.fc.speed = N().carSpeed * N().slowK;
   }

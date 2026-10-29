@@ -99,6 +99,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
   background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 4px),radial-gradient(ellipse at 50% 30%,rgba(28,33,80,.62) 0,rgba(7,3,15,.9) 72%)}
 #overlay.dim{background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 2px,transparent 2px 4px),rgba(7,3,15,.76)}   /* paused: the game stays in view */
 html.menus #touch{visibility:hidden}   /* no touch sticks and buttons under a menu */
+html.menus #msLive,html.menus #pager,html.menus #phone{visibility:hidden}   /* nor a live line, the pager or the phone over a menu (they wait) */
 .card{width:min(720px,100%);margin:auto;text-align:center}
 h1{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,7vw,54px);line-height:1.25;margin:0;color:var(--yellow);text-shadow:4px 4px 0 var(--hot)}
 .tag{font-family:var(--f-display);font-size:9px;letter-spacing:2px;color:var(--cyan);margin:14px 0 20px}
@@ -744,7 +745,7 @@ html.cut #hud,html.cut #touch{visibility:hidden}
 @keyframes crRoll{from{transform:translateY(0)}to{transform:translateY(calc(-100% - 100vh))}}
 
 /* STORY (js/08zzr): a chapter's title card, the STORY page */
-#stCard{position:fixed;left:0;right:0;top:34%;z-index:40;text-align:center;pointer-events:none;color:#fff;text-shadow:0 0 12px #ff3fae,0 2px 0 #000;transition:opacity .6s}
+#stCard{position:fixed;left:0;right:0;top:34%;z-index:29;text-align:center;pointer-events:none;color:#fff;text-shadow:0 0 12px #ff3fae,0 2px 0 #000;transition:opacity .6s}
 #stCard b{display:block;font-size:clamp(28px,6vw,56px);letter-spacing:.12em}
 #stCard span{display:block;margin-top:6px;font-size:clamp(16px,3.4vw,30px);letter-spacing:.3em;color:#ffd23f}
 #stCard.out{opacity:0}

@@ -64,7 +64,7 @@ function msStart(id, k) {                  // from the list (or RETRY / a step):
   if (!story) { if (P.car) exitCar(true); P.stars = 0; P.heat = 0; resetPolice(); }
   Object.assign(MS, { on: true, id, m: story ? stMet(m) : m, s, k: -1, t: 0, A: { list: [] }, guide: null, mark: null, end: null });   // STORY: "we've met" lines when the other line came first
   if (msTest()) { P.hp = hpMax(); P.armor = armorMax(); }
-  s.setup(MS.A); if (keep) stKeep(MS.A, keep);
+  s.setup(MS.A); if (keep) stKeep(MS.A, keep); if (story) STY.lastH = SKY.hour;   // STORY: the quest's own hour is not time gone by
   for (let j = 0; j < k; j++) if (s.steps[j].jump) s.steps[j].jump(MS.A);
   msEnter(k || 0);
 }
@@ -1466,7 +1466,7 @@ MSCRIPT.m05 = (() => {
   function setup(A) {
     SKY.hour = N().hour;
     const rk = S1.rank(2609, 9682); A.rank = at(rk.x, rk.y); A.rk = rk;                   // the airport rank: Joe's cab, dented, four of Kessler's men round it
-    rk.filled = true; for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, rk.x, rk.y) < 160) cars.splice(i, 1);   // no other cabs waiting today
+    rk.filled = true; for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, rk.x, rk.y) < 160) cars.splice(i, 1);   // no other cabs waiting today
     A.cab = msCar('taxi', rk.x, rk.y, rk.ang); A.cab.hp = A.cab.maxhp * 0.25; A.cab.noEnter = A.cab.noWreck = true;   // smashed but never burns: it stands beside Joe
     const kp = S1.sidewalk(rk.x, rk.y); A.joe = msPed(kp.x, kp.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true, shield: true })); A.joe.hp = N().joeHp;   // your shots pass him by; a tough old man
     const ca = rk.ang, cx = Math.cos(ca), cy = Math.sin(ca), rx = -cy, ry = cx;
@@ -1530,7 +1530,7 @@ MSCRIPT.m06 = (() => {
   function setup(A) {
     SKY.hour = N().hour;
     const h = serviceDoor('hospital', 5061, 8248), bay = S1.bay(h.x, h.y);               // the Mercado hospital: Joe at its door, Esther's car in the ambulance bay
-    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && dist(cars[i].x, cars[i].y, bay.x, bay.y) < 70) cars.splice(i, 1);
+    for (let i = cars.length - 1; i >= 0; i--) if (P.car !== cars[i] && !stMine(cars[i]) && dist(cars[i].x, cars[i].y, bay.x, bay.y) < 70) cars.splice(i, 1);
     A.car = msCar('convertible', bay.x, bay.y, bay.ang || 0, '#2ec4b6'); A.car.hp = A.car.maxhp *= N().carTough;   // Esther's turquoise convertible, tougher than most
     A.joe = msPed(h.x, h.y, 0, Object.assign(S1.look('joe'), { msName: 'joe', step: S1.stay, spare: true, shield: true })); A.joe.hp = N().joeHp;
     const st = S1.free(h.x, h.y, 34); P.x = st.x; P.y = st.y; P.vx = P.vy = 0; cam.x = P.x; cam.y = P.y; face(A.joe, P);
