@@ -70,7 +70,7 @@ function castPick(s, list, far) {           // the nearest it can see within far
   for (const t of list) {
     const d = dist(s.x, s.y, t.o.x, t.o.y) * (t.kind === 'ally' ? s.pref || 1 : 1); if (d > far || Math.abs(zOf(s) - zOf(t.o)) > 40) continue;   // a deck or more apart (Skyline One's tower): neither sees the other
     if (d < ad) { ad = d; any = t; }
-    if (d < bd && losClear(s.x, s.y, t.o.x, t.o.y, true, zOf(s))) { bd = d; best = t; }
+    if (d < bd && shotClear(s.x, s.y, t.o.x, t.o.y, zOf(s))) { bd = d; best = t; }
   }
   if (best) return Object.assign(best, { d: bd, see: true });
   return any ? Object.assign(any, { d: ad, see: false }) : null;

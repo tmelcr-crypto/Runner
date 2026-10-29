@@ -317,8 +317,10 @@ MSCRIPT.m17 = (() => {
         if (!MS.start && !P.car) MS.start = { at: () => A.at, label: 'PALM HEIGHTS LOFT', go2: 'GO IN', go: () => sbUse(A.h) }; return false; },
       info: A => SV.on ? 'INSIDE' : Math.round(dist(me().x, me().y, A.at.x, A.at.y) / M) + ' M TO THE LOFT',
       jump(A) { if (P.car) exitCar(true); P.x = A.at.x; P.y = A.at.y; P.vx = P.vy = 0; MS.start = null; if (!SV.on) sbUse(A.h); } },
-    { enter(A) { MS.guide = null; MS.mark = null; },                                            // OPEN Sachs' safe on floor 5, unseen
-      tick: () => { if (SB.ms.item.got && !SB.ms.said) { SB.ms.said = true; msLive([6], { now: true }); } return SB.ms.item.got; },
+    { enter(A) { MS.guide = null; MS.mark = () => SV.on ? null : A.at; },                       // OPEN Sachs' safe on floor 5, unseen
+      tick: A => { if (SB.ms.item.got && !SB.ms.said) { SB.ms.said = true; msLive([6], { now: true }); }
+        if (!SV.on && !MS.start && !P.car && dist(P.x, P.y, A.at.x, A.at.y) < 12 * M) MS.start = { at: () => A.at, label: 'PALM HEIGHTS LOFT', go2: 'GO IN', go: () => sbUse(A.h) };   // out before the safe: back in at the door
+        return SB.ms.item.got; },
       info: () => SV.on ? (SV.fl === 5 ? "SACHS' OFFICE: THE WIDE DOOR" : 'FLOOR ' + SV.fl + ' - SACHS IS ON 5') : 'GO BACK IN',
       jump() { SB.ms.item.got = true; } },
     { enter(A) { MS.mark = null; },                                                             // GET OUT: Sachs, warned, runs for his car

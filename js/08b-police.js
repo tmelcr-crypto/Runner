@@ -169,7 +169,8 @@ function walkTo(q, x, y, sp, dt) {
   return d;
 }
 const copArmed = () => COP.lv.shoot[P.stars] || (COP.lv.shootBack[P.stars] && gameT - PS.armedT < COP.armedFor);
-function clearShot(q, tgt, d) {          // nobody else in the line of fire
+function clearShot(q, tgt, d) {          // nobody else - and no fence or shut gate - in the line of fire
+  if (!shotClear(q.x, q.y, tgt.x, tgt.y)) return false;
   if (!COP.bystanders || d < 1) return true;
   const dx = (tgt.x - q.x) / d, dy = (tgt.y - q.y) / d;
   for (const p of peds) {

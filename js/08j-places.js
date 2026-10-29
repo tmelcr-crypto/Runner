@@ -66,7 +66,7 @@ function postStep(p, dt) {                                        // js/08 updat
 function soldierStep(p, dt) {
   const po = p.post, tgt = P.car || P, d = dist(p.x, p.y, tgt.x, tgt.y); p.cool -= dt;
   if (BASEX.alarm && feat('base') && !P.dead && d < PLC.soldierRange * 1.8) {     // the alarm: after you, but never out of the base
-    const see = losClear(p.x, p.y, tgt.x, tgt.y, true), a = Math.atan2(tgt.y - p.y, tgt.x - p.x); p.ang = p.hd = a;
+    const see = shotClear(p.x, p.y, tgt.x, tgt.y), a = Math.atan2(tgt.y - p.y, tgt.x - p.x); p.ang = p.hd = a;
     const go = !po.fixed && (!see || d > PLC.soldierRange * 0.8) ? 1 : d < 90 ? -0.5 : 0;
     stepInside(p, Math.cos(a) * go, Math.sin(a) * go, 4 * MPS, dt);
     if (see && d < PLC.soldierRange && p.cool <= 0) soldierShoot(p, tgt, d);

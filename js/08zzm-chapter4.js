@@ -501,7 +501,9 @@ MSCRIPT.m24 = (() => {
       info: A => SV.on ? (SV.fl >= A.h.floors ? 'THE PENTHOUSE: THE WIDE DOOR' : 'FLOOR ' + SV.fl + ' - THE PARTY IS ON ' + A.h.floors) : 'BACK IN AT THE DOOR',
       jump(A) { if (!SV.on) goIn(A); SV.fl = A.h.floors; SV.x = 900; SV.fade = 0; } },
     { enter(A) { },                                                                               // TALK TO Pratt: the confession on camera
-      tick(A) { const it = SB.ms && SB.ms.item; if (!it || !it.got) return false;
+      tick(A) { const it = SB.ms && SB.ms.item;
+        if (!SV.on && !(it && it.got) && !MS.start && !P.car && dist(P.x, P.y, A.at.x, A.at.y) < N().doorM * M) MS.start = { at: () => A.at, label: 'THE PENTHOUSE', go2: 'GO IN', go: () => goIn(A) };   // out before the confession: back in at the door
+        if (!it || !it.got) return false;
         if (!A.said) { A.said = true; msSay([5, 6, 7, 8, 9], () => { A.fin = true; }); } return !!A.fin; },
       info: () => SV.on && SV.room && SV.room.party ? 'PRATT, BY THE GLASS' : 'THE WIDE DOOR ON FLOOR 20',
       jump(A) { if (!SV.on) goIn(A); SV.fl = A.h.floors; const d = SV.B.doors.find(o => o.party); SV.room = { door: d, crane: true, party: true, W: 900 }; SV.x = 560; SB.ms.item.got = true; } }];

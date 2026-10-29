@@ -32,16 +32,17 @@ const fitsRace = c => !!c && !c.dead && c.hp > 0 && !c.sunk && !isService(c.t);
 function openRoad(x, y, maxD) {          // the nearest point on a street open to traffic: { e, s, d }
   let best = null; for (const r of nearRoads(x, y, maxD)) if (!RE[r.e].nt && (!best || r.d < best.d)) best = r; return best;
 }
-function fieldNT(x, y) {                 // like js/04 roadFieldTo, but not along driveways: { F: distance from every node, t: the road point }
-  const t = openRoad(x, y, 900); if (!t) return null;
-  const F = new Float64Array(RN.length).fill(Infinity), done = new Uint8Array(RN.length), E = RE[t.e];
-  F[E.a] = t.s; F[E.b] = Math.min(F[E.b], E.len - t.s);
+const NT_COST = 3;                       // the guide line takes a driveway only when it must: it counts three times its length
+function fieldNT(x, y, t0) {             // like js/04 roadFieldTo, but not along driveways: { F: distance from every node, t: the road point }; t0 (the guide line, js/08p): to that road point, driveways too
+  const t = t0 || openRoad(x, y, 900); if (!t) return null;
+  const nt = !!t0, F = new Float64Array(RN.length).fill(Infinity), done = new Uint8Array(RN.length), E = RE[t.e], k0 = E.nt ? NT_COST : 1;
+  F[E.a] = t.s * k0; F[E.b] = Math.min(F[E.b], (E.len - t.s) * k0);
   for (;;) {
     let u = -1, b = Infinity; for (let k = 0; k < RN.length; k++) if (!done[k] && F[k] < b) { b = F[k]; u = k; }
     if (u < 0) break; done[u] = 1;
-    for (const ei of RN[u].e) { const G = RE[ei]; if (G.nt) continue; const v = G.a === u ? G.b : G.a, nd = b + G.len; if (nd < F[v]) F[v] = nd; }
+    for (const ei of RN[u].e) { const G = RE[ei]; if (G.nt && !nt) continue; const v = G.a === u ? G.b : G.a, nd = b + G.len * (G.nt ? NT_COST : 1); if (nd < F[v]) F[v] = nd; }
   }
-  return { F, t };
+  return { F, t, nt };
 }
 function edgePts(e, s0, s1, out) {       // the centre line of edge e from arc length s0 to s1 (either way), added to out
   const E = RE[e], seg = subPoly(E, Math.min(s0, s1), Math.max(s0, s1)); if (s1 < s0) seg.reverse();
@@ -56,9 +57,9 @@ function roadPath(e0, s0, fw0, G, out) { // from (e0, s0), going fw0 (0: whichev
   for (let guard = 0; guard < 400; guard++) {
     let best = -1, bc = Infinity, toT = false;
     for (const ei of RN[node].e) {
-      const Q = RE[ei]; if (Q.nt || ei === prev) continue; const fromA = Q.a === node;
-      if (ei === T.e) { const c = fromA ? T.s : Q.len - T.s; if (c < bc) { bc = c; best = ei; toT = true; } }
-      const c = Q.len + F[fromA ? Q.b : Q.a]; if (c < bc) { bc = c; best = ei; toT = false; }
+      const Q = RE[ei]; if ((Q.nt && !G.nt) || ei === prev) continue; const fromA = Q.a === node, k = Q.nt ? NT_COST : 1;   // G.nt: the guide line's field, driveways too
+      if (ei === T.e) { const c = (fromA ? T.s : Q.len - T.s) * k; if (c < bc) { bc = c; best = ei; toT = true; } }
+      const c = Q.len * k + F[fromA ? Q.b : Q.a]; if (c < bc) { bc = c; best = ei; toT = false; }
     }
     if (best < 0 || !isFinite(bc)) return null;
     const Q = RE[best], fromA = Q.a === node;

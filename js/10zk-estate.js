@@ -24,8 +24,8 @@ function genEstate(L) {
   wall((x0 + L.x - gw / 2) / 2, y0 + t / 2, L.x - gw / 2 - x0, t); wall((L.x + gw / 2 + x1) / 2, y0 + t / 2, x1 - L.x - gw / 2, t);   // the north wall, the gate between
   wall((x0 + D.x - D.gw / 2) / 2, y1 - t / 2, D.x - D.gw / 2 - x0, t); wall((D.x + D.gw / 2 + x1) / 2, y1 - t / 2, x1 - D.x - D.gw / 2, t);   // the south wall, the dock gate in it
   wall(x0 + t / 2, L.y, t, L.h); wall(x1 - t / 2, L.y, t, L.h);
-  ESTATE.gate = { x: L.x, y: y0 + t / 2, w: gw, open: 0, solid: wall(L.x, y0 + t / 2, gw, t), out: { x: L.x, y: y0 - 50 }, in: { x: L.x, y: y0 + 50 } };
-  ESTATE.dock = { x: D.x, y: y1 - t / 2, w: D.gw, open: 0, solid: wall(D.x, y1 - t / 2, D.gw, t), out: { x: D.x, y: y1 + 50 }, in: { x: D.x, y: y1 - 50 }, end: { x: D.x, y: D.y1 - 20 } };
+  ESTATE.gate = { x: L.x, y: y0 + t / 2, w: gw, open: 0, solid: Object.assign(wall(L.x, y0 + t / 2, gw, t), { opens: true }), out: { x: L.x, y: y0 - 50 }, in: { x: L.x, y: y0 + 50 } };
+  ESTATE.dock = { x: D.x, y: y1 - t / 2, w: D.gw, open: 0, solid: Object.assign(wall(D.x, y1 - t / 2, D.gw, t), { opens: true }), out: { x: D.x, y: y1 + 50 }, in: { x: D.x, y: y1 - 50 }, end: { x: D.x, y: D.y1 - 20 } };
   const [fx, fy, fr] = L.fountain; for (let k = 0; k < 3; k++) makeSolid(fx, fy, fr * 1.7, fr * 1.7, k * Math.PI / 6, {});
   const [bx, by, bw, bd] = L.boathouse; makeSolid(bx, by, bw, bd, 0, {}); ESTATE.boathouse = { x: bx, y: by, door: { x: bx + bw / 2 + 16, y: by } };
   const [fox, foy] = L.folly; makeSolid(fox, foy, 30, 30, 0, {}); ESTATE.folly = { x: fox, y: foy, out: { x: fox + 30, y: foy - 6 } };

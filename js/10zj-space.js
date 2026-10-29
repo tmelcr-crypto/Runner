@@ -19,7 +19,7 @@ const rocketGone = () => feat('launchEmpty') && !!MS_UNLOCK.launched;
 
 /* ---------- built with the city (js/10g genPlaces, the space center's part) ---------- */
 function genSpaceGate(g) {                // the gate's solid and its model (the leaf a piece of its own, to slide)
-  const G = SPACE.gate = { g, open: 0, solid: makeSolid(g.x, g.y, 14, g.w, 0, {}), lm: null };
+  const G = SPACE.gate = { g, open: 0, solid: makeSolid(g.x, g.y, 14, g.w, 0, { opens: true }), lm: null };   // opens: a gate (the guide line's way on foot goes through, js/08p)
   G.lm = { cx: g.x, cy: g.y, a: 0, rad: Math.hypot(30, g.w / 2), make: () => makeSpaceGate(), mesh: null }; LMS.push(G.lm); LM_CLEAR.push([g.x, g.y, 50, g.w / 2 + 20]);
 }
 function spaceSite(kind, cx, cy, wx, wy) {   // wx, wy: the building's size east-west and north-south; its door faces east (the road)

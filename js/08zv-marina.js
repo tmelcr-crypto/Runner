@@ -250,7 +250,7 @@ function copBoatDrive(c, dt) {
   const tx = seen ? tgt.x + (tgt.vx || 0) * 0.5 : PS.lx, ty = seen ? tgt.y + (tgt.vy || 0) * 0.5 : PS.ly, d = dist(c.x, c.y, tgt.x, tgt.y);
   c.str = clamp(angDiff(c.ang, Math.atan2(ty - c.y, tx - c.x)) * 2.4, -1, 1); c.hb = false;
   c.thr = !onWater() && d < 200 ? 0.01 : 1;                         // you are ashore: it waits off the shore
-  const K = c.boatCrime; if ((K.cool -= dt) > 0 || P.dead || d > COP.fireRange || !losClear(c.x, c.y, tgt.x, tgt.y, true)) return;
+  const K = c.boatCrime; if ((K.cool -= dt) > 0 || P.dead || d > COP.fireRange || !shotClear(c.x, c.y, tgt.x, tgt.y)) return;
   K.cool = rand(0.8, 1.5); const a = Math.atan2(tgt.y - c.y, tgt.x - c.x);   // the cop on deck fires at you
   tracers.push({ x1: c.x + Math.cos(a) * 16, y1: c.y + Math.sin(a) * 16, x2: tgt.x + rand(-14, 14), y2: tgt.y + rand(-14, 14), life: 0.07 });
   Snd.tone(900, 200, 0.05, 0.06, 'square');

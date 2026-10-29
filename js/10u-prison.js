@@ -28,7 +28,7 @@ function genPrison() {                   // js/04 genWorld: the solids, the draw
   const [x0, y0, x1, y1] = PRZ.walls, t = PRZ.wt, [gx, gy, gw] = PRZ.gate, solid = (x, y, w, h, o) => makeSolid(x, y, w, h, 0, Object.assign({ bld: true, prison: true }, o || {})), W = { pwall: true, ph: PRZ.wh };
   solid((x0 + x1) / 2, y0, x1 - x0 + t, t, W); solid(x0, (y0 + y1) / 2, t, y1 - y0 + t, W); solid(x1, (y0 + y1) / 2, t, y1 - y0 + t, W);
   solid((x0 + gx - gw / 2) / 2, y1, gx - gw / 2 - x0, t, W); solid((gx + gw / 2 + x1) / 2, y1, x1 - gx - gw / 2, t, W);
-  PRI.gateRc = solid(gx, gy, gw + 2, t + 2, { pwall: true, ph: PRZ.wh - 14, prisonGate: true });      // the gate: off while it stands open (js/08zp)
+  PRI.gateRc = solid(gx, gy, gw + 2, t + 2, { pwall: true, ph: PRZ.wh - 14, prisonGate: true, opens: true });      // the gate: off while it stands open (js/08zp)
   for (const [tx, ty] of PRZ.towers) solid(tx, ty, PRZ.ts, PRZ.ts);
   for (const [cx, cy, w, d] of PRZ.blocks) solid(cx, cy, w, d, { ph: 48 });
   { const [cx, cy, w, d] = PRZ.office; solid(cx, cy, w, d, { ph: 36 }); }

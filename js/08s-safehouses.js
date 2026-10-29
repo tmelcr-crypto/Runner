@@ -26,7 +26,7 @@ function safeStart() {                    // a new game starts at the Colony's d
 
 /* ---------- at a door, at the bed, the wardrobe, the safe ---------- */
 function safeKey() {                      // what E does here: { h, k: buy | in | sleep | wardrobe | stash } or null
-  if (!safeOn() || P.car || P.dead || P.act || RAMP.on || state !== 'play') return null;
+  if (!safeOn() || P.car || P.dead || P.act || RAMP.on || state !== 'play' || msBusy()) return null;   // no safehouse during a mission: none bought, none entered (js/08zy)
   for (const h of SAFES) {
     if (dist(h.door.x, h.door.y, P.x, P.y) < 20 && (!h.own || !h.site)) {
       const c = nearestCar(); if (c && dist(c.x, c.y, P.x, P.y) < dist(h.door.x, h.door.y, P.x, P.y)) return null;
@@ -160,7 +160,7 @@ function safeTick(dt) {                   // js/15 update: the doors, coming in,
     const near = dist(h.site.cx, h.site.cy, me.x, me.y) < Math.hypot(h.site.hw, h.site.hd) + 220;
     for (const d of h.doors) {
       let want = false;
-      if (on && h.own && near) { const dd = dist(d.wx, d.wy, me.x, me.y); want = d.k === 'front' ? !P.car && dd < 34 : d.k === 'garage' ? dd < (P.car ? 130 : 40) || shIn(h, me.x, me.y, 0) && dd < 90 : dd < (P.car ? 170 : 70); }
+      if (on && h.own && near && (!msBusy() || shIn(h, me.x, me.y, 0))) { const dd = dist(d.wx, d.wy, me.x, me.y); want = d.k === 'front' ? !P.car && dd < 34 : d.k === 'garage' ? dd < (P.car ? 130 : 40) || shIn(h, me.x, me.y, 0) && dd < 90 : dd < (P.car ? 170 : 70); }   // a mission running: only to let you out
       const was = d.open, rate = dt / (d.k === 'garage' ? 1.4 : d.k === 'gate' ? 1.6 : 0.4);
       if (want) d.open = Math.min(1, d.open + rate); else if (d.open > 0 && !(d.open > 0.15 && doorBusy(h, d))) d.open = Math.max(0, d.open - rate);
       if (d.k !== 'front' && ((was === 0 && d.open > 0) || (was === 1 && d.open < 1))) { const dd = dist(me.x, me.y, d.wx, d.wy); if (dd < 400) Snd.burst(1.2, 240, 100, 0.12 * (1 - dd / 400)); }

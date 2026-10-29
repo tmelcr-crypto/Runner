@@ -36,7 +36,7 @@ function fightBack(p, dt) {              // js/08 updatePeds, every frame while 
       }
     }
   } else {                                                           // a gun: get a clear shot, keep a little distance, fire like a cop
-    const range = Math.min(w.range, COP.fireRange), see = losClear(p.x, p.y, tgt.x, tgt.y, true);
+    const range = Math.min(w.range, COP.fireRange), see = shotClear(p.x, p.y, tgt.x, tgt.y);   // a clear shot: a fence between, and they come round
     if (!see || d > range * 0.8) stepCop(p, ux, uy, NPC_RUN, dt);
     else if (d < 80) stepCop(p, -ux, -uy, NPC_RUN * 0.5, dt);
     else stepCop(p, 0, 0, 0, dt);
