@@ -1,13 +1,13 @@
 'use strict';
 /* ---------- 6c9. THE GUIDE LINE ----------
    While a route or an objective is on - a street race (the way to its start, then the race's own route), a vehicle job's nearest target,
-   the wanted car on its way to the export bay - a faded lime line about a bike wide lies on the streets in the right-hand lane, along the
+   the wanted car on its way to the export bay - a thin faded lime line (75 cm across) lies on the streets in the right-hand lane, along the
    shortest way by road (js/08o roadPath), and on the minimap and the city map. It follows you: worked out again as you go. Mode: guideLine.
    The edge glow: the screen edge toward the guide line's target (a race's next checkpoint) glows lime, and toward a ringing phone booth
    in the booth's own colour on the maps (yellow for a fixed race, cyan), while they are off screen - the way there on the map, wherever
    it is - pulsing, stronger the closer they are; once it is on screen the glow goes. Mode: edgeGlow. */
 const GUIDE = { pts: null, key: '', t: -9, mesh: null, mx: 0, my: 0, ri: -99, G: null, gx: 0, gy: 0 };
-const GUIDE_COL = '#b6ff3c', GUIDE_W = 9, GUIDE_FAR = 6500;
+const GUIDE_COL = '#b6ff3c', GUIDE_W = 4.5, GUIDE_FAR = 6500;   // GUIDE_W: half the line's width (75 cm across)
 const guideMat = new THREE.MeshBasicMaterial({ color: GUIDE_COL, transparent: true, opacity: 0.36, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 function guideTarget() {                 // where to: { x, y } or { route, i } (a race's own line); null: nothing to show
   const ms = msGuide(); if (ms) return ms;                         // a mission's target (js/08zy)

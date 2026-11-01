@@ -234,3 +234,15 @@ shirt over a white T-shirt), transparent around him. Every portrait is redrawn i
 195. The daily income after the finale (STORY only) is paid straight into Danny's cash at midnight each game day, wherever he is, with a message; the amounts per business in the economy table.
 196. The mansion is locked in FREE ROAM: you can break onto the estate's grounds (the alarm, the guards fight back) but its doors stay shut; only the quests open them (STORY, MISSIONS TEST).
 197. After the finale in STORY Crane's billboards stay up, sprayed over with LOSER and handcuffs; the estate stays guarded. FREE ROAM keeps them clean.
+
+## Building STORY mode (October 2026)
+
+198. The 68 quests are approved as they are; STORY is built now in one piece from the approval list and the connectors (`docs/STORY.md`). Any quest can still be changed afterwards.
+199. Danny starts STORY with nothing: EUR 0, no weapons, no car - fists only (the Colony room on credit, answer 40).
+200. "A game day later" runs on the game clock: the next marker or call comes once the clock reaches the next day, at the quest's own hour (a night quest at night); sleeping at a safehouse skips ahead.
+201. From M09 until M12 a car of Kessler's men now and then spots Danny in Dockside and attacks (two or three men, pistols and bats); none after M12.
+202. A STORY page in the pause menu: the chapters and side lines, each quest done or open, and where the next one starts (who and where). The givers' letters stay on the maps.
+203. A quest never starts while the police are after Danny: markers say LOSE THE POLICE FIRST and calls wait until the stars are gone.
+204. A quest whose clock runs from its first second (M26's race to the lockers) calls only once Danny is within reach of it; the other calls ring anywhere.
+205. In STORY Danny always uses his own car - no car is put out for him at a quest's start (quest vehicles that belong to the story, such as Esther's convertible or the produce truck, are still given).
+206. A passed quest is done in STORY; MISSIONS TEST plays any quest again.

@@ -71,6 +71,7 @@ function svcIcons(g, X, Y, q, inView) {     // hospitals: a red cross on white; 
   marinaIcons(g, X, Y, q, inView);                                  // Sunset Harbor and the jetties: an anchor (js/08zv)
   msCastBlips(g, X, Y, q, inView);                                  // a mission's foes and friends (js/08zz)
   safeIcons(g, X, Y, q, inView);                                    // safehouses: a green house for yours, a white one with a € for sale (js/08s)
+  storyIcons(g, X, Y, q, inView);                                   // STORY: each open quest's giver - their letter in their colour (js/08zzr)
 }
 function searchRing(g, x, y, r, ph, lw) {   // where the police are looking for you: a red area with a blinking red / blue edge
   g.beginPath(); g.arc(x, y, Math.max(r, 3), 0, TAU); g.fillStyle = 'rgba(255,59,92,0.18)'; g.fill();

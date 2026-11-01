@@ -272,7 +272,7 @@ MSCRIPT.s5 = (() => {
         p.arm = -1; A.carry = p; const a = Math.atan2(p.y - me4().y, p.x - me4().x); p.post.step = KAHN.walker([at(p.x + Math.cos(a) * 900, p.y + Math.sin(a) * 900)], 3, false); p.wi = 0; MS.mark = () => A.voss; MS.guide = null; },
       tick(A) { const p = A.voss; if (!p) return true; if (p.dead || p.stunT > 0) { A.carry = null; A.bag = S1.dryNear(p.x, p.y); return true; } return false; },
       info: A => A.voss ? Math.round(dist(P.x, P.y, A.voss.x, A.voss.y) / M) + ' M TO VOSS' : '',
-      jump(A) { if (A.voss) A.voss.stunT = 3; } },
+      jump(A) { const p = A.voss; if (p) { p.stunT = 3; A.carry = null; } A.bag = A.bag || S1.dryNear(p ? p.x : A.car.x, p ? p.y : A.car.y); } },   // the codes where she fell (a step jumped to)
     { enter(A) { MS.mark = () => A.bag; MS.guide = () => A.bag; if (A.voss && !A.voss.dead) msLive([6]); },   // PICK UP the launch codes
       tick(A) { if (P.car || dist(P.x, P.y, A.bag.x, A.bag.y) > N().pickM * M) return false; A.bag = null; toast('THE LAUNCH CODES'); Snd.tone(660, 990, 0.2, 0.1, 'triangle'); return true; },
       info: A => A.bag ? Math.round(dist(me4().x, me4().y, A.bag.x, A.bag.y) / M) + ' M TO THE CODES' : '',

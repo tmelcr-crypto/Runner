@@ -156,7 +156,7 @@ function gymEnd() {                         // the bout over (or off): the ring 
 
 /* ---------- the RING button by the ring's steps ---------- */
 function gymKey() {
-  const S = GYM.S; if (!S || !gymOn() || !feat('ringFights') || GYM.fight || P.car || P.dead || P.act || state !== 'play' || CUT.on || S.ms || !gymOpen()) return null;
+  const S = GYM.S; if (!S || !gymOn() || !feat('ringFights') || (storyOn() && stDone('m12')) || GYM.fight || P.car || P.dead || P.act || state !== 'play' || CUT.on || S.ms || !gymOpen()) return null;
   const st = gymWorld(S.steps.x, S.steps.z); if (dist(P.x, P.y, st.x, st.y) > 28) return null;
   if (msShut()) return null;
   return GYM.won >= 5 ? { done: true } : { k: GYM.won + 1 };

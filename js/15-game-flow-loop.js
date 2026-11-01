@@ -44,6 +44,7 @@ function resetGame(sv) {                     // a new game with the options in O
   resetFence(); resetPlanes();                                     // the airport fence whole again, planes at the gates (js/10f, js/08i)
   resetPlaces(); resetShips();                                     // guards, barriers, the base and its armoury, ships at their berths (js/08j, js/08k)
   rampReset();                                                     // no rampage running, none found yet (a saved game says which, js/15b)
+  storyReset();                                                    // STORY from the start, or MISSIONS TEST's switches as they were (a saved game says more, js/08zzr)
   if (P.car && P.car.t.hidden) cars = cars.filter(c => !(c.keep && c.type === P.car.type && c !== P.car));   // saved while driving it: it is not back at its spot too
   spawnT = 0; resetPolice(); refuges = null; resetSky(); autoT = 0;
   if (sv) applySave(sv);                                        // score, weapons, health, the clock and the weather (js/15b)
@@ -55,7 +56,8 @@ function startGame(sv) {                     // sv: a saved game to carry on (js
   $('hud').hidden = false;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   if (gameMode === 'test') testKit();                             // MISSIONS TEST: everything, and the list of missions (js/08zy)
-  toast(sv ? 'GAME LOADED' : gameMode === 'test' ? (MS.on ? 'MISSION ' + MS.m.no + ' · ' + MS.m.title : 'MISSIONS TEST - PICK A MISSION') : 'FIND A CAR. CAUSE SOME TROUBLE.');
+  if (!sv) storyStart();                                          // STORY: no car, and the arrival (js/08zzr)
+  if (sv || gameMode !== 'story') toast(sv ? 'GAME LOADED' : gameMode === 'test' ? (MS.on ? 'MISSION ' + MS.m.no + ' · ' + MS.m.title : 'MISSIONS TEST - PICK A MISSION') : 'FIND A CAR. CAUSE SOME TROUBLE.');
 }
 function showOver() {
   state = 'over'; toggleBigMap(false); toggleWheel(false);
@@ -135,7 +137,7 @@ function update(dt, idle) {
   planesTick(dt);                                                   // the airport: the next landing or take-off, burning wrecks (js/08i)
   placesTick(dt); shipsTick(dt); deliveryTick(dt);                                    // guards, barriers, the base; ships and cranes (js/08j, js/08k)
   manageSpawns(dt); updateServices(dt); updateParticles(dt); launchTick(dt);   // the launch goes on in S8's cutscene too (js/10zj)
-  if (!idle) { updatePolice(dt); updateHeli(dt); rbTick(dt); statTick(dt); prisonTick(dt); siteTick(dt); casinoTick(dt); marinaTick(dt); stuntTick(dt); ixTick(dt); gymTick(dt); depotTick(dt); funTick(dt); substTick(dt); newsTick(); golfTick(); bankTick(); spaceTick(dt); estateTick(dt); ch5Tick(dt); rallyTick(dt); ottoTick(); msTick(dt); }   // roadblocks ahead of you (js/08zr); distance, 100% and the gold car (js/08zs)                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
+  if (!idle) { updatePolice(dt); updateHeli(dt); rbTick(dt); statTick(dt); prisonTick(dt); siteTick(dt); casinoTick(dt); marinaTick(dt); stuntTick(dt); ixTick(dt); gymTick(dt); depotTick(dt); funTick(dt); substTick(dt); newsTick(); golfTick(); bankTick(); spaceTick(dt); estateTick(dt); ch5Tick(dt); rallyTick(dt); ottoTick(); msTick(dt); storyTick(dt); }   // roadblocks ahead of you (js/08zr); distance, 100% and the gold car (js/08zs)                  // who sees you, the search, the stop order, sending cars (js/08b); the helicopter (js/08u)
   if (!idle) {
     const c = P.car;
     if (c && !P.dead) { Snd.setEngine(true, carSpeed(c) / c.t.max, c.thr); Snd.setScreech(carSpeed(c) > 80 ? clamp((c.slip - 80) / 160, 0, 1) : 0); }

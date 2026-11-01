@@ -63,6 +63,7 @@ function dressPerson(o, outfit) {          // o: a figure from buildPerson; outf
   if (hat) {
     const h1 = hat.c1, h2 = hat.c2 || hat.c1, hs = hat.style;
     if (hs === 'cap') { addH(h1, 4.3, 2.6, 4.3, 0.3, 25.8, 0, GSph); addH(h2, 3.8, 0.5, 4.6, 4.6, 25.4, 0); }
+    else if (hs === 'peaked') { addH(h1, 5.0, 1.6, 5.0, 0.2, 27.2, 0, GCyl); addH(h2, 4.3, 1.2, 4.3, 0.2, 25.9, 0, GCyl); addH(h2, 2.6, 0.4, 4.2, 4.3, 25.4, 0); }   // a peaked cap: the flat crown, the band, the short visor (the captain's, the chauffeur's)
     else if (hs === 'beanie') { addH(h1, 4.4, 3.6, 4.4, 0.1, 25.4, 0, GSph); addH(h2, 4.45, 1.2, 4.45, 0.1, 24.2, 0, GCyl); }
     else if (hs === 'bucket') { addH(h1, 4, 2.6, 4, 0.3, 26.6, 0, GCyl); addH(h1, 6.2, 0.4, 6.2, 0.3, 25.3, 0, GCyl); addH(h2, 4.05, 0.8, 4.05, 0.3, 25.9, 0, GCyl); }
     else if (hs === 'fedora') { addH(h1, 3.8, 3.4, 3.8, 0.3, 27.4, 0, GCyl); addH(h2, 3.85, 0.9, 3.85, 0.3, 26.1, 0, GCyl); addH(h1, 6.4, 0.4, 6.4, 0.3, 25.6, 0, GCyl); }

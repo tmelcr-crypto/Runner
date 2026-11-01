@@ -49,10 +49,10 @@ MSCRIPT.m25 = (() => {
         msLive([10], { now: true }); },
       tick(A) { return !!P.car; },
       info: () => 'GET IN A CAR',
-      jump(A) { if (!P.car) { P.x = A.mycar.x; P.y = A.mycar.y; enterCar(A.mycar); } } },
+      jump(A) { if (!P.car && A.mycar) { P.x = A.mycar.x; P.y = A.mycar.y; enterCar(A.mycar); } } },
     { enter(A) { ESTATE.ms.gate = false; MS.mark = null; MS.guide = null; A.loseT = 0; },         // LOSE THEM: far from every car still after you, off Pearl Key
       tick(A, dt) {
-        const near = A.chase.filter(c => !c.dead && !c.fc.out && dist(c.x, c.y, me().x, me().y) < N().loseM * M).length, off = dist(me().x, me().y, ESTATE.L.x, ESTATE.L.y) > N().offM * M;
+        const near = (A.chase || []).filter(c => !c.dead && !c.fc.out && dist(c.x, c.y, me().x, me().y) < N().loseM * M).length, off = dist(me().x, me().y, ESTATE.L.x, ESTATE.L.y) > N().offM * M;
         A.loseT = near || !off ? 0 : A.loseT + dt; if (A.end) return A.end === 2;
         if (A.loseT < 2.5) return false; A.end = 1; msLive([11], { now: true, done: () => { A.end = 2; } }); return false; },
       info: A => A.chase.filter(c => !c.dead && !c.fc.out).length + " OF CRANE'S CARS AFTER YOU",
@@ -162,7 +162,7 @@ MSCRIPT.m28 = (() => {
       tick: A => !!A.go },
     { enter(A) { MS.mark = () => A.mycar; MS.guide = () => A.mycar; },                              // GET IN: his men are already on the street
       tick(A) { return !!P.car; }, info: () => 'GET IN A CAR',
-      jump(A) { if (!P.car) { P.x = A.mycar.x; P.y = A.mycar.y; enterCar(A.mycar); } } },
+      jump(A) { if (!P.car && A.mycar) { P.x = A.mycar.x; P.y = A.mycar.y; enterCar(A.mycar); } } },
     { enter(A) { MS.guide = null; A.t0 = gameT; const c = me();                                      // DRIVE the tape to Bay TV or the FBI: cars ram you, his helicopter overhead
         A.cars = [0, 1].map(k => { const r = CH4.near(c.x, c.y, 500 + k * 200, 800 + k * 200), kk = kerbBy(r.x, r.y);
           const f = msFoeCar('sedan', kk.x, kk.y, kk.ang, Object.assign({ mode: 'chase', crew: 2, gun: k ? 'smg' : 'pistol', group: 'proof', speed: N().carSpeed, color: '#14161d', crewHp: N().menHp }, CH4.men)); f.fc.wait = 1 + k * 2; return f; });
@@ -227,7 +227,7 @@ MSCRIPT.m29 = (() => {
         cam.x = P.x; cam.y = P.y; MS.guide = A.to; MS.mark = () => A.to; },
       tick(A) { if (V()) return !P.car && dist(P.x, P.y, A.to.x, A.to.y) < N().reachM * M; return dist(me().x, me().y, A.to.x, A.to.y) < 30 * M; },
       info: A => (V() ? Math.round(dist(me().x, me().y, A.to.x, A.to.y) / M) + " M TO CRANE'S DOCK (LAND ON THE JETTY)" : Math.round(dist(me().x, me().y, A.to.x, A.to.y) / M) + " M TO CRANE'S GATE · " + msFoesLeft('bridge') + ' ON THE CAUSEWAY'),
-      jump(A) { if (P.car) exitCar(true); P.x = A.to.x; P.y = A.to.y + (V() ? 30 : -20); } },
+      jump(A) { if (!A.to) this.enter(A); if (P.car) exitCar(true); P.x = A.to.x; P.y = A.to.y + (V() ? 30 : -20); } },   // (a step jumped to: its boat or car and its friends set out first)
     { enter(A) { const E = ESTATE;                                                                // IN: the dock gate, Sal's tunnel, the van or a charge at the front gate
         if (V()) { E.ms.dock = true; if (A.marco.aboard) allyAlight(A.marco); msLive([12], { now: true }); A.way = 'dock'; MS.mark = () => E.dock.in; MS.guide = E.dock.in; }
         else if (PZ()) { A.way = 'tunnel'; MS.mark = () => E.boathouse.door; MS.guide = E.boathouse.door; }
