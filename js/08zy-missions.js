@@ -170,7 +170,40 @@ function msKey() {
   const t = s.at(); return t && !t.dead && dist(P.x, P.y, t.x, t.y) < 60 ? s : null;
 }
 function msUse(s) { MS.start = null; $('msBtn').hidden = true; if (s === MS.ring) MS.ring = null; if (storyOn()) stUsed(); s.go(); }   // STORY: START pressed or the phone answered - under way (js/08zzr)
+/* ---------- where a mission's words go (every frame, from msUi): the objective, a live line and a meter between the HUD's corners
+   (under them on a narrow screen), clear of the touch buttons; the pager and the phone under the minimap (on a touch screen under
+   the small HUD at the top left); a chapter's title below them all ---------- */
+const msRect = e => { if (!e || e.hidden) return null; const r = e.getBoundingClientRect(); return r.width && r.height ? r : null; };
+function msLayout() {
+  const o = $('msObj'), lv = $('msLive'), bar = $('msBar'), card = $('stCard'), gad = [$('pager'), $('phone')].filter(g => g && !g.hidden);
+  if (o.hidden && lv.hidden && bar.hidden && !gad.length && (!card || card.hidden)) return;
+  const W = innerWidth, H = innerHeight, tl = msRect(document.querySelector('.hud-tl')), tch = msRect($('hudTouch')), tr = msRect(document.querySelector('.hud-tr'));
+  const left = tl || tch, wb = msRect($('weaponbar')), mid = wb && left && wb.left > left.right ? wb : null;   // the weapon, sound and menu buttons at the top middle (not on a touch screen)
+  let lb = left ? left.bottom : 0, lr = left ? left.right : 0, rb = tr ? tr.bottom : 0;
+  for (const g of gad) {                                            // the gadgets: under the small HUD (touch) or under the minimap
+    if (tch && !tl) { g.style.left = tch.left + 'px'; g.style.right = 'auto'; g.style.top = (lb + 8) + 'px'; const r = msRect(g); if (r) { lb = r.bottom; lr = Math.max(lr, r.right); } }
+    else { g.style.left = g.style.right = ''; g.style.top = (rb + 8) + 'px'; const r = msRect(g); if (r) rb = r.bottom; }
+  }
+  const btns = ['bAct', 'bDash'].map(id => msRect($(id))).filter(Boolean);   // the touch buttons on the right
+  let L = lr + 10, R = (tr ? tr.left : W - 12) - 10, T0 = mid ? mid.bottom + 24 : 12;
+  if (R - L < 300) { L = 12; R = W - 12; T0 = Math.max(lb, rb) + 10; }  // too narrow between the corners: under them, the whole width
+  const place = (L, R) => {
+    const cx = (L + R) / 2 + 'px', w = R - L, big = o.classList.contains('big'), out = [];
+    const put = (e, top) => { e.style.left = cx; e.style.top = top + 'px'; e.style.maxWidth = w + 'px'; const r = e.getBoundingClientRect(); out.push(r); return r.bottom + 6; };
+    let y = T0;
+    if (!o.hidden && !big) y = put(o, y);
+    if (!lv.hidden) { lv.style.width = Math.min(520, w) + 'px'; y = put(lv, y); }
+    if (!bar.hidden) y = put(bar, y);
+    if (!o.hidden && big) y = put(o, Math.max(y, H * 0.24));
+    return { y, out };
+  };
+  let res = place(L, R);
+  const hit = res.out.some(r => btns.some(q => r.right > q.left && r.left < q.right && r.bottom > q.top && r.top < q.bottom));
+  if (hit) res = place(L, Math.min(R, ...btns.map(q => q.left - 10)));   // keep off ENTER / DASH
+  if (card && !card.hidden) card.style.top = Math.max(H * 0.34, res.y + 10) + 'px';
+}
 function msUi() {                          // every frame (js/14): the button by you
+  msLayout();
   const k = msKey(), b = $('msBtn'); if (!b) return;
   if (!k) { if (!b.hidden) b.hidden = true; return; }
   if (b.hidden || b.dataset.s !== k.label) { b.hidden = false; b.dataset.s = k.label; b.querySelector('b').textContent = k.label; b.querySelector('.go').textContent = k.go2 || 'START MISSION'; b.style.setProperty('--sc', '#b6ff3c'); }
@@ -197,7 +230,7 @@ function msSay(nums, done, o = {}) {       // nums: line numbers (1-based) of th
   const lines = nums.map(n => MS.m.lines[n - 1]).filter(Boolean); if (!lines.length) { done && done(); return; }
   MS.talk = { lines, i: -1, shown: 0, t: 0, last: 0, done, ret: CUT.on ? null : state, phone: !!o.phone }; if (MS_LIVE.cur) $('msLive').hidden = true;   // a live line waits out of sight
   if (!CUT.on) { state = 'talk'; hush(); }
-  $('msTalk').hidden = false; msLine(0); requestAnimationFrame(msTalkLoop);
+  $('msTalk').hidden = false; document.documentElement.classList.add('talk'); msLine(0); requestAnimationFrame(msTalkLoop);
 }
 function msLine(i) {
   const T = MS.talk; T.i = i; T.shown = 0; T.t = 0; const L = T.lines[i], ch = msWho(L.who) || { name: L.who.toUpperCase(), letter: '?', bubble: '#ffffff', mumble: {} };
@@ -288,7 +321,7 @@ function msTalkNext() {
   if (T.i + 1 < T.lines.length) { msLine(T.i + 1); return; }
   const done = T.done, ret = T.ret; msTalkClose(); if (ret) state = ret; if (done) done();
 }
-function msTalkClose() { if (MS.talk && MS.talk.ret && state === 'talk') state = MS.talk.ret; MS.talk = null; $('msTalk').hidden = true; }
+function msTalkClose() { if (MS.talk && MS.talk.ret && state === 'talk') state = MS.talk.ret; MS.talk = null; $('msTalk').hidden = true; document.documentElement.classList.remove('talk'); }
 let msTapT = -1e9;                         // when a tap or a key last turned the page
 const msTalkGuard = () => performance.now() - msTapT < 600;   // just after a page turn: a second press does nothing else
 const msTalkOwn = e => !(e.target && e.target.closest && e.target.closest('#cutSkip, #menuBtn'));   // SKIP and MENU still work during a line
